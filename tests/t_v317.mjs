@@ -1,6 +1,6 @@
 import fs from 'fs';
 const src=process.argv[2];let ok=0,bad=0;const c=(n,x)=>{if(x){ok++}else{bad++;console.log('FAIL',n)}};
-let store={};const kv={get:async()=>store.v?JSON.parse(store.v):null,put:async(k,v)=>{store.v=v}};
+let store={};const kv={get:async(k,o)=>{const v=store[k];if(v==null)return null;return o&&o.type==='json'?JSON.parse(v):v},put:async(k,v)=>{store[k]=v},delete:async k=>{delete store[k]}};
 globalThis.fetch=async()=>({ok:false,status:500,text:async()=>''});
 let n=0;const load=async()=>(await import(src+'?i='+(++n))).default;
 const env={CLUB_PIN:'1',SETTINGS:kv};

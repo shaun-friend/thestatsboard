@@ -16,7 +16,7 @@ let pass=0,fail=0;const ok=(n,c)=>{console.log(c?'PASS':'FAIL',n);c?pass++:fail+
 const ctx={waitUntil(p){ctx.p.push(p)},p:[]};
 const flush=async()=>{await Promise.all(ctx.p);ctx.p=[]};
 const written=[];const ups=[];const USAGE={writeDataPoint(d){(d.blobs[1]==='up'?ups:written).push(d)}};
-let j4x,kvData=null;const kv={async get(){return kvData},async put(k,v){kvData=JSON.parse(v)}};
+let j4x,kvData=null;const aux={};const kv={async get(k,o){if(k!=='club:ivybridge'){const v=aux[k];return v==null?null:(o&&o.type==='json'?JSON.parse(v):v)}return kvData},async put(k,v){if(k!=='club:ivybridge'){aux[k]=v;return}kvData=JSON.parse(v)},async delete(k){delete aux[k]}};
 const env={CLUB_PIN:'1234',SETTINGS:kv,USAGE,CF_ACCOUNT_ID:'acc1',CF_API_TOKEN:'tok1'};
 const UA='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1';
 const req=(p,h={})=>new Request('https://thestatsboard.co.uk'+p,{headers:{'User-Agent':UA,'CF-Connecting-IP':'1.2.3.4',...h}});

@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.19   | 12-Nov-2026 | RFU_Club_Dashboard_v3.19_signin_lockout.zip         | v3.18.3
 v3.18.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.3_release_table.zip         | v3.18.2
 v3.18.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.2_footer_welcome.zip        | v3.18.1
 v3.18.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.1_tagline.zip              | v3.18
@@ -177,6 +178,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.19 - Safer sign-in and a temporary lockout (security part a)
+- Sign-in cookies (club PIN and test-site PIN) are no longer a fixed code made from the PIN. They are random, expire (club: the sign-in length set in Admin; test site: 30 minutes) and are signed with a secret that is not the PIN. A captured cookie therefore cannot be used to work out the PIN, cannot be copied after it expires, and cannot be made up. Changing the PIN still signs everyone out at once.
+- The signing secret is the SESSION_SECRET variable if you set one (16 or more characters), otherwise a random secret created once and kept in the settings store. Without either (no settings store) the site falls back to the old strength.
+- Lockout: 5 wrong PINs from the same address within 15 minutes pauses that address for 15 minutes; a repeat pause is 1 hour, then 4 hours. The pause is per address, never permanent, and never affects anyone else. During a pause the correct PIN is refused too, with a message saying how long to wait. A correct PIN clears the count. The 1.2 second delay on wrong PINs stays. Wrong PINs typed in the maintenance-mode confirmation box count too. If you lock yourself out: wait, use another network (phone data), or change CLUB_PIN in Cloudflare.
+- Everyone is asked for the PIN once more after this update, because old cookies are not accepted.
+- Usage page: the "Wrong PIN entries" card now also shows how many temporary pauses started and how many guesses were refused while paused.
+- Tests: new cookie format, tampered and expired cookies, PIN change, different cookie each sign-in, the old cookie format refused, lockout after five, other addresses unaffected, pause ends, second pause longer, correct PIN clears the count, test-site PIN and maintenance box covered, usage records written.
 
 v3.18.3 - Release table order
 - Owner report (12-Nov-2026): the release table was not in order. Rows v29e to v30v had been listed oldest first and sat above v30w to v30y; they are now newest first like the rest.

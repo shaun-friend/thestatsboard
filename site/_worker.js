@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.19 12-Nov-2026 Security: random expiring sign-in tokens (club and test PINs) and a temporary lockout after repeated wrong PINs.
 //   v3.18.3 12-Nov-2026 Release table in the README put back in order; release check now catches a mis-ordered table.
 //   v3.18.2 12-Nov-2026 Match Stats footer spacing; welcome page fits with recent teams.
 //   v3.18.1 12-Nov-2026 Tagline changed to "Your club’s rugby fixtures, results and tables at a glance."
@@ -166,7 +167,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.18.3";
+const VERSION = "v3.19";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -208,6 +209,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.19   | 12-Nov-2026 | RFU_Club_Dashboard_v3.19_signin_lockout.zip         | v3.18.3
 v3.18.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.3_release_table.zip         | v3.18.2
 v3.18.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.2_footer_welcome.zip        | v3.18.1
 v3.18.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.1_tagline.zip              | v3.18
@@ -349,6 +351,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.19 - Safer sign-in and a temporary lockout (security part a)
+- Sign-in cookies (club PIN and test-site PIN) are no longer a fixed code made from the PIN. They are random, expire (club: the sign-in length set in Admin; test site: 30 minutes) and are signed with a secret that is not the PIN. A captured cookie therefore cannot be used to work out the PIN, cannot be copied after it expires, and cannot be made up. Changing the PIN still signs everyone out at once.
+- The signing secret is the SESSION_SECRET variable if you set one (16 or more characters), otherwise a random secret created once and kept in the settings store. Without either (no settings store) the site falls back to the old strength.
+- Lockout: 5 wrong PINs from the same address within 15 minutes pauses that address for 15 minutes; a repeat pause is 1 hour, then 4 hours. The pause is per address, never permanent, and never affects anyone else. During a pause the correct PIN is refused too, with a message saying how long to wait. A correct PIN clears the count. The 1.2 second delay on wrong PINs stays. Wrong PINs typed in the maintenance-mode confirmation box count too. If you lock yourself out: wait, use another network (phone data), or change CLUB_PIN in Cloudflare.
+- Everyone is asked for the PIN once more after this update, because old cookies are not accepted.
+- Usage page: the "Wrong PIN entries" card now also shows how many temporary pauses started and how many guesses were refused while paused.
+- Tests: new cookie format, tampered and expired cookies, PIN change, different cookie each sign-in, the old cookie format refused, lockout after five, other addresses unaffected, pause ends, second pause longer, correct PIN clears the count, test-site PIN and maintenance box covered, usage records written.
 
 v3.18.3 - Release table order
 - Owner report (12-Nov-2026): the release table was not in order. Rows v29e to v30v had been listed oldest first and sat above v30w to v30y; they are now newest first like the rest.
@@ -1417,6 +1427,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.19", "Safer sign-in: PIN cookies are now random, expiring and signed, and repeated wrong PINs from one source pause that source for a while. Everyone is asked for the PIN once more."],
       ["v3.18.3", "Housekeeping: the release table in the notes is back in the right order."],
       ["v3.18.2", "The footer on Match Stats has more room, and the welcome page is shorter when you have recent teams, so it fits without scrolling on most laptops."],
       ["v3.18.1", "New tagline on the welcome page and shared links: Your club\u2019s rugby fixtures, results and tables at a glance."],
@@ -1780,10 +1791,12 @@ async function adminApi(request, url) {
     const pin = SITE_ENV && typeof SITE_ENV.CLUB_PIN === "string" ? SITE_ENV.CLUB_PIN.trim() : "";
     if (s.maintenance.on && !was && pin) {
       const given = typeof b.pin === "string" ? b.pin.trim() : "";
-      if (!given || !safeEq(await clubToken(given), await clubToken(pin))) {
-        if (given) { await usagePinFail(request, "club"); await new Promise(r => setTimeout(r, 1200)); }
+      { const lk = await lockSecs(request, "club"); if (lk > 0) { await usagePinFail(request, "club-lock"); return J({ ok: false, needPin: true, error: lockMsg(lk) + " Maintenance mode was not switched on." }, 429); } }
+      if (!(await pinOk(given, pin))) {
+        if (given) { await usagePinFail(request, "club"); const f = await lockFail(request, "club"); await pinDelay(); if (f.locked) return J({ ok: false, needPin: true, error: lockMsg(f.secs) + " Maintenance mode was not switched on." }, 429); }
         return J({ ok: false, needPin: true, error: given ? "That PIN was not right. Maintenance mode was not switched on." : "Enter the club PIN to switch maintenance mode on." }, 403);
       }
+      await lockClear(request, "club");
     } }
   try { await kv.put(SETTINGS_KEY, JSON.stringify(s)); } catch (_) { return J({ ok: false, error: "Could not save to settings storage. Try again." }, 502); }
   SETTINGS_CACHE = { at: Date.now(), v: s };
@@ -1917,10 +1930,10 @@ function screensCard(d){
  return'<div class="cd"><h2>What the screens are showing</h2><p class="n">Screen loads by page and team. "Most screens on a day" is the most different screens seen in one day.</p>'+(a.length?'<table><tr><td class="mu">Screen page</td><td class="mu">Team</td><td class="nu mu" style="width:90px">Most screens</td><td class="nu mu">Loads</td><td class="bw" style="width:22%"></td></tr>'+a.map(function(r){return"<tr><td>"+esc(SN[r.view]||r.view)+"</td><td>"+esc(nm(r))+'</td><td class="nu">'+num(r.screens)+'</td><td class="nu">'+num(r.loads)+'</td><td><i style="display:block;height:8px;border-radius:4px;background:#4a8fd6;width:'+Math.max(3,Math.round(r.loads/tot*100))+'%"></i></td></tr>'}).join("")+"</table>":'<p class="msg mu">Nothing yet.</p>')+"</div>"}
 function clubCard(d){
  var CP={usage:"Usage page",admin:"Admin page",docs:"Documentation",links:"Links page"},cp={};(d.clubPg||[]).forEach(function(r){cp[r.view]=r});
- var pf=(d.pinDay||[]),bad=pf.reduce(function(a,r){return a+Number(r.n)},0),src=pf.reduce(function(a,r){return a+Number(r.sources)},0),byDay={};pf.forEach(function(r){var o2=byDay[r.d]||(byDay[r.d]={n:0,w:{}});o2.n+=Number(r.n);o2.w[r.which]=1});
+ var pf=(d.pinDay||[]),isL=function(w){return /-(lock|pause)$/.test(w)},bad=pf.reduce(function(a,r){return isL(r.which)?a:a+Number(r.n)},0),paused=pf.reduce(function(a,r){return /-pause$/.test(r.which)?a+Number(r.n):a},0),refused=pf.reduce(function(a,r){return /-lock$/.test(r.which)?a+Number(r.n):a},0),src=pf.reduce(function(a,r){return isL(r.which)?a:a+Number(r.sources)},0),byDay={};pf.forEach(function(r){if(isL(r.which))return;var o2=byDay[r.d]||(byDay[r.d]={n:0,w:{}});o2.n+=Number(r.n);o2.w[r.which]=1});
  var days=Object.keys(byDay).sort().reverse().slice(0,7);
  return'<div class="tw"><div class="cd"><h2>Club pages</h2><p class="n">Times each page was opened by someone who had signed in. Robots are left out.</p>'+rows(["usage","admin","docs","links"],function(k2){var r=cp[k2]||{n:0,who:0};return"<tr><td>"+CP[k2]+'</td><td class="nu">'+num(r.n)+'</td><td class="nu mu" style="width:110px">'+num(r.who)+" person-days</td></tr>"})+"</div>"+
- '<div class="cd'+(bad?" hl":"")+'"><h2>Wrong PIN entries</h2><p class="n">'+(bad?"Each wrong PIN typed on the club PIN page (or the test site PIN page). Robots are included here.":"No wrong PINs in this period.")+"</p>"+(bad?'<p class="msg"><b>'+num(bad)+"</b> wrong entries from about "+num(src)+" source-days.</p>"+rows(days,function(dd){var o2=byDay[dd];return"<tr><td>"+esc(new Date(dd+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))+'</td><td class="nu">'+num(o2.n)+"</td></tr>"})+((d.pinWhere||[]).length?'<p class="n" style="margin-top:10px">Where from: '+d.pinWhere.map(function(r){return esc((r.region?r.region+", ":"")+(r.country||"unknown"))+" ("+num(r.n)+")"}).join("; ")+"</p>":""):"")+"</div></div>"}
+ '<div class="cd'+(bad||paused?" hl":"")+'"><h2>Wrong PIN entries</h2><p class="n">'+(bad?"Each wrong PIN typed on the club PIN page (or the test site PIN page). Robots are included here.":"No wrong PINs in this period.")+"</p>"+(bad?'<p class="msg"><b>'+num(bad)+"</b> wrong entries from about "+num(src)+" source-days.</p>"+(paused?'<p class="msg"><b>'+num(paused)+"</b> temporary pause"+(paused===1?"":"s")+" started (5 wrong PINs from one source)"+(refused?"; "+num(refused)+" further guess"+(refused===1?" was":"es were")+" refused while paused":"")+".</p>":"")+rows(days,function(dd){var o2=byDay[dd];return"<tr><td>"+esc(new Date(dd+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))+'</td><td class="nu">'+num(o2.n)+"</td></tr>"})+((d.pinWhere||[]).length?'<p class="n" style="margin-top:10px">Where from: '+d.pinWhere.map(function(r){return esc((r.region?r.region+", ":"")+(r.country||"unknown"))+" ("+num(r.n)+")"}).join("; ")+"</p>":""):"")+"</div></div>"}
 function upDayCard(d){
  var sp=d.speed||{},a=sp.day;
  if(!a)return"";
@@ -5556,6 +5569,85 @@ ${layout === "tv" ? "" : themeToggleScript}${refreshScript}</body></html>`;
 // DEV PIN gate. On the dev site (ENV_LABEL set) every page needs the PIN from the DEV_PIN
 // variable. A correct PIN sets a 30-minute cookie holding a hash of the PIN, so changing DEV_PIN
 // locks everyone out again. Production is never affected.
+
+// Sign-in tokens and PIN lockout (v3.19).
+// A sign-in cookie is no longer a fixed hash of the PIN. It is a random, expiring, signed token ("v2.<expiry>.<random>.<signature>").
+// The signature uses a secret that is not the PIN (the SESSION_SECRET variable if set, otherwise a random secret kept in the
+// settings store), so a captured cookie reveals nothing about the PIN and cannot be made or extended without the secret. The
+// signature also covers a fingerprint of the current PIN, so changing the PIN signs everyone out at once.
+// Wrong PINs are counted per visitor address: 5 wrong in 15 minutes pauses that address for 15 minutes, then 1 hour, then 4 hours.
+// A pause is never permanent and never affects other addresses.
+const SESSION_SECRET_KEY = "club:" + CLUB_ID + ":secret";
+let SESSION_SECRET_CACHE = "";
+const sbHexOf = u8 => Array.from(u8).map(b => b.toString(16).padStart(2, "0")).join("");
+const sbRand = n => sbHexOf(crypto.getRandomValues(new Uint8Array(n)));
+async function sbSha(text) { return sbHexOf(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))); }
+async function sbHmac(key, msg) {
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return sbHexOf(new Uint8Array(await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(msg))));
+}
+async function sessionSecret() {
+  const e = SITE_ENV && typeof SITE_ENV.SESSION_SECRET === "string" ? SITE_ENV.SESSION_SECRET.trim() : "";
+  if (e.length >= 16) return e;
+  if (SESSION_SECRET_CACHE) return SESSION_SECRET_CACHE;
+  const kv = kvOf();
+  if (kv) {
+    try { let v = await kv.get(SESSION_SECRET_KEY); if (!v || v.length < 32) { v = sbRand(32); await kv.put(SESSION_SECRET_KEY, v); } SESSION_SECRET_CACHE = v; return v; } catch (_) { /* fall through */ }
+  }
+  return ""; // no secret available: the fallback below is only as strong as the old cookie was
+}
+async function makeSession(kind, pin, ttlS) {
+  const secret = (await sessionSecret()) || "pin|" + pin, exp = Math.floor(Date.now() / 1000) + ttlS, nonce = sbRand(12);
+  const fp = (await sbHmac(secret, "pin|" + pin)).slice(0, 16);
+  return "v2." + exp + "." + nonce + "." + await sbHmac(secret, [kind, exp, nonce, fp].join("|"));
+}
+async function checkSession(kind, pin, token) {
+  const m = /^v2\.(\d{9,11})\.([0-9a-f]{24})\.([0-9a-f]{64})$/.exec(token || ""); if (!m) return false;
+  if (Number(m[1]) < Math.floor(Date.now() / 1000)) return false;
+  const secret = (await sessionSecret()) || "pin|" + pin, fp = (await sbHmac(secret, "pin|" + pin)).slice(0, 16);
+  return safeEq(await sbHmac(secret, [kind, m[1], m[2], fp].join("|")), m[3]);
+}
+const LOCK_MAX = 5, LOCK_WINDOW_MS = 15 * 60 * 1000, LOCK_STEPS_S = [900, 3600, 14400];
+const LOCK_MEM = new Map();
+async function lockKey(request, which) {
+  const salt = String(SITE_ENV.USAGE_SALT || SITE_ENV.CLUB_PIN || "sb");
+  return "lock:" + which + ":" + (await sbSha(["lock", which, request.headers.get("CF-Connecting-IP") || "", salt].join("|"))).slice(0, 24);
+}
+async function lockLoad(key) {
+  let st = LOCK_MEM.get(key);
+  if (!st) { const kv = kvOf(); if (kv) { try { st = await kv.get(key, { type: "json" }); } catch (_) { st = null; } } }
+  return st && typeof st === "object" ? { n: Number(st.n) || 0, t: Number(st.t) || 0, s: Number(st.s) || 0, u: Number(st.u) || 0 } : { n: 0, t: 0, s: 0, u: 0 };
+}
+async function lockSave(key, st) {
+  LOCK_MEM.set(key, st); if (LOCK_MEM.size > 500) LOCK_MEM.delete(LOCK_MEM.keys().next().value);
+  const kv = kvOf(); if (kv) { try { await kv.put(key, JSON.stringify(st), { expirationTtl: 86400 }); } catch (_) { /* memory copy still applies */ } }
+}
+async function lockSecs(request, which) { const st = await lockLoad(await lockKey(request, which)), left = Math.ceil((st.u - Date.now()) / 1000); return left > 0 ? left : 0; }
+async function lockFail(request, which) {
+  const key = await lockKey(request, which), st = await lockLoad(key), now = Date.now();
+  if (st.u > now) return { locked: true, secs: Math.ceil((st.u - now) / 1000) };
+  if (now - st.t > LOCK_WINDOW_MS) { st.n = 0; st.t = now; }
+  st.n++;
+  if (st.n >= LOCK_MAX) {
+    st.s = Math.min(st.s + 1, LOCK_STEPS_S.length); const secs = LOCK_STEPS_S[st.s - 1];
+    st.u = now + secs * 1000; st.n = 0; st.t = 0; await lockSave(key, st);
+    await usagePinFail(request, which + "-pause");
+    return { locked: true, secs };
+  }
+  await lockSave(key, st); return { locked: false };
+}
+async function lockClear(request, which) {
+  const key = await lockKey(request, which), st = await lockLoad(key);
+  if (st.n || st.s || st.u) { LOCK_MEM.delete(key); const kv = kvOf(); if (kv && typeof kv.delete === "function") { try { await kv.delete(key); } catch (_) { /* expires on its own */ } } }
+}
+function lockMsg(secs) {
+  const h = Math.ceil(secs / 3600), m = Math.max(1, Math.ceil(secs / 60));
+  return "Too many wrong PINs. Please wait " + (secs >= 3600 ? h + (h === 1 ? " hour" : " hours") : m + (m === 1 ? " minute" : " minutes")) + " and try again.";
+}
+const pinDelay = () => new Promise(r => setTimeout(r, SITE_ENV && /^\d{1,4}$/.test(String(SITE_ENV.PIN_DELAY_MS || "")) ? Number(SITE_ENV.PIN_DELAY_MS) : 1200)); // slows down guessing
+const pinOk = async (given, pin) => !!given && safeEq(await clubToken(given), await clubToken(pin));
+function lockedPage(label, secs, action, heading) { const r = pinPage(label, lockMsg(secs), null, 429, action, heading); r.headers.set("Retry-After", String(secs)); return r; }
+
 const PIN_COOKIE = "rfuDev";
 async function pinToken(pin) {
   const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("rfu-dev-v1|" + pin));
@@ -5585,22 +5677,25 @@ async function devGate(request, env, label) {
   const url = new URL(request.url);
   if (isIconPath(url.pathname)) return null; // the tab icon is not secret and the PIN page itself needs it
   if (!pin) return pinPage(label, "This environment is locked until a DEV_PIN variable is set in the Cloudflare Pages project settings.", null, 503);
-  const token = await pinToken(pin);
   const cleanNext = n => (typeof n === "string" && n.startsWith("/") && !n.startsWith("//") && !n.startsWith("/\\") ? n : "/");
   if (url.pathname === "/unlock") {
+    { const lk = await lockSecs(request, "dev"); if (lk > 0) { if (request.method === "POST") await usagePinFail(request, "dev-lock"); return lockedPage(label, lk); } }
     if (request.method === "POST") {
       let given = "", next = "/";
       try { const f = await request.formData(); given = String(f.get("pin") || "").trim(); next = cleanNext(String(f.get("next") || "/")); } catch (_) { /* bad form */ }
-      if (given && safeEq(await pinToken(given), token)) {
-        return new Response(null, { status: 303, headers: { "Location": next, "Cache-Control": "no-store", "Set-Cookie": `${PIN_COOKIE}=${token}; Path=/; Max-Age=1800; HttpOnly; Secure; SameSite=Lax` } });
+      if (given && safeEq(await pinToken(given), await pinToken(pin))) {
+        await lockClear(request, "dev");
+        return new Response(null, { status: 303, headers: { "Location": next, "Cache-Control": "no-store", "Set-Cookie": `${PIN_COOKIE}=${await makeSession("dev", pin, 1800)}; Path=/; Max-Age=1800; HttpOnly; Secure; SameSite=Lax` } });
       }
       await usagePinFail(request, "dev");
-      await new Promise(r => setTimeout(r, 1200)); // slows down guessing
+      const f = await lockFail(request, "dev");
+      await pinDelay();
+      if (f.locked) return lockedPage(label, f.secs);
       return pinPage(label, "That PIN was not right. Try again.", next, 401);
     }
     return pinPage(label, "Enter the PIN to continue.", cleanNext(url.searchParams.get("next") || "/"), 200);
   }
-  if (safeEq(cookieOf(request, PIN_COOKIE), token)) return null; // unlocked
+  if (await checkSession("dev", pin, cookieOf(request, PIN_COOKIE))) return null; // unlocked
   if (request.method === "GET" && !url.pathname.startsWith("/api/")) {
     return new Response(null, { status: 303, headers: { "Location": "/unlock?next=" + encodeURIComponent(url.pathname + url.search), "Cache-Control": "no-store" } });
   }
@@ -5628,15 +5723,19 @@ async function clubGate(request, env, label) {
   }
   if (path === "/club-unlock") {
     if (!pin) return pinPage(label, notSet, null, 503, "/club-unlock", H);
-    const token = await clubToken(pin);
+    { const lk = await lockSecs(request, "club"); if (lk > 0) { if (request.method === "POST") await usagePinFail(request, "club-lock"); return lockedPage(label, lk, "/club-unlock", H); } }
     if (request.method === "POST") {
       let given = "", next = "/?view=teams";
       try { const f = await request.formData(); given = String(f.get("pin") || "").trim(); next = cleanNext(String(f.get("next") || "")); } catch (_) { /* bad form */ }
-      if (given && safeEq(await clubToken(given), token)) {
-        return new Response(null, { status: 303, headers: { "Location": next, "Cache-Control": "no-store", "Set-Cookie": `${CLUB_COOKIE}=${token}; Path=/; Max-Age=${(await siteSettings()).signin.days * 86400}; HttpOnly; Secure; SameSite=Lax` } });
+      if (await pinOk(given, pin)) {
+        await lockClear(request, "club");
+        const ttl = (await siteSettings()).signin.days * 86400;
+        return new Response(null, { status: 303, headers: { "Location": next, "Cache-Control": "no-store", "Set-Cookie": `${CLUB_COOKIE}=${await makeSession("club", pin, ttl)}; Path=/; Max-Age=${ttl}; HttpOnly; Secure; SameSite=Lax` } });
       }
       await usagePinFail(request, "club");
-      await new Promise(r => setTimeout(r, 1200)); // slows down guessing
+      const f = await lockFail(request, "club");
+      await pinDelay();
+      if (f.locked) return lockedPage(label, f.secs, "/club-unlock", H);
       return pinPage(label, "That PIN was not right. Try again.", next, 401, "/club-unlock", H);
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
@@ -5647,7 +5746,7 @@ async function clubGate(request, env, label) {
     if (label) return null; // DEV is already behind DEV_PIN
     return pinPage(label, notSet, null, 503, "/club-unlock", H);
   }
-  if (safeEq(cookieOf(request, CLUB_COOKIE), await clubToken(pin))) return null;
+  if (await checkSession("club", pin, cookieOf(request, CLUB_COOKIE))) return null;
   if (request.method === "GET") {
     return new Response(null, { status: 303, headers: { "Location": "/club-unlock?next=" + encodeURIComponent(url.pathname + url.search), "Cache-Control": "no-store" } });
   }

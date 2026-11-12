@@ -63,7 +63,7 @@ r=await w.fetch(req('/api/admin',{method:'POST',body:'{}'},{'Content-Type':'appl
 r=await w.fetch(req('/api/admin',{method:'POST',body:'{}'},{...H,Origin:'https://evil.example'}),env,ctx);ok('save from another site rejected (403)',r.status===403);
 r=await w.fetch(req('/api/admin',{},{Cookie:ck}),env,ctx);ok('GET on the save address answers 405',r.status===405);
 r=await w.fetch(req('/api/admin',{method:'POST',body:'not json'},H),env,ctx);ok('bad body rejected (400)',r.status===400);
-ok('nothing saved by bad calls',Object.keys(store).length===0);
+ok('nothing saved by bad calls',Object.keys(store).filter(k=>k==='club:ivybridge').length===0);
 // save with messy input
 const bad={notices:{home:{on:true,text:'  Feed <b>down</b> \n today  '+'x'.repeat(300),style:'weird',until:'tomorrow'},tv:{on:true,text:'Bar closed Saturday '+'y'.repeat(200),style:'warning',applies:'nope',teams:['11039','999','11063'],until:'2999-01-01'}},features:{around:false,weather:'no',checked:false,wocolour:true}};
 r=await w.fetch(req('/api/admin',{method:'POST',body:JSON.stringify(bad)},H),env,ctx);let j=await r.json();
