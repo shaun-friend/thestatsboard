@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.21.7 12-Nov-2026 Opposition report: space between the tags at the top when they wrap onto more than one line on a phone.
 //   v3.21.6 12-Nov-2026 Match Centre layouts: crests shown as they are, with no circle behind or clip around them, so no dark bands.
 //   v3.21.5 12-Nov-2026 Match Centre layouts: the circle behind each crest takes on the crest's own colours so it all matches.
 //   v3.21.4 12-Nov-2026 Match Centre layouts: a small space each side of the dash in the last-result score.
@@ -176,7 +177,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.21.6";
+const VERSION = "v3.21.7";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -218,6 +219,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.7 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.7_tag_spacing.zip         | v3.21.6
 v3.21.6 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.6_plain_crests.zip         | v3.21.5
 v3.21.5 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.5_crest_circle.zip         | v3.21.4
 v3.21.4 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.4_score_dash.zip          | v3.21.3
@@ -369,6 +371,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.7 - Opposition report tag spacing
+- Owner feedback (12-Nov-2026, iPhone screenshot): under the heading, the position, "Away at ..." and cup tags wrapped onto two lines with no gap between the lines, so they looked bunched.
+- The tags now have 6px below them as well as beside them, so wrapped tags have an even gap. No other change.
 
 v3.21.6 - Crests shown plain
 - Owner feedback (12-Nov-2026): some crests (for example Winscombe) still showed a dark band across the top in the new layouts. Crests come in different shapes (round badges with clear corners, white squares, wide or tall pictures), so any circle behind them shows somewhere.
@@ -1492,6 +1498,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.21.7", "Opposition report on a phone: the position, home/away and cup tags under the heading no longer sit tight against each other when they wrap onto a second line."],
       ["v3.21.6", "Match Centre layouts: crests are shown whole, as the club supplies them, with no circle behind them, so no dark band or ring appears around any crest."],
       ["v3.21.5", "Match Centre layouts: the circle behind each crest now takes on the crest's own background colour instead of a different shade."],
       ["v3.21.4", "Match Centre layouts: the dash in the last-result score has a small space each side so it no longer touches the numbers."],
@@ -4194,7 +4201,7 @@ ${themeToggleScript}
 <style>
 ${MENU_CSS}
 .ph{display:flex;align-items:center;gap:12px;margin:8px 0 14px}.ph>div:last-child{min-width:0}.crest.hdc{width:56px;height:56px;flex-basis:56px}.crest.hdc .ini{font-size:17px}.sub .dt{display:block;margin-top:2px}h1{font-size:21px;margin:0 0 4px;line-height:1.15}.sub{color:#93a59b;font-size:14px;margin:0;line-height:1.7}table.wdl td:not(:first-child),table.wdl th:not(:first-child){width:15%;font-weight:700}table.wdl td:not(:first-child){font-size:16px}.pl{display:flex;gap:8px}
-.tag{display:inline-block;background:#1d2b36;color:#9ccaf0;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;margin-right:6px}
+.tag{display:inline-block;background:#1d2b36;color:#9ccaf0;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;margin:0 6px 6px 0}
 .grid{display:flex;flex-direction:column;gap:12px}
 .gc{display:flex;flex-direction:column;gap:14px;min-width:0}.gh{font-size:15px;margin:0 0 6px 2px;color:#eef4f0;font-weight:700;letter-spacing:0;text-transform:none}
 .gbox{background:#111719;border:1px solid #26312d;border-radius:14px;padding:6px 16px 14px}.gbox .card{background:none;border:0;border-radius:0;border-top:1px solid #26312d;padding:14px 0 0;margin-top:14px}.gbox .card:first-child{border-top:0;margin-top:8px;padding-top:0}

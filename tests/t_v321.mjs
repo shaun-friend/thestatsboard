@@ -49,6 +49,8 @@ w=await load();r=await get('/admin',{Cookie:ck});t=await r.text();c('admin shows
 await save({matchCentre:{layout:'classic'}});w=await load();({t}=await stack(''));c('classic setting',!t.includes('data-ly='));
 await save({matchCentre:{layout:'<script>'}});w=await load();({t}=await stack(''));c('junk value becomes default',t.includes('data-ly="next"'));
 await save({features:{}});w=await load();r=await get('/admin',{Cookie:ck});t=await r.text();c('missing value becomes default',/name="ml" value="next" checked/.test(t));
+// opposition report tags keep a gap when they wrap
+{const o=await get('/?view=opposition&season=2026-2027&competition=1699&division=75791&team=55001&teamName=Test%20U18&friendlyName=Test%20U18');const ot=await o.text();c('opposition tag gap',ot.includes('font-weight:700;margin:0 6px 6px 0}'))}
 // plain page cache key knows about ly
 {const x=(await import(src.replace('t_worker.mjs','t_worker_exp.mjs')+'?i=x')).__t;c('ly in known params',x.KNOWN_PARAMS.includes('ly'));c('ly changes page key',x.pageKeySearch(new URLSearchParams('view=stack&ly=board'))!==x.pageKeySearch(new URLSearchParams('view=stack')))}
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);
