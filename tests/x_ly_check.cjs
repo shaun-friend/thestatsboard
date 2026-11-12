@@ -6,7 +6,7 @@ for(const ly of ['next','board','classic']){for(const [w,h] of [[1920,1080],[136
  const m=await p.evaluate(()=>{const o=[];document.querySelectorAll('.ly *').forEach(e=>{const s=getComputedStyle(e);if(e.clientWidth>0&&e.scrollWidth>e.clientWidth+2&&s.overflow==='visible')o.push(e.className)});
   const rw=document.querySelector('.rw'),ly=document.querySelector('.ly');
   const low=[...document.querySelectorAll('.cw,.bwr')].reduce((a,e)=>Math.max(a,e.getBoundingClientRect().bottom),0);
-  const clip=[...document.querySelectorAll('.cn,.cl,.on,.lo,.bnm,.bso')].filter(e=>e.clientWidth>0&&e.clientHeight<parseFloat(getComputedStyle(e).fontSize)*1.2).length;
+  const clip=[...document.querySelectorAll('.cn,.cl,.on,.lo,.bnm,.bso')].filter(e=>e.clientWidth>0&&parseFloat(getComputedStyle(e).lineHeight)<parseFloat(getComputedStyle(e).fontSize)*1.35).length;
   return {clip,over:o.length,rw:getComputedStyle(rw).display,ly:ly?getComputedStyle(ly).display:'none',docH:document.documentElement.scrollHeight,vh:innerHeight,low:Math.round(low)}});
  const phone=w<800;let e='';
  if(m.over)e+=' OVERFLOW';if(m.clip)e+=' TEXT TOO TIGHT (descenders)';
