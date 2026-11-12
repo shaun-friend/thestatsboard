@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.2_descenders.zip            | v3.21.1
 v3.21.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.1_next_game_tidy.zip      | v3.21
 v3.21   | 12-Nov-2026 | RFU_Club_Dashboard_v3.21_match_centre_layouts.zip  | v3.20.1
 v3.20.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.20.1_cache_key.zip            | v3.20
@@ -182,6 +183,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.2 - Match Centre text clipping and Board headings
+- Owner feedback (12-Nov-2026): on the Board, letters that hang below the line (the g in Paignton) were clipped. Cause: names are kept to one line and cut with an ellipsis, and the line height was too tight for the cut-off to leave room for the tails. Line heights are now looser on names, league lines and scores in both new layouts.
+- Board: the next opponent name can now wrap to two lines instead of being cut with an ellipsis (it showed "Paignton C…").
+- Board column headings (Team, Table, Last result, Next game) are larger and brighter.
+- Test: every name and sub-line in both layouts is at least as tall as its text, so descenders fit.
 
 v3.21.1 - Match Centre Next game first tidy-up
 - Owner feedback (12-Nov-2026): the coloured Next game blocks changed height when a team had no last result; some text looked clipped; crests inside the colour were large and a low-quality crest looked poor; the Next game label was small.

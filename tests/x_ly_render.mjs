@@ -4,7 +4,7 @@ const T=(id,n,sc)=>({id:id*7,commonId:id,name:n,score:sc});
 const DAY=864e5,now=Date.now(),iso=n=>new Date(now+n*DAY).toISOString();
 const ME=55001,MEN='Ivybridge U18';
 const mk=(id,type,d,home,opp,hs,as,time)=>({id,type,date:iso(d),time:time||'15:00',homeTeam:home?T(ME,MEN,hs):T(opp[0],opp[1],hs),awayTeam:home?T(opp[0],opp[1],as):T(ME,MEN,as),stadium:'Test Ground, Plymouth'});
-const A=[9001,'Kingsbridge U18'],B=[9002,'Tavistock U18'],C=[9003,'Cullompton U18'],D=[9004,'Exmouth U18'],E=[9005,'Newton Abbot U18'];
+const A=[9001,'Kingsbridge U18'],B=[9002,'Tavistock U18'],C=[9003,'Paignton Colts U18'],D=[9004,'Exmouth U18'],E=[9005,'Newton Abbot U18'];
 // league division feed (competition 1699 / division 75791)
 const O=(id,h,a,hs,as,type)=>({id,type,date:iso(0),time:'15:00',homeTeam:T(h[0],h[1],hs),awayTeam:T(a[0],a[1],as)});
 const leagueRes=[O(41,[9103,'Newquay U18'],[9104,'Bideford U18'],24,17,'result'),O(42,[9105,'Wellington U18'],[9106,'Crediton U18'],10,31,'result'),{...O(43,[9107,'Totnes U18'],[9108,'Dawlish U18'],null,null,'result'),time:'AWO'},{...O(44,[9109,'Teignmouth U18'],[9110,'Buckfast U18'],null,null,'result'),time:'HWO'},mk(1,'result',-28,true,A,30,10),mk(2,'result',-14,false,B,12,20)];

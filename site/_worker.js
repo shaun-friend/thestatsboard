@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.21.2 12-Nov-2026 Match Centre layouts: letters that hang below the line (g, p, y) no longer clipped; Board column headings larger.
 //   v3.21.1 12-Nov-2026 Match Centre Next game first: equal-height colour blocks (about a quarter smaller), smaller crests that no longer crop, larger "Next game" label, no clipped text.
 //   v3.21 12-Nov-2026 Match Centre layouts for TV: Next game first (new default), Board, and the Classic rows, chosen in Admin; crests for every team and opponent.
 //   v3.20.1 12-Nov-2026 Page store ignores unknown settings in the address, so made-up extras cannot force fresh builds.
@@ -171,7 +172,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.21.1";
+const VERSION = "v3.21.2";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -213,6 +214,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.2_descenders.zip            | v3.21.1
 v3.21.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.1_next_game_tidy.zip      | v3.21
 v3.21   | 12-Nov-2026 | RFU_Club_Dashboard_v3.21_match_centre_layouts.zip  | v3.20.1
 v3.20.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.20.1_cache_key.zip            | v3.20
@@ -359,6 +361,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.2 - Match Centre text clipping and Board headings
+- Owner feedback (12-Nov-2026): on the Board, letters that hang below the line (the g in Paignton) were clipped. Cause: names are kept to one line and cut with an ellipsis, and the line height was too tight for the cut-off to leave room for the tails. Line heights are now looser on names, league lines and scores in both new layouts.
+- Board: the next opponent name can now wrap to two lines instead of being cut with an ellipsis (it showed "Paignton C…").
+- Board column headings (Team, Table, Last result, Next game) are larger and brighter.
+- Test: every name and sub-line in both layouts is at least as tall as its text, so descenders fit.
 
 v3.21.1 - Match Centre Next game first tidy-up
 - Owner feedback (12-Nov-2026): the coloured Next game blocks changed height when a team had no last result; some text looked clipped; crests inside the colour were large and a low-quality crest looked poor; the Next game label was small.
@@ -1459,6 +1467,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.21.2", "Match Centre layouts: letters that hang below the line (such as the g in Paignton) are no longer cut off, and the Board column headings are larger."],
       ["v3.21.1", "Match Centre Next game first: the coloured blocks are now the same height on every team and a little smaller, crests sit smaller so they are not cropped, and the Next game label is larger."],
       ["v3.21", "The Match Centre has two new TV layouts with club and opponent crests: Next game first (now the default) and a Board. The club picks one in Admin; the old rows are still there as Classic. Phones are unchanged."],
       ["v3.20.1", "Extra made-up settings on the end of a link no longer force the live site to rebuild the page each time."],
@@ -4531,15 +4540,15 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 @media(min-width:801px){body.ly-on .rw{display:none}body.ly-on .ly-next{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1rem;min-height:0}body.ly-on .ly-board{display:flex;flex-direction:column;min-height:0;border-top:2px solid var(--bd);--gc:minmax(0,1.3fr) minmax(0,.75fr) minmax(0,1.3fr) minmax(0,1.5fr)}}
 @media(max-width:800px){.ly{display:none!important}}
 .cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
-.ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.05;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.25;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.35;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
-.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.05;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}
-.clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}
+.clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.35;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
-.bh{display:grid;grid-template-columns:var(--gc);gap:2rem;padding:.5rem 0 .4rem 1.6rem;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);font-weight:700}
+.bh{display:grid;grid-template-columns:var(--gc);gap:2rem;padding:.6rem 0 .5rem 1.6rem;font-size:1.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tx);opacity:.85;font-weight:800}
 .bwr{flex:1;min-height:0;display:grid;grid-template-columns:var(--gc);gap:2rem;align-items:center;border-top:1px solid var(--bd);position:relative;padding-left:1.6rem}.bwr::before{content:"";position:absolute;left:0;top:.8rem;bottom:.8rem;width:.5rem;border-radius:.3rem;background:var(--ac)}
 .bt,.bl,.bn{display:flex;align-items:center;gap:1rem;min-width:0}.bt .cr{width:5.4rem;height:5.4rem;flex-basis:5.4rem}.bt .cr .ini{font-size:1.4rem}.bl .cr,.bn .cr{width:4.6rem;height:4.6rem;flex-basis:4.6rem}.bl .cr .ini,.bn .cr .ini{font-size:1.2rem}
-.bpos{font-size:4.4rem;font-weight:800;line-height:1}.bsub{font-size:1.35rem;color:var(--mu)}.bc{font-size:1.5rem;flex:none}.bx2{min-width:0;flex:1}.bsc{font-size:3.4rem;font-weight:800;line-height:1}.bnm{font-size:2.9rem;font-weight:800;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bso{font-size:1.3rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bcd{font-size:1.35rem;font-weight:800;white-space:nowrap;padding:.2rem .8rem;border-radius:99px;background:var(--ac);color:var(--on)}
+.bpos{font-size:4.4rem;font-weight:800;line-height:1}.bsub{font-size:1.35rem;color:var(--mu)}.bc{font-size:1.5rem;flex:none}.bx2{min-width:0;flex:1}.bsc{font-size:3.4rem;font-weight:800;line-height:1}.bnm{font-size:2.7rem;font-weight:800;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bso{font-size:1.3rem;line-height:1.35;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bcd{font-size:1.35rem;font-weight:800;white-space:nowrap;padding:.2rem .8rem;border-radius:99px;background:var(--ac);color:var(--on)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
 .rs-a .rw>.bx,.rs-b .rw>.bx,.rs-c .rw>.bx,.rs-d .rw>.bx{border-color:var(--bd)}
 .rs-b .rw>.bx.tbx,.rs-c .rw>.bx.tbx,.rs-d .rw>.bx.tbx{background:var(--card);border-color:var(--bd)}
