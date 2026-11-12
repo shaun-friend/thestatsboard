@@ -24,7 +24,7 @@ let m=mainOf(t);
 c('next opponent shown',m.includes('Cullompton U18')&&m.includes('This ')||m.includes('Cullompton U18'));
 c('next opponent crest',m.includes('club_images/9003')||m.includes('club_images/'));
 c('last result our score first',m.includes('18<i class="dsh">&ndash;</i>15'));c('win chip',m.includes('class="pl w"'));
-c('crest has blurred fill copy',m.includes('class="bgi"'));c('classic crest css hides it',t.includes('.cr .bgi{display:none}'));c('no kick-off time',!/15:00/.test(m));c('no difficulty',!/difficulty/i.test(m));
+c('crest drawn plain in new layouts',t.includes('.ly .cr,.ly .cnx .cr{background:none!important'));c('no kick-off time',!/15:00/.test(m));c('no difficulty',!/difficulty/i.test(m));
 c('home chip',/<span>Home<\/span>/.test(m));
 // url override
 ({t}=await stack('&ly=board'));c('board',t.includes('data-ly="board"')&&t.includes('class="bwr"')&&t.includes('class="bh"')&&!t.includes('class="cw"'));
