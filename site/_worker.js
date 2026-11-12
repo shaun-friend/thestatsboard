@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.21.5 12-Nov-2026 Match Centre layouts: the circle behind each crest takes on the crest's own colours so it all matches.
 //   v3.21.4 12-Nov-2026 Match Centre layouts: a small space each side of the dash in the last-result score.
 //   v3.21.3 12-Nov-2026 Match Centre layouts: more room under names so heavy fonts with deep tails (the g in Paignton) are not cut off.
 //   v3.21.2 12-Nov-2026 Match Centre layouts: letters that hang below the line (g, p, y) no longer clipped; Board column headings larger.
@@ -174,7 +175,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.21.4";
+const VERSION = "v3.21.5";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -216,6 +217,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.5 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.5_crest_circle.zip         | v3.21.4
 v3.21.4 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.4_score_dash.zip          | v3.21.3
 v3.21.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.3_name_room.zip                | v3.21.2
 v3.21.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.2_descenders.zip            | v3.21.1
@@ -365,6 +367,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.5 - Crest circles match the crest
+- Owner feedback (12-Nov-2026): where a crest has its own background (for example a white square), the circle around it was a different, darker colour.
+- In the two new layouts each crest now sits on a hugely enlarged copy of itself showing only its top-left corner, which is the crest's own background colour, so the circle matches the crest and no ring shows. (A blurred copy was tried first and left a pink ring.) The Classic layout and phone cards are unchanged. If a crest cannot load, the initials show as before.
+- Why this way: the crest pictures come from the RFU's image site, which does not allow the page to read their pixels, so the colour cannot be measured directly; an enlarged corner needs no permission.
 
 v3.21.4 - Space around the score dash
 - Owner feedback (12-Nov-2026): in the last-result score the dash touched the numbers (10-48) in both new layouts. The dash now has a small space each side (0.14 of the text size), so it reads 10 - 48 without a wide gap.
@@ -1478,6 +1485,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.21.5", "Match Centre layouts: the circle behind each crest now takes on the crest's own background colour instead of a different shade."],
       ["v3.21.4", "Match Centre layouts: the dash in the last-result score has a small space each side so it no longer touches the numbers."],
       ["v3.21.3", "Match Centre layouts: more room under team and opponent names so the tails of letters like g and p are not cut off on any screen."],
       ["v3.21.2", "Match Centre layouts: letters that hang below the line (such as the g in Paignton) are no longer cut off, and the Board column headings are larger."],
@@ -4429,7 +4437,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       const tableHref = t => pubOrigin + "/?" + new URLSearchParams({...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, theme, layout: "mobile"}).toString();
       const viewHref = (t, v) => pubOrigin + "/?" + new URLSearchParams({view: v, ...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, theme}).toString();
       const menuHref = pubOrigin + "/?" + new URLSearchParams({theme}).toString();
-      const crest = (id, name) => `<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="https://images.englandrugby.com/club_images/${encodeURIComponent(id)}.png" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">` : ""}</span>`;
+      const crest = (id, name) => `<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img class="bgi" src="https://images.englandrugby.com/club_images/${encodeURIComponent(id)}.png" alt="" aria-hidden="true" onerror="this.remove()"><img src="https://images.englandrugby.com/club_images/${encodeURIComponent(id)}.png" alt="" onload="this.parentNode.querySelector('.ini').style.display='none'" onerror="this.remove()">` : ""}</span>`;
       if (AUTO.auto) {
         stackTeams = await Promise.all(stackTeams.map(async t => {
           if (t.season) return t;
@@ -4526,7 +4534,7 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);co
 .sl{display:flex;align-items:center;gap:.6rem;font-size:1.25rem;color:var(--mu)}.sl.lead{color:var(--tx)}.sl .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sl b{font-size:1.9rem;font-weight:700}
 .nd{font-size:1.6rem;font-weight:700}.nt{display:flex;align-items:center;gap:.5rem;font-size:1.1rem;min-width:0}.nt .nm{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nt i{color:var(--mu);font-style:normal;font-size:.95rem}
 .cr{position:relative;display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;flex:0 0 2rem;border-radius:50%;background:var(--cb);overflow:hidden}.th .cr{width:4rem;height:4rem;flex-basis:4rem}
-.cr .ini{font-size:.7rem;font-weight:700;color:var(--ct)}.th .cr .ini{font-size:1.3rem}.cr img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain}
+.cr .ini{font-size:.7rem;font-weight:700;color:var(--ct)}.th .cr .ini{font-size:1.3rem}.cr img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain}.cr .bgi{display:none}.ly .cr .bgi{display:block;position:absolute;inset:auto;left:0;top:0;width:900%;height:900%;max-width:none;object-fit:cover;object-position:0 0}
 .empty{color:var(--mu);font-size:1.05rem}
 .k{font-size:1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);font-weight:700}.k b{color:var(--tx)}
 .lastbx{padding:.8rem 1.1rem;gap:.45rem}.lastbx .cr{width:2.4rem;height:2.4rem;flex-basis:2.4rem}.lastbx .cr .ini{font-size:.8rem}.lastbx .sl{font-size:1.35rem}.lastbx .sl b{font-size:2.3rem}
