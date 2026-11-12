@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.20.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.20.1_cache_key.zip            | v3.20
 v3.20   | 12-Nov-2026 | RFU_Club_Dashboard_v3.20_address_checks.zip         | v3.19
 v3.19   | 12-Nov-2026 | RFU_Club_Dashboard_v3.19_signin_lockout.zip         | v3.18.3
 v3.18.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.3_release_table.zip         | v3.18.2
@@ -179,6 +180,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.20.1 - Page store ignores made-up settings
+- Owner test (12-Nov-2026): a link with an extra made-up setting (&sillylink=here) still showed the team, which is correct, but each different extra gave the live site a new page to build, because the short-term page store was keyed by the whole address.
+- Fix: the store key now uses only the settings the site reads, in a fixed order, so unknown extras (tracking tags, guesses) and the order of settings make no difference. Real links are unchanged and still show the same page. DEV never used the store, so nothing changes there.
+- Tests: extras and order share one stored page; real differences (another team, season, theme) still get their own; and a check that every setting the code reads is on the list, so a future setting cannot be forgotten.
 
 v3.20 - Address checks and a limit on different lookups (security part b)
 - Team, competition and division in a link must be 1 to 8 digits, and season must look like 2026-2027 (two consecutive years from 2000 to 2099). An id on the API pages must be 1 to 9 digits. Anything else gets a plain "That link does not look right: the <name> value is not valid." (HTTP 400) before the site does any work, so nothing reaches the RFU. Empty values are treated as not given, as before. A link longer than 4,000 characters is refused.

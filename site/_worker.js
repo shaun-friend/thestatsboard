@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.20.1 12-Nov-2026 Page store ignores unknown settings in the address, so made-up extras cannot force fresh builds.
 //   v3.20 12-Nov-2026 Security: address checks (team, competition, division, season) and a per-visitor limit on different lookups; new Address checks card on the Usage page.
 //   v3.19 12-Nov-2026 Security: random expiring sign-in tokens (club and test PINs) and a temporary lockout after repeated wrong PINs.
 //   v3.18.3 12-Nov-2026 Release table in the README put back in order; release check now catches a mis-ordered table.
@@ -168,7 +169,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.20";
+const VERSION = "v3.20.1";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -210,6 +211,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.20.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.20.1_cache_key.zip            | v3.20
 v3.20   | 12-Nov-2026 | RFU_Club_Dashboard_v3.20_address_checks.zip         | v3.19
 v3.19   | 12-Nov-2026 | RFU_Club_Dashboard_v3.19_signin_lockout.zip         | v3.18.3
 v3.18.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.3_release_table.zip         | v3.18.2
@@ -353,6 +355,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.20.1 - Page store ignores made-up settings
+- Owner test (12-Nov-2026): a link with an extra made-up setting (&sillylink=here) still showed the team, which is correct, but each different extra gave the live site a new page to build, because the short-term page store was keyed by the whole address.
+- Fix: the store key now uses only the settings the site reads, in a fixed order, so unknown extras (tracking tags, guesses) and the order of settings make no difference. Real links are unchanged and still show the same page. DEV never used the store, so nothing changes there.
+- Tests: extras and order share one stored page; real differences (another team, season, theme) still get their own; and a check that every setting the code reads is on the list, so a future setting cannot be forgotten.
 
 v3.20 - Address checks and a limit on different lookups (security part b)
 - Team, competition and division in a link must be 1 to 8 digits, and season must look like 2026-2027 (two consecutive years from 2000 to 2099). An id on the API pages must be 1 to 9 digits. Anything else gets a plain "That link does not look right: the <name> value is not valid." (HTTP 400) before the site does any work, so nothing reaches the RFU. Empty values are treated as not given, as before. A link longer than 4,000 characters is refused.
@@ -1435,6 +1442,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.20.1", "Extra made-up settings on the end of a link no longer force the live site to rebuild the page each time."],
       ["v3.20", "Links with invalid team, competition, division or season values are now refused before they reach the RFU, and one visitor can only ask for a limited number of different teams a minute. The Usage page has a new Address checks card."],
       ["v3.19", "Safer sign-in: PIN cookies are now random, expiring and signed, and repeated wrong PINs from one source pause that source for a while. Everyone is asked for the PIN once more."],
       ["v3.18.3", "Housekeeping: the release table in the notes is back in the right order."],
@@ -5819,6 +5827,17 @@ async function addressGate(request) {
   return null;
 }
 
+// Page-store key (v3.20.1). The short-term page store used to be keyed by the whole address, so adding any made-up setting
+// (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
+// order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
+// (a test fails if a setting read by the code is missing here).
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "season", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
+function pageKeySearch(sp) {
+  const out = [];
+  for (const k of KNOWN_PARAMS) for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
+  return out.length ? "?" + out.join("&") : "";
+}
+
 // How long the live site keeps a finished page at the edge (seconds). Match Stats is the busiest and heaviest page and its
 // facts change slowly: 2 hours Monday to Friday (no games), 5 minutes at weekends (UK days). Everything else stays at 2 minutes.
 function pageTtlFor(view, now) {
@@ -5972,7 +5991,7 @@ export default {
         if (pageCache) {
           // Match Stats is the busiest and heaviest page and its facts change slowly: keep it 30 minutes Monday to Friday, 5 at weekends.
           pageTtl = pageTtlFor(v0, new Date());
-          pageKey = new Request(u0.origin + u0.pathname + u0.search + (u0.search ? "&" : "?") + "_pg=" + VERSION, { method: "GET" });
+          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION, { method: "GET" });
           try { const hit = await pageCache.match(pageKey); if (hit) { const hh = new Headers(hit.headers); hh.set("X-Page-Cache", "HIT"); return new Response(hit.body, { status: hit.status, headers: hh }); } } catch (_) { /* miss */ }
         }
       }

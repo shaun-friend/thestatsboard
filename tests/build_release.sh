@@ -8,7 +8,7 @@ mkdir -p w brand
 python3 sync_notes.py | tail -1
 python3 check_release.py ../site "$Z"
 cp ../site/_worker.js t_worker.mjs; node --check t_worker.mjs
-cp t_worker.mjs t_worker_exp.mjs; echo 'export const __t = { shortComp, weatherFor, pageTtlFor, cachedText, memCache, blockedMem, refreshing, ttlFor, setCtx(c){SITE_CTX=c}, setEnv(e){SITE_ENV=e} };' >> t_worker_exp.mjs
+cp t_worker.mjs t_worker_exp.mjs; echo 'export const __t = { shortComp, weatherFor, pageTtlFor, pageKeySearch, KNOWN_PARAMS, cachedText, memCache, blockedMem, refreshing, ttlFor, setCtx(c){SITE_CTX=c}, setEnv(e){SITE_ENV=e} };' >> t_worker_exp.mjs
 run(){ o=$("$@" | tail -1); echo "$o"; if echo "$o" | grep -qE '[1-9][0-9]* fail'; then echo "TESTS FAILED"; exit 1; fi; }
 for t in t_v310.mjs t_v36.mjs t_v35.mjs; do run node $t "$S/t_worker.mjs"; done
 run node t_v313.mjs "$S/t_worker_exp.mjs"
@@ -23,6 +23,7 @@ run node t_v317.mjs "$S/t_worker.mjs"
 run node t_v318.mjs "$S/t_worker.mjs"
 run node t_v319.mjs "$S/t_worker.mjs"
 run node t_v320.mjs "$S/t_worker.mjs"
+run node t_v3201.mjs "$S/t_worker_exp.mjs"
 node x_usage_chk.mjs "$S/t_worker.mjs" >/dev/null && NODE_PATH=$(npm root -g) node x_usage_chk.cjs | tail -1 | grep -q "ALL OK" || { echo "USAGE PAGE BROWSER TEST FAILED"; exit 1; }; echo "usage page renders ok"
 node dir_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node dir_check.cjs 2>/dev/null | tail -1 | grep -q "ALL OK" || { echo "DIRECTIONS BUTTON TEST FAILED"; exit 1; }; echo "directions button ok"
 node brand/shot.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node wel_check.cjs | tail -1 | grep -q "ALL OK" || { echo "WELCOME HEIGHT TEST FAILED"; exit 1; }; echo "welcome height ok"
