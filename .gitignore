@@ -1,0 +1,10 @@
+# Built or generated files
+dist/
+tests/w/
+tests/t_worker*.mjs
+node_modules/
+# Never commit secrets or local settings
+.env
+.dev.vars
+*.pem
+*.key

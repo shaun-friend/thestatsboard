@@ -1,0 +1,8 @@
+const {chromium}=require('playwright');const fs=require('fs');
+const L=fs.readFileSync(__dirname+'/logo.svg.txt','utf8');
+const icon=(s,pad)=>`<body style="margin:0;background:#0b1110;width:${s}px;height:${s}px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 64 64" width="${s*pad}" height="${s*pad}">${L}</svg></body>`;
+const og=`<body style="margin:0;width:1200px;height:630px;background:radial-gradient(900px 500px at 20% 0,#12301f,#060a09);display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif"><div style="display:flex;align-items:center;gap:38px"><div style="background:#0f1815;border-radius:56px;padding:34px;border:1px solid #1f2b26"><svg viewBox="0 0 64 64" width="220" height="220">${L}</svg></div><div><div style="font-size:34px;letter-spacing:.42em;color:#9fb2a8;font-weight:700">THE</div><div style="font-size:92px;font-weight:800;letter-spacing:.02em;color:#fff;line-height:1.05">STATS <span style="color:#4fc27d">BOARD</span></div><div style="font-size:30px;color:#91a49a;margin-top:18px">Your club’s rugby fixtures, results and tables at a glance.</div></div></div></body>`;
+(async()=>{const b=await chromium.launch();
+for(const [n,s,pad,w,h,html] of [['icon-192',192,.78,192,192],['icon-512',512,.78,512,512],['apple-touch-icon',180,.78,180,180],['og-image',0,0,1200,630,og]]){
+ const p=await b.newPage({viewport:{width:w,height:h}});await p.setContent(html||icon(s,pad));await p.screenshot(n==='og-image'?{path:__dirname+'/og-image.jpg',type:'jpeg',quality:82}:{path:__dirname+'/'+n+'.png'});await p.close()}
+await b.close()})()

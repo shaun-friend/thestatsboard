@@ -1,0 +1,49 @@
+name: Deploy to PROD
+
+# Manual only. Runs the tests on the `main` branch, then uploads that exact version to the live site.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type PROD to confirm you want to update the live site'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.event.inputs.confirm == 'PROD'
+    runs-on: ubuntu-latest
+    concurrency: deploy-prod
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install browser for the screen tests
+        run: |
+          npm install -g playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Run every test
+        env:
+          SKIP_DATE_CHECK: "1"
+        run: |
+          cd tests
+          ZIP=$(grep -m1 -E '^v[0-9][^ ]* +\|' ../site/README.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
+          bash build_release.sh "$ZIP"
+      - name: Upload to the live site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT: ${{ vars.CF_PROJECT_PROD }}
+        run: |
+          test -n "$PROJECT" || { echo "Set the repository variable CF_PROJECT_PROD"; exit 1; }
+          mkdir bundle && cp site/_worker.js site/README.txt site/index.html bundle/
+          npx --yes wrangler@3 pages deploy bundle --project-name="$PROJECT" --branch=main --commit-dirty=true
