@@ -17,3 +17,6 @@
 ## Safety
 - PROD never updates by itself.
 - Secrets are never in the code. If a token leaks, delete it in Cloudflare and make a new one.
+
+## Deploy check
+First automatic DEV upload: 12-Nov-2026.
