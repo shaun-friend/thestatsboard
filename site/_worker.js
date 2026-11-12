@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.21 12-Nov-2026 Match Centre layouts for TV: Next game first (new default), Board, and the Classic rows, chosen in Admin; crests for every team and opponent.
 //   v3.20.1 12-Nov-2026 Page store ignores unknown settings in the address, so made-up extras cannot force fresh builds.
 //   v3.20 12-Nov-2026 Security: address checks (team, competition, division, season) and a per-visitor limit on different lookups; new Address checks card on the Usage page.
 //   v3.19 12-Nov-2026 Security: random expiring sign-in tokens (club and test PINs) and a temporary lockout after repeated wrong PINs.
@@ -169,7 +170,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.20.1";
+const VERSION = "v3.21";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -211,6 +212,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21   | 12-Nov-2026 | RFU_Club_Dashboard_v3.21_match_centre_layouts.zip  | v3.20.1
 v3.20.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.20.1_cache_key.zip            | v3.20
 v3.20   | 12-Nov-2026 | RFU_Club_Dashboard_v3.20_address_checks.zip         | v3.19
 v3.19   | 12-Nov-2026 | RFU_Club_Dashboard_v3.19_signin_lockout.zip         | v3.18.3
@@ -355,6 +357,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21 - Match Centre layouts (Next game first, Board, Classic)
+- New setting in Admin > Screens: Match Centre layout. Next game first (the default) gives each team a column with the next opponent's crest, name and date in the team colour, then the last result and the league position. Board gives one row per team: table, last result and next game, each with the opponent's crest. Classic rows is the previous layout, unchanged.
+- Crests: the club's own crest and every opponent's crest come from the same place as on the other pages, with initials shown if one is missing.
+- Phones always get the stacked cards, whatever is chosen. With more than four teams, Next game first switches to the Board so nothing gets cramped. No kick-off times and no Game Difficulty on these screens.
+- A link can force a layout with &ly=next, &ly=board or &ly=classic (used by the Admin preview links). The page store key includes it.
+- Changes in Admin reach screens within a few minutes on the live site (up to a minute for the setting, plus the two-minute page store).
+- Tests: setting default and cleaning, each layout renders on desktop and the cards on phones, the layout link override, the notice strip still fits, more than four teams falls back to the Board, the Admin selector saves, and screenshots at 1920x1080 and 1366x768 have no overflow.
 
 v3.20.1 - Page store ignores made-up settings
 - Owner test (12-Nov-2026): a link with an extra made-up setting (&sillylink=here) still showed the team, which is correct, but each different extra gave the live site a new page to build, because the short-term page store was keyed by the whole address.
@@ -1442,6 +1452,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.21", "The Match Centre has two new TV layouts with club and opponent crests: Next game first (now the default) and a Board. The club picks one in Admin; the old rows are still there as Classic. Phones are unchanged."],
       ["v3.20.1", "Extra made-up settings on the end of a link no longer force the live site to rebuild the page each time."],
       ["v3.20", "Links with invalid team, competition, division or season values are now refused before they reach the RFU, and one visitor can only ask for a limited number of different teams a minute. The Usage page has a new Address checks card."],
       ["v3.19", "Safer sign-in: PIN cookies are now random, expiring and signed, and repeated wrong PINs from one source pause that source for a while. Everyone is asked for the PIN once more."],
@@ -1589,6 +1600,7 @@ const SETTINGS_DEFAULT = () => ({
   features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true },
   reporting: { days: 14 },
   signin: { days: 30 },
+  matchCentre: { layout: "next" },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
   savedAt: ""
 });
@@ -1604,6 +1616,7 @@ function cleanSettings(raw) {
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
   for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered"]) d.features[k] = f[k] === false ? false : true;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
+  { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "board", "classic"].includes(mc.layout) ? mc.layout : "next"; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
   { const m = r.maintenance && typeof r.maintenance === "object" ? r.maintenance : {};
     d.maintenance.on = m.on === true;
@@ -1660,7 +1673,7 @@ async function noticeInject(html, url, isDev) {
   const s = await siteSettings();
   if (welcome) { const n = homeNoticeFor(s, url, isDev); return n ? html.replace('<h1 style="display:flex;justify-content:center">', m => homeNoticeHtml(n) + m) : html; }
   const n = tvNoticeFor(s, url, isDev);
-  return n && /<body[^>]*>/i.test(html) ? html.replace(/<body([^>]*)>/i, m => m + tvNoticeHtml(n, false, url.searchParams.get("view") === "stack" ? ((html.match(/class="rw"/g) || []).length || 3) : false)) : html;
+  return n && /<body[^>]*>/i.test(html) ? html.replace(/<body([^>]*)>/i, m => m + tvNoticeHtml(n, false, url.searchParams.get("view") === "stack" ? (html.includes('data-ly="') ? 1 : ((html.match(/class="rw"/g) || []).length || 3)) : false)) : html;
 }
 function adminPage(theme, isDev, s, kvOk) {
   const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
@@ -1707,6 +1720,7 @@ ${sw("fa", s.features.around, "&ldquo;Around the league today&rdquo; strip", "Ot
 ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the next game, home or away (Fixtures TV board).")}
 ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The small line at the bottom of the Fixtures TV board.")}
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
+<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Next game first&rdquo; switches to the Board automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview next game first</a> &middot; <a href="/?view=stack&amp;ly=board" target="_blank" rel="noopener" style="color:#7fd89a">Board</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Next game first"], ["board", "Board"], ["classic", "Classic rows"]])}</div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div><h2>Access</h2><div class="cd">
 <div class="nb"><div class="nh"><div><b>How long a PIN sign-in lasts</b><small>After this many days a device is asked for the club PIN again. Devices already signed in keep the length they were given; changing the PIN signs everyone out at once. Anyone can also use Sign out (bottom of the Links, Documentation and Admin pages).</small></div></div>${seg("sd", String(s.signin.days), [["1", "1 day"], ["7", "7 days"], ["14", "14 days"], ["30", "30 days"]])}</div>
@@ -1747,7 +1761,7 @@ $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -4401,6 +4415,38 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
           return {t, s: await r.json()};
         } catch (err) { return {t, error: String(err && err.message || err)}; }
       }));
+      const cdOf = n => {
+        if (!(n && n.iso)) return "";
+        const day = d => d.toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+        const diff = Math.round((new Date(day(new Date(n.iso)) + "T00:00:00Z") - new Date(day(new Date()) + "T00:00:00Z")) / 864e5);
+        const todayD = new Date(day(new Date()) + "T00:00:00Z"), gameD = new Date(day(new Date(n.iso)) + "T00:00:00Z");
+        const wk = Math.floor((diff + (todayD.getUTCDay() + 6) % 7) / 7); // 0 = this Mon-Sun week, 1 = next week
+        const wdName = gameD.toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" });
+        return diff < 0 ? "Result due" : diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : wk === 0 ? "This " + wdName : wk === 1 ? "Next " + wdName : "";
+      };
+      const ordOf = p => p + ([,"st","nd","rd"][p % 10] && ![11,12,13].includes(p % 100) ? [,"st","nd","rd"][p % 10] : "th");
+      // Match Centre layouts for TV screens (v3.21): "next" = a column per team with the next game first, "board" = one row per team.
+      // Phones always use the stacked cards above, so these are hidden under 800px (and the cards are hidden above it).
+      const lastOf = l => { if (!l) return null; const mine = l.mineHome ? l.homeScore : l.awayScore, theirs = l.mineHome ? l.awayScore : l.homeScore; const res = mine > theirs ? "w" : mine < theirs ? "l" : "d"; return { mine, theirs, res, word: res === "w" ? "Win" : res === "l" ? "Loss" : "Draw", opp: l.mineHome ? l.awayName : l.homeName, oppId: l.mineHome ? l.awayId : l.homeId, where: l.mineHome === null || l.mineHome === undefined ? "" : l.mineHome ? "Home" : "Away" }; };
+      const nextOf = n => n ? { opp: n.mineHome ? n.awayName : n.homeName, oppId: n.mineHome ? n.awayId : n.homeId, where: n.mineHome === null || n.mineHome === undefined ? "" : n.mineHome ? "Home" : "Away", date: n.dateLabel === "Date TBC" ? "Date TBC" : String(n.dateLabel || ""), cd: cdOf(n) } : null;
+      const colHtml = ({t, s, error}, idx) => {
+        if (error || !s) return `<section class="cw" ${acStyle(t, idx)}><div class="ch"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="cnx"><div class="empty" style="color:var(--on)">Couldn't load this team. It will retry on the next refresh.</div></div></section>`;
+        const L = lastOf(s.last), N = nextOf(s.next);
+        const pos = s.position ? `<b class="ps2">${ordOf(s.position)}</b>` : "";
+        const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
+        const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
+        const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="on">${e(N.opp)}</div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
+        const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}&ndash;${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
+        return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="cnx">${next}</div><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></section>`;
+      };
+      const boardHtml = ({t, s, error}, idx) => {
+        if (error || !s) return `<section class="bwr" ${acStyle(t, idx)}><div class="bt"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="empty" style="grid-column:2/-1">Couldn't load this team. It will retry on the next refresh.</div></section>`;
+        const L = lastOf(s.last), N = nextOf(s.next);
+        const tbl = s.position ? `<div class="bpos">${ordOf(s.position)}</div><div class="bsub">${s.points !== null && s.points !== undefined ? s.points + " pts" : ""}${s.played ? (s.points !== null && s.points !== undefined ? " &middot; " : "") + "P" + s.played : ""}</div>` : `<div class="empty">No table</div>`;
+        const last = L ? `${crest(L.oppId, L.opp)}<span class="pl ${L.res} bc">${L.res.toUpperCase()}</span><div class="bx2"><div class="bsc">${L.mine}&ndash;${L.theirs}</div><div class="bso">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="empty">No results available yet</div>`;
+        const next = N ? `${crest(N.oppId, N.opp)}<div class="bx2"><div class="bnm">${e(N.opp)}</div><div class="bso">${e(N.date)}${N.where ? " &middot; " + N.where : ""}</div></div>${N.cd ? `<span class="bcd">${e(N.cd)}</span>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
+        return `<section class="bwr" ${acStyle(t, idx)}><div class="bt">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="bp">${tbl}</div><div class="bl">${last}</div><div class="bn">${next}</div></section>`;
+      };
       const rowHtml = ({t, s, error}, idx) => {
         const tsl = `<a class="tsl" href="${e(tableHref(t))}">Table &amp; Stats</a>`;
         const extra = `<div class="stab">${e(shortOf(t))}</div><div class="tbar">${e((s && s.team) || t.name)}<span>${e((s && s.league) || t.league)}</span></div>`;
@@ -4413,15 +4459,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
 <div class="sl ${l.awayScore >= l.homeScore ? "lead" : ""}">${crest(l.awayId, l.awayName)}<span class="nm">${e(l.awayName)}</span><b>${l.awayScore}</b></div></div>`
           : `<div class="bx lastbx"><div class="lb"><span class="k"><b>Last result</b></span></div><div class="empty">No results available yet</div></div>`;
         // Next game: big weekday and date plus a countdown, teams stacked beside it.
-        let countdown = "";
-        if (n && n.iso) {
-          const day = d => d.toLocaleDateString("en-CA", { timeZone: "Europe/London" });
-          const diff = Math.round((new Date(day(new Date(n.iso)) + "T00:00:00Z") - new Date(day(new Date()) + "T00:00:00Z")) / 864e5);
-          const todayD = new Date(day(new Date()) + "T00:00:00Z"), gameD = new Date(day(new Date(n.iso)) + "T00:00:00Z");
-          const wk = Math.floor((diff + (todayD.getUTCDay() + 6) % 7) / 7); // 0 = this Mon-Sun week, 1 = next week
-          const wdName = gameD.toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" });
-          countdown = diff < 0 ? "Result due" : diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : wk === 0 ? "This " + wdName : wk === 1 ? "Next " + wdName : "";
-        }
+        const countdown = cdOf(n);
         const nParts = n ? String(n.dateLabel || "").split(" ") : [];
         const nBig = n ? (n.dateLabel === "Date TBC" || nParts.length < 2 ? "TBC" : nParts[0].toUpperCase()) : "";
         const nSmall = n ? (nParts.length < 2 ? "" : nParts.slice(1).join(" ")) + (n.time ? (nParts.length < 2 ? "" : " &middot; ") + e(n.time) : "") : "";
@@ -4432,6 +4470,11 @@ ${n.venue ? `<div class="vn"><a class="dl" target="_blank" rel="noopener" href="
           : `<div class="bx hero"><div class="when"><div class="k"><b>Next game</b></div></div><div class="empty">No upcoming fixture found in this competition</div></div>`;
         return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="th">${crest(s.teamId, s.team)}<div class="tx"><div class="tn">${e(s.team)}</div><div class="sm">${e(s.league)}</div></div></div><div class="ps">${stats}</div>${s.gap ? `<div class="gapl">${e(s.gap)}</div>` : ""}${tsl}</div>${lastBox}${nextBox}</div>`;
       };
+      let ly = url.searchParams.get("ly");
+      if (!["classic", "next", "board"].includes(ly)) ly = (await siteSettings()).matchCentre.layout;
+      if (ly === "next" && results.length > 4) ly = "board";
+      const lyHtml = ly === "next" ? `<main class="ly ly-next" data-ly="next" style="--n:${results.length}">${results.map(colHtml).join("")}</main>`
+        : ly === "board" ? `<main class="ly ly-board" data-ly="board"><div class="bh"><span>Team</span><span>Table</span><span>Last result</span><span>Next game</span></div>${results.map(boardHtml).join("")}</main>` : "";
       const jump = results.map((r, i) => `<a href="#t${i}" ${acStyle(r.t, i)}>${e(shortOf(r.t))}</a>`).join("");
       const refreshScript = `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){location.reload()},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)location.reload()}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
       // "Updated" is when the RFU data was last pulled (oldest across the teams), not when the page loaded.
@@ -4442,7 +4485,7 @@ ${n.venue ? `<div class="vn"><a class="dl" target="_blank" rel="noopener" href="
 :root{--bg:#080b0d;--card:#111719;--bd:#26312d;--tx:#f2f6f4;--mu:#93a59b;--wb:#163d26;--wt:#7fd89a;--lb:#4a1c1c;--lt:#f09595;--db:#46340f;--dt:#fac775;--hb:#1d2b36;--ht:#9ccaf0;--cb:#1b2a23;--ct:#7fd89a}
 body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--wb:#d9efdf;--wt:#1d6b3a;--lb:#f8dcdc;--lt:#9b2c2c;--db:#fbecc8;--dt:#7a4d06;--hb:#dcebf6;--ht:#1d5a85;--cb:#e6efe9;--ct:#1d6b3a}
 *{box-sizing:border-box}html{font-size:${results.length <= 3 ? "min(1.05vw,1.9vh)" : results.length === 4 ? "min(.85vw,1.4vh)" : results.length === 5 ? "min(.75vw,1.2vh)" : "min(.68vw,1.05vh)"}}
-body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:grid;grid-template-rows:auto repeat(${Math.max(results.length, 1)},minmax(0,1fr));gap:.8rem;padding:max(1rem,env(safe-area-inset-top)) max(1.4rem,env(safe-area-inset-right)) max(1.9rem,env(safe-area-inset-bottom)) max(1.4rem,env(safe-area-inset-left))}
+body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:grid;grid-template-rows:auto ${ly === "classic" ? `repeat(${Math.max(results.length, 1)},minmax(0,1fr))` : "minmax(0,1fr)"};gap:.8rem;padding:max(1rem,env(safe-area-inset-top)) max(1.4rem,env(safe-area-inset-right)) max(1.9rem,env(safe-area-inset-bottom)) max(1.4rem,env(safe-area-inset-left))}
 .hd{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}.hd b{font-size:1.9rem;font-weight:700;letter-spacing:.01em}.hd span{font-size:.95rem;color:var(--mu)}
 .rw{display:grid;grid-template-columns:.7fr 1.05fr 2.1fr;gap:.8rem;min-height:0;position:relative;padding-left:1.1rem}.rw::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.45rem;border-radius:.3rem;background:var(--ac,var(--bd))}.rw>.bx{border-color:var(--at,var(--bd))}.rw>.bx.tbx{border-color:var(--ac,var(--bd));background:linear-gradient(var(--at,transparent),var(--at,transparent)),var(--card)}
 .bx{background:var(--card);border:1px solid var(--bd);border-radius:1rem;padding:.7rem 1.1rem;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.3rem;overflow:hidden}.bx.wide{grid-column:span 2}
@@ -4477,6 +4520,18 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rw>.bx.hero{display:block;border:0;border-top:1px solid var(--bd);background:transparent}.hero .when{margin-bottom:.6rem}.hero .k{display:inline-block;margin-right:.6rem}.hero .d,.hero .d2{display:inline-block;font-size:1.5rem;margin:0 .45rem 0 0}.hero .d{font-weight:800}.hero .cd{margin:0;font-size:.9rem;padding:.15rem .7rem}.hero .vs .sl{font-size:1.15rem}.hero .cr{width:2.3rem;height:2.3rem;flex-basis:2.3rem}.hero .cr .ini{font-size:.8rem}.hero .pl.ha{top:.95rem;right:1.05rem;font-size:.85rem}.lastbx .sl{font-size:1.1rem}.lastbx .sl b{font-size:1.6rem}.lastbx .cr{width:1.9rem;height:1.9rem;flex-basis:1.9rem}
 .tn{font-size:1.4rem}.th .cr{width:2.8rem;height:2.8rem;flex-basis:2.8rem}.sl{font-size:1.1rem}.sl b{font-size:1.6rem}.hl{font-size:1.25rem}.dt{font-size:1.25rem}.cr{width:1.9rem;height:1.9rem;flex-basis:1.9rem}}
 .stab,.tbar{display:none}
+@media(min-width:801px){body.ly-on .rw{display:none}body.ly-on .ly-next{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1rem;min-height:0}body.ly-on .ly-board{display:flex;flex-direction:column;min-height:0;border-top:2px solid var(--bd);--gc:minmax(0,1.3fr) minmax(0,.75fr) minmax(0,1.3fr) minmax(0,1.5fr)}}
+@media(max-width:800px){.ly{display:none!important}}
+.cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
+.ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.05;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cnx{flex:1;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.9}.cnx .cr{width:12rem;height:12rem;flex-basis:12rem;background:rgba(255,255,255,.9)}.cnx .cr .ini{font-size:4rem}
+.cnx .on{font-size:3.2rem;font-weight:800;line-height:1.05;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.3rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.5rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}
+.cls{display:flex;align-items:center;gap:.9rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:3.4rem;height:3.4rem;flex-basis:3.4rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.rsc{font-size:2.4rem;font-weight:800;line-height:1}.lo{font-size:1.05rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctb{padding:.7rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap}.ps2{font-size:2.2rem;font-weight:800;line-height:1}.pt{font-size:1.2rem;font-weight:700}.pd{font-size:1rem;color:var(--mu)}
+.bh{display:grid;grid-template-columns:var(--gc);gap:2rem;padding:.5rem 0 .4rem 1.6rem;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);font-weight:700}
+.bwr{flex:1;min-height:0;display:grid;grid-template-columns:var(--gc);gap:2rem;align-items:center;border-top:1px solid var(--bd);position:relative;padding-left:1.6rem}.bwr::before{content:"";position:absolute;left:0;top:.8rem;bottom:.8rem;width:.5rem;border-radius:.3rem;background:var(--ac)}
+.bt,.bl,.bn{display:flex;align-items:center;gap:1rem;min-width:0}.bt .cr{width:5.4rem;height:5.4rem;flex-basis:5.4rem}.bt .cr .ini{font-size:1.4rem}.bl .cr,.bn .cr{width:4.6rem;height:4.6rem;flex-basis:4.6rem}.bl .cr .ini,.bn .cr .ini{font-size:1.2rem}
+.bpos{font-size:4.4rem;font-weight:800;line-height:1}.bsub{font-size:1.35rem;color:var(--mu)}.bc{font-size:1.5rem;flex:none}.bx2{min-width:0;flex:1}.bsc{font-size:3.4rem;font-weight:800;line-height:1}.bnm{font-size:2.9rem;font-weight:800;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bso{font-size:1.3rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bcd{font-size:1.35rem;font-weight:800;white-space:nowrap;padding:.2rem .8rem;border-radius:99px;background:var(--ac);color:var(--on)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
 .rs-a .rw>.bx,.rs-b .rw>.bx,.rs-c .rw>.bx,.rs-d .rw>.bx{border-color:var(--bd)}
 .rs-b .rw>.bx.tbx,.rs-c .rw>.bx.tbx,.rs-d .rw>.bx.tbx{background:var(--card);border-color:var(--bd)}
@@ -4489,7 +4544,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rs-b .tbar{display:block;margin:0;border-radius:0;font-size:1.2rem;padding:.6rem 1.05rem}.rs-b .tbar span{display:block;font-size:.85rem}
 .rs-c .rw{border:.25rem solid var(--ac);padding:0;background:var(--card)}
 .rs-d .stab{display:block;writing-mode:horizontal-tb;transform:none;font-size:1.05rem;padding:.45rem 1.05rem;border-radius:0;text-align:left}}
-</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)} &middot; refreshes every hour</span></div><nav class="jump">${jump}</nav>${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
+</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? "" : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)} &middot; refreshes every hour</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
       return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=300"}});
     }
 
@@ -5831,7 +5886,7 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "season", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "season", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
 function pageKeySearch(sp) {
   const out = [];
   for (const k of KNOWN_PARAMS) for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
