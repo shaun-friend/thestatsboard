@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.20 12-Nov-2026 Security: address checks (team, competition, division, season) and a per-visitor limit on different lookups; new Address checks card on the Usage page.
 //   v3.19 12-Nov-2026 Security: random expiring sign-in tokens (club and test PINs) and a temporary lockout after repeated wrong PINs.
 //   v3.18.3 12-Nov-2026 Release table in the README put back in order; release check now catches a mis-ordered table.
 //   v3.18.2 12-Nov-2026 Match Stats footer spacing; welcome page fits with recent teams.
@@ -167,7 +168,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.19";
+const VERSION = "v3.20";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -209,6 +210,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.20   | 12-Nov-2026 | RFU_Club_Dashboard_v3.20_address_checks.zip         | v3.19
 v3.19   | 12-Nov-2026 | RFU_Club_Dashboard_v3.19_signin_lockout.zip         | v3.18.3
 v3.18.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.3_release_table.zip         | v3.18.2
 v3.18.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.18.2_footer_welcome.zip        | v3.18.1
@@ -351,6 +353,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.20 - Address checks and a limit on different lookups (security part b)
+- Team, competition and division in a link must be 1 to 8 digits, and season must look like 2026-2027 (two consecutive years from 2000 to 2099). An id on the API pages must be 1 to 9 digits. Anything else gets a plain "That link does not look right: the <name> value is not valid." (HTTP 400) before the site does any work, so nothing reaches the RFU. Empty values are treated as not given, as before. A link longer than 4,000 characters is refused.
+- Limit: one visitor (by network address) may ask for 30 different team/competition/division/season combinations a minute across pages, the calendar and the competition list, and 60 team searches a minute. Beyond that they get "Please slow down and try again in a minute." (HTTP 429, Retry-After 60). The same team asked for again and again does not count towards the 30. Clubhouse screens and phones are nowhere near the limit. The count is kept by each running copy of the site, so it is a brake rather than an exact meter.
+- Usage page: new "Address checks" card (after the Club pages and Wrong PIN row): not-valid and slowed-down counts, which part was wrong (only the name of the part, for example "season", never what was typed), a short per-day list and where from (country and county). Records are kind "sec" (one-way daily source code, as for wrong PINs; robots included) and are left out of the visit counts.
+- Tests: 14 kinds of bad value refused with nothing sent to the RFU, valid links untouched, no bad value or address stored, the 30-lookup limit per visitor, other visitors unaffected, same team repeated is fine, the limit resets after a minute, the search limit, and the Usage card in a browser.
 
 v3.19 - Safer sign-in and a temporary lockout (security part a)
 - Sign-in cookies (club PIN and test-site PIN) are no longer a fixed code made from the PIN. They are random, expire (club: the sign-in length set in Admin; test site: 30 minutes) and are signed with a secret that is not the PIN. A captured cookie therefore cannot be used to work out the PIN, cannot be copied after it expires, and cannot be made up. Changing the PIN still signs everyone out at once.
@@ -1427,6 +1435,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.20", "Links with invalid team, competition, division or season values are now refused before they reach the RFU, and one visitor can only ask for a limited number of different teams a minute. The Usage page has a new Address checks card."],
       ["v3.19", "Safer sign-in: PIN cookies are now random, expiring and signed, and repeated wrong PINs from one source pause that source for a while. Everyone is asked for the PIN once more."],
       ["v3.18.3", "Housekeeping: the release table in the notes is back in the right order."],
       ["v3.18.2", "The footer on Match Stats has more room, and the welcome page is shorter when you have recent teams, so it fits without scrolling on most laptops."],
@@ -1843,6 +1852,18 @@ async function usagePinFail(request, which) {
     ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), "pinfail", which, "", "", "", "", "", String(cf.country || ""), String(cf.region || "").slice(0, 40), "", who], doubles: [1] });
   } catch (_) { /* counting never breaks the PIN page */ }
 }
+// v3.20: security events (kind "sec"): blob3 = what happened ("badreq" or "slow"), blob4 = which part of the address was wrong
+// (the NAME of the part, never the value). Like pinfail rows: a one-way daily source code, country and county. Robots included.
+async function usageSec(request, type, part) {
+  try {
+    const ds = SITE_ENV && SITE_ENV.USAGE;
+    if (!ds || typeof ds.writeDataPoint !== "function") return;
+    if ((await siteSettings()).features.count === false) return;
+    const ua = request.headers.get("User-Agent") || "", day = new Date().toISOString().slice(0, 10), salt = String(SITE_ENV.USAGE_SALT || SITE_ENV.CLUB_PIN || "sb");
+    const who = (await sbSha([request.headers.get("CF-Connecting-IP") || "", ua, day, salt].join("|"))).slice(0, 16), cf = request.cf || {};
+    ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), "sec", String(type).slice(0, 12), String(part).slice(0, 16), "", "", "", "", String(cf.country || ""), String(cf.region || "").slice(0, 40), "", who], doubles: [1] });
+  } catch (_) { /* counting never breaks a request */ }
+}
 async function usageRecord(request, url, ms, status, hit) {
   const ds = SITE_ENV && SITE_ENV.USAGE;
   if (!ds || typeof ds.writeDataPoint !== "function") return;
@@ -1876,7 +1897,7 @@ async function usageApi(url) {
   const bucket = days === 1 && dayStart ? "toStartOfInterval(timestamp, INTERVAL '1' HOUR)" : "toDate(timestamp)";
   const W = `FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND timestamp > ${sinceExpr}`;
   try {
-    const [perDay, tot, pages, teams, devs, others, srch, today, tvDay, tvPages, clubPg, pinDay, pinWhere, spPages, spUp, spDay] = await Promise.all([
+    const [perDay, tot, pages, teams, devs, others, srch, today, tvDay, tvPages, clubPg, pinDay, pinWhere, spPages, spUp, spDay, secDay, secWhere] = await Promise.all([
       usageQuery(`SELECT ${bucket} AS d, COUNT(DISTINCT blob12) AS people ${W} AND blob2 = 'page' GROUP BY d ORDER BY d`),
       usageQuery(`SELECT blob2 AS kind, COUNT(DISTINCT blob12) AS who, SUM(_sample_interval) AS n ${W} GROUP BY kind`),
       usageQuery(`SELECT blob3 AS view, SUM(_sample_interval) AS n ${W} AND blob2 = 'page' GROUP BY view ORDER BY n DESC LIMIT 12`),
@@ -1884,7 +1905,7 @@ async function usageApi(url) {
       usageQuery(`SELECT blob8 AS device, COUNT(DISTINCT blob12) AS who ${W} AND blob2 = 'page' GROUP BY device`),
       usageQuery(`SELECT blob5 AS name, blob6 AS comp, blob7 AS div, blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','tv') AND blob11 = '0' AND blob4 != '' GROUP BY name, comp, div, region, country ORDER BY n DESC LIMIT 25`),
       usageQuery(`SELECT blob2 AS kind, SUM(_sample_interval) AS n ${W} AND blob2 IN ('search','pick') GROUP BY kind`),
-      usageQuery(`SELECT SUM(_sample_interval) AS n FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND blob2 NOT IN ('up', 'pinfail') AND timestamp > ${limSince}`),
+      usageQuery(`SELECT SUM(_sample_interval) AS n FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND blob2 NOT IN ('up', 'pinfail', 'sec') AND timestamp > ${limSince}`),
       usageQuery(`SELECT ${bucket} AS d, SUM(_sample_interval) AS loads, COUNT(DISTINCT blob12) AS screens ${W} AND blob2 = 'tv' GROUP BY d ORDER BY d`),
       usageQuery(`SELECT toDate(timestamp) AS d, blob3 AS view, blob4 AS team, blob5 AS name, blob11 AS known, COUNT(DISTINCT blob12) AS screens, SUM(_sample_interval) AS loads ${W} AND blob2 = 'tv' GROUP BY d, view, team, name, known LIMIT 2000`),
       usageQuery(`SELECT blob3 AS view, SUM(_sample_interval) AS n, COUNT(DISTINCT blob12) AS who ${W} AND blob2 = 'club' GROUP BY view`),
@@ -1894,9 +1915,12 @@ async function usageApi(url) {
       usageQuery(`SELECT blob3 AS view, blob2 AS kind, SUM(_sample_interval) AS n, quantileWeighted(0.5)(double2, _sample_interval) AS p50, quantileWeighted(0.95)(double2, _sample_interval) AS p95, SUM(IF(double2 > 2000, _sample_interval, 0)) AS slow, SUM(IF(blob14 = 'hit', _sample_interval, 0)) AS hits ${W} AND blob2 IN ('page', 'tv') AND double2 > 0 GROUP BY view, kind ORDER BY n DESC LIMIT 15`).catch(() => null),
       usageQuery(`SELECT blob3 AS src, SUM(_sample_interval) AS n, quantileWeighted(0.5)(double2, _sample_interval) AS p50, quantileWeighted(0.95)(double2, _sample_interval) AS p95, SUM(IF(blob4 != 'ok', _sample_interval, 0)) AS bad, SUM(IF(blob5 = 'wait', _sample_interval, 0)) AS waited ${W} AND blob2 = 'up' GROUP BY src ORDER BY n DESC LIMIT 10`).catch(() => null),
       // v3.16.3: outside fetches per day (or per hour for Today), by source, so a fall in website calls can be seen.
-      usageQuery(`SELECT ${bucket} AS d, blob3 AS src, SUM(_sample_interval) AS n, SUM(IF(blob4 != 'ok', _sample_interval, 0)) AS bad ${W} AND blob2 = 'up' GROUP BY d, src ORDER BY d LIMIT 2000`).catch(() => null)
+      usageQuery(`SELECT ${bucket} AS d, blob3 AS src, SUM(_sample_interval) AS n, SUM(IF(blob4 != 'ok', _sample_interval, 0)) AS bad ${W} AND blob2 = 'up' GROUP BY d, src ORDER BY d LIMIT 2000`).catch(() => null),
+      // v3.20: address checks. Extra: if refused, only this card is lost.
+      usageQuery(`SELECT toDate(timestamp) AS d, blob3 AS type, blob4 AS part, SUM(_sample_interval) AS n, COUNT(DISTINCT blob12) AS sources ${W} AND blob2 = 'sec' GROUP BY d, type, part ORDER BY d LIMIT 500`).catch(() => null),
+      usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null)
     ]);
-    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others, srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
+    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others, srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
   } catch (e) { return J({ ok: false, error: "Could not read the usage data: " + String(e && e.message || e).slice(0, 120) }, 502); }
 }
 function usagePage(theme, isDev, defDays) {
@@ -1934,6 +1958,11 @@ function clubCard(d){
  var days=Object.keys(byDay).sort().reverse().slice(0,7);
  return'<div class="tw"><div class="cd"><h2>Club pages</h2><p class="n">Times each page was opened by someone who had signed in. Robots are left out.</p>'+rows(["usage","admin","docs","links"],function(k2){var r=cp[k2]||{n:0,who:0};return"<tr><td>"+CP[k2]+'</td><td class="nu">'+num(r.n)+'</td><td class="nu mu" style="width:110px">'+num(r.who)+" person-days</td></tr>"})+"</div>"+
  '<div class="cd'+(bad||paused?" hl":"")+'"><h2>Wrong PIN entries</h2><p class="n">'+(bad?"Each wrong PIN typed on the club PIN page (or the test site PIN page). Robots are included here.":"No wrong PINs in this period.")+"</p>"+(bad?'<p class="msg"><b>'+num(bad)+"</b> wrong entries from about "+num(src)+" source-days.</p>"+(paused?'<p class="msg"><b>'+num(paused)+"</b> temporary pause"+(paused===1?"":"s")+" started (5 wrong PINs from one source)"+(refused?"; "+num(refused)+" further guess"+(refused===1?" was":"es were")+" refused while paused":"")+".</p>":"")+rows(days,function(dd){var o2=byDay[dd];return"<tr><td>"+esc(new Date(dd+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))+'</td><td class="nu">'+num(o2.n)+"</td></tr>"})+((d.pinWhere||[]).length?'<p class="n" style="margin-top:10px">Where from: '+d.pinWhere.map(function(r){return esc((r.region?r.region+", ":"")+(r.country||"unknown"))+" ("+num(r.n)+")"}).join("; ")+"</p>":""):"")+"</div></div>"}
+function secCard(d){
+ var sd=d.secDay||[],bad=0,slow=0,byDay={},parts={};
+ sd.forEach(function(r){var n=Number(r.n),o=byDay[r.d]||(byDay[r.d]={bad:0,slow:0});if(r.type==="badreq"){bad+=n;o.bad+=n;parts[r.part]=(parts[r.part]||0)+n}else{slow+=n;o.slow+=n}});
+ var any=bad+slow>0,days=Object.keys(byDay).sort().reverse().slice(0,7),pk=Object.keys(parts).sort(function(a,b){return parts[b]-parts[a]});
+ return'<div class="cd'+(any?" hl":"")+'"><h2>Address checks</h2><p class="n">'+(any?"Requests turned away because the team, competition, division or season in the address was not valid, and visitors slowed down for asking for too many different teams in a minute. Robots are included. Only the name of the wrong part is kept, never what was typed.":"Nothing was turned away in this period.")+"</p>"+(any?'<p class="msg"><b>'+num(bad)+"</b> not valid"+(slow?"; <b>"+num(slow)+"</b> slowed down":"")+".</p>"+(pk.length?'<p class="n">Wrong part: '+pk.map(function(k){return esc(k)+" ("+num(parts[k])+")"}).join(", ")+"</p>":"")+rows(days,function(dd){var o=byDay[dd];return"<tr><td>"+esc(new Date(dd+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))+'</td><td class="nu">'+num(o.bad)+' not valid</td><td class="nu">'+num(o.slow)+" slowed</td></tr>"})+((d.secWhere||[]).length?'<p class="n" style="margin-top:10px">Where from: '+d.secWhere.map(function(r){return esc((r.region?r.region+", ":"")+(r.country||"unknown"))+" ("+num(r.n)+")"}).join("; ")+"</p>":""):"")+"</div>"}
 function upDayCard(d){
  var sp=d.speed||{},a=sp.day;
  if(!a)return"";
@@ -1977,7 +2006,7 @@ function show(d){
  '<div class="cd"><h2>Our teams</h2><p class="n">Views of teams on the club list</p>'+rows(ours,function(r){return"<tr><td>"+esc(r.n)+'</td><td class="nu">'+num(r.v)+"</td></tr>"})+"</div></div>"+
  '<div class="cd hl"><h2>Teams that are not in our list</h2><p class="n">Where other clubs show up. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
  rows(d.others,function(r){return"<tr><td>"+esc(r.name||"Team")+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
- clubCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
+ clubCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}
 function load(){o.innerHTML='<p class="msg">Loading&hellip;</p>';fetch("/api/usage?days="+days,{cache:"no-store"}).then(function(r){return r.json()}).then(show).catch(function(){o.innerHTML='<div class="cd"><p class="msg">Sorry, the usage data could not be loaded.</p></div>'})}
@@ -5753,6 +5782,43 @@ async function clubGate(request, env, label) {
   return new Response("PIN required", { status: 401, headers: { "Cache-Control": "no-store" } });
 }
 
+
+// Address checks (v3.20). The team, competition, division and season in a link go straight to the RFU, and made-up values miss the
+// stored copies, so a robot trying thousands of them could get the site blocked by the RFU. Values must look right, and one visitor
+// may ask for only so many different teams in a minute. Counting is per running copy of the site, so it is a brake, not an exact meter.
+const ADDR_RULES = {
+  team: v => /^\d{1,8}$/.test(v), competition: v => /^\d{1,8}$/.test(v), division: v => /^\d{1,8}$/.test(v),
+  season: v => { const m = /^(20\d\d)-(20\d\d)$/.exec(v); return !!m && Number(m[2]) === Number(m[1]) + 1; }
+};
+const LOOKUP_LIMIT = 30, SEARCH_LIMIT = 60, LOOKUP_WINDOW_MS = 60000;
+const LOOKUP_MEM = new Map();
+function lookupCount(request, kind, key) {
+  const ip = request.headers.get("CF-Connecting-IP") || "", now = Date.now(), k = kind + "|" + ip;
+  let e = LOOKUP_MEM.get(k);
+  if (!e || now - e.t > LOOKUP_WINDOW_MS) { e = { t: now, set: new Set(), n: 0 }; if (LOOKUP_MEM.size > 3000) LOOKUP_MEM.clear(); LOOKUP_MEM.set(k, e); }
+  if (kind === "lookup") e.set.add(key); else e.n++;
+  return kind === "lookup" ? e.set.size : e.n;
+}
+async function addressGate(request) {
+  const url = new URL(request.url), q = url.searchParams, plain = (status, text, extra) => new Response(text, { status, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex", ...(extra || {}) } });
+  if (url.search.length > 4000) { await usageSec(request, "badreq", "length"); return plain(414, "That link is too long."); }
+  for (const name of Object.keys(ADDR_RULES)) {
+    const v = q.get(name); if (v === null || v === "") continue;
+    if (!ADDR_RULES[name](v)) { await usageSec(request, "badreq", name); return plain(400, "That link does not look right: the " + name + " value is not valid."); }
+  }
+  if (url.pathname.startsWith("/api/")) { const id = q.get("id"); if (id !== null && id !== "" && !/^\d{1,9}$/.test(id)) { await usageSec(request, "badreq", "id"); return plain(400, "That link does not look right: the id value is not valid."); } }
+  const p = url.pathname.replace(/\/+$/, "") || "/";
+  if (p === "/api/builder/search") {
+    if (lookupCount(request, "search", "") > SEARCH_LIMIT) { await usageSec(request, "slow", "search"); return plain(429, "Please slow down and try again in a minute.", { "Retry-After": "60" }); }
+    return null;
+  }
+  const key = [q.get("team") || q.get("id") || "", q.get("competition") || "", q.get("division") || "", q.get("season") || ""].join("|");
+  if (key !== "|||" && (p === "/" || p === "/calendar.ics" || p === "/api/builder/team")) {
+    if (lookupCount(request, "lookup", key) > LOOKUP_LIMIT) { await usageSec(request, "slow", "lookups"); return plain(429, "Please slow down and try again in a minute.", { "Retry-After": "60" }); }
+  }
+  return null;
+}
+
 // How long the live site keeps a finished page at the edge (seconds). Match Stats is the busiest and heaviest page and its
 // facts change slowly: 2 hours Monday to Friday (no games), 5 minutes at weekends (UK days). Everything else stays at 2 minutes.
 function pageTtlFor(view, now) {
@@ -5894,6 +5960,7 @@ export default {
     if (label) { const blocked = await devGate(request, env, label); if (blocked) return blocked; }
     { const cb = await clubGate(request, env, label); if (cb) return cb; }
     { const mg = await maintenanceGate(request); if (mg) return mg; }
+    { const ag = await addressGate(request); if (ag) return ag; }
     const serve = async () => {
     // PROD only: finished team, Match Centre, fixtures and match pages are kept at the edge for 2 minutes, so a burst
     // of screens and phones shares one build. Never used on DEV (changes show at once), the links page or any PIN page.

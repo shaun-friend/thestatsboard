@@ -36,7 +36,7 @@ console.log(pass+' pass, '+fail+' fail');
  rr=await w2.fetch(req('/api/usage?days=1',{},{Cookie:c2}),e2,ctx);const j=await rr.json();
  ok('today view: utc day start used',j.limitBasis==='utcday'&&sqls.some(q=>/timestamp > toStartOfInterval\(NOW\(\), INTERVAL '1' DAY\)/.test(q)));
  ok('today view: hourly buckets',sqls.some(q=>/toStartOfInterval\(timestamp, INTERVAL '1' HOUR\) AS d/.test(q)));
- ok('limit query uses start of day',sqls.some(q=>/NOT IN \('up', 'pinfail'\) AND timestamp > toStartOfInterval/.test(q)));
+ ok('limit query uses start of day',sqls.some(q=>/NOT IN \('up', 'pinfail', 'sec'\) AND timestamp > toStartOfInterval/.test(q)));
  sqls.length=0;refuse=true;
  rr=await w2.fetch(req('/api/usage?days=1',{},{Cookie:c2}),e2,ctx);const j2=await rr.json();
  ok('falls back to rolling when refused',j2.ok&&j2.limitBasis==='rolling'&&sqls.some(q=>/NOW\(\) - INTERVAL '1' DAY/.test(q)));
