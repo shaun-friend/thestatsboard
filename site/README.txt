@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.1_next_game_tidy.zip      | v3.21
 v3.21   | 12-Nov-2026 | RFU_Club_Dashboard_v3.21_match_centre_layouts.zip  | v3.20.1
 v3.20.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.20.1_cache_key.zip            | v3.20
 v3.20   | 12-Nov-2026 | RFU_Club_Dashboard_v3.20_address_checks.zip         | v3.19
@@ -181,6 +182,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.1 - Match Centre Next game first tidy-up
+- Owner feedback (12-Nov-2026): the coloured Next game blocks changed height when a team had no last result; some text looked clipped; crests inside the colour were large and a low-quality crest looked poor; the Next game label was small.
+- The coloured block is now a fixed share of each column (about a quarter smaller than before), so every team's block is the same height whatever else is shown. The Last result and Table area below fills the rest and has more room for its text.
+- The crest inside the colour is smaller and sits inside the circle with a margin, so square crests are no longer cropped. The Next game label is larger. Table position and points have more room.
 
 v3.21 - Match Centre layouts (Next game first, Board, Classic)
 - New setting in Admin > Screens: Match Centre layout. Next game first (the default) gives each team a column with the next opponent's crest, name and date in the team colour, then the last result and the league position. Board gives one row per team: table, last result and next game, each with the opponent's crest. Classic rows is the previous layout, unchanged.
