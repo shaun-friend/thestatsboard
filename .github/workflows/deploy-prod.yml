@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: deploy-prod
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
       - name: Install browser for the screen tests
@@ -46,4 +46,4 @@ jobs:
         run: |
           test -n "$PROJECT" || { echo "Set the repository variable CF_PROJECT_PROD"; exit 1; }
           mkdir bundle && cp site/_worker.js site/README.txt site/index.html bundle/
-          npx --yes wrangler@3 pages deploy bundle --project-name="$PROJECT" --branch=main --commit-dirty=true
+          npx --yes wrangler@4 pages deploy bundle --project-name="$PROJECT" --branch=main --commit-dirty=true
