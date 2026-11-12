@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.21.8 12-Nov-2026 Probe page: five new cards (all matches in one call, match participants, match events, match stats).
 //   v3.21.7 12-Nov-2026 Opposition report: space between the tags at the top when they wrap onto more than one line on a phone.
 //   v3.21.6 12-Nov-2026 Match Centre layouts: crests shown as they are, with no circle behind or clip around them, so no dark bands.
 //   v3.21.5 12-Nov-2026 Match Centre layouts: the circle behind each crest takes on the crest's own colours so it all matches.
@@ -177,7 +178,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.21.7";
+const VERSION = "v3.21.8";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -219,6 +220,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.8 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.8_probe_cards.zip         | v3.21.7
 v3.21.7 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.7_tag_spacing.zip         | v3.21.6
 v3.21.6 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.6_plain_crests.zip         | v3.21.5
 v3.21.5 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.5_crest_circle.zip         | v3.21.4
@@ -371,6 +373,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.8 - Probe page: five more RFU endpoint cards
+- Owner request (12-Nov-2026): look at the full RFU explorer list (api.england-rfu.com/explorer/openapi.json, version 1.94.3) for data we do not use yet. The Probe page already had cards for most of it, and earlier rounds (06-Nov-2026) found previousMatch and headToHead empty.
+- New cards, testing only (DEV /probe, club PIN): (1) POST matches/all for a team and one group; (2) the same with no group, to see whether one call covers every competition; (3) /gms/matchparticipants (who played); (4) /gms/matchevents (tries, conversions, cards); (5) /stats/matchCentreStats (match stats, expected to be elite games only). Player names appear in (3): for under-18 sides do not put those on a public screen.
+- The probe's request builder now accepts a request body made of objects as well as a list of numbers. No change to any public page.
 
 v3.21.7 - Opposition report tag spacing
 - Owner feedback (12-Nov-2026, iPhone screenshot): under the heading, the position, "Away at ..." and cup tags wrapped onto two lines with no gap between the lines, so they looked bunched.
@@ -1498,6 +1505,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.21.8", "Probe page (testing only): five new cards to try the RFU endpoints for all matches in one call, who played, tries and cards, and match stats."],
       ["v3.21.7", "Opposition report on a phone: the position, home/away and cup tags under the heading no longer sit tight against each other when they wrap onto a second line."],
       ["v3.21.6", "Match Centre layouts: crests are shown whole, as the club supplies them, with no circle behind them, so no dark band or ring appears around any crest."],
       ["v3.21.5", "Match Centre layouts: the circle behind each crest now takes on the crest's own background colour instead of a different shade."],
@@ -2868,6 +2876,11 @@ const PROBE_EPS = [
   { k: "count", label: "Matches count", m: "GET", p: "/fixtures-and-results/matchesCount", q: { season: "{season}", competitionId: "{competitionId}", teamId: "{teamId}", groupId: "{groupId}" }, need: ["season"] },
   { k: "seasons", label: "Seasons", m: "GET", p: "/fixtures-and-results/seasons", need: [] },
   { k: "players", label: "Players by team", m: "GET", p: "/players/playersByTeam", q: { teamId: "{teamId}" }, need: ["teamId"] },
+  { k: "matches_all", label: "New 1: all matches for a team in one chosen group (POST matches/all, club-entered data)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: ["{groupId}"], opta: false, gms: true }], need: ["teamId", "groupId"] },
+  { k: "matches_all_any", label: "New 2: all matches for a team with no group given (does one call cover every competition?)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: [], opta: false, gms: true }], need: ["teamId"] },
+  { k: "gms_people", label: "New 3: who played in a match (GMS match participants; needs a match ID)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId"] },
+  { k: "gms_events", label: "New 4: tries, conversions and cards in a match (GMS match events; needs a match ID)", m: "GET", p: "/gms/matchevents", q: { matchId: "{matchId}" }, need: ["matchId"] },
+  { k: "mc_stats", label: "New 5: match stats for one match (stats/matchCentreStats; usually elite games only)", m: "GET", p: "/stats/matchCentreStats", q: { matchId: "{matchId}" }, need: ["matchId"] },
 ];
 const PROBE_FIELDS = ["teamId", "opponentId", "season", "competitionId", "groupId", "name", "matchId", "clubId"];
 async function probeRun(url) {
@@ -2889,6 +2902,10 @@ async function probeRun(url) {
   for (const [k, val] of Object.entries(ep.q || {})) { const x = fill(val); if (x !== "") target.searchParams.set(k, x); }
   let body;
   if (ep.body) body = JSON.stringify(ep.body.map(fill).filter(x => x !== "").map(Number));
+  if (ep.bodyObj) {
+    const fv = x => typeof x === "string" ? (/^\{\w+\}$/.test(x) ? (fill(x) === "" ? undefined : Number(fill(x))) : fill(x)) : Array.isArray(x) ? x.map(fv).filter(y => y !== undefined) : x && typeof x === "object" ? Object.fromEntries(Object.entries(x).map(([k, y]) => [k, fv(y)]).filter(([, y]) => y !== undefined)) : x;
+    body = JSON.stringify(ep.bodyObj.map(fv));
+  }
   const t0 = Date.now();
   const out = { ep: ep.k, label: ep.label, method: ep.m, url: String(target), requestBody: body ? JSON.parse(body) : undefined };
   try {

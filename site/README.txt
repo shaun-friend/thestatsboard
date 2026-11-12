@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.8 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.8_probe_cards.zip         | v3.21.7
 v3.21.7 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.7_tag_spacing.zip         | v3.21.6
 v3.21.6 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.6_plain_crests.zip         | v3.21.5
 v3.21.5 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.5_crest_circle.zip         | v3.21.4
@@ -188,6 +189,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.8 - Probe page: five more RFU endpoint cards
+- Owner request (12-Nov-2026): look at the full RFU explorer list (api.england-rfu.com/explorer/openapi.json, version 1.94.3) for data we do not use yet. The Probe page already had cards for most of it, and earlier rounds (06-Nov-2026) found previousMatch and headToHead empty.
+- New cards, testing only (DEV /probe, club PIN): (1) POST matches/all for a team and one group; (2) the same with no group, to see whether one call covers every competition; (3) /gms/matchparticipants (who played); (4) /gms/matchevents (tries, conversions, cards); (5) /stats/matchCentreStats (match stats, expected to be elite games only). Player names appear in (3): for under-18 sides do not put those on a public screen.
+- The probe's request builder now accepts a request body made of objects as well as a list of numbers. No change to any public page.
 
 v3.21.7 - Opposition report tag spacing
 - Owner feedback (12-Nov-2026, iPhone screenshot): under the heading, the position, "Away at ..." and cup tags wrapped onto two lines with no gap between the lines, so they looked bunched.
