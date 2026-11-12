@@ -23,7 +23,7 @@ c('cards hidden on phone css',t.includes('@media(max-width:800px){.ly{display:no
 let m=mainOf(t);
 c('next opponent shown',m.includes('Cullompton U18')&&m.includes('This ')||m.includes('Cullompton U18'));
 c('next opponent crest',m.includes('club_images/9003')||m.includes('club_images/'));
-c('last result our score first',m.includes('18&ndash;15'));c('win chip',m.includes('class="pl w"'));
+c('last result our score first',m.includes('18<i class="dsh">&ndash;</i>15'));c('win chip',m.includes('class="pl w"'));
 c('no kick-off time',!/15:00/.test(m));c('no difficulty',!/difficulty/i.test(m));
 c('home chip',/<span>Home<\/span>/.test(m));
 // url override

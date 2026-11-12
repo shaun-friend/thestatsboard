@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.4 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.4_score_dash.zip          | v3.21.3
 v3.21.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.3_name_room.zip                | v3.21.2
 v3.21.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.2_descenders.zip            | v3.21.1
 v3.21.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.1_next_game_tidy.zip      | v3.21
@@ -184,6 +185,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.4 - Space around the score dash
+- Owner feedback (12-Nov-2026): in the last-result score the dash touched the numbers (10-48) in both new layouts. The dash now has a small space each side (0.14 of the text size), so it reads 10 - 48 without a wide gap.
 
 v3.21.3 - More room under names
 - Owner feedback (12-Nov-2026): on the Board, the g in "Paignton II" was still cut off on the owner's screen. Cause: names are kept inside a box that hides overflow (so long names can be cut with an ellipsis), and the heavy bold font on that screen has a deeper tail than the one used in testing, so a line height of 1.2 was too tight. Names, league lines and score lines in both new layouts now use a line height of 1.45 to 1.5, which covers fonts with tall ascenders and deep tails.

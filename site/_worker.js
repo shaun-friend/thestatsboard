@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.21.4 12-Nov-2026 Match Centre layouts: a small space each side of the dash in the last-result score.
 //   v3.21.3 12-Nov-2026 Match Centre layouts: more room under names so heavy fonts with deep tails (the g in Paignton) are not cut off.
 //   v3.21.2 12-Nov-2026 Match Centre layouts: letters that hang below the line (g, p, y) no longer clipped; Board column headings larger.
 //   v3.21.1 12-Nov-2026 Match Centre Next game first: equal-height colour blocks (about a quarter smaller), smaller crests that no longer crop, larger "Next game" label, no clipped text.
@@ -173,7 +174,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.21.3";
+const VERSION = "v3.21.4";
 const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -215,6 +216,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.21.4 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.4_score_dash.zip          | v3.21.3
 v3.21.3 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.3_name_room.zip                | v3.21.2
 v3.21.2 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.2_descenders.zip            | v3.21.1
 v3.21.1 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.1_next_game_tidy.zip      | v3.21
@@ -363,6 +365,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.21.4 - Space around the score dash
+- Owner feedback (12-Nov-2026): in the last-result score the dash touched the numbers (10-48) in both new layouts. The dash now has a small space each side (0.14 of the text size), so it reads 10 - 48 without a wide gap.
 
 v3.21.3 - More room under names
 - Owner feedback (12-Nov-2026): on the Board, the g in "Paignton II" was still cut off on the owner's screen. Cause: names are kept inside a box that hides overflow (so long names can be cut with an ellipsis), and the heavy bold font on that screen has a deeper tail than the one used in testing, so a line height of 1.2 was too tight. Names, league lines and score lines in both new layouts now use a line height of 1.45 to 1.5, which covers fonts with tall ascenders and deep tails.
@@ -1473,6 +1478,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.21.4", "Match Centre layouts: the dash in the last-result score has a small space each side so it no longer touches the numbers."],
       ["v3.21.3", "Match Centre layouts: more room under team and opponent names so the tails of letters like g and p are not cut off on any screen."],
       ["v3.21.2", "Match Centre layouts: letters that hang below the line (such as the g in Paignton) are no longer cut off, and the Board column headings are larger."],
       ["v3.21.1", "Match Centre Next game first: the coloured blocks are now the same height on every team and a little smaller, crests sit smaller so they are not cropped, and the Next game label is larger."],
@@ -4460,14 +4466,14 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
         const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
         const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="on">${e(N.opp)}</div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
-        const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}&ndash;${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
+        const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
         return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="cnx">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
       const boardHtml = ({t, s, error}, idx) => {
         if (error || !s) return `<section class="bwr" ${acStyle(t, idx)}><div class="bt"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="empty" style="grid-column:2/-1">Couldn't load this team. It will retry on the next refresh.</div></section>`;
         const L = lastOf(s.last), N = nextOf(s.next);
         const tbl = s.position ? `<div class="bpos">${ordOf(s.position)}</div><div class="bsub">${s.points !== null && s.points !== undefined ? s.points + " pts" : ""}${s.played ? (s.points !== null && s.points !== undefined ? " &middot; " : "") + "P" + s.played : ""}</div>` : `<div class="empty">No table</div>`;
-        const last = L ? `${crest(L.oppId, L.opp)}<span class="pl ${L.res} bc">${L.res.toUpperCase()}</span><div class="bx2"><div class="bsc">${L.mine}&ndash;${L.theirs}</div><div class="bso">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="empty">No results available yet</div>`;
+        const last = L ? `${crest(L.oppId, L.opp)}<span class="pl ${L.res} bc">${L.res.toUpperCase()}</span><div class="bx2"><div class="bsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</div><div class="bso">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="empty">No results available yet</div>`;
         const next = N ? `${crest(N.oppId, N.opp)}<div class="bx2"><div class="bnm">${e(N.opp)}</div><div class="bso">${e(N.date)}${N.where ? " &middot; " + N.where : ""}</div></div>${N.cd ? `<span class="bcd">${e(N.cd)}</span>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
         return `<section class="bwr" ${acStyle(t, idx)}><div class="bt">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="bp">${tbl}</div><div class="bl">${last}</div><div class="bn">${next}</div></section>`;
       };
@@ -4550,7 +4556,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
 .cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}
-.clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .bh{display:grid;grid-template-columns:var(--gc);gap:2rem;padding:.6rem 0 .5rem 1.6rem;font-size:1.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tx);opacity:.85;font-weight:800}
 .bwr{flex:1;min-height:0;display:grid;grid-template-columns:var(--gc);gap:2rem;align-items:center;border-top:1px solid var(--bd);position:relative;padding-left:1.6rem}.bwr::before{content:"";position:absolute;left:0;top:.8rem;bottom:.8rem;width:.5rem;border-radius:.3rem;background:var(--ac)}
