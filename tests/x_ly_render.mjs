@@ -7,7 +7,7 @@ const mk=(id,type,d,home,opp,hs,as,time)=>({id,type,date:iso(d),time:time||'15:0
 const A=[9001,'Kingsbridge U18'],B=[9002,'Tavistock U18'],C=[9003,'Paignton Colts U18'],D=[9004,'Exmouth U18'],E=[9005,'Newton Abbot U18'];
 // league division feed (competition 1699 / division 75791)
 const O=(id,h,a,hs,as,type)=>({id,type,date:iso(0),time:'15:00',homeTeam:T(h[0],h[1],hs),awayTeam:T(a[0],a[1],as)});
-const leagueRes=[O(41,[9103,'Newquay U18'],[9104,'Bideford U18'],24,17,'result'),O(42,[9105,'Wellington U18'],[9106,'Crediton U18'],10,31,'result'),{...O(43,[9107,'Totnes U18'],[9108,'Dawlish U18'],null,null,'result'),time:'AWO'},{...O(44,[9109,'Teignmouth U18'],[9110,'Buckfast U18'],null,null,'result'),time:'HWO'},mk(1,'result',-28,true,A,30,10),mk(2,'result',-14,false,B,12,20)];
+const leagueRes=[O(41,[9103,'Newquay U18'],[9104,'Bideford U18'],24,17,'result'),O(42,[9105,'Wellington U18'],[9106,'Crediton U18'],10,31,'result'),{...O(43,[9107,'Totnes U18'],[9108,'Dawlish U18'],null,null,'result'),time:'AWO'},{...O(44,[9109,'Teignmouth U18'],[9110,'Buckfast U18'],null,null,'result'),time:'HWO'},mk(1,'result',-28,true,A,30,10),mk(2,'result',-14,false,B,12,20),O(45,C,D,20,10,'result')];
 const AWAY='home'!=='home';const leagueFx=[O(51,[9101,'Okehampton U18'],[9102,'Honiton U18'],null,null,'fixture'),mk(3,'fixture',3,!AWAY,C,null,null)];
 // cup division feed (competition 7777 / division 8888)
 const cupRes=[mk(11,'result',-21,true,D,40,5),mk(12,'result',-7,false,E,15,18),mk(13,'result',-35,true,A,null,null,'V')];

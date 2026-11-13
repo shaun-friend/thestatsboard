@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.22 13-Nov-2026 Match Centre (TV layouts): ground and "2nd v 3rd" table line on each next game. New admin-only Match sheet page: team sheets and scorers, under-18 names never shown.
 //   v3.21.8 12-Nov-2026 Probe page: five new cards (all matches in one call, match participants, match events, match stats).
 //   v3.21.7 12-Nov-2026 Opposition report: space between the tags at the top when they wrap onto more than one line on a phone.
 //   v3.21.6 12-Nov-2026 Match Centre layouts: crests shown as they are, with no circle behind or clip around them, so no dark bands.
@@ -178,8 +179,8 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.21.8";
-const BUILD_DATE = "12-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.22";
+const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -220,6 +221,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22   | 13-Nov-2026 | RFU_Club_Dashboard_v3.22_match_sheet.zip           | v3.21.8
 v3.21.8 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.8_probe_cards.zip         | v3.21.7
 v3.21.7 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.7_tag_spacing.zip         | v3.21.6
 v3.21.6 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.6_plain_crests.zip         | v3.21.5
@@ -373,6 +375,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22 - Ground and table line on the Match Centre, and the admin Match sheet
+- Owner request (13-Nov-2026): after probing the RFU data service (match record, team sheets, scorers, match stats), build the parts that are new. The ground, directions and head-to-head already existed (v3.16 and v30s), so they are not rebuilt.
+- Match Centre on a TV (Next game first and Board layouts): each next game now shows the ground (from the RFU match record, as before) and a line such as "2nd v 3rd - 1 point apart", from the public league table. It appears for league games only. Classic rows and phones are unchanged. No kick-off time, no QR code and no difficulty rating are shown.
+- New page /matchsheet (club PIN, linked from Admin): for the chosen team, the next game and the last game with both team sheets (shirt number, position, captain and vice captain) and, for the last game, the scoring (tries, conversions and missed conversions with the minute and player). When no sheet has been entered it says so.
+- Names: under-18 teams (by team or league name) and any player the RFU marks as under 18 are shown by shirt number and position only. "Name withheld" is shown as the RFU supplies it. The staff who entered the data, and the players' own ID numbers, are never read into the page.
+- Scorers are only listed for clubs that enter match events (normally our own club), so the other side may show none. The page is never cached, not indexed, and is not on PROD pages that need no PIN.
+- No change to the data the other pages read; the RFU team sheet and scorers calls are kept for two minutes and appear on the Usage page as "RFU team sheet".
 
 v3.21.8 - Probe page: five more RFU endpoint cards
 - Owner request (12-Nov-2026): look at the full RFU explorer list (api.england-rfu.com/explorer/openapi.json, version 1.94.3) for data we do not use yet. The Probe page already had cards for most of it, and earlier rounds (06-Nov-2026) found previousMatch and headToHead empty.
@@ -1505,6 +1515,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.22", "Match Centre on a TV now shows where the next game is played and how the two teams sit in the table (for example \"2nd v 3rd, 1 point apart\"). Admins also get a new Match sheet page with team sheets and scorers; under-18 players are never named."],
       ["v3.21.8", "Probe page (testing only): five new cards to try the RFU endpoints for all matches in one call, who played, tries and cards, and match stats."],
       ["v3.21.7", "Opposition report on a phone: the position, home/away and cup tags under the heading no longer sit tight against each other when they wrap onto a second line."],
       ["v3.21.6", "Match Centre layouts: crests are shown whole, as the club supplies them, with no circle behind them, so no dark band or ring appears around any crest."],
@@ -1782,6 +1793,7 @@ ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the nex
 ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The small line at the bottom of the Fixtures TV board.")}
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Next game first&rdquo; switches to the Board automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview next game first</a> &middot; <a href="/?view=stack&amp;ly=board" target="_blank" rel="noopener" style="color:#7fd89a">Board</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Next game first"], ["board", "Board"], ["classic", "Classic rows"]])}</div>
+<div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div><h2>Access</h2><div class="cd">
 <div class="nb"><div class="nh"><div><b>How long a PIN sign-in lasts</b><small>After this many days a device is asked for the club PIN again. Devices already signed in keep the length they were given; changing the PIN signs everyone out at once. Anyone can also use Sign out (bottom of the Links, Documentation and Admin pages).</small></div></div>${seg("sd", String(s.signin.days), [["1", "1 day"], ["7", "7 days"], ["14", "14 days"], ["30", "30 days"]])}</div>
@@ -1865,6 +1877,91 @@ async function maintenanceGate(request) {
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
   if (data) return new Response("The Stats Board is undergoing maintenance. Back soon.", { status: 503, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "no-store", "Retry-After": "600", "X-Robots-Tag": "noindex" } });
   return maintenancePage(st.maintenance, false);
+}
+// ---- Admin match sheet (v3.22) -------------------------------------------------------------------------------
+// Team sheets (who played) and scorers for a game, read from the RFU data service. Admin only (club PIN).
+// Only the fields below are ever copied out of the feed: the staff who entered the data (creator, updater, who recorded
+// the result) and the people's own ID numbers are never read into the page.
+const SHEET_U18_RE = /\bU\s?(1[0-9]|[0-9])s?\b|colts|junior|youth|\bmini\b|\bmidi\b/i;
+const sheetHidesNames = text => SHEET_U18_RE.test(String(text || ""));
+async function sheetJson(target) {
+  try { const r = await cachedText(target, "application/json"); return r.ok ? JSON.parse(r.text) : null; } catch (_) { return null; }
+}
+function sheetOrder(no) { const n = String(no || ""); return /^\d+$/.test(n) ? +n : /^S\d+$/i.test(n) ? 15 + +n.slice(1) : 99; }
+async function matchSheetFor(g, hideTeam) {
+  const id = String(g.id || "");
+  if (!/^\d{1,10}$/.test(id)) return null;
+  const [rec, ppl, evs] = await Promise.all([
+    sheetJson("https://cluster.england-rfu.com/gms/matches/" + id),
+    sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id),
+    sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + id)
+  ]);
+  if (!rec) return { g, error: true };
+  const hideSide = hideTeam || sheetHidesNames((rec.competitionName || "") + " " + (rec.groupName || ""));
+  const sideName = { [rec.homeTeamId]: rec.homeClubName || rec.homeTeamName || "Home", [rec.awayTeamId]: rec.awayClubName || rec.awayTeamName || "Away" };
+  const nameOf = (p, hide) => hide || p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "Name withheld" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
+  const list = Array.isArray(ppl && ppl.participants) ? ppl.participants : [];
+  const mk = teamId => list.filter(p => String(p.teamId) === String(teamId)).map(p => ({
+    pid: p.id, no: String(p.playingPositionNo || ""), pos: String(p.description || ""), name: nameOf(p, hideSide), hidden: !!(hideSide || p.isU18 === true),
+    started: p.startedMatch !== false,
+    tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : ""
+  })).sort((a, b) => sheetOrder(a.no) - sheetOrder(b.no));
+  const home = mk(rec.homeTeamId), away = mk(rec.awayTeamId);
+  const byPid = new Map(list.map(p => [p.id, p]));
+  const events = (Array.isArray(evs) ? evs : []).filter(x => x && x.eventType && /SCORE|CARD|SUB/i.test(String(x.eventType.value || ""))).map(x => {
+    const sub = String((x.eventSubType && x.eventSubType.value) || "");
+    const what = /SCORETRY$/.test(sub) ? "Try" : /SCORECONV_MISS$/.test(sub) ? "Conversion missed" : /SCORECONV$/.test(sub) ? "Conversion" : String((x.eventSubType && x.eventSubType.display) || (x.eventType && x.eventType.display) || "Event");
+    const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18 };
+    return { min: Number(x.duration) || 0, what, kind: /^Try$/.test(what) ? "try" : /^Conversion$/.test(what) ? "conv" : "other", team: sideName[x.teamId] || String(x.teamName || ""), no: String(x.playingPosition || ""), name: nameOf(pl, hideSide) };
+  }).sort((a, b) => a.min - b.min);
+  const hs = Number(rec.homeFullTimeScore), as = Number(rec.awayFullTimeScore);
+  return {
+    g, ok: true, hideSide, homeName: rec.homeClubName || rec.homeTeamName || "Home", awayName: rec.awayClubName || rec.awayTeamName || "Away",
+    score: Number.isFinite(hs) && Number.isFinite(as) && rec.homeFullTimeScore !== null && rec.awayFullTimeScore !== null ? hs + "–" + as : "",
+    submitted: !!(ppl && ppl.lineup) && (home.length + away.length) > 0, home, away, events
+  };
+}
+function matchSheetPage(theme, isDev, teams, sel, d) {
+  const t = theme === "light" ? "light" : "dark", ee = noticeEsc;
+  const tm = teams[sel];
+  const tab = (x, i) => `<a class="tab${i === sel ? " on" : ""}" href="/matchsheet?t=${i}${t === "light" ? "&theme=light" : ""}">${ee(x.short || x.name)}${sheetHidesNames(x.name + " " + x.league + " " + x.teamName) ? ' <small>names hidden</small>' : ""}</a>`;
+  const squad = (name, rows, hasSheet, who) => `<div class="sq"><div class="sqh">${ee(name)}</div>${rows.length ? rows.map(r => `<div class="pr"><span class="no">${ee(r.no)}</span><span class="pn"><b>${ee(r.name)}</b>${r.name ? " " : ""}<small>${ee(r.pos)}</small></span><span class="tg2">${ee(r.tag)}</span></div>`).join("") : `<div class="none">${ee(who)} sheet not in yet.</div>`}</div>`;
+  const status = m => !m ? "" : m.submitted ? `<span class="chip ok">Sheets in</span>` : `<span class="chip">Not submitted yet</span>`;
+  const head = (kind, m, g) => `<div class="kk">${kind}${g && g.dateLabel ? " &middot; " + ee(g.dateLabel) : ""}${g && g.comp ? " &middot; " + ee(g.comp) : ""}</div><div class="ti">${m && m.ok ? ee(m.homeName) + (m.score ? " " + ee(m.score) + " " : " v ") + ee(m.awayName) : g ? "v " + ee(g.oppName) : ""}</div>`;
+  const block = (kind, m, g, withEvents) => {
+    if (!g) return `<section class="card"><div class="kk">${kind}</div><div class="none">No ${kind.toLowerCase()} found in this season's fixtures.</div></section>`;
+    if (!m || m.error) return `<section class="card">${head(kind, m, g)}<div class="none">The RFU match record could not be read just now. This page tries again on every refresh.</div></section>`;
+    const sheets = m.submitted
+      ? `<div class="sqs">${squad(m.homeName, m.home, m.submitted, m.homeName)}${squad(m.awayName, m.away, m.submitted, m.awayName)}</div>`
+      : `<div class="wait"><span class="dot"></span><div><b>Team sheet not submitted yet</b><small>Clubs usually enter sheets one to two days before kick-off, and the opposition's sometimes on the morning of the game. This page checks every few minutes.</small></div></div>`;
+    const ev = withEvents && m.events.length ? `<div class="kk" style="margin-top:14px">Scoring &middot; events recorded by the clubs that enter them</div><div class="evs">${m.events.map(x => `<div class="ev"><span class="mn">${x.min}'</span><span class="${x.kind}">${ee(x.what)}</span><span class="who">${ee(x.team)}${x.no ? " &middot; " + ee(x.no) : ""}${x.name ? " &middot; " + ee(x.name) : ""}</span></div>`).join("")}</div>` : "";
+    return `<section class="card"><div class="top">${head(kind, m, g)}${status(m)}</div>${sheets}${ev}</section>`;
+  };
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta http-equiv="refresh" content="300"><title>Match sheet</title>
+<style>
+:root{--bg:#080b0d;--card:#111719;--bd:#26312d;--tx:#f2f6f4;--mu:#9fb0a8;--ac:#4fc27d;--am:#e8c26a;--in:#0c1113}
+body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--ac:#1d6b3a;--am:#7a4d06;--in:#f3f7f4}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px 32px}
+.wrap{max-width:1100px;margin:0 auto}h1{margin:.2em 0 .5em;font-size:1.9rem}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.tab{min-height:44px;display:flex;align-items:center;gap:6px;padding:0 16px;border-radius:10px;border:1px solid var(--bd);color:var(--tx);text-decoration:none;font-weight:600}.tab.on{background:var(--ac);border-color:var(--ac);color:#07100b;font-weight:700}.tab small{color:var(--mu);font-weight:400}.tab.on small{color:#07100b}
+.note{border-radius:12px;background:#1d1a0c;border:1px solid #5b4b1a;color:#e8c26a;padding:12px 16px;font-size:.95rem;line-height:1.5;margin-bottom:14px}body.light .note{background:#fbecc8;border-color:#e0c06a;color:#7a4d06}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin-bottom:14px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.kk{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);font-weight:700}.ti{font-size:1.5rem;font-weight:800;line-height:1.4;margin:.15em 0 .4em}
+.chip{border:1px solid var(--bd);border-radius:6px;padding:3px 10px;font-weight:700;font-size:.85rem;color:var(--mu)}.chip.ok{background:var(--ac);border-color:var(--ac);color:#07100b}
+.wait{display:flex;gap:12px;align-items:flex-start;background:var(--in);border-radius:12px;padding:14px;margin-top:8px}.wait b{display:block}.wait small{display:block;color:var(--mu);line-height:1.5;margin-top:4px}.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--mu);flex:none;margin-top:4px}
+.sqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:8px}.sqh{font-weight:800;padding-bottom:8px;border-bottom:2px solid var(--ac)}
+.pr{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;min-height:32px;border-bottom:1px solid var(--bd);font-size:.95rem}.no{font-weight:700;color:var(--mu)}.pn small{color:var(--mu)}.tg2{font-size:.8rem;font-weight:700;color:var(--am)}
+.none{color:var(--mu);padding:10px 0;line-height:1.5}
+.evs{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 28px}.ev{display:grid;grid-template-columns:44px 140px 1fr;gap:8px;align-items:center;min-height:34px;border-bottom:1px solid var(--bd);font-size:.92rem}.mn{font-weight:700;color:var(--mu)}.try{font-weight:700;color:var(--ac)}.conv{font-weight:700;color:var(--am)}.other{font-weight:700;color:var(--mu)}.who{color:var(--tx)}
+.ft{color:var(--mu);font-size:.85rem;margin-top:10px;line-height:1.5}
+</style></head><body class="${t}"><div class="wrap">
+<div class="kk">Admin</div><h1>Match sheet</h1>
+<div class="tabs">${teams.map(tab).join("")}</div>
+<div class="note">Admin only. Player names never appear on a public screen, a TV board or any link without the club PIN. Under-18 teams and any player the RFU marks as under 18 are shown by shirt number and position only. "Name withheld" is shown exactly as the RFU supplies it.</div>
+${block("Next game", d.next, d.nextG, false)}
+${block("Last game", d.last, d.lastG, true)}
+<div class="ft">Last checked ${londonTime(Date.now())}. This page refreshes every five minutes. Scorers are only listed for clubs that enter match events, so a side with no events listed has not recorded them.</div>
+</div></body></html>`;
 }
 async function adminApi(request, url) {
   const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
@@ -3022,6 +3119,7 @@ function ttlFor(key) {
   if (/cluster\.england-rfu\.com\/gms\/matches\/\d+$/.test(key)) return 24 * 3600;
   if (/cluster\.england-rfu\.com\/fixtures-and-results\/nextmatch\?.*count=60/.test(key)) return 3 * 3600;
   if (/cluster\.england-rfu\.com\/teams\/\d+$/.test(key)) return 7 * 86400;
+  if (/cluster\.england-rfu\.com\/gms\/match(participants|events)\?/.test(key)) return 120; // team sheets and scorers (admin match sheet): kept two minutes
   if (/englandrugby\.com\/api\/fixtures-and-result\/(teamSelect|competitionSelect)/.test(key)) return 12 * 3600;
   if (/englandrugby\.com\/fixtures-and-results\/search-results\?team=\d+&season=[^&]+$/.test(key)) return 12 * 3600;
   return liveDataSeconds();
@@ -3030,7 +3128,7 @@ const SWR_FACTOR = 6; // old data is shown at once, and refreshed behind the sce
 const RFU_TIMEOUT_STALE_MS = 4000; // when an older copy exists there is no reason to wait long for RFU
 const refreshing = new Map();
 let SITE_CTX = null; // set at the start of every request, so a refresh can carry on after the page has been sent
-const upLabel = k => /full-matches/.test(k) ? "RFU results feed" : /gms\/matches\//.test(k) ? "RFU match record" : /fixtures-and-results\/seasons/.test(k) ? "RFU season list" : /cluster\.england-rfu\.com/.test(k) ? "RFU feed (other)" : /englandrugby\.com/.test(k) ? "RFU web page" : /postcodes\.io/.test(k) ? "Postcode lookup" : /geocoding/.test(k) ? "Place lookup" : /open-meteo/.test(k) ? "Weather forecast" : "Other";
+const upLabel = k => /full-matches/.test(k) ? "RFU results feed" : /gms\/matches\//.test(k) ? "RFU match record" : /gms\/match(participants|events)/.test(k) ? "RFU team sheet" : /fixtures-and-results\/seasons/.test(k) ? "RFU season list" : /cluster\.england-rfu\.com/.test(k) ? "RFU feed (other)" : /englandrugby\.com/.test(k) ? "RFU web page" : /postcodes\.io/.test(k) ? "Postcode lookup" : /geocoding/.test(k) ? "Place lookup" : /open-meteo/.test(k) ? "Weather forecast" : "Other";
 // One data point per real outside fetch (never per cache hit): how long it took, whether it worked, and whether a visitor was waiting.
 function usageUp(key, ms, outcome, waited) {
   try {
@@ -3550,6 +3648,23 @@ const worker = {
     if (url.pathname.replace(/\/+$/, "") === "/usage") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(usagePage(th, isDev === true, (await siteSettings()).reporting.days), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
+    // Admin match sheet (v3.22): team sheets and scorers for a team's next and last game. Club PIN protected, never cached, not indexed.
+    if (url.pathname.replace(/\/+$/, "") === "/matchsheet") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      const ti = Math.max(0, Math.min(TEAMS.length - 1, parseInt(url.searchParams.get("t") || "0", 10) || 0));
+      const tm = TEAMS[ti];
+      let games = [];
+      try {
+        const q = new URLSearchParams({ season: tm.season || AUTO.season, competition: tm.competition, division: tm.division, team: tm.team, teamName: tm.teamName, friendlyName: tm.name, format: "summary", detail: "fixtures" });
+        const fr = await worker.fetch(new Request(url.origin + "/?" + q.toString()));
+        if (fr.ok) games = (await fr.json()).games || [];
+      } catch (_) { games = []; }
+      const nextG = games.find(g => g.status === "upcoming" && g.id) || null;
+      const lastG = games.filter(g => g.status === "done" && !g.wo && g.id).pop() || null;
+      const hideTeam = sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName);
+      const [nextM, lastM] = await Promise.all([nextG ? matchSheetFor(nextG, hideTeam) : null, lastG ? matchSheetFor(lastG, hideTeam) : null]);
+      return new Response(matchSheetPage(th, isDev === true, TEAMS, ti, { next: nextM, last: lastM, hideTeam, nextG, lastG }), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     }
     if (url.pathname.replace(/\/+$/, "") === "/admin") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
@@ -4498,14 +4613,20 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       // Match Centre layouts for TV screens (v3.21): "next" = a column per team with the next game first, "board" = one row per team.
       // Phones always use the stacked cards above, so these are hidden under 800px (and the cards are hidden above it).
       const lastOf = l => { if (!l) return null; const mine = l.mineHome ? l.homeScore : l.awayScore, theirs = l.mineHome ? l.awayScore : l.homeScore; const res = mine > theirs ? "w" : mine < theirs ? "l" : "d"; return { mine, theirs, res, word: res === "w" ? "Win" : res === "l" ? "Loss" : "Draw", opp: l.mineHome ? l.awayName : l.homeName, oppId: l.mineHome ? l.awayId : l.homeId, where: l.mineHome === null || l.mineHome === undefined ? "" : l.mineHome ? "Home" : "Away" }; };
-      const nextOf = n => n ? { opp: n.mineHome ? n.awayName : n.homeName, oppId: n.mineHome ? n.awayId : n.homeId, where: n.mineHome === null || n.mineHome === undefined ? "" : n.mineHome ? "Home" : "Away", date: n.dateLabel === "Date TBC" ? "Date TBC" : String(n.dateLabel || ""), cd: cdOf(n) } : null;
+      // v3.22: "2nd v 3rd · 1 point apart" from the public league table (league games only; a cup game has no opponent position)
+      const clashOf = (s, n) => {
+        if (!(s && n && s.position && n.oppPos)) return "";
+        const gap = (s.points !== null && s.points !== undefined && n.oppPts !== null && n.oppPts !== undefined) ? Math.abs(Number(s.points) - Number(n.oppPts)) : null;
+        return ordOf(s.position) + " v " + ordOf(n.oppPos) + (gap === null ? "" : gap === 0 ? " &middot; level on points" : " &middot; " + gap + " point" + (gap === 1 ? "" : "s") + " apart");
+      };
+      const nextOf = n => n ? { opp: n.mineHome ? n.awayName : n.homeName, oppId: n.mineHome ? n.awayId : n.homeId, where: n.mineHome === null || n.mineHome === undefined ? "" : n.mineHome ? "Home" : "Away", date: n.dateLabel === "Date TBC" ? "Date TBC" : String(n.dateLabel || ""), cd: cdOf(n), venue: String(n.venue || "") } : null;
       const colHtml = ({t, s, error}, idx) => {
         if (error || !s) return `<section class="cw" ${acStyle(t, idx)}><div class="ch"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="cnx"><div class="empty" style="color:var(--on)">Couldn't load this team. It will retry on the next refresh.</div></div></section>`;
         const L = lastOf(s.last), N = nextOf(s.next);
         const pos = s.position ? `<b class="ps2">${ordOf(s.position)}</b>` : "";
         const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
         const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
-        const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="on">${e(N.opp)}</div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
+        const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="on">${e(N.opp)}</div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div>${N.venue ? `<div class="og">${e(N.venue)}</div>` : ""}${clashOf(s, s.next) ? `<div class="oq">${clashOf(s, s.next)}</div>` : ""}` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
         const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
         return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="cnx">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
@@ -4514,7 +4635,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const L = lastOf(s.last), N = nextOf(s.next);
         const tbl = s.position ? `<div class="bpos">${ordOf(s.position)}</div><div class="bsub">${s.points !== null && s.points !== undefined ? s.points + " pts" : ""}${s.played ? (s.points !== null && s.points !== undefined ? " &middot; " : "") + "P" + s.played : ""}</div>` : `<div class="empty">No table</div>`;
         const last = L ? `${crest(L.oppId, L.opp)}<span class="pl ${L.res} bc">${L.res.toUpperCase()}</span><div class="bx2"><div class="bsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</div><div class="bso">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="empty">No results available yet</div>`;
-        const next = N ? `${crest(N.oppId, N.opp)}<div class="bx2"><div class="bnm">${e(N.opp)}</div><div class="bso">${e(N.date)}${N.where ? " &middot; " + N.where : ""}</div></div>${N.cd ? `<span class="bcd">${e(N.cd)}</span>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
+        const next = N ? `${crest(N.oppId, N.opp)}<div class="bx2"><div class="bnm">${e(N.opp)}</div><div class="bso">${e(N.date)}${N.where ? " &middot; " + N.where : ""}</div>${clashOf(s, s.next) ? `<div class="bso bq">${clashOf(s, s.next)}</div>` : ""}</div>${N.cd ? `<span class="bcd">${e(N.cd)}</span>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
         return `<section class="bwr" ${acStyle(t, idx)}><div class="bt">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="bp">${tbl}</div><div class="bl">${last}</div><div class="bn">${next}</div></section>`;
       };
       const rowHtml = ({t, s, error}, idx) => {
@@ -4595,7 +4716,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
 .ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
-.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}
+.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
 .clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .bh{display:grid;grid-template-columns:var(--gc);gap:2rem;padding:.6rem 0 .5rem 1.6rem;font-size:1.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tx);opacity:.85;font-weight:800}
@@ -5232,7 +5353,12 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           next: next && nextSide ? {
             dateLabel: dateLabel(next), iso: dateOf(next) ? dateOf(next).toISOString() : "", time: timeOf(next), mineHome: nextSide.home,
             homeName: nextHomeName, awayName: nextAwayName, homeId: nextHomeId, awayId: nextAwayId,
-            venue: nextVenue || "", venueElite: !!next.elite, wx: nextWx
+            venue: nextVenue || "", venueElite: !!next.elite, wx: nextWx,
+            ...(() => { // v3.22: where the opponent sits in this league table (public table facts, used for the "2nd v 3rd" line on the Match Centre)
+              const oid = String(nextSide.home ? nextAwayId : nextHomeId), onm = String(nextSide.home ? nextAwayName : nextHomeName).trim().toLowerCase();
+              const orow = table.find(t => String(t.id) === oid) || table.find(t => String(t.name || "").trim().toLowerCase() === onm) || null;
+              return { oppPos: orow ? table.indexOf(orow) + 1 : null, oppPts: orow && orow.pts !== undefined ? orow.pts : null };
+            })()
           } : null
         };
         // v3.8: the plain summary (used by the Match Centre screens) reports the next game and the last result of ANY competition, tagged with the cup name.
@@ -5902,7 +6028,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -5956,7 +6082,7 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "season", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
 function pageKeySearch(sp) {
   const out = [];
   for (const k of KNOWN_PARAMS) for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
@@ -6046,7 +6172,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/usage") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/usage") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;

@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22   | 13-Nov-2026 | RFU_Club_Dashboard_v3.22_match_sheet.zip           | v3.21.8
 v3.21.8 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.8_probe_cards.zip         | v3.21.7
 v3.21.7 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.7_tag_spacing.zip         | v3.21.6
 v3.21.6 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.6_plain_crests.zip         | v3.21.5
@@ -189,6 +190,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22 - Ground and table line on the Match Centre, and the admin Match sheet
+- Owner request (13-Nov-2026): after probing the RFU data service (match record, team sheets, scorers, match stats), build the parts that are new. The ground, directions and head-to-head already existed (v3.16 and v30s), so they are not rebuilt.
+- Match Centre on a TV (Next game first and Board layouts): each next game now shows the ground (from the RFU match record, as before) and a line such as "2nd v 3rd - 1 point apart", from the public league table. It appears for league games only. Classic rows and phones are unchanged. No kick-off time, no QR code and no difficulty rating are shown.
+- New page /matchsheet (club PIN, linked from Admin): for the chosen team, the next game and the last game with both team sheets (shirt number, position, captain and vice captain) and, for the last game, the scoring (tries, conversions and missed conversions with the minute and player). When no sheet has been entered it says so.
+- Names: under-18 teams (by team or league name) and any player the RFU marks as under 18 are shown by shirt number and position only. "Name withheld" is shown as the RFU supplies it. The staff who entered the data, and the players' own ID numbers, are never read into the page.
+- Scorers are only listed for clubs that enter match events (normally our own club), so the other side may show none. The page is never cached, not indexed, and is not on PROD pages that need no PIN.
+- No change to the data the other pages read; the RFU team sheet and scorers calls are kept for two minutes and appear on the Usage page as "RFU team sheet".
 
 v3.21.8 - Probe page: five more RFU endpoint cards
 - Owner request (12-Nov-2026): look at the full RFU explorer list (api.england-rfu.com/explorer/openapi.json, version 1.94.3) for data we do not use yet. The Probe page already had cards for most of it, and earlier rounds (06-Nov-2026) found previousMatch and headToHead empty.
