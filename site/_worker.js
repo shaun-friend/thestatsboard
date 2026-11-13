@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.23.1 13-Nov-2026 TV screens: the page stays hidden while it measures and fits itself, then fades in once, instead of visibly resizing several times on load.
 //   v3.23 13-Nov-2026 Match Centre: the Board layout is removed (not bold enough). Admin offers Next game first and Classic rows; a saved Board setting shows Next game first; more than four teams use Classic rows.
 //   v3.22.5 13-Nov-2026 Fixtures TV: cup tag drawn as its own box (own line height, shortens inside its border) so it cannot be clipped by the line.
 //   v3.22.4 13-Nov-2026 Fixtures: a club-entered cup game on an elite team takes its cup name (e.g. Prem Rugby Cup) from the RFU match record instead of just "Cup".
@@ -185,7 +186,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.23";
+const VERSION = "v3.23.1";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -227,6 +228,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
 v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
 v3.22.5 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.5_cup_pill2.zip            | v3.22.4
 v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
@@ -387,6 +389,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.23.1 - No resize flicker on TV screens
+- TV and tablet screens measure themselves and shrink text to fit. That ran several times as the page loaded (once straight away, again when crests and fonts arrived, and once more 0.4 seconds later), so the layout visibly jumped. The page is now kept invisible while it fits and fades in once, after the last fit (at most 2.5 seconds). Phones are unaffected.
 
 v3.23 - Board layout removed
 - The Match Centre Board layout (one row per team) is removed because it was not bold enough. Admin now offers Next game first and Classic rows. A club that had saved Board now gets Next game first. With more than four teams the Match Centre uses Classic rows instead of the Board. The ground and "2nd v 3rd" lines stay on Next game first.
@@ -1545,6 +1550,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.23.1", "TV screens no longer flicker while they size themselves: the screen stays blank for a moment, then fades in already fitted."],
       ["v3.23", "The Match Centre Board layout has been removed. Next game first and Classic rows remain; with more than four teams the Match Centre uses Classic rows."],
       ["v3.22.5", "Fixtures on a TV: the cup tag is now its own box, so it can no longer be clipped at any screen size."],
       ["v3.22.4", "Premiership cup games now show their real cup name from the RFU match record (for example Prem Rugby Cup) instead of just Cup."],
@@ -6264,7 +6270,10 @@ var fx=!!b.querySelector(".fx,.lc"),bs=fx?els.map(function(e){e.style.fontSize="
 if(fx){els.forEach(function(e,i){var f=1;while(e.scrollWidth>e.clientWidth+1&&f>0.65){f-=0.03;e.style.fontSize=(bs[i]*f)+"px"}});return true}
 var f=1;while(bad()&&f>0.6){f-=0.04;h.style.fontSize=(base*f)+"px"}return true}
 function go(){try{std()||txt()}catch(e){}}
-go();addEventListener("resize",go);addEventListener("orientationchange",function(){setTimeout(go,200)});addEventListener("load",function(){go();setTimeout(go,400)});
+var hid=false;try{hid=getComputedStyle(b).overflowY==="hidden"&&innerWidth>800}catch(e){}
+function show(){if(!hid)return;hid=false;b.style.transition="opacity .2s";b.style.opacity="1"}
+if(hid){b.style.opacity="0"}
+go();addEventListener("resize",go);addEventListener("orientationchange",function(){setTimeout(go,200)});addEventListener("load",function(){go();setTimeout(function(){go();show()},400)});setTimeout(function(){go();show()},2500);
 })();</script>`;
 function withStamp(html, powered) {
   const stampHtml = powered === false ? VERSION_STAMP : VERSION_STAMP.replace(`>${VERSION_LABEL}</div>`, `>${sbLogo(11).replace('style="', 'style="margin-right:4px;vertical-align:-2px;')}Powered by ${VERSION_LABEL}</div>`);

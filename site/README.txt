@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
 v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
 v3.22.5 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.5_cup_pill2.zip            | v3.22.4
 v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
@@ -196,6 +197,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.23.1 - No resize flicker on TV screens
+- TV and tablet screens measure themselves and shrink text to fit. That ran several times as the page loaded (once straight away, again when crests and fonts arrived, and once more 0.4 seconds later), so the layout visibly jumped. The page is now kept invisible while it fits and fades in once, after the last fit (at most 2.5 seconds). Phones are unaffected.
 
 v3.23 - Board layout removed
 - The Match Centre Board layout (one row per team) is removed because it was not bold enough. Admin now offers Next game first and Classic rows. A club that had saved Board now gets Next game first. With more than four teams the Match Centre uses Classic rows instead of the Board. The ground and "2nd v 3rd" lines stay on Next game first.
