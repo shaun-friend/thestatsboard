@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.24   | 13-Nov-2026 | RFU_Club_Dashboard_v3.24_screen_names.zip           | v3.23.3
 v3.23.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.3_pick_names.zip           | v3.23.2
 v3.23.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.2_usage_other_teams.zip   | v3.23.1
 v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
@@ -199,6 +200,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.24 - Named screens
+- Add &screen=Clubhouse+Bar to any TV link (Match Centre, Fixtures, team screens) and the Usage page lists that screen by name with its loads and when it was last seen. The label is only what the club types (letters, numbers, spaces, - _ .; 24 characters). It is ignored if absent, does not change the page, and is kept only for TV screens. A browser cannot give its host name, and the site keeps no IP address.
 
 v3.23.3 - Picked teams show their name
 - When a team is chosen in the link builder, its name (as listed by the RFU search) is now recorded with its number, so the Usage card "Teams that are not in our list" shows names. Only the team name and numbers are kept, never typed search text.

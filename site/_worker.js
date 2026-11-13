@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.24 13-Nov-2026 Usage: optional &screen=Name on a TV link labels that screen; the Usage page lists named screens with loads and last seen. Ignored when absent.
 //   v3.23.3 13-Nov-2026 Usage: a team picked in the link builder is recorded with its name (from the search result) as well as its number.
 //   v3.23.2 13-Nov-2026 Usage: teams picked in the link builder or looked up by the app are now counted by team id (the code read the wrong address part), and picks appear in "Teams that are not in our list".
 //   v3.23.1 13-Nov-2026 TV screens: the page stays hidden while it measures and fits itself, then fades in once, instead of visibly resizing several times on load.
@@ -188,7 +189,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.23.3";
+const VERSION = "v3.24";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -230,6 +231,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.24   | 13-Nov-2026 | RFU_Club_Dashboard_v3.24_screen_names.zip           | v3.23.3
 v3.23.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.3_pick_names.zip           | v3.23.2
 v3.23.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.2_usage_other_teams.zip   | v3.23.1
 v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
@@ -393,6 +395,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.24 - Named screens
+- Add &screen=Clubhouse+Bar to any TV link (Match Centre, Fixtures, team screens) and the Usage page lists that screen by name with its loads and when it was last seen. The label is only what the club types (letters, numbers, spaces, - _ .; 24 characters). It is ignored if absent, does not change the page, and is kept only for TV screens. A browser cannot give its host name, and the site keeps no IP address.
 
 v3.23.3 - Picked teams show their name
 - When a team is chosen in the link builder, its name (as listed by the RFU search) is now recorded with its number, so the Usage card "Teams that are not in our list" shows names. Only the team name and numbers are kept, never typed search text.
@@ -1560,6 +1565,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.24", "You can name a TV screen by adding &screen=Clubhouse+Bar to its link. The Usage page then lists each named screen with its loads and when it was last seen. Links without it work as before."],
       ["v3.23.3", "Usage page: teams picked in the link builder now show their name, not just a number."],
       ["v3.23.2", "Usage page: other teams that people pick are now listed by team number in Teams that are not in our list."],
       ["v3.23.1", "TV screens no longer flicker while they size themselves: the screen stays blank for a moment, then fades in already fitted."],
@@ -2070,10 +2076,11 @@ function usageClassify(request, url) {
     if (view === "teams" || view === "notes" || view === "version") return null;
     kind = q.get("layout") === "tv" || view === "stack" ? "tv" : "page";
   } else return null;
+  const screen = String(q.get("screen") || "").replace(/[^A-Za-z0-9 _.\-]/g, "").trim().slice(0, 24); // v3.24: optional label for a club screen, chosen by the club
   const team = String(kind === "pick" ? q.get("team") || q.get("id") || "" : q.get("team") || "").slice(0, 12); // v3.23.2: the builder sends team=, not id=
   const known = TEAMS.some(t => String(t.team) === team);
   const dev = /iPad|Tablet|Kindle/i.test(ua) || (/Macintosh/.test(ua) && /Mobile/.test(ua)) ? "tablet" : /Mobi|iPhone|Android/i.test(ua) ? "phone" : "computer";
-  return { kind, view: view.slice(0, 16), team, teamName: String(q.get("friendlyName") || q.get("teamName") || "").replace(/[\u0000-\u001f<>]/g, "").slice(0, 40), comp: String(q.get("competition") || "").slice(0, 8), div: String(q.get("division") || "").slice(0, 8), known: known ? "1" : "0", device: kind === "cal" ? "calendar" : dev, ua };
+  return { kind, view: view.slice(0, 16), team, teamName: String(q.get("friendlyName") || q.get("teamName") || "").replace(/[\u0000-\u001f<>]/g, "").slice(0, 40), comp: String(q.get("competition") || "").slice(0, 8), div: String(q.get("division") || "").slice(0, 8), known: known ? "1" : "0", device: kind === "cal" ? "calendar" : dev, ua, screen: kind === "tv" ? screen : "" };
 }
 async function usagePinFail(request, which) {
   try {
@@ -2108,7 +2115,7 @@ async function usageRecord(request, url, ms, status, hit) {
   const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode([request.headers.get("CF-Connecting-IP") || "", c.ua, day, salt].join("|")));
   const who = Array.from(new Uint8Array(h)).slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("");
   const cf = request.cf || {};
-  ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), c.kind, c.view, c.team, c.teamName, c.comp, c.div, c.device, String(cf.country || ""), String(cf.region || "").slice(0, 40), c.known, who, String(status || ""), hit ? "hit" : "miss"], doubles: [1, Math.max(1, Math.round(ms || 0))] });
+  ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), c.kind, c.view, c.team, c.teamName, c.comp, c.div, c.device, String(cf.country || ""), String(cf.region || "").slice(0, 40), c.known, who, String(status || ""), hit ? "hit" : "miss", c.screen || ""], doubles: [1, Math.max(1, Math.round(ms || 0))] });
 }
 async function usageQuery(sql) {
   const id = SITE_ENV.CF_ACCOUNT_ID, tok = SITE_ENV.CF_API_TOKEN;
@@ -2131,7 +2138,7 @@ async function usageApi(url) {
   const bucket = days === 1 && dayStart ? "toStartOfInterval(timestamp, INTERVAL '1' HOUR)" : "toDate(timestamp)";
   const W = `FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND timestamp > ${sinceExpr}`;
   try {
-    const [perDay, tot, pages, teams, devs, others, srch, today, tvDay, tvPages, clubPg, pinDay, pinWhere, spPages, spUp, spDay, secDay, secWhere] = await Promise.all([
+    const [perDay, tot, pages, teams, devs, others, srch, today, tvDay, tvPages, clubPg, pinDay, pinWhere, spPages, spUp, spDay, secDay, secWhere, scr] = await Promise.all([
       usageQuery(`SELECT ${bucket} AS d, COUNT(DISTINCT blob12) AS people ${W} AND blob2 = 'page' GROUP BY d ORDER BY d`),
       usageQuery(`SELECT blob2 AS kind, COUNT(DISTINCT blob12) AS who, SUM(_sample_interval) AS n ${W} GROUP BY kind`),
       usageQuery(`SELECT blob3 AS view, SUM(_sample_interval) AS n ${W} AND blob2 = 'page' GROUP BY view ORDER BY n DESC LIMIT 12`),
@@ -2152,9 +2159,10 @@ async function usageApi(url) {
       usageQuery(`SELECT ${bucket} AS d, blob3 AS src, SUM(_sample_interval) AS n, SUM(IF(blob4 != 'ok', _sample_interval, 0)) AS bad ${W} AND blob2 = 'up' GROUP BY d, src ORDER BY d LIMIT 2000`).catch(() => null),
       // v3.20: address checks. Extra: if refused, only this card is lost.
       usageQuery(`SELECT toDate(timestamp) AS d, blob3 AS type, blob4 AS part, SUM(_sample_interval) AS n, COUNT(DISTINCT blob12) AS sources ${W} AND blob2 = 'sec' GROUP BY d, type, part ORDER BY d LIMIT 500`).catch(() => null),
-      usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null)
+      usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null),
+      usageQuery(`SELECT blob15 AS screen, blob3 AS view, COUNT(DISTINCT blob12) AS devices, SUM(_sample_interval) AS loads, MAX(timestamp) AS last ${W} AND blob2 = 'tv' AND blob15 != '' GROUP BY screen, view ORDER BY loads DESC LIMIT 40`).catch(() => null)
     ]);
-    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others, srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
+    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others, srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
   } catch (e) { return J({ ok: false, error: "Could not read the usage data: " + String(e && e.message || e).slice(0, 120) }, 502); }
 }
 function usagePage(theme, isDev, defDays) {
@@ -2192,6 +2200,10 @@ function clubCard(d){
  var days=Object.keys(byDay).sort().reverse().slice(0,7);
  return'<div class="tw"><div class="cd"><h2>Club pages</h2><p class="n">Times each page was opened by someone who had signed in. Robots are left out.</p>'+rows(["usage","admin","docs","links"],function(k2){var r=cp[k2]||{n:0,who:0};return"<tr><td>"+CP[k2]+'</td><td class="nu">'+num(r.n)+'</td><td class="nu mu" style="width:110px">'+num(r.who)+" person-days</td></tr>"})+"</div>"+
  '<div class="cd'+(bad||paused?" hl":"")+'"><h2>Wrong PIN entries</h2><p class="n">'+(bad?"Each wrong PIN typed on the club PIN page (or the test site PIN page). Robots are included here.":"No wrong PINs in this period.")+"</p>"+(bad?'<p class="msg"><b>'+num(bad)+"</b> wrong entries from about "+num(src)+" source-days.</p>"+(paused?'<p class="msg"><b>'+num(paused)+"</b> temporary pause"+(paused===1?"":"s")+" started (5 wrong PINs from one source)"+(refused?"; "+num(refused)+" further guess"+(refused===1?" was":"es were")+" refused while paused":"")+".</p>":"")+rows(days,function(dd){var o2=byDay[dd];return"<tr><td>"+esc(new Date(dd+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))+'</td><td class="nu">'+num(o2.n)+"</td></tr>"})+((d.pinWhere||[]).length?'<p class="n" style="margin-top:10px">Where from: '+d.pinWhere.map(function(r){return esc((r.region?r.region+", ":"")+(r.country||"unknown"))+" ("+num(r.n)+")"}).join("; ")+"</p>":""):"")+"</div></div>"}
+function screenCard(d){
+ var sc=d.screens||[];
+ return'<div class="cd"><h2>Named screens</h2><p class="n">Screens whose link carries &amp;screen=Name (a label the club chooses). Loads and the last time each was seen.</p>'+(sc.length?rows(sc,function(r){return"<tr><td>"+esc(r.screen)+'</td><td class="mu">'+esc(r.view)+'</td><td class="nu">'+num(r.loads)+'</td><td class="nu mu" style="width:150px">'+esc(String(r.last||"").slice(0,16).replace("T"," "))+"</td></tr>"}):'<p class="msg">None yet. Add &amp;screen=Clubhouse+Bar to a TV link to name it.</p>')+"</div>"
+}
 function secCard(d){
  var sd=d.secDay||[],bad=0,slow=0,byDay={},parts={};
  sd.forEach(function(r){var n=Number(r.n),o=byDay[r.d]||(byDay[r.d]={bad:0,slow:0});if(r.type==="badreq"){bad+=n;o.bad+=n;parts[r.part]=(parts[r.part]||0)+n}else{slow+=n;o.slow+=n}});
@@ -2240,7 +2252,7 @@ function show(d){
  '<div class="cd"><h2>Our teams</h2><p class="n">Views of teams on the club list</p>'+rows(ours,function(r){return"<tr><td>"+esc(r.n)+'</td><td class="nu">'+num(r.v)+"</td></tr>"})+"</div></div>"+
  '<div class="cd hl"><h2>Teams that are not in our list</h2><p class="n">Where other clubs show up. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
  rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
- clubCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
+ clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}
 function load(){o.innerHTML='<p class="msg">Loading&hellip;</p>';fetch("/api/usage?days="+days,{cache:"no-store"}).then(function(r){return r.json()}).then(show).catch(function(){o.innerHTML='<div class="cd"><p class="msg">Sorry, the usage data could not be loaded.</p></div>'})}
@@ -6155,10 +6167,10 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
 function pageKeySearch(sp) {
   const out = [];
-  for (const k of KNOWN_PARAMS) for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
+  for (const k of KNOWN_PARAMS) if (k !== "screen") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
   return out.length ? "?" + out.join("&") : "";
 }
 
