@@ -24,4 +24,7 @@ c('Opta league game stays league',gm(103).cup===false&&gm(103).comp==='League'||
 c('Opta result stays league',gm(100).cup===false);
 const t2=await (await w.fetch(new Request('https://x.co.uk/?season=2026-2027&competition=5&division=77026&team=41&teamName=Elite%20Chiefs&friendlyName=Elite%20Chiefs&format=summary',{headers:{'User-Agent':'Mozilla/5.0'}}),env,{})).json();
 c('summary next is tonight\'s cup game',t2.next&&/Sale/.test(t2.next.homeName||'')&&t2.next.comp==='Cup');
+const pg=async v=>(await (await w.fetch(new Request('https://x.co.uk/?view='+v+'&season=2026-2027&competition=5&division=77026&team=41&teamName=Elite%20Chiefs&friendlyName=Elite%20Chiefs&theme=dark',{headers:{'User-Agent':'Mozilla/5.0'}}),env,{})).text());
+const ms=await pg('match');c('match stats shows the cup game',/Sale Sharks/.test(ms)&&/No cup stats yet/.test(ms)&&!/Sale Rivals/.test(ms));
+const op=await pg('opposition');c('opposition report says no report for a cup game',/no opposition report for this game/.test(op)&&!/Sale Rivals/.test(op));
 console.log(ok+' passed, '+bad+' failed');process.exit(bad?1:0);

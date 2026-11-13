@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.22.2 13-Nov-2026 Match Stats and the Opposition Report show a cup game the RFU lists without a competition (e.g. Premiership Cup) as the next game, with a "no cup stats" note, instead of the next league game.
 //   v3.22.1 13-Nov-2026 Fixtures: an elite side's club-entered games with no competition name (e.g. Premiership Cup) are now cup games, so tonight's cup tie is the next game, not a later league game.
 //   v3.22 13-Nov-2026 Match Centre (TV layouts): ground and "2nd v 3rd" table line on each next game. New admin-only Match sheet page: team sheets and scorers, under-18 names never shown.
 //   v3.21.8 12-Nov-2026 Probe page: five new cards (all matches in one call, match participants, match events, match stats).
@@ -180,7 +181,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.22.1";
+const VERSION = "v3.22.2";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -222,6 +223,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.2_cup_matchstats.zip       | v3.22.1
 v3.22.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.1_exeter_cup.zip          | v3.22
 v3.22   | 13-Nov-2026 | RFU_Club_Dashboard_v3.22_match_sheet.zip           | v3.21.8
 v3.21.8 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.8_probe_cards.zip         | v3.21.7
@@ -377,6 +379,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22.2 - Match Stats and Opposition Report on cup games
+- For a cup game the RFU lists without a competition (such as an Exeter Premiership Cup tie), Match Stats now shows that game as the next game with a "No cup stats yet" note, and the Opposition Report says there is no report for it, instead of showing the next league game.
 
 v3.22.1 - Cup games on elite teams
 - An elite side (such as Exeter Chiefs) showed a later league game as its next game on the Fixtures TV page and Match Centre when it was playing a Premiership Cup game that night. The RFU lists those cup games in the team feed with no competition name, so they were mistaken for league games. For elite teams they are now labelled Cup, and the nearest game is shown. Match Stats still compares the two teams in the league until a cup table is available.
@@ -1520,6 +1525,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.22.2", "Match Stats and the Opposition Report now show tonight's cup game as the next game for a Premiership side, with a note that no cup stats are available, instead of a later league game."],
       ["v3.22.1", "Fixed a Premiership side showing a later league game as its next game when it was playing a cup game that night. Club-entered games with no competition name are now treated as cup games for elite teams."],
       ["v3.22", "Match Centre on a TV now shows where the next game is played and how the two teams sit in the table (for example \"2nd v 3rd, 1 point apart\"). Admins also get a new Match sheet page with team sheets and scorers; under-18 players are never named."],
       ["v3.21.8", "Probe page (testing only): five new cards to try the RFU endpoints for all matches in one call, who played, tries and cards, and match stats."],
@@ -3779,19 +3785,28 @@ const worker = {
       const onColour = hex => { const [r,g,b] = [1,3,5].map(k => parseInt(hex.slice(k,k+2),16)/255); return (0.2126*r + 0.7152*g + 0.0722*b) > 0.55 ? "#101010" : "#ffffff"; };
       const ord = n => { const v = n % 100; return n + (["th","st","nd","rd"][(v - 20) % 10] || ["th","st","nd","rd"][v] || "th"); };
       const menuHref = "/?" + new URLSearchParams({theme}).toString();
-      let d = null, err = "", cupG = null;
+      let d = null, err = "", cupG = null, cupNoIds = null;
       try {
         // v3.7: if the team's next game (any competition) is a cup game, Match Stats compares the two teams in that cup.
         try {
           const qf = new URLSearchParams({season, competition, division, team, teamName: url.searchParams.get("teamName") || "__none__", friendlyName: url.searchParams.get("friendlyName") || "", format: "summary", detail: "fixtures"});
           const fr = await worker.fetch(new Request(url.origin + "/?" + qf.toString()));
-          if (fr.ok) { const fj = await fr.json(); const ng = (fj.games || []).find(g => g.status === "upcoming"); if (ng && ng.cup && ng.competition && ng.division) cupG = ng; }
-        } catch (_) { cupG = null; }
+          if (fr.ok) { const fj = await fr.json(); const ng = (fj.games || []).find(g => g.status === "upcoming"); if (ng && ng.cup && ng.competition && ng.division) cupG = ng; else if (ng && ng.cup) cupNoIds = ng; }
+        } catch (_) { cupG = null; cupNoIds = null; }
         const q = new URLSearchParams({season, competition: cupG ? cupG.competition : competition, division: cupG ? cupG.division : division, team, teamName: url.searchParams.get("teamName") || "__none__", friendlyName: url.searchParams.get("friendlyName") || "", format: "summary", detail: "match"});
         const r = cupG ? await worker._main(new Request(url.origin + "/?" + q.toString()), isDev, { auto: false, season, competition: String(cupG.competition), division: String(cupG.division), banner: "" }) : await worker.fetch(new Request(url.origin + "/?" + q.toString()));
         if (!r.ok) throw new Error("HTTP " + r.status);
         d = await r.json();
-        if (cupG && d && d.match) { d.cupName = cupG.comp; d.league = cupG.comp; }
+        // v3.22.1: a cup game the RFU lists without a competition/division (e.g. a Premiership Cup tie) has no table or stats to compare.
+        // Show the cup game itself as the next game, with a note, instead of the next league game.
+        if (cupNoIds && d && d.next) {
+          const ng = cupNoIds, id0 = String(team);
+          const nm = d.team || url.searchParams.get("friendlyName") || url.searchParams.get("teamName") || "";
+          const blank = (id, name) => ({ id, name, played: 0, points: 0, wins: 0, pf: 0, pa: 0, homeWins: 0, awayWins: 0, form: [], position: null });
+          d.next = { dateLabel: ng.dateLabel, iso: ng.iso, time: ng.time || "", mineHome: !!ng.home, homeName: ng.home ? nm : ng.oppName, awayName: ng.home ? ng.oppName : nm, homeId: ng.home ? id0 : String(ng.oppId), awayId: ng.home ? String(ng.oppId) : id0, venue: ng.venue || "", venueElite: false, wx: null, comp: ng.comp };
+          d.match = { h2h: [], h2hAll: [], h2hSum: null, h2hMeta: { seasonsOk: 0 }, divMax: {}, divisionSize: 0, me: blank(id0, nm), opp: blank(String(ng.oppId), ng.oppName), noStats: true };
+          d.cupName = ng.comp; d.league = ng.comp;
+        } else if (cupG && d && d.match) { d.cupName = cupG.comp; d.league = cupG.comp; }
         else if (cupG) { // the cup feed had no usable next game: fall back to the league game as before
           cupG = null;
           const q2 = new URLSearchParams({season, competition, division, team, teamName: url.searchParams.get("teamName") || "__none__", friendlyName: url.searchParams.get("friendlyName") || "", format: "summary", detail: "match"});
@@ -3859,7 +3874,7 @@ const worker = {
         const cupMode = !!(d && d.cupName);
         const firstRound = cupMode && !(Number(L.played) > 0) && !(Number(R.played) > 0);
         const tabled = cupMode && Number(m.divisionSize) >= 3;
-        const bars = firstRound ? `<div class="cupnote"><b>First game in this cup</b>Neither team has played in the ${e(d.cupName)} yet, so there are no cup stats to compare.</div>` : [
+        const bars = m.noStats ? `<div class="cupnote"><b>No cup stats yet</b>The RFU has not published a table or results for this cup that we can compare, so only the fixture is shown.</div>` : firstRound ? `<div class="cupnote"><b>First game in this cup</b>Neither team has played in the ${e(d.cupName)} yet, so there are no cup stats to compare.</div>` : [
           rowHtml("Games played", L.played, R.played, "even", null, dm.played),
           ...(cupMode && !tabled ? [] : [
           rowHtml(cupMode ? "Group position" : "League position", L.position, R.position, "rank", ord),
@@ -4202,6 +4217,7 @@ ${themeToggleScript}
         // v3.8: if the next game (any competition) is a cup game, the report is about that game, read from the cup's own data.
         const cupG = await cupNextGame(worker, url.origin, {season, competition, division, team, teamName, friendlyName: friendly});
         const cupOk = cupG && cupG.competition && cupG.division;
+        const cupNoIds = cupG && !cupOk ? cupG : null; // v3.22.1: cup game with no competition/division from the RFU: no report possible
         const q = new URLSearchParams({season, competition: cupOk ? cupG.competition : competition, division: cupOk ? cupG.division : division, team, teamName, friendlyName: friendly, format: "summary", detail: "opposition"});
         let r = cupOk ? await worker._main(new Request(url.origin + "/?" + q.toString()), isDev, { auto: false, season, competition: String(cupG.competition), division: String(cupG.division), banner: "" }) : await worker.fetch(new Request(url.origin + "/?" + q.toString()));
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -4212,6 +4228,7 @@ ${themeToggleScript}
           r = await worker.fetch(new Request(url.origin + "/?" + q2.toString()));
           if (r.ok) d = await r.json();
         }
+        if (cupNoIds) d = { status: "cup", team: d && d.team || "", league: d && d.league || "", cupOpp: cupNoIds.oppName, cupComp: cupNoIds.comp };
       } catch (x) { d = null; }
       const ok = d && d.status === "ok";
       const f1 = x => x === null || x === undefined ? "—" : String(x);
@@ -4333,7 +4350,7 @@ ${themeToggleScript}
       const crestH = ok ? `<span class="crest hdc"><span class="ini">${e(initialsOf(oppTitle))}</span>${d.opp.id ? `<img src="/api/crest?id=${encodeURIComponent(d.opp.id)}" alt="" onerror="this.remove()">` : ""}</span>` : "";
       const head = ok ? `<div class="ph"><div>${crestH}</div><div><h1>Opposition report: ${e(oppTitle)}</h1><p class="sub">${d.opp.position ? `<span class="tag">${e(ordinalOf(d.opp.position))}</span>` : ""}<span class="tag">${e(d.venueTag || (d.fixture.weHome ? "Home fixture" : "Away fixture"))}</span>${d.cupName ? `<span class="tag">${e(d.cupName)}</span>` : ""}<span class="dt">${e(d.fixture.dateLabel)}${d.fixture.time ? " &middot; " + e(d.fixture.time) : ""}</span>${groundLine}</p></div></div>` : `<h1>Opposition report</h1>`;
       const bodyHtml = ok ? `<div class="grid">${cards}</div><p class="foot">${d.multi ? "Form cards (home/away, trend, close games, last results, rest) include " + e(oppTitle) + "'s games in all their competitions: " + d.comps.map(c => e(c.name) + " (" + c.n + ")").join(", ") + ". " + (d.commonAll ? "Common opponents count both teams' games in all competitions; " : "Common opponents, ") + "top/bottom half and bonus points use the league only. " : ""}${d.early ? "Early in the season: only " + d.games + " game" + (d.games === 1 ? "" : "s") + " played by " + e(oppTitle) + ", so read these figures with care. " : ""}Worked out from league scores and the table only. The RFU feed has no tries, penalties, set piece, cards, half-time scores or players, so these are tendencies, not reasons. Use alongside your own video and scouting.</p>`
-        : `<div class="none">${d && d.status === "none" ? "No upcoming fixture found for " + e(title) + "." : "The opposition report is not available right now. Please try again in a few minutes."}</div>`;
+        : `<div class="none">${d && d.status === "cup" ? "The next game is a " + e(d.cupComp) + " game against " + e(d.cupOpp) + ". The RFU does not publish a table or results for it, so there is no opposition report for this game yet." : d && d.status === "none" ? "No upcoming fixture found for " + e(title) + "." : "The opposition report is not available right now. Please try again in a few minutes."}</div>`;
       const matchHref = "/?" + new URLSearchParams({view: "match", season, competition, division, team, teamName, friendlyName: friendly, theme}).toString();
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>Opposition report${oppTitle ? " - " + e(oppTitle) : ""}</title>
 <style>
