@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.22.4 13-Nov-2026 Fixtures: a club-entered cup game on an elite team takes its cup name (e.g. Prem Rugby Cup) from the RFU match record instead of just "Cup".
 //   v3.22.3 13-Nov-2026 Fixtures TV: the cup tag under each opponent is no longer clipped top and bottom.
 //   v3.22.2 13-Nov-2026 Match Stats and the Opposition Report show a cup game the RFU lists without a competition (e.g. Premiership Cup) as the next game, with a "no cup stats" note, instead of the next league game.
 //   v3.22.1 13-Nov-2026 Fixtures: an elite side's club-entered games with no competition name (e.g. Premiership Cup) are now cup games, so tonight's cup tie is the next game, not a later league game.
@@ -182,7 +183,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.22.3";
+const VERSION = "v3.22.4";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -224,6 +225,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
 v3.22.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.3_cup_pill.zip             | v3.22.2
 v3.22.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.2_cup_matchstats.zip       | v3.22.1
 v3.22.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.1_exeter_cup.zip          | v3.22
@@ -381,6 +383,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22.4 - Real cup name
+- Cup games the RFU team feed lists without a name (such as the Premiership Cup) now take the cup name from the RFU match record, for example Prem Rugby Cup, instead of just Cup. Pool and round wording is dropped so the tag stays short. If the record has no name, it still says Cup.
 
 v3.22.3 - Fixtures TV cup tag
 - The gold cup tag (for example Investec Champions Cup) under each opponent on the Fixtures TV page was clipped at the top and bottom. The line under the opponent name now has enough height for the tag.
@@ -1530,6 +1535,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.22.4", "Premiership cup games now show their real cup name from the RFU match record (for example Prem Rugby Cup) instead of just Cup."],
       ["v3.22.3", "Fixtures on a TV: the gold cup tag beside Home / Away is no longer cut off at the top and bottom."],
       ["v3.22.2", "Match Stats and the Opposition Report now show tonight's cup game as the next game for a Premiership side, with a note that no cup stats are available, instead of a later league game."],
       ["v3.22.1", "Fixed a Premiership side showing a later league game as its next game when it was playing a cup game that night. Club-entered games with no competition name are now treated as cup games for elite teams."],
@@ -5499,6 +5505,21 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
             }));
           } catch (err) { fxDbg.leaguesError = String(err && err.message || err); }
           const eliteTeam = [...completed, ...extra, ...extraT].some(mm => mm && mm.elite === true);
+          const blankName = mm => eliteTeam && mm && !mm.elite && !String((mm.group && mm.group.name) || "").trim() && !String((mm.competition && mm.competition.name) || "").trim();
+          // v3.22.4: the team feed gives these club-entered cup games no name, but the RFU match record does (e.g. "Prem Rugby Cup" / "Pool A").
+          const gmsCupName = new Map();
+          try {
+            const cands = [...extra, ...extraT].filter(mm => blankName(mm) && /^\d{1,10}$/.test(String(mm.id || ""))).sort((a, b) => Math.abs((dateOf(a)?.getTime() || 0) - Date.now()) - Math.abs((dateOf(b)?.getTime() || 0) - Date.now())).slice(0, 6);
+            await Promise.all(cands.map(async mm => {
+              try {
+                const r = await cachedText("https://cluster.england-rfu.com/gms/matches/" + mm.id, "application/json");
+                if (!r.ok) return;
+                const j = JSON.parse(r.text) || {}, cl = x => String(x == null ? "" : x).replace(/\s+/g, " ").trim();
+                const nm = (cl(j.competitionName) || cl(j.groupName)).replace(/\b(pool|group|round|quarter|semi|final|stage|leg)\b.*$/i, "").replace(/\s+/g, " ").trim();
+                if (nm) gmsCupName.set(String(mm.id), nm);
+              } catch (_) { /* name stays "Cup" */ }
+            }));
+          } catch (_) { /* name stays "Cup" */ }
           const labelOfGame = mm => {
             const k = dayKey(mm);
             if (keyLabel.has(k)) return keyLabel.get(k);
@@ -5506,7 +5527,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
             const c = compOf(mm);
             // v3.22.1: an elite side's club-entered games (no Opta flag, blank competition and group names) that sit in no
             // competition we know are cup games (e.g. a Premiership Cup tie), never league games.
-            if (eliteTeam && !c.cup && !mm.elite && !String((mm.group && mm.group.name) || "").trim() && !String((mm.competition && mm.competition.name) || "").trim()) return { comp: "Cup", cup: true };
+            if (!c.cup && blankName(mm)) return { comp: gmsCupName.get(String(mm.id)) || (gmsCupName.size === 1 ? [...gmsCupName.values()][0] : [...new Set(gmsCupName.values())].length === 1 ? [...gmsCupName.values()][0] : "Cup"), cup: true };
             return c;
           };
           const mk = (mm, status) => {

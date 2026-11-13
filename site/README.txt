@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
 v3.22.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.3_cup_pill.zip             | v3.22.2
 v3.22.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.2_cup_matchstats.zip       | v3.22.1
 v3.22.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.1_exeter_cup.zip          | v3.22
@@ -193,6 +194,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22.4 - Real cup name
+- Cup games the RFU team feed lists without a name (such as the Premiership Cup) now take the cup name from the RFU match record, for example Prem Rugby Cup, instead of just Cup. Pool and round wording is dropped so the tag stays short. If the record has no name, it still says Cup.
 
 v3.22.3 - Fixtures TV cup tag
 - The gold cup tag (for example Investec Champions Cup) under each opponent on the Fixtures TV page was clipped at the top and bottom. The line under the opponent name now has enough height for the tag.
