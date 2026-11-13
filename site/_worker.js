@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.23.2 13-Nov-2026 Usage: teams picked in the link builder or looked up by the app are now counted by team id (the code read the wrong address part), and picks appear in "Teams that are not in our list".
 //   v3.23.1 13-Nov-2026 TV screens: the page stays hidden while it measures and fits itself, then fades in once, instead of visibly resizing several times on load.
 //   v3.23 13-Nov-2026 Match Centre: the Board layout is removed (not bold enough). Admin offers Next game first and Classic rows; a saved Board setting shows Next game first; more than four teams use Classic rows.
 //   v3.22.5 13-Nov-2026 Fixtures TV: cup tag drawn as its own box (own line height, shortens inside its border) so it cannot be clipped by the line.
@@ -186,7 +187,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.23.1";
+const VERSION = "v3.23.2";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -228,6 +229,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.2_usage_other_teams.zip   | v3.23.1
 v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
 v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
 v3.22.5 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.5_cup_pill2.zip            | v3.22.4
@@ -389,6 +391,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.23.2 - Usage: other teams
+- The Usage page card "Teams that are not in our list" was empty even though 16 teams had been picked. Picks were being counted without the team (the code looked for id= but the link builder sends team=), and the card only listed page and screen views, not picks. Picks are now recorded with the team number and shown in the card (as "Team 41" if no name is known). Only the number is kept, never typed text. Picks made before this release have no team and cannot be recovered.
 
 v3.23.1 - No resize flicker on TV screens
 - TV and tablet screens measure themselves and shrink text to fit. That ran several times as the page loaded (once straight away, again when crests and fonts arrived, and once more 0.4 seconds later), so the layout visibly jumped. The page is now kept invisible while it fits and fades in once, after the last fit (at most 2.5 seconds). Phones are unaffected.
@@ -1550,6 +1555,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.23.2", "Usage page: other teams that people pick are now listed by team number in Teams that are not in our list."],
       ["v3.23.1", "TV screens no longer flicker while they size themselves: the screen stays blank for a moment, then fades in already fitted."],
       ["v3.23", "The Match Centre Board layout has been removed. Next game first and Classic rows remain; with more than four teams the Match Centre uses Classic rows."],
       ["v3.22.5", "Fixtures on a TV: the cup tag is now its own box, so it can no longer be clipped at any screen size."],
@@ -2058,7 +2064,7 @@ function usageClassify(request, url) {
     if (view === "teams" || view === "notes" || view === "version") return null;
     kind = q.get("layout") === "tv" || view === "stack" ? "tv" : "page";
   } else return null;
-  const team = String(kind === "pick" ? q.get("id") || "" : q.get("team") || "").slice(0, 12);
+  const team = String(kind === "pick" ? q.get("team") || q.get("id") || "" : q.get("team") || "").slice(0, 12); // v3.23.2: the builder sends team=, not id=
   const known = TEAMS.some(t => String(t.team) === team);
   const dev = /iPad|Tablet|Kindle/i.test(ua) || (/Macintosh/.test(ua) && /Mobile/.test(ua)) ? "tablet" : /Mobi|iPhone|Android/i.test(ua) ? "phone" : "computer";
   return { kind, view: view.slice(0, 16), team, teamName: String(q.get("friendlyName") || q.get("teamName") || "").replace(/[\u0000-\u001f<>]/g, "").slice(0, 40), comp: String(q.get("competition") || "").slice(0, 8), div: String(q.get("division") || "").slice(0, 8), known: known ? "1" : "0", device: kind === "cal" ? "calendar" : dev, ua };
@@ -2125,7 +2131,7 @@ async function usageApi(url) {
       usageQuery(`SELECT blob3 AS view, SUM(_sample_interval) AS n ${W} AND blob2 = 'page' GROUP BY view ORDER BY n DESC LIMIT 12`),
       usageQuery(`SELECT blob4 AS team, blob5 AS name, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','tv') AND blob11 = '1' GROUP BY team, name ORDER BY n DESC LIMIT 20`),
       usageQuery(`SELECT blob8 AS device, COUNT(DISTINCT blob12) AS who ${W} AND blob2 = 'page' GROUP BY device`),
-      usageQuery(`SELECT blob5 AS name, blob6 AS comp, blob7 AS div, blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','tv') AND blob11 = '0' AND blob4 != '' GROUP BY name, comp, div, region, country ORDER BY n DESC LIMIT 25`),
+      usageQuery(`SELECT blob4 AS team, blob5 AS name, blob6 AS comp, blob7 AS div, blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','tv','pick') AND blob11 = '0' AND blob4 != '' GROUP BY team, name, comp, div, region, country ORDER BY n DESC LIMIT 25`),
       usageQuery(`SELECT blob2 AS kind, SUM(_sample_interval) AS n ${W} AND blob2 IN ('search','pick') GROUP BY kind`),
       usageQuery(`SELECT SUM(_sample_interval) AS n FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND blob2 NOT IN ('up', 'pinfail', 'sec') AND timestamp > ${limSince}`),
       usageQuery(`SELECT ${bucket} AS d, SUM(_sample_interval) AS loads, COUNT(DISTINCT blob12) AS screens ${W} AND blob2 = 'tv' GROUP BY d ORDER BY d`),
@@ -2227,7 +2233,7 @@ function show(d){
  screensCard(d)+'<div class="tw"><div class="cd"><h2>What people look at</h2><p class="n">Share of page views</p>'+rows(d.pages,function(r){return"<tr><td>"+esc(VN[r.view]||r.view)+'</td><td class="nu">'+num(r.n)+'</td><td class="nu mu">'+Math.round(Number(r.n)/pt*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Our teams</h2><p class="n">Views of teams on the club list</p>'+rows(ours,function(r){return"<tr><td>"+esc(r.n)+'</td><td class="nu">'+num(r.v)+"</td></tr>"})+"</div></div>"+
  '<div class="cd hl"><h2>Teams that are not in our list</h2><p class="n">Where other clubs show up. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
- rows(d.others,function(r){return"<tr><td>"+esc(r.name||"Team")+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
+ rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
  clubCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}
