@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.22.5 13-Nov-2026 Fixtures TV: cup tag drawn as its own box (own line height, shortens inside its border) so it cannot be clipped by the line.
 //   v3.22.4 13-Nov-2026 Fixtures: a club-entered cup game on an elite team takes its cup name (e.g. Prem Rugby Cup) from the RFU match record instead of just "Cup".
 //   v3.22.3 13-Nov-2026 Fixtures TV: the cup tag under each opponent is no longer clipped top and bottom.
 //   v3.22.2 13-Nov-2026 Match Stats and the Opposition Report show a cup game the RFU lists without a competition (e.g. Premiership Cup) as the next game, with a "no cup stats" note, instead of the next league game.
@@ -183,7 +184,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.22.4";
+const VERSION = "v3.22.5";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -225,6 +226,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22.5 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.5_cup_pill2.zip            | v3.22.4
 v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
 v3.22.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.3_cup_pill.zip             | v3.22.2
 v3.22.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.2_cup_matchstats.zip       | v3.22.1
@@ -383,6 +385,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22.5 - Cup tag clipping, second fix
+- The cup tag on the Fixtures TV page is now its own box with its own line height; if the name is too long for the space it is shortened inside the tag instead of being cut at its edge.
 
 v3.22.4 - Real cup name
 - Cup games the RFU team feed lists without a name (such as the Premiership Cup) now take the cup name from the RFU match record, for example Prem Rugby Cup, instead of just Cup. Pool and round wording is dropped so the tag stays short. If the record has no name, it still says Cup.
@@ -1535,6 +1540,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.22.5", "Fixtures on a TV: the cup tag is now its own box, so it can no longer be clipped at any screen size."],
       ["v3.22.4", "Premiership cup games now show their real cup name from the RFU match record (for example Prem Rugby Cup) instead of just Cup."],
       ["v3.22.3", "Fixtures on a TV: the gold cup tag beside Home / Away is no longer cut off at the top and bottom."],
       ["v3.22.2", "Match Stats and the Opposition Report now show tonight's cup game as the next game for a Premiership side, with a note that no cup stats are available, instead of a later league game."],
@@ -4091,7 +4097,7 @@ html,body{height:100%}body{overflow:hidden;padding:2.2vh 2.2vw 3.6vh;display:fle
 .fx.w{border-left-color:#2f9e5b}.fx.l{border-left-color:#d9534f}.fx.d{border-left-color:#e0a82e}.fx.nx{box-shadow:0 0 0 .35vh #7fd89a}
 .fd{flex:0 0 6.4em;color:#f5f7f6}.fd b{font-size:1em}
 .crest.sm{width:calc(var(--rh) * .66vh);height:calc(var(--rh) * .66vh);flex-basis:calc(var(--rh) * .66vh)}.crest.sm .ini{font-size:calc(var(--rh) * .24vh)}.crest.sm img{padding:.4vh}
-.fo{flex:1;min-width:0;line-height:1.15}.fo b{display:block;font-size:1.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fo small .ct{font-size:.86em;letter-spacing:.02em}.fo small{color:#91a49a;font-size:.62em;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.6;margin:-.12em 0}.ct{color:#f0c85a;font-weight:700}.ct:not(.lg){background:rgba(224,182,76,.16);border:1px solid rgba(224,182,76,.45);border-radius:99px;padding:.02em .4em;margin-left:.05em;letter-spacing:0;font-size:9.5px}.ct.lg{color:#91a49a;font-weight:400}body.light .ct{color:#7a4f00}body.light .ct:not(.lg){background:#fff3d0;border-color:#c99a2e}body.light .ct.lg{color:#53665a}.fx.v{border-left-color:#7a6a2a}.vd{color:#c9b36a;font-weight:700}.r.v{background:#6b5f33}
+.fo{flex:1;min-width:0;line-height:1.15}.fo b{display:block;font-size:1.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fo small .ct{font-size:.86em;letter-spacing:.02em}.fo small{color:#91a49a;font-size:.62em;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.6;margin:-.12em 0;display:flex;align-items:center;min-width:0}.fo small .ct:not(.lg){flex:0 1 auto;min-width:0;vertical-align:baseline}.ct{color:#f0c85a;font-weight:700}.ct:not(.lg){background:rgba(224,182,76,.16);border:1px solid rgba(224,182,76,.45);border-radius:99px;padding:.06em .45em;margin-left:.05em;letter-spacing:0;font-size:9.5px;display:inline-block;max-width:100%;box-sizing:border-box;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ct.lg{color:#91a49a;font-weight:400}body.light .ct{color:#7a4f00}body.light .ct:not(.lg){background:#fff3d0;border-color:#c99a2e}body.light .ct.lg{color:#53665a}.fx.v{border-left-color:#7a6a2a}.vd{color:#c9b36a;font-weight:700}.r.v{background:#6b5f33}
 .fs{flex:0 0 auto;display:flex;align-items:center;gap:.8vw}.fs b{font-size:1.15em}.pend{font-size:.7em;color:#91a49a}
 .r{font-style:normal;font-weight:700;font-size:.7em;width:1.7em;height:1.7em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;background:#4a5a52}.r.w{background:#2f9e5b}.r.l{background:#d9534f}.r.d{background:#c58f1c}
 .none.big{font-size:3vh;color:#91a49a;margin:auto}
