@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.22.1 13-Nov-2026 Fixtures: an elite side's club-entered games with no competition name (e.g. Premiership Cup) are now cup games, so tonight's cup tie is the next game, not a later league game.
 //   v3.22 13-Nov-2026 Match Centre (TV layouts): ground and "2nd v 3rd" table line on each next game. New admin-only Match sheet page: team sheets and scorers, under-18 names never shown.
 //   v3.21.8 12-Nov-2026 Probe page: five new cards (all matches in one call, match participants, match events, match stats).
 //   v3.21.7 12-Nov-2026 Opposition report: space between the tags at the top when they wrap onto more than one line on a phone.
@@ -179,7 +180,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.22";
+const VERSION = "v3.22.1";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -221,6 +222,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.1_exeter_cup.zip          | v3.22
 v3.22   | 13-Nov-2026 | RFU_Club_Dashboard_v3.22_match_sheet.zip           | v3.21.8
 v3.21.8 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.8_probe_cards.zip         | v3.21.7
 v3.21.7 | 12-Nov-2026 | RFU_Club_Dashboard_v3.21.7_tag_spacing.zip         | v3.21.6
@@ -375,6 +377,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22.1 - Cup games on elite teams
+- An elite side (such as Exeter Chiefs) showed a later league game as its next game on the Fixtures TV page and Match Centre when it was playing a Premiership Cup game that night. The RFU lists those cup games in the team feed with no competition name, so they were mistaken for league games. For elite teams they are now labelled Cup, and the nearest game is shown. Match Stats still compares the two teams in the league until a cup table is available.
 
 v3.22 - Ground and table line on the Match Centre, and the admin Match sheet
 - Owner request (13-Nov-2026): after probing the RFU data service (match record, team sheets, scorers, match stats), build the parts that are new. The ground, directions and head-to-head already existed (v3.16 and v30s), so they are not rebuilt.
@@ -1515,6 +1520,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.22.1", "Fixed a Premiership side showing a later league game as its next game when it was playing a cup game that night. Club-entered games with no competition name are now treated as cup games for elite teams."],
       ["v3.22", "Match Centre on a TV now shows where the next game is played and how the two teams sit in the table (for example \"2nd v 3rd, 1 point apart\"). Admins also get a new Match sheet page with team sheets and scorers; under-18 players are never named."],
       ["v3.21.8", "Probe page (testing only): five new cards to try the RFU endpoints for all matches in one call, who played, tries and cards, and match stats."],
       ["v3.21.7", "Opposition report on a phone: the position, home/away and cup tags under the heading no longer sit tight against each other when they wrap onto a second line."],
@@ -5469,11 +5475,16 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
               } catch (err) { (fxDbg.otherDivisions = fxDbg.otherDivisions || []).push({ competition: l.competition, division: l.division, error: String(err && err.message || err) }); }
             }));
           } catch (err) { fxDbg.leaguesError = String(err && err.message || err); }
+          const eliteTeam = [...completed, ...extra, ...extraT].some(mm => mm && mm.elite === true);
           const labelOfGame = mm => {
             const k = dayKey(mm);
             if (keyLabel.has(k)) return keyLabel.get(k);
             if (mainLabel && (doneKeys.has(k) || extra.some(e2 => dayKey(e2) === k))) return mainLabel;
-            return compOf(mm);
+            const c = compOf(mm);
+            // v3.22.1: an elite side's club-entered games (no Opta flag, blank competition and group names) that sit in no
+            // competition we know are cup games (e.g. a Premiership Cup tie), never league games.
+            if (eliteTeam && !c.cup && !mm.elite && !String((mm.group && mm.group.name) || "").trim() && !String((mm.competition && mm.competition.name) || "").trim()) return { comp: "Cup", cup: true };
+            return c;
           };
           const mk = (mm, status) => {
             const x = getSide(mm), dt = dateOf(mm), played = status === "done";
