@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.25 13-Nov-2026 Admin: switch "England Rugby website as a back-up" (default on). Off = RFU data service only; no website table, ground or team-search calls.
 //   v3.24 13-Nov-2026 Usage: optional &screen=Name on a TV link labels that screen; the Usage page lists named screens with loads and last seen. Ignored when absent.
 //   v3.23.3 13-Nov-2026 Usage: a team picked in the link builder is recorded with its name (from the search result) as well as its number.
 //   v3.23.2 13-Nov-2026 Usage: teams picked in the link builder or looked up by the app are now counted by team id (the code read the wrong address part), and picks appear in "Teams that are not in our list".
@@ -189,7 +190,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.24";
+const VERSION = "v3.25";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -231,6 +232,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.25   | 13-Nov-2026 | RFU_Club_Dashboard_v3.25_website_switch.zip         | v3.24
 v3.24   | 13-Nov-2026 | RFU_Club_Dashboard_v3.24_screen_names.zip           | v3.23.3
 v3.23.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.3_pick_names.zip           | v3.23.2
 v3.23.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.2_usage_other_teams.zip   | v3.23.1
@@ -395,6 +397,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.25 - Website back-up switch
+- Admin > Features has a new switch, "England Rugby website as a back-up", on by default. Off means the site only uses the RFU data service: the league-table page, the ground (venue) page and the team-search fallback on englandrugby.com are not called, and a table, ground or team list the data service cannot supply is left blank (the team builder says so). The setting is checked on each request, so it takes effect within a minute or two. Watch the RFU web page row on the Usage page before turning it off.
 
 v3.24 - Named screens
 - Add &screen=Clubhouse+Bar to any TV link (Match Centre, Fixtures, team screens) and the Usage page lists that screen by name with its loads and when it was last seen. The label is only what the club types (letters, numbers, spaces, - _ .; 24 characters). It is ignored if absent, does not change the page, and is kept only for TV screens. A browser cannot give its host name, and the site keeps no IP address.
@@ -1565,6 +1570,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.25", "Admin has a new switch, England Rugby website as a back-up. It is on by default; turn it off to use only the RFU data service."],
       ["v3.24", "You can name a TV screen by adding &screen=Clubhouse+Bar to its link. The Usage page then lists each named screen with its loads and when it was last seen. Links without it work as before."],
       ["v3.23.3", "Usage page: teams picked in the link builder now show their name, not just a number."],
       ["v3.23.2", "Usage page: other teams that people pick are now listed by team number in Teams that are not in our list."],
@@ -1729,7 +1735,7 @@ const SETTINGS_KEY = "club:" + CLUB_ID;
 const MAINT_LINES_DEFAULT = ["We're just lining up the conversion - Try again soon!", "Back after the break.", "We've gone into touch.", "Currently in the scrum.", "Awaiting the TMO.", "Held up over the line."];
 const SETTINGS_DEFAULT = () => ({
   notices: { home: { on: false, text: "", style: "info", until: "" }, tv: { on: false, text: "", style: "info", applies: "club", teams: [], until: "" } },
-  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true },
+  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true },
   reporting: { days: 14 },
   signin: { days: 30 },
   matchCentre: { layout: "next" },
@@ -1746,7 +1752,7 @@ function cleanSettings(raw) {
   const h = n.home || {}, t = n.tv || {}, ids = TEAMS.map(x => String(x.team));
   d.notices.home = { on: h.on === true, text: txt(h.text, 200), style: style(h.style), until: until(h.until) };
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
-  for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered"]) d.features[k] = f[k] === false ? false : true;
+  for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback"]) d.features[k] = f[k] === false ? false : true;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
   { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
@@ -1855,6 +1861,7 @@ ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", 
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Next game first&rdquo; switches to Classic rows automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview next game first</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Next game first"], ["classic", "Classic rows"]])}</div>
 <div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
+${sw("fw", s.features.webfallback, "England Rugby website as a back-up", "When the RFU data service has no league table, ground or team list, the site asks the englandrugby.com website instead. Turn this off to use the data service only: a table or ground it cannot supply is then left blank. Check the RFU web page row on the Usage page first.")}
 </div><h2>Access</h2><div class="cd">
 <div class="nb"><div class="nh"><div><b>How long a PIN sign-in lasts</b><small>After this many days a device is asked for the club PIN again. Devices already signed in keep the length they were given; changing the PIN signs everyone out at once. Anyone can also use Sign out (bottom of the Links, Documentation and Admin pages).</small></div></div>${seg("sd", String(s.signin.days), [["1", "1 day"], ["7", "7 days"], ["14", "14 days"], ["30", "30 days"]])}</div>
 </div><h2>Reporting</h2><div class="cd">
@@ -1894,7 +1901,7 @@ $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fw").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -4517,6 +4524,7 @@ ${themeToggleScript}<script>(function(){var ss=document.getElementById("seasonSe
           const name = (url.searchParams.get("name") || "").trim();
           if (name.length < 2) return json({ teams: [] });
           if (!url.searchParams.get("webonly")) { try { const ts = await dsSearchTeams(name); if (ts.length) return json({ teams: ts, via: "data-service" }); } catch (_) { /* fall back to the website */ } }
+          if ((await siteSettings()).features.webfallback === false) return json({ teams: [], via: "website-off" });
           const d = await getJson(RFU + "search?" + new URLSearchParams({ name }));
           const teams = (d && Array.isArray(d.data) ? d.data : []).filter(x => x.listType === "TeamType" && x._id).map(x => ({ id: String(x._id), name: String(x.name || "") }));
           return json({ teams });
@@ -4524,6 +4532,7 @@ ${themeToggleScript}<script>(function(){var ss=document.getElementById("seasonSe
         const team = (url.searchParams.get("team") || "").trim();
         if (!/^\d+$/.test(team)) return json({ error: "Missing team ID" }, 400);
         if (!url.searchParams.get("webonly")) { try { const ds = await dsTeam(url.origin, team, (url.searchParams.get("season") || "").trim()); if (ds) return json(ds); } catch (_) { /* fall back to the website */ } }
+        if ((await siteSettings()).features.webfallback === false) return json({ error: "The RFU data service did not answer and the website back-up is turned off in Admin." }, 502);
         const first = await getJson(RFU + "teamSelect?" + new URLSearchParams({ team }));
         const seasons = (first && first.data && first.data.seasonList) || [];
         const season = url.searchParams.get("season") || seasons[0] || "";
@@ -5071,7 +5080,9 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       const compareTables = url.searchParams.get("debug") === "1" && isDev === true;
       let feedTable = null, feedTableError = null, pageTable = null, pageTableError = null;
       try { feedTable = tableFromFeed(); } catch (err) { feedTableError = String(err && err.message || err); }
-      if (!feedTable || compareTables) { try { pageTable = await tableFromPage(); } catch (err) { pageTableError = String(err && err.message || err); } }
+      const webOn = (await siteSettings()).features.webfallback !== false;
+      if (!feedTable && !webOn) pageTableError = "the website back-up is turned off in Admin";
+      if ((!feedTable && webOn) || compareTables) { try { pageTable = await tableFromPage(); } catch (err) { pageTableError = String(err && err.message || err); } }
       const rfuTable = feedTable || pageTable;
       const rfuTableError = rfuTable ? null : [feedTableError, pageTableError].filter(Boolean).join("; ");
       const tableFrom = feedTable ? "RFU feed (leagueTables)" : pageTable ? "englandrugby.com league table" : "calculated from results";
@@ -5267,7 +5278,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         vt.push({step:"rfu-match-record", ok: !!gv, venue: gv ? gv.venue : null, postcode: gv ? gv.postcode : null, coordinates: !!(gv && gv.geo)});
         if (gv) { nextVenue = gv.venue; rememberVenue(gv); }
       }
-      if (next && !nextVenue && next.id) {
+      if (next && !nextVenue && next.id && webOn) {
         try {
           const wv = await websiteVenue({ competition, division, season, teamId }, next.id, vt);
           if (wv) nextVenue = wv;
@@ -5440,7 +5451,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
                 if (!cv && ng.id) { // same lookup as the league game: RFU match record first, website page as the fallback
                   const gv = await gmsVenue(ng.id);
                   if (gv) { cv = gv.venue; rememberVenue(gv); }
-                  else cv = await websiteVenue({ competition: ng.competition || competition, division: ng.division || division, season, teamId }, ng.id, null);
+                  else if ((await siteSettings()).features.webfallback !== false) cv = await websiteVenue({ competition: ng.competition || competition, division: ng.division || division, season, teamId }, ng.id, null);
                 }
                 summary.next = { dateLabel: ng.dateLabel, iso: ng.iso, time: ng.time || "", ...sideOf(ng), venue: cv, venueElite: false, wx: null, comp: ng.comp };
               }
