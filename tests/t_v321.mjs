@@ -27,24 +27,22 @@ c('last result our score first',m.includes('18<i class="dsh">&ndash;</i>15'));c(
 c('crest drawn plain in new layouts',t.includes('.ly .cr,.ly .cnx .cr{background:none!important'));c('no kick-off time',!/15:00/.test(m));c('no difficulty',!/difficulty/i.test(m));
 c('home chip',/<span>Home<\/span>/.test(m));
 // url override
-({t}=await stack('&ly=board'));c('board',t.includes('data-ly="board"')&&t.includes('class="bwr"')&&t.includes('class="bh"')&&!t.includes('class="cw"'));
-c('board columns',/<span>Team<\/span><span>Table<\/span><span>Last result<\/span><span>Next game<\/span>/.test(t));
 ({t}=await stack('&ly=classic'));c('classic has no layout block',!t.includes('data-ly=')&&!/<body class="[^"]*ly-on/.test(t)&&(t.match(/class="rw"/g)||[]).length===2);
 ({t}=await stack('&ly=zz'));c('bad ly falls back to default',t.includes('data-ly="next"'));
-// more than four teams: next falls back to board
-({t}=await stack('',5));c('5 teams use board',t.includes('data-ly="board"')&&(t.match(/class="bwr"/g)||[]).length===5);
+// more than four teams: next falls back to the classic rows
+({t}=await stack('',5));c('5 teams use classic rows',!t.includes('data-ly=')&&!/<body class="[^"]*ly-on/.test(t)&&(t.match(/class="rw"/g)||[]).length===5);
 ({t}=await stack('',4));c('4 teams keep next',t.includes('data-ly="next"')&&t.includes('--n:4'));
 // notice strip keeps the layout in one grid row
 await w.fetch(new Request('https://x.co.uk/api/admin',{method:'POST',headers:{Cookie:ck,'Content-Type':'application/json'},body:JSON.stringify({notices:{tv:{on:true,text:'Bar closed',style:'info',applies:'all'}}})}),env,{});
 w=await load();({t}=await stack(''));c('notice with next layout',t.includes('id="sbnt"')&&t.includes('auto auto repeat(1,minmax(0,1fr))'));
 ({t}=await stack('&ly=classic'));c('notice with classic',t.includes('auto auto repeat(2,minmax(0,1fr))'));
 // admin
-r=await get('/admin',{Cookie:ck});t=await r.text();c('admin selector',t.includes('name="ml"')&&/name="ml" value="next" checked/.test(t));c('admin has all three',['next','board','classic'].every(v=>t.includes('name="ml" value="'+v+'"')));
-c('admin preview links',t.includes('view=stack&amp;ly=board'));
+r=await get('/admin',{Cookie:ck});t=await r.text();c('admin selector',t.includes('name="ml"')&&/name="ml" value="next" checked/.test(t));c('admin has next and classic only',!t.includes('value="board"')&&['next','classic'].every(v=>t.includes('name="ml" value="'+v+'"')));
+c('admin preview links',t.includes('view=stack&amp;ly=classic')&&!t.includes('ly=board'));
 const save=async o=>w.fetch(new Request('https://x.co.uk/api/admin',{method:'POST',headers:{Cookie:ck,'Content-Type':'application/json'},body:JSON.stringify(o)}),env,{});
-c('save board',(await (await save({matchCentre:{layout:'board'}})).json()).ok===true);
-w=await load();r=await get('/admin',{Cookie:ck});t=await r.text();c('admin shows board',/name="ml" value="board" checked/.test(t));
-({t}=await stack(''));c('setting drives the screen',t.includes('data-ly="board"'));
+c('save an old board setting',(await (await save({matchCentre:{layout:'board'}})).json()).ok===true);
+w=await load();r=await get('/admin',{Cookie:ck});t=await r.text();c('old board setting falls back to next',/name="ml" value="next" checked/.test(t));
+({t}=await stack(''));c('old board setting shows next game first',t.includes('data-ly="next"'));
 ({t}=await stack('&ly=next'));c('link beats setting',t.includes('data-ly="next"'));
 await save({matchCentre:{layout:'classic'}});w=await load();({t}=await stack(''));c('classic setting',!t.includes('data-ly='));
 await save({matchCentre:{layout:'<script>'}});w=await load();({t}=await stack(''));c('junk value becomes default',t.includes('data-ly="next"'));

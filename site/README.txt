@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
 v3.22.5 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.5_cup_pill2.zip            | v3.22.4
 v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
 v3.22.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.3_cup_pill.zip             | v3.22.2
@@ -196,6 +197,9 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.23 - Board layout removed
+- The Match Centre Board layout (one row per team) is removed because it was not bold enough. Admin now offers Next game first and Classic rows. A club that had saved Board now gets Next game first. With more than four teams the Match Centre uses Classic rows instead of the Board. The ground and "2nd v 3rd" lines stay on Next game first.
+
 v3.22.5 - Cup tag clipping, second fix
 - The cup tag on the Fixtures TV page is now its own box with its own line height; if the name is too long for the space it is shortened inside the tag instead of being cut at its edge.
 
@@ -260,7 +264,7 @@ v3.21 - Match Centre layouts (Next game first, Board, Classic)
 - New setting in Admin > Screens: Match Centre layout. Next game first (the default) gives each team a column with the next opponent's crest, name and date in the team colour, then the last result and the league position. Board gives one row per team: table, last result and next game, each with the opponent's crest. Classic rows is the previous layout, unchanged.
 - Crests: the club's own crest and every opponent's crest come from the same place as on the other pages, with initials shown if one is missing.
 - Phones always get the stacked cards, whatever is chosen. With more than four teams, Next game first switches to the Board so nothing gets cramped. No kick-off times and no Game Difficulty on these screens.
-- A link can force a layout with &ly=next, &ly=board or &ly=classic (used by the Admin preview links). The page store key includes it.
+- A link can force a layout with &ly=next or &ly=classic (used by the Admin preview links). The page store key includes it.
 - Changes in Admin reach screens within a few minutes on the live site (up to a minute for the setting, plus the two-minute page store).
 - Tests: setting default and cleaning, each layout renders on desktop and the cards on phones, the layout link override, the notice strip still fits, more than four teams falls back to the Board, the Admin selector saves, and screenshots at 1920x1080 and 1366x768 have no overflow.
 

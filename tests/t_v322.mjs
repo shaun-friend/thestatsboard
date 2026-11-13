@@ -34,7 +34,6 @@ const mainOf=t=>{const i=t.indexOf('<main class="ly');return i<0?'':t.slice(i,t.
 let {t}=await stack('');let m=mainOf(t);
 c('next layout shows ground',m.includes('<div class="og">Test Ground, Plymouth</div>'));
 c('next layout shows table line',/<div class="oq">\d+(st|nd|rd|th) v \d+(st|nd|rd|th) &middot; (\d+ points? apart|level on points)<\/div>/.test(m));
-({t}=await stack('&ly=board'));m=mainOf(t);c('board shows table line',/class="bso bq">\d+(st|nd|rd|th) v \d+(st|nd|rd|th)/.test(m));
 ({t}=await stack('&ly=classic'));c('classic rows unchanged (no new lines)',!/class="oq"|class="bso bq"/.test(mainOf(t))&&!t.includes('<div class="og">'));
 ({t}=await stack(''));c('no kick-off time, QR or difficulty',!/15:00/.test(mainOf(t))&&!/qr/i.test(mainOf(t))&&!/difficulty/i.test(mainOf(t)));
 {const r=await get('/?season=2026-2027&competition=1699&division=75791&team=55001&teamName=Test%20XV&friendlyName=Test%20XV&format=summary');const j=await r.json();c('summary carries opponent position',j.next&&Number.isInteger(j.next.oppPos)&&j.next.oppPos>0);c('summary carries opponent points',j.next&&Number.isFinite(Number(j.next.oppPts)))}

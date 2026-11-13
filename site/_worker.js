@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.23 13-Nov-2026 Match Centre: the Board layout is removed (not bold enough). Admin offers Next game first and Classic rows; a saved Board setting shows Next game first; more than four teams use Classic rows.
 //   v3.22.5 13-Nov-2026 Fixtures TV: cup tag drawn as its own box (own line height, shortens inside its border) so it cannot be clipped by the line.
 //   v3.22.4 13-Nov-2026 Fixtures: a club-entered cup game on an elite team takes its cup name (e.g. Prem Rugby Cup) from the RFU match record instead of just "Cup".
 //   v3.22.3 13-Nov-2026 Fixtures TV: the cup tag under each opponent is no longer clipped top and bottom.
@@ -184,7 +185,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.22.5";
+const VERSION = "v3.23";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -226,6 +227,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
 v3.22.5 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.5_cup_pill2.zip            | v3.22.4
 v3.22.4 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.4_cup_name.zip             | v3.22.3
 v3.22.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.3_cup_pill.zip             | v3.22.2
@@ -386,6 +388,9 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.23 - Board layout removed
+- The Match Centre Board layout (one row per team) is removed because it was not bold enough. Admin now offers Next game first and Classic rows. A club that had saved Board now gets Next game first. With more than four teams the Match Centre uses Classic rows instead of the Board. The ground and "2nd v 3rd" lines stay on Next game first.
+
 v3.22.5 - Cup tag clipping, second fix
 - The cup tag on the Fixtures TV page is now its own box with its own line height; if the name is too long for the space it is shortened inside the tag instead of being cut at its edge.
 
@@ -450,7 +455,7 @@ v3.21 - Match Centre layouts (Next game first, Board, Classic)
 - New setting in Admin > Screens: Match Centre layout. Next game first (the default) gives each team a column with the next opponent's crest, name and date in the team colour, then the last result and the league position. Board gives one row per team: table, last result and next game, each with the opponent's crest. Classic rows is the previous layout, unchanged.
 - Crests: the club's own crest and every opponent's crest come from the same place as on the other pages, with initials shown if one is missing.
 - Phones always get the stacked cards, whatever is chosen. With more than four teams, Next game first switches to the Board so nothing gets cramped. No kick-off times and no Game Difficulty on these screens.
-- A link can force a layout with &ly=next, &ly=board or &ly=classic (used by the Admin preview links). The page store key includes it.
+- A link can force a layout with &ly=next or &ly=classic (used by the Admin preview links). The page store key includes it.
 - Changes in Admin reach screens within a few minutes on the live site (up to a minute for the setting, plus the two-minute page store).
 - Tests: setting default and cleaning, each layout renders on desktop and the cards on phones, the layout link override, the notice strip still fits, more than four teams falls back to the Board, the Admin selector saves, and screenshots at 1920x1080 and 1366x768 have no overflow.
 
@@ -1540,6 +1545,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.23", "The Match Centre Board layout has been removed. Next game first and Classic rows remain; with more than four teams the Match Centre uses Classic rows."],
       ["v3.22.5", "Fixtures on a TV: the cup tag is now its own box, so it can no longer be clipped at any screen size."],
       ["v3.22.4", "Premiership cup games now show their real cup name from the RFU match record (for example Prem Rugby Cup) instead of just Cup."],
       ["v3.22.3", "Fixtures on a TV: the gold cup tag beside Home / Away is no longer cut off at the top and bottom."],
@@ -1718,7 +1724,7 @@ function cleanSettings(raw) {
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
   for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered"]) d.features[k] = f[k] === false ? false : true;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
-  { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "board", "classic"].includes(mc.layout) ? mc.layout : "next"; }
+  { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
   { const m = r.maintenance && typeof r.maintenance === "object" ? r.maintenance : {};
     d.maintenance.on = m.on === true;
@@ -1822,7 +1828,7 @@ ${sw("fa", s.features.around, "&ldquo;Around the league today&rdquo; strip", "Ot
 ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the next game, home or away (Fixtures TV board).")}
 ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The small line at the bottom of the Fixtures TV board.")}
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
-<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Next game first&rdquo; switches to the Board automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview next game first</a> &middot; <a href="/?view=stack&amp;ly=board" target="_blank" rel="noopener" style="color:#7fd89a">Board</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Next game first"], ["board", "Board"], ["classic", "Classic rows"]])}</div>
+<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Next game first&rdquo; switches to Classic rows automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview next game first</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Next game first"], ["classic", "Classic rows"]])}</div>
 <div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div><h2>Access</h2><div class="cd">
@@ -4671,14 +4677,6 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
         return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="cnx">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
-      const boardHtml = ({t, s, error}, idx) => {
-        if (error || !s) return `<section class="bwr" ${acStyle(t, idx)}><div class="bt"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="empty" style="grid-column:2/-1">Couldn't load this team. It will retry on the next refresh.</div></section>`;
-        const L = lastOf(s.last), N = nextOf(s.next);
-        const tbl = s.position ? `<div class="bpos">${ordOf(s.position)}</div><div class="bsub">${s.points !== null && s.points !== undefined ? s.points + " pts" : ""}${s.played ? (s.points !== null && s.points !== undefined ? " &middot; " : "") + "P" + s.played : ""}</div>` : `<div class="empty">No table</div>`;
-        const last = L ? `${crest(L.oppId, L.opp)}<span class="pl ${L.res} bc">${L.res.toUpperCase()}</span><div class="bx2"><div class="bsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</div><div class="bso">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="empty">No results available yet</div>`;
-        const next = N ? `${crest(N.oppId, N.opp)}<div class="bx2"><div class="bnm">${e(N.opp)}</div><div class="bso">${e(N.date)}${N.where ? " &middot; " + N.where : ""}</div>${clashOf(s, s.next) ? `<div class="bso bq">${clashOf(s, s.next)}</div>` : ""}</div>${N.cd ? `<span class="bcd">${e(N.cd)}</span>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
-        return `<section class="bwr" ${acStyle(t, idx)}><div class="bt">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="bp">${tbl}</div><div class="bl">${last}</div><div class="bn">${next}</div></section>`;
-      };
       const rowHtml = ({t, s, error}, idx) => {
         const tsl = `<a class="tsl" href="${e(tableHref(t))}">Table &amp; Stats</a>`;
         const extra = `<div class="stab">${e(shortOf(t))}</div><div class="tbar">${e((s && s.team) || t.name)}<span>${e((s && s.league) || t.league)}</span></div>`;
@@ -4703,10 +4701,10 @@ ${n.venue ? `<div class="vn"><a class="dl" target="_blank" rel="noopener" href="
         return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="th">${crest(s.teamId, s.team)}<div class="tx"><div class="tn">${e(s.team)}</div><div class="sm">${e(s.league)}</div></div></div><div class="ps">${stats}</div>${s.gap ? `<div class="gapl">${e(s.gap)}</div>` : ""}${tsl}</div>${lastBox}${nextBox}</div>`;
       };
       let ly = url.searchParams.get("ly");
-      if (!["classic", "next", "board"].includes(ly)) ly = (await siteSettings()).matchCentre.layout;
-      if (ly === "next" && results.length > 4) ly = "board";
+      if (!["classic", "next"].includes(ly)) ly = (await siteSettings()).matchCentre.layout;
+      if (ly === "next" && results.length > 4) ly = "classic"; // too many columns for a TV: the classic rows
       const lyHtml = ly === "next" ? `<main class="ly ly-next" data-ly="next" style="--n:${results.length}">${results.map(colHtml).join("")}</main>`
-        : ly === "board" ? `<main class="ly ly-board" data-ly="board"><div class="bh"><span>Team</span><span>Table</span><span>Last result</span><span>Next game</span></div>${results.map(boardHtml).join("")}</main>` : "";
+        : "";
       const jump = results.map((r, i) => `<a href="#t${i}" ${acStyle(r.t, i)}>${e(shortOf(r.t))}</a>`).join("");
       const refreshScript = `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){location.reload()},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)location.reload()}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
       // "Updated" is when the RFU data was last pulled (oldest across the teams), not when the page loaded.
@@ -4752,7 +4750,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rw>.bx.hero{display:block;border:0;border-top:1px solid var(--bd);background:transparent}.hero .when{margin-bottom:.6rem}.hero .k{display:inline-block;margin-right:.6rem}.hero .d,.hero .d2{display:inline-block;font-size:1.5rem;margin:0 .45rem 0 0}.hero .d{font-weight:800}.hero .cd{margin:0;font-size:.9rem;padding:.15rem .7rem}.hero .vs .sl{font-size:1.15rem}.hero .cr{width:2.3rem;height:2.3rem;flex-basis:2.3rem}.hero .cr .ini{font-size:.8rem}.hero .pl.ha{top:.95rem;right:1.05rem;font-size:.85rem}.lastbx .sl{font-size:1.1rem}.lastbx .sl b{font-size:1.6rem}.lastbx .cr{width:1.9rem;height:1.9rem;flex-basis:1.9rem}
 .tn{font-size:1.4rem}.th .cr{width:2.8rem;height:2.8rem;flex-basis:2.8rem}.sl{font-size:1.1rem}.sl b{font-size:1.6rem}.hl{font-size:1.25rem}.dt{font-size:1.25rem}.cr{width:1.9rem;height:1.9rem;flex-basis:1.9rem}}
 .stab,.tbar{display:none}
-@media(min-width:801px){body.ly-on .rw{display:none}body.ly-on .ly-next{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1rem;min-height:0}body.ly-on .ly-board{display:flex;flex-direction:column;min-height:0;border-top:2px solid var(--bd);--gc:minmax(0,1.3fr) minmax(0,.75fr) minmax(0,1.3fr) minmax(0,1.5fr)}}
+@media(min-width:801px){body.ly-on .rw{display:none}body.ly-on .ly-next{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1rem;min-height:0}}
 @media(max-width:800px){.ly{display:none!important}}
 .cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
 .ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -4760,10 +4758,6 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
 .clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
-.bh{display:grid;grid-template-columns:var(--gc);gap:2rem;padding:.6rem 0 .5rem 1.6rem;font-size:1.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tx);opacity:.85;font-weight:800}
-.bwr{flex:1;min-height:0;display:grid;grid-template-columns:var(--gc);gap:2rem;align-items:center;border-top:1px solid var(--bd);position:relative;padding-left:1.6rem}.bwr::before{content:"";position:absolute;left:0;top:.8rem;bottom:.8rem;width:.5rem;border-radius:.3rem;background:var(--ac)}
-.bt,.bl,.bn{display:flex;align-items:center;gap:1rem;min-width:0}.bt .cr{width:5.4rem;height:5.4rem;flex-basis:5.4rem}.bt .cr .ini{font-size:1.4rem}.bl .cr,.bn .cr{width:4.6rem;height:4.6rem;flex-basis:4.6rem}.bl .cr .ini,.bn .cr .ini{font-size:1.2rem}
-.bpos{font-size:4.4rem;font-weight:800;line-height:1}.bsub{font-size:1.35rem;color:var(--mu)}.bc{font-size:1.5rem;flex:none}.bx2{min-width:0;flex:1}.bsc{font-size:3.4rem;font-weight:800;line-height:1}.bnm{font-size:2.7rem;font-weight:800;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bso{font-size:1.3rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bcd{font-size:1.35rem;font-weight:800;white-space:nowrap;padding:.2rem .8rem;border-radius:99px;background:var(--ac);color:var(--on)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
 .rs-a .rw>.bx,.rs-b .rw>.bx,.rs-c .rw>.bx,.rs-d .rw>.bx{border-color:var(--bd)}
 .rs-b .rw>.bx.tbx,.rs-c .rw>.bx.tbx,.rs-d .rw>.bx.tbx{background:var(--card);border-color:var(--bd)}
