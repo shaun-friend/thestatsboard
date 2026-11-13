@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.22.3 13-Nov-2026 Fixtures TV: the cup tag under each opponent is no longer clipped top and bottom.
 //   v3.22.2 13-Nov-2026 Match Stats and the Opposition Report show a cup game the RFU lists without a competition (e.g. Premiership Cup) as the next game, with a "no cup stats" note, instead of the next league game.
 //   v3.22.1 13-Nov-2026 Fixtures: an elite side's club-entered games with no competition name (e.g. Premiership Cup) are now cup games, so tonight's cup tie is the next game, not a later league game.
 //   v3.22 13-Nov-2026 Match Centre (TV layouts): ground and "2nd v 3rd" table line on each next game. New admin-only Match sheet page: team sheets and scorers, under-18 names never shown.
@@ -181,7 +182,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.22.2";
+const VERSION = "v3.22.3";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -223,6 +224,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.22.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.3_cup_pill.zip             | v3.22.2
 v3.22.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.2_cup_matchstats.zip       | v3.22.1
 v3.22.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.22.1_exeter_cup.zip          | v3.22
 v3.22   | 13-Nov-2026 | RFU_Club_Dashboard_v3.22_match_sheet.zip           | v3.21.8
@@ -379,6 +381,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.22.3 - Fixtures TV cup tag
+- The gold cup tag (for example Investec Champions Cup) under each opponent on the Fixtures TV page was clipped at the top and bottom. The line under the opponent name now has enough height for the tag.
 
 v3.22.2 - Match Stats and Opposition Report on cup games
 - For a cup game the RFU lists without a competition (such as an Exeter Premiership Cup tie), Match Stats now shows that game as the next game with a "No cup stats yet" note, and the Opposition Report says there is no report for it, instead of showing the next league game.
@@ -1525,6 +1530,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.22.3", "Fixtures on a TV: the gold cup tag beside Home / Away is no longer cut off at the top and bottom."],
       ["v3.22.2", "Match Stats and the Opposition Report now show tonight's cup game as the next game for a Premiership side, with a note that no cup stats are available, instead of a later league game."],
       ["v3.22.1", "Fixed a Premiership side showing a later league game as its next game when it was playing a cup game that night. Club-entered games with no competition name are now treated as cup games for elite teams."],
       ["v3.22", "Match Centre on a TV now shows where the next game is played and how the two teams sit in the table (for example \"2nd v 3rd, 1 point apart\"). Admins also get a new Match sheet page with team sheets and scorers; under-18 players are never named."],
@@ -4079,7 +4085,7 @@ html,body{height:100%}body{overflow:hidden;padding:2.2vh 2.2vw 3.6vh;display:fle
 .fx.w{border-left-color:#2f9e5b}.fx.l{border-left-color:#d9534f}.fx.d{border-left-color:#e0a82e}.fx.nx{box-shadow:0 0 0 .35vh #7fd89a}
 .fd{flex:0 0 6.4em;color:#f5f7f6}.fd b{font-size:1em}
 .crest.sm{width:calc(var(--rh) * .66vh);height:calc(var(--rh) * .66vh);flex-basis:calc(var(--rh) * .66vh)}.crest.sm .ini{font-size:calc(var(--rh) * .24vh)}.crest.sm img{padding:.4vh}
-.fo{flex:1;min-width:0;line-height:1.15}.fo b{display:block;font-size:1.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fo small .ct{font-size:.86em;letter-spacing:.02em}.fo small{color:#91a49a;font-size:.62em;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.ct{color:#f0c85a;font-weight:700}.ct:not(.lg){background:rgba(224,182,76,.16);border:1px solid rgba(224,182,76,.45);border-radius:99px;padding:.02em .4em;margin-left:.05em;letter-spacing:0;font-size:9.5px}.ct.lg{color:#91a49a;font-weight:400}body.light .ct{color:#7a4f00}body.light .ct:not(.lg){background:#fff3d0;border-color:#c99a2e}body.light .ct.lg{color:#53665a}.fx.v{border-left-color:#7a6a2a}.vd{color:#c9b36a;font-weight:700}.r.v{background:#6b5f33}
+.fo{flex:1;min-width:0;line-height:1.15}.fo b{display:block;font-size:1.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fo small .ct{font-size:.86em;letter-spacing:.02em}.fo small{color:#91a49a;font-size:.62em;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.6;margin:-.12em 0}.ct{color:#f0c85a;font-weight:700}.ct:not(.lg){background:rgba(224,182,76,.16);border:1px solid rgba(224,182,76,.45);border-radius:99px;padding:.02em .4em;margin-left:.05em;letter-spacing:0;font-size:9.5px}.ct.lg{color:#91a49a;font-weight:400}body.light .ct{color:#7a4f00}body.light .ct:not(.lg){background:#fff3d0;border-color:#c99a2e}body.light .ct.lg{color:#53665a}.fx.v{border-left-color:#7a6a2a}.vd{color:#c9b36a;font-weight:700}.r.v{background:#6b5f33}
 .fs{flex:0 0 auto;display:flex;align-items:center;gap:.8vw}.fs b{font-size:1.15em}.pend{font-size:.7em;color:#91a49a}
 .r{font-style:normal;font-weight:700;font-size:.7em;width:1.7em;height:1.7em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;background:#4a5a52}.r.w{background:#2f9e5b}.r.l{background:#d9534f}.r.d{background:#c58f1c}
 .none.big{font-size:3vh;color:#91a49a;margin:auto}
