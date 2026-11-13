@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.3_pick_names.zip           | v3.23.2
 v3.23.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.2_usage_other_teams.zip   | v3.23.1
 v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
 v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
@@ -198,6 +199,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.23.3 - Picked teams show their name
+- When a team is chosen in the link builder, its name (as listed by the RFU search) is now recorded with its number, so the Usage card "Teams that are not in our list" shows names. Only the team name and numbers are kept, never typed search text.
 
 v3.23.2 - Usage: other teams
 - The Usage page card "Teams that are not in our list" was empty even though 16 teams had been picked. Picks were being counted without the team (the code looked for id= but the link builder sends team=), and the card only listed page and screen views, not picks. Picks are now recorded with the team number and shown in the card (as "Team 41" if no name is known). Only the number is kept, never typed text. Picks made before this release have no team and cannot be recovered.

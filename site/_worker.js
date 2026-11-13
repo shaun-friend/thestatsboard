@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.23.3 13-Nov-2026 Usage: a team picked in the link builder is recorded with its name (from the search result) as well as its number.
 //   v3.23.2 13-Nov-2026 Usage: teams picked in the link builder or looked up by the app are now counted by team id (the code read the wrong address part), and picks appear in "Teams that are not in our list".
 //   v3.23.1 13-Nov-2026 TV screens: the page stays hidden while it measures and fits itself, then fades in once, instead of visibly resizing several times on load.
 //   v3.23 13-Nov-2026 Match Centre: the Board layout is removed (not bold enough). Admin offers Next game first and Classic rows; a saved Board setting shows Next game first; more than four teams use Classic rows.
@@ -187,7 +188,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.23.2";
+const VERSION = "v3.23.3";
 const BUILD_DATE = "13-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -229,6 +230,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.23.3 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.3_pick_names.zip           | v3.23.2
 v3.23.2 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.2_usage_other_teams.zip   | v3.23.1
 v3.23.1 | 13-Nov-2026 | RFU_Club_Dashboard_v3.23.1_no_flicker.zip           | v3.23
 v3.23   | 13-Nov-2026 | RFU_Club_Dashboard_v3.23_no_board.zip              | v3.22.5
@@ -391,6 +393,9 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.23.3 - Picked teams show their name
+- When a team is chosen in the link builder, its name (as listed by the RFU search) is now recorded with its number, so the Usage card "Teams that are not in our list" shows names. Only the team name and numbers are kept, never typed search text.
 
 v3.23.2 - Usage: other teams
 - The Usage page card "Teams that are not in our list" was empty even though 16 teams had been picked. Picks were being counted without the team (the code looked for id= but the link builder sends team=), and the card only listed page and screen views, not picks. Picks are now recorded with the team number and shown in the card (as "Team 41" if no name is known). Only the number is kept, never typed text. Picks made before this release have no team and cannot be recovered.
@@ -1555,6 +1560,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.23.3", "Usage page: teams picked in the link builder now show their name, not just a number."],
       ["v3.23.2", "Usage page: other teams that people pick are now listed by team number in Teams that are not in our list."],
       ["v3.23.1", "TV screens no longer flicker while they size themselves: the screen stays blank for a moment, then fades in already fitted."],
       ["v3.23", "The Match Centre Board layout has been removed. Next game first and Classic rows remain; with more than four teams the Match Centre uses Classic rows."],
@@ -3471,7 +3477,7 @@ function leagues(panel,d,t){
  d.leagues.forEach(function(l){var b=el("button","lgb");b.type="button";b.appendChild(el("span",null,l.divisionName));b.appendChild(el("small",null,l.competitionName));b.addEventListener("click",function(){finish(l,d.season)});panel.appendChild(b)})}
 function load(panel,t,season){
  var my=++seq;panel.innerHTML="";panel.appendChild(el("p",null,"Loading leagues\\u2026"));
- api("/api/builder/team",season?{team:t.id,season:season}:{team:t.id}).then(function(d){if(my!==seq)return;if(d.error)throw new Error(d.error);cur={team:d.team,name:d.name||t.name};if(t.clubEl)t.clubEl.textContent=d.club||"Is this the right team?";leagues(panel,d,t)}).catch(function(e){if(my!==seq)return;panel.innerHTML="";var m=el("p",null,"Couldn\\u2019t load this team. "+e.message);panel.appendChild(m)})}
+ api("/api/builder/team",season?{team:t.id,season:season,friendlyName:t.name||""}:{team:t.id,friendlyName:t.name||""}).then(function(d){if(my!==seq)return;if(d.error)throw new Error(d.error);cur={team:d.team,name:d.name||t.name};if(t.clubEl)t.clubEl.textContent=d.club||"Is this the right team?";leagues(panel,d,t)}).catch(function(e){if(my!==seq)return;panel.innerHTML="";var m=el("p",null,"Couldn\\u2019t load this team. "+e.message);panel.appendChild(m)})}
 $("sf").addEventListener("submit",function(ev){
  ev.preventDefault();var n=$("q").value.trim(),sm=$("sm"),res=$("res");
  if(n.length<2){sm.className="msg err";sm.textContent="Type at least two letters.";return}
