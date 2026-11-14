@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
 v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
 v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
 v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
@@ -234,6 +235,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.8 - Fix: next game flipping, second cause
+- Owner check (14-Nov-2026, Colts, DEV): the plain summary showed the cup game (Sun 15 Nov at Paignton) with no "partial" flag, yet the Match Centre had just shown the wrong game again. So an incomplete answer can pass the v3.30.7 check.
+- Likely second cause (from the code): the cup game also comes from the team's own season feed, which carries no competition name. It is only recognised as a cup game if the team's competition list (which comes from the upcoming-games call and a 30-day memory) includes the cup. If that list lacks it for a moment, the game is added with no name, treated as a league game, and the next game falls back to the league one. No request fails, so v3.30.7 did not notice.
+- Fix: a game that is only in the team feed, has no competition or group name, and is in none of the competitions we read now counts as "partial" ("unlabelled games: N"), so it is not stored and the last complete answer is shown instead.
+- To check: &format=summary&detail=fixtures&debug=fixtures now shows "unlabelled" under debug when this happens.
+- Docs: none - behind the scenes
 
 v3.30.7 - Fix: next game flipping between competitions
 - Owner report (14-Nov-2026): the Colts, who play in more than one competition, sometimes show a game tomorrow and sometimes one next weekend on the Match Centre.

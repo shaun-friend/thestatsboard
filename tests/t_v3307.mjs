@@ -31,6 +31,7 @@ const page=async(q)=>{const r=await w.fetch(new Request('https://thestatsboard.c
 const env2={};
 
 let failTeamFeed=false;const f1=globalThis.fetch;globalThis.fetch=async(u,o)=>{const s=String(u);if(failTeamFeed&&/full-matches\?/.test(s)&&/teamId=/.test(s)&&!/competitionId=/.test(s)&&/season=2026-2027/.test(s))return {ok:false,status:500,text:async()=>''};return f1(u,o)};
+let addBlank=false;const f2=globalThis.fetch;globalThis.fetch=async(u,o)=>{const x=String(u);if(addBlank&&/full-matches\?/.test(x)&&/teamId=/.test(x)&&!/competitionId=/.test(x)&&/season=2026-2027/.test(x)){const r=await f2(u,o);const d=JSON.parse(await r.text());d.fixtures=[...(d.fixtures||[]),{id:777,type:'fixture',date:iso(1),time:'11:30',homeTeam:{id:77,commonId:77,name:'Paignton',score:null},awayTeam:{id:11039*7,commonId:11039,name:'Ivybridge',score:null}}];return {ok:true,status:200,text:async()=>JSON.stringify(d)}}return f2(u,o)};
 const sum=async()=>{const r=await w.fetch(new Request('https://thestatsboard.co.uk/?'+base+'&format=summary',{headers:{'User-Agent':'Mozilla/5.0'}}),env,ctx2);return await r.json()};
 clock=Date.UTC(2026,10,11,12,0,0);
 w=await load();let j=await sum();c('summary with every feed answering is not partial',!j.partial&&j.next);
@@ -48,4 +49,6 @@ const before=a.t.match(/Next game[\s\S]{0,400}?(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z
 a=await page(stack);const mid=a.t.match(/Next game[\s\S]{0,400}?(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]* \d+ [A-Z][a-z]+/);
 c('while a feed is missing the Match Centre shows the same next game as before',!!before&&!!mid&&before[0]===mid[0]);
 c('the incomplete answer was not stored as the 15-minute copy',![...sc.keys()].some(k=>k.includes('sum%7C')));
+failTeamFeed=false;addBlank=true;sc.clear();w=await load();j=await sum();c('a game with no competition name in none of the competitions we read makes the answer partial',j.partial===true&&(j.partialWhy||[]).some(x=>/unlabelled/.test(x)));
+addBlank=false;
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

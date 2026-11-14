@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.8 14-Nov-2026 The "partial" check also catches a game found only in the team feed with no competition name that is in none of the competitions read (a cup missing from the competition list), the likeliest way a cup game was passed off as a league game.
 //   v3.30.7 14-Nov-2026 Fix: the Match Centre next game flipping between a cup game and the league game for a team in several competitions. When a competition feed is missing the answer is marked partial; partial answers are not stored (not in the 15-minute summary copy, not in the page cache) and the Match Centre shows the last complete answer instead.
 //   v3.30.6 14-Nov-2026 Page cache rebuilt for the free plan: team, Match Centre, fixtures and match pages are kept for the rest of the UK day Monday to Friday and 30 minutes at weekends, with an older same-day copy (up to 6 hours) shown at once while a new one builds in the background. Never shown across midnight. A deploy or an Admin save shows at once. Now used on DEV too.
 //   v3.30.5 14-Nov-2026 Working-time savings for the free plan (10 ms per request): date formatting reuses formatters (identical output), names with no HTML codes skip decoding, and each team's Match Centre summary is kept in the shared cache for 15 minutes. Pages need roughly half to a third of the working time in the test rig.
@@ -229,7 +230,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.7";
+const VERSION = "v3.30.8";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -277,6 +278,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
 v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
 v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
 v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
@@ -469,6 +471,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.8 - Fix: next game flipping, second cause
+- Owner check (14-Nov-2026, Colts, DEV): the plain summary showed the cup game (Sun 15 Nov at Paignton) with no "partial" flag, yet the Match Centre had just shown the wrong game again. So an incomplete answer can pass the v3.30.7 check.
+- Likely second cause (from the code): the cup game also comes from the team's own season feed, which carries no competition name. It is only recognised as a cup game if the team's competition list (which comes from the upcoming-games call and a 30-day memory) includes the cup. If that list lacks it for a moment, the game is added with no name, treated as a league game, and the next game falls back to the league one. No request fails, so v3.30.7 did not notice.
+- Fix: a game that is only in the team feed, has no competition or group name, and is in none of the competitions we read now counts as "partial" ("unlabelled games: N"), so it is not stored and the last complete answer is shown instead.
+- To check: &format=summary&detail=fixtures&debug=fixtures now shows "unlabelled" under debug when this happens.
+- Docs: none - behind the scenes
 
 v3.30.7 - Fix: next game flipping between competitions
 - Owner report (14-Nov-2026): the Colts, who play in more than one competition, sometimes show a game tomorrow and sometimes one next weekend on the Match Centre.
@@ -1867,6 +1876,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.8", "Fix: the Match Centre now also spots a cup game that is missing from the RFU competition list (so it looked like a league game), and keeps the last complete answer instead."],
       ["v3.30.7", "Fix: for a team in more than one competition (for example the Colts) the Match Centre could flip between tomorrow's cup game and next weekend's league game. When the RFU does not answer for one of the competitions, the site now keeps showing the last complete answer instead of a league-only one, and never stores an incomplete page."],
       ["v3.30.6", "Behind the scenes: pages are now kept ready for the whole day Monday to Friday (no games) and for 30 minutes at weekends, and an older copy is shown at once while a new one is built, so screens and phones are quicker and the server is far less likely to run out of working time. Admin changes still show straight away."],
       ["v3.30.5", "Behind the scenes: pages now use much less of the server's working time (roughly a half to a third), which should stop the occasional Error 1102 on the free Cloudflare plan. Nothing looks different."],
@@ -6275,6 +6285,11 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           // v3.30.7: say so when a feed was missing, because the list may then lack a cup game (the next game would then show the league game instead)
           const partialWhy = []; if (!teamFeedOk) partialWhy.push("team feed"); if (fxDbg.leaguesError) partialWhy.push("competition list");
           for (const rw of (fxDbg.otherDivisions || [])) if (!rw.ok) partialWhy.push("competition " + rw.competition);
+          { // a game found only in the team feed, with no competition or group name and in none of the competitions we read, cannot be told from a league game: its competition is missing from the list
+            const nm = x => String(x == null ? "" : x).trim();
+            const unl = extraT.filter(mm => !keyLabel.has(dayKey(mm)) && !nm(mm.group && mm.group.name) && !nm(mm.competition && mm.competition.name) && !gmsCupName.has(String(mm.id))).length;
+            if (unl) { partialWhy.push("unlabelled games: " + unl); fxDbg.unlabelled = unl; }
+          }
           if (partialWhy.length) PARTIAL_COUNT++;
           return new Response(JSON.stringify({ team: displayTeamName, clubName: ownClubName, league: leagueTitle, updatedAt: dataTime, games: dedup, banner, around, comps: compNames, multi: compNames.length > 1 || dedup.some(g => g.cup), teamFeedOk, partial: partialWhy.length > 0, partialWhy, ...(url.searchParams.get("debug") === "fixtures" ? { debug: { ...fxDbg, gamesByCompetition: dedup.reduce((o, g) => (o[g.comp] = (o[g.comp] || 0) + 1, o), {}), statuses: dedup.reduce((o, g) => (o[g.status] = (o[g.status] || 0) + 1, o), {}) } } : {}) }), {headers: {"Content-Type":"application/json;charset=utf-8"}});
         }
