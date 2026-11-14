@@ -58,6 +58,7 @@ c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible(
  await p.click('#tr .tsb[data-id="555"]');await p.waitForTimeout(200);
  c('teams: leagues offered',(await p.$$('#tp .tlg')).length===2);
  await p.click('#tp .tlg[data-k="0"]');await p.waitForTimeout(100);
+ c('teams: no short label box',(await p.$$('#tml .ts')).length===0);
  c('teams: new team added with RFU name and league',(await p.$$('#tml .tm')).length===5&&(await p.$eval('#tml .tm:nth-child(5) .tn',e=>e.value))==='Plymouth Albion'&&/Regional 1 South West/.test(await p.textContent('#tml .tm:nth-child(5)')));
  await p.click('#tml .tm:nth-child(5) .ch');await p.waitForTimeout(200);
  await p.click('#tp .tlg[data-k="1"]');await p.waitForTimeout(100);

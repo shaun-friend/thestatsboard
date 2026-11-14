@@ -43,7 +43,7 @@ const sv=JSON.parse(store['club:ivybridge']);
 c('stored: duplicate and bad id dropped',sv.club.teams.length===3&&sv.club.teams.map(x=>x.team).join()==='11039,11063,777');
 c('stored: bad colour replaced',/^#[0-9a-f]{6}$/.test(sv.club.teams[1].accent)&&sv.club.teams[0].accent==='#112233');
 c('stored: empty name falls back to RFU name',sv.club.teams[2].name==='Newcomers');
-c('stored: short defaults',sv.club.teams[2].short==='Newcomers');
+c('stored: no short label kept',sv.club.teams.every(x=>x.short===''));
 // 3. an older Admin page that does not send the list keeps it
 r=await post(w,{features:{around:false}});c('older admin save ok',(await r.json()).ok===true);
 w=await load();c('list kept when not sent',await nameSeen(w,TQ+'&teamName=Ivybridge')==='First XV');

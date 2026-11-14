@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.29.2 14-Nov-2026 Our teams: the Short label box is gone. The label on the phone jump bar and Match sheet tabs is now worked out from the friendly name, so renaming a team updates it.
 //   v3.29.1 14-Nov-2026 A renamed team now shows on the team table and Match Centre pages within about a minute of reloading: the browser kept those pages for 5 minutes, now 1.
 //   v3.29 14-Nov-2026 New Our teams section in Admin: the club picks its teams once and gives each a friendly name, short label and colour, and puts them in order. The name is used everywhere that team appears (Links page, Match Centre, phone team bar, TV banners, page titles). A name typed into a link still wins. Links made from the Links page and the link builder no longer carry a name, so they follow Admin. The team list no longer lives only in the code.
 //   v3.28.4 14-Nov-2026 Usage: the Outside calls chart lines up when a bar has website calls (the gold count no longer wraps onto two lines and lifts its column); hour labels are two digits so they do not run together on a phone.
@@ -208,7 +209,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.29.1";
+const VERSION = "v3.29.2";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -255,6 +256,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.29.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.2_no_short_label.zip             | v3.29.1
 v3.29.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.1_name_refresh.zip               | v3.29
 v3.29   | 14-Nov-2026 | RFU_Club_Dashboard_v3.29_our_teams.zip                    | v3.28.4
 v3.28.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.4_usage_chart.zip                | v3.28.3
@@ -438,6 +440,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.29.2 - Our teams: no Short label box
+- The Short label was not needed: the phone jump bar and Match sheet tabs now work the label out from the friendly name (a leading "The" and a first word shared by several teams are dropped, so "Ivybridge Women" shows as "Women"). It also fixes a flaw: a short label typed or filled in once did not follow a later rename. Saved lists lose any stored short label on the next save.
+- Docs: Admin guide, What's new
 
 v3.29.1 - Renamed teams show sooner
 - After renaming a team in Admin, the team table and Match Centre pages still showed the old name when reloaded, because the browser was told to keep those two pages for 5 minutes. It is now 1 minute. Allow up to about two minutes in all after pressing Save (settings are read about every 30 to 60 seconds, then the page).
@@ -1571,7 +1577,7 @@ const DOC_SECTIONS = [
     { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, Match day) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
     { dl: [
       ["Overview", "Status cards and any live notices."],
-      ["Our teams", "Your teams: friendly name, short label, colour, league and order, used across the whole site."],
+      ["Our teams", "Your teams: friendly name, colour, league and order, used across the whole site."],
       ["Messages", "The homepage notice and the TV screen notice."],
       ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
       ["Match day", "The Match sheet (team sheets and scorers)."],
@@ -1584,7 +1590,7 @@ const DOC_SECTIONS = [
     { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
     { h: "Our teams" },
     { ul: [
-      "The list of the club's teams. Each has a friendly name (up to 40 characters), a short label for the phone team bar, a colour and the league it plays in. The friendly name is used wherever that team appears: the Links page, the Match Centre, the phone team bar, TV banners and page titles.",
+      "The list of the club's teams. Each has a friendly name (up to 40 characters), a colour and the league it plays in. The short label on the phone jump bar and Match sheet tabs is worked out from the friendly name (a leading The and a club word shared by several teams are dropped, so Ivybridge Women shows as Women). The friendly name is used wherever that team appears: the Links page, the Match Centre, the phone team bar, TV banners and page titles.",
       "Add a team: type a team or club name, press Search, pick the team, then pick its league for this season. It is added with the RFU's own name as its friendly name; change it to what you want.",
       "Change league: use this on a team at the start of a season, or when it moves division. It searches the RFU for that team's leagues and replaces the old one.",
       "Move up, Move down and Remove set the order (the Links page and Match Centre follow it). The last team cannot be removed.",
@@ -1745,8 +1751,9 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.29.2", "Our teams no longer has a Short label box: the short name on the phone jump bar is worked out from the friendly name, so a rename updates it."],
       ["v3.29.1", "A team renamed in Admin now shows on the table and Match Centre pages within about a minute of reloading (browsers used to keep those pages for 5 minutes)."],
-      ["v3.29", "New Our teams section in Admin: choose your teams once, give each a friendly name, short label and colour, and put them in order. The name shows everywhere that team appears. A name typed into a link still wins; links from the Links page and link builder now follow Admin."],
+      ["v3.29", "New Our teams section in Admin: choose your teams once, give each a friendly name and colour, and put them in order. The name shows everywhere that team appears. A name typed into a link still wins; links from the Links page and link builder now follow Admin."],
       ["v3.28.4", "Usage page: the Outside calls chart now lines up when some hours have website calls, and the hour labels no longer run together on a phone."],
       ["v3.28.3", "Usage page: Teams people look up now shows one row per team and its team number, so the same team is never listed twice."],
       ["v3.28.2", "Usage page: the card for other teams is now Teams people look up. It lists every team that people open or pick, including the club's own (marked as ours)."],
@@ -1950,9 +1957,15 @@ function cleanClubTeams(arr) {
     if (!/^\d{1,9}$/.test(team) || !/^\d{1,9}$/.test(comp) || !/^\d{1,9}$/.test(div) || seen.has(team) || out.length >= 24) continue;
     seen.add(team);
     const teamName = txt(r.teamName, 40) || txt(r.name, 40) || "Team", name = txt(r.name, 40) || teamName;
-    out.push({ name, short: txt(r.short, 14) || name.slice(0, 12), accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
+    out.push({ name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
   }
   return out.length ? out : null;
+}
+// Short label for the phone jump bar and Match sheet tabs (v3.29.2): worked out from the friendly name, so a rename updates it.
+// Drops a leading "The " and any first word shared by several teams ("Ivybridge Women" gives "Women"). A built-in default entry may carry its own.
+function teamShort(t, list) {
+  const L = list || TEAMS, fw = L.map(x => String(x.name).split(/\s+/)[0].toLowerCase());
+  return t.short || String(t.name).replace(/^The\s+/i, "").replace(/^(\S+)\s+(.+)$/, (m, w, rest) => fw.filter(x => x === w.toLowerCase()).length > 1 ? rest : m);
 }
 let TEAMS_STAMP = "d";
 function applyClubTeams(list) {
@@ -2102,7 +2115,7 @@ ${setup}
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
 </section>
-<section class="sec" id="s-teams" hidden><h1>Our teams</h1><p class="sub">The names, short labels, colours and order used across the whole site: the Links page, Match Centre, phone team bar, TV banners and page titles. Change a name here and it changes everywhere once you press Save.</p>
+<section class="sec" id="s-teams" hidden><h1>Our teams</h1><p class="sub">The names, colours and order used across the whole site: the Links page, Match Centre, phone team bar, TV banners and page titles. Change a name here and it changes everywhere once you press Save.</p>
 <div class="cd" id="tml"></div>
 <div class="cd" style="margin-top:14px"><div class="nb"><div class="nh"><div><b>Add a team</b><small>Search the RFU list, then choose the league it plays in this season.</small></div></div>
 <div style="display:flex;gap:8px;margin-top:6px"><input class="in" id="tq" maxlength="60" autocomplete="off" placeholder="Team or club name" style="margin:0;flex:1"><button type="button" class="btn" id="tgo">Search</button></div>
@@ -2191,12 +2204,12 @@ rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidd
 var club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
 function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
-function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Short label</div><input class="in ts" maxlength="14" value="'+esc(t.short)+'" style="margin-top:4px"></div><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h}
-$("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("ts"))t.short=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h}
+$("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
 $("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
 if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
 function lgs(id,nm){$("tp").innerHTML="";$("tm1").textContent="Loading leagues for "+nm+"...";fetch("/api/builder/team?team="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){if(d.error)throw new Error(d.error);var ls=d.leagues||[];$("tm1").textContent=ls.length?"Choose the league for "+d.name+":":"No league found for "+d.name+" this season.";var h="";ls.forEach(function(l,k){h+='<button type="button" class="tlg" data-k="'+k+'">'+esc(l.divisionName)+'<small>'+esc(l.competitionName)+'</small></button>'});$("tp").innerHTML=h;$("tp").onclick=function(ev){var b=ev.target.closest(".tlg");if(!b)return;var l=ls[+b.getAttribute("data-k")],tid=String(d.team);
-if(addAt>=0){var t=club[addAt];t.league=l.divisionName;t.competition=String(l.competition);t.division=String(l.division)}else{var nn=d.name||nm;club.push({name:nn,short:nn.slice(0,12),accent:PAL[club.length%PAL.length],league:l.divisionName,competition:String(l.competition),division:String(l.division),team:tid,teamName:d.name||nm})}
+if(addAt>=0){var t=club[addAt];t.league=l.divisionName;t.competition=String(l.competition);t.division=String(l.division)}else{var nn=d.name||nm;club.push({name:nn,accent:PAL[club.length%PAL.length],league:l.divisionName,competition:String(l.competition),division:String(l.division),team:tid,teamName:d.name||nm})}
 addAt=-1;$("tp").innerHTML="";$("tr").innerHTML="";$("tm1").textContent="Done. Press Save changes to keep it.";rt();md()};$("tp").scrollIntoView&&$("tp").scrollIntoView({block:"nearest"})}).catch(function(e){$("tm1").textContent="Could not load that team: "+e.message})}
 function tfind(){var n=$("tq").value.trim();$("tp").innerHTML="";$("tr").innerHTML="";if(n.length<2){$("tm1").textContent="Type at least two letters.";return}$("tm1").textContent="Searching...";addAt=-1;fetch("/api/builder/search?name="+encodeURIComponent(n),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){var ts=d.teams||[];$("tm1").textContent=ts.length?ts.length+" found. Pick one:":"No teams match. Check the spelling or try the club name only.";var h="";ts.slice(0,25).forEach(function(t){h+='<button type="button" class="tsb" data-id="'+esc(t.id)+'" data-n="'+esc(t.name)+'">'+esc(t.name)+'<small>no. '+esc(t.id)+'</small></button>'});$("tr").innerHTML=h}).catch(function(){$("tm1").textContent="Search did not work. Try again."})}
 $("tgo").addEventListener("click",tfind);$("tq").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();tfind()}});
@@ -2301,7 +2314,7 @@ async function matchSheetFor(g, hideTeam) {
 function matchSheetPage(theme, isDev, teams, sel, d) {
   const t = theme === "light" ? "light" : "dark", ee = noticeEsc;
   const tm = teams[sel];
-  const tab = (x, i) => `<a class="tab${i === sel ? " on" : ""}" href="/matchsheet?t=${i}${t === "light" ? "&theme=light" : ""}">${ee(x.short || x.name)}${sheetHidesNames(x.name + " " + x.league + " " + x.teamName) ? ' <small>names hidden</small>' : ""}</a>`;
+  const tab = (x, i) => `<a class="tab${i === sel ? " on" : ""}" href="/matchsheet?t=${i}${t === "light" ? "&theme=light" : ""}">${ee(teamShort(x))}${sheetHidesNames(x.name + " " + x.league + " " + x.teamName) ? ' <small>names hidden</small>' : ""}</a>`;
   const squad = (name, rows, hasSheet, who) => `<div class="sq"><div class="sqh">${ee(name)}</div>${rows.length ? rows.map(r => `<div class="pr"><span class="no">${ee(r.no)}</span><span class="pn"><b>${ee(r.name)}</b>${r.name ? " " : ""}<small>${ee(r.pos)}</small></span><span class="tg2">${ee(r.tag)}</span></div>`).join("") : `<div class="none">${ee(who)} sheet not in yet.</div>`}</div>`;
   const status = m => !m ? "" : m.submitted ? `<span class="chip ok">Sheets in</span>` : `<span class="chip">Not submitted yet</span>`;
   const head = (kind, m, g) => `<div class="kk">${kind}${g && g.dateLabel ? " &middot; " + ee(g.dateLabel) : ""}${g && g.comp ? " &middot; " + ee(g.comp) : ""}</div><div class="ti">${m && m.ok ? ee(m.homeName) + (m.score ? " " + ee(m.score) + " " : " v ") + ee(m.awayName) : g ? "v " + ee(g.oppName) : ""}</div>`;
@@ -4990,8 +5003,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       }
       const clubName = url.searchParams.get("clubName") || (customTeams ? "Match Centre" : "Ivybridge RFC - Match Centre");
       // Phone jump-bar labels: use "short" if set, otherwise drop "The " and any first word shared by several teams.
-      const firstWords = stackTeams.map(t => String(t.name).split(/\s+/)[0].toLowerCase());
-      const shortOf = t => t.short || String(t.name).replace(/^The\s+/i, "").replace(/^(\S+)\s+(.+)$/, (m, w, rest) => firstWords.filter(x => x === w.toLowerCase()).length > 1 ? rest : m);
+      const shortOf = t => teamShort(t, stackTeams);
       const e = x => String(x ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
       // Team colours: each Now and Next row gets its own accent (from TEAMS, else this palette).
       const PALETTE = ["#2f9e5b", "#d9a21b", "#b45fc8", "#3d8fd6", "#d6574f", "#2bb3a3"];
