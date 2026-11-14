@@ -11,7 +11,7 @@ r=await w.fetch(req('/docs',{},{Cookie:ck}),env,ctx);const h=await r.text();
 ok('Documentation loads behind the club PIN',r.status===200&&/<title>Documentation<\/title>/.test(h)&&/<h1>Documentation<\/h1>/.test(h));
 ok('still locked without the PIN (303) and on PROD with no CLUB_PIN (503)',(await w.fetch(req('/docs'),env,ctx)).status===303&&(await w.fetch(req('/docs'),{},ctx)).status===503);
 ok('not cached, not indexed',/no-store/.test(r.headers.get('cache-control')||'')&&/noindex/.test(r.headers.get('x-robots-tag')||''));
-const ids=['start','pages','screen','vars','admin','usagedata','data','defs','trouble','setup','releases','new','privacy'];
+const ids=['start','pages','screen','vars','winchance','admin','usagedata','data','defs','trouble','setup','releases','new','privacy'];
 for(const i of ids)ok('section '+i+' present and in the contents list',h.includes('id="sec-'+i+'"')&&h.includes('href="#sec-'+i+'"'));
 ok('link variables is a section of the documentation',/id="sec-vars"[\s\S]*<h2>Link variables<\/h2>[\s\S]*<code>friendlyName<\/code>/.test(h));
 ok('each section says who it is for',(h.match(/class="who"/g)||[]).length===ids.length);

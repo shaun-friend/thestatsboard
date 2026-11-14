@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30 14-Nov-2026 Win chance on the next game: a percentage chance for each side, adding to 100, shown as a split bar on Match Stats and the team page, worked out from this and the last two seasons of results. Off until switched on in Admin (Screens). New Win chance check page (club PIN) tests it against every finished game this season.
 //   v3.29.2 14-Nov-2026 Our teams: the Short label box is gone. The label on the phone jump bar and Match sheet tabs is now worked out from the friendly name, so renaming a team updates it.
 //   v3.29.1 14-Nov-2026 A renamed team now shows on the team table and Match Centre pages within about a minute of reloading: the browser kept those pages for 5 minutes, now 1.
 //   v3.29 14-Nov-2026 New Our teams section in Admin: the club picks its teams once and gives each a friendly name, short label and colour, and puts them in order. The name is used everywhere that team appears (Links page, Match Centre, phone team bar, TV banners, page titles). A name typed into a link still wins. Links made from the Links page and the link builder no longer carry a name, so they follow Admin. The team list no longer lives only in the code.
@@ -209,7 +210,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.29.2";
+const VERSION = "v3.30";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -224,7 +225,7 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
-- Win probability on the next game (idea 14-Nov-2026, to explore with options first; nothing built): a % chance of a home win, draw or away win for the next fixture, shown on Match Stats and the Next game views. Inputs the site already has: both teams' league position, points and points difference per game, recent form, the home and away split and the head-to-head from the Opposition report. Options to weigh: (a) a simple rating from points difference per game plus a home advantage, turned into a percentage; (b) a rating that updates game by game across the whole division (Elo style); (c) a plain banded wording (Favourites, Even, Underdogs) with no number. Decisions so far (14-Nov-2026, mock-ups in a published page): the two chances add up to 100% (a draw is split evenly); it is shown wherever the next game is shown, as a split bar with written percentages: option A on Match Stats and the phone Next game view, C on TV screens and the Fixtures board, D on Match Centre cards; no "rough guide" wording; a "How is this worked out?" line on phones only, and also written up in the Documentation; history is this season at full weight, last season about half and the season before about a quarter, with a team new to a division starting at the division average; hidden for cups and walkovers, and for fewer than about 4 games; an Admin switch under Screens, off until the DEV check of past games has been read. Still to settle: which side is on the left (the rest of the site puts the home side on the left) and bar colours. To build: the rating and percentage, a DEV-only page that predicts every finished game from the games before it and reports how often the favourite won, then the bar on each page.
+- Win probability on the next game (idea 14-Nov-2026; v3.30 built Match Stats, the team page and the check page; still to add: Match Centre cards and the Fixtures TV banner; original notes follow): a % chance of a home win, draw or away win for the next fixture, shown on Match Stats and the Next game views. Inputs the site already has: both teams' league position, points and points difference per game, recent form, the home and away split and the head-to-head from the Opposition report. Options to weigh: (a) a simple rating from points difference per game plus a home advantage, turned into a percentage; (b) a rating that updates game by game across the whole division (Elo style); (c) a plain banded wording (Favourites, Even, Underdogs) with no number. Decisions so far (14-Nov-2026, mock-ups in a published page): the two chances add up to 100% (a draw is split evenly); it is shown wherever the next game is shown, as a split bar with written percentages: option A on Match Stats and the phone Next game view, C on TV screens and the Fixtures board, D on Match Centre cards; no "rough guide" wording; a "How is this worked out?" line on phones only, and also written up in the Documentation; history is this season at full weight, last season about half and the season before about a quarter, with a team new to a division starting at the division average; hidden for cups and walkovers, and for fewer than about 4 games; an Admin switch under Screens, off until the DEV check of past games has been read. Still to settle: which side is on the left (the rest of the site puts the home side on the left) and bar colours. To build: the rating and percentage, a DEV-only page that predicts every finished game from the games before it and reports how often the favourite won, then the bar on each page.
 - Shorter links (idea 14-Nov-2026, follows v3.29 Our teams; nothing built): now that Admin holds each team's number, league and name, a link could be just /?team=11039&view=fixtures&layout=tv, with the competition, division, team name and friendly name looked up from the Our teams list. The long links keep working. A later step could stop honouring friendlyName in a link at all, so names are only ever set in Admin and every link stays short.
 - Club-name addresses for several clubs (idea 14-Nov-2026, the eventual address the owner wants; nothing built): thestatsboard.co.uk/<name> (for example /ivybridge) opens that club's own site, with its own Our teams list, colours, PIN and settings. v3.29 stores the team list inside the club's own settings record, and every page reads it through one lookup, so this can be added without reworking the pages. To settle later: whether the name in the address is the club or a team, how a club signs up, one PIN and settings record per club, and what the bare address shows.
 - Around the league, all of today's games (idea 14-Nov-2026, parked until the current behaviour has been watched for a few weekends; nothing built): today the Fixtures board strip only shows finished results in the same division, once the first one is in the feed. Idea: from a set time on a game day (default 12:00, set in Admin) show all of the division's games that day, with scores filling in as results arrive. Admin choice: Off, Results only (today), All games from [time]. No kick-off times (decided earlier). Nearest to the club in the table first, up to 8 rows then +N more, table positions on each row. The RFU feed has no live scores, so a game in progress looks like one still to come. Needs a layout decision with the TV table review and the rotating screen because the Fixtures board is already tight.
@@ -257,6 +258,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30   | 14-Nov-2026 | RFU_Club_Dashboard_v3.30_win_chance.zip                   | v3.29.2
 v3.29.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.2_no_short_label.zip             | v3.29.1
 v3.29.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.1_name_refresh.zip               | v3.29
 v3.29   | 14-Nov-2026 | RFU_Club_Dashboard_v3.29_our_teams.zip                    | v3.28.4
@@ -441,6 +443,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30 - Win chance on the next game
+- A percentage chance for each side, always adding to 100%, as a split bar: the home side on the left, the colours following the teams. It is on Match Stats (the side colours from the crests) and in the Next fixture panel of the team page (the team's own colour against a neutral one; on phones a "How is this worked out?" line opens a one-sentence reason). It is off until switched on in Admin under Screens ("Win chance on the next game").
+- The maths: a strength in points for every team from this season's division results (every game says home strength minus away strength plus home advantage equals the margin, solved for all teams together, with teams that have few games pulled towards the middle). Home advantage is measured from the league's own results (shrunk towards 4 points). Last season counts half and the season before a quarter, using only games between teams in this season's division; a team new to the division starts in the middle. The expected margin over how widely results in the league vary gives the chance; a draw is shared evenly; never shown beyond 97 to 3.
+- Hidden when either side has played fewer than four league games, for cup and other non-league games, when the other side is not in this league's table, and while the switch is off. The result is kept for 30 minutes so pages agree.
+- New Win chance check page (/winchance, club PIN, listed under Tools in Admin): for every finished game this season it works out the chance from the games before it and compares with what happened (how often the favourite won, Brier score against 0.25 for 50/50, points out, and whether a 70% chance happened about 70% of the time), for each club team and overall. Read it on the test site before switching the bars on.
+- Tests: the maths on simulated seasons (calibrated, better than 50/50), the switch, the summary data, the bars on the pages (in a browser at TV and phone size) and the check page. Not yet on: Match Centre cards and the Fixtures TV banner, which need a layout review on a real screen.
+- Not verified on real data: the container cannot reach the RFU, so the numbers on the live feed are first seen on the test site's check page.
+- Docs: Win chance, Admin guide, What's new
 
 v3.29.2 - Our teams: no Short label box
 - The Short label was not needed: the phone jump bar and Match sheet tabs now work the label out from the friendly name (a leading "The" and a first word shared by several teams are dropped, so "Ivybridge Women" shows as "Women"). It also fixes a flaw: a short label typed or filled in once did not follow a later rename. Saved lists lose any stored short label on the next save.
@@ -1572,6 +1583,28 @@ const DOC_SECTIONS = [
   { id: "vars", title: "Link variables", who: "Everyone", vars: true, blocks: [
     { p: "Every setting you can add to a link, what it does and where it works. Press an example to try it. The examples use Ivybridge 1XV." }
   ] },
+  { id: "winchance", title: "Win chance", who: "Everyone", blocks: [
+    { p: "Where it is switched on, the next game shows a chance of winning for each side as a split bar. The two numbers always add up to 100%. The home side is on the left, as everywhere else on the site; the colours follow the teams. It is shown on the Match Stats page and in the Next fixture panel of the team page (more screens will follow). It is off until the site owner turns it on in Admin, under Screens." },
+    { h: "How it is worked out" },
+    { ul: [
+      "Every team gets a strength in points from the results in its division this season. Each game says: the home side's strength, minus the away side's strength, plus a home advantage, should equal the margin. All the teams are solved together, so beating a strong side counts for more than beating a weak one. A team with only a few games is pulled towards the middle until it has played more.",
+      "Home advantage is measured from this league's own results (it is shrunk towards 4 points while there are few games).",
+      "Last season's results count about half as much, and the season before about a quarter. Only games between teams in this season's division are used. A team that is new to the division starts at the middle and earns its rating this season.",
+      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 97% to 3%.",
+      "Walkovers and games with no score are left out."
+    ] },
+    { h: "When it is not shown" },
+    { ul: [
+      "Either side has played fewer than four league games this season.",
+      "The next game is a cup, plate, friendly or similar game, or the other side is not in this league's table, so there is no common yardstick.",
+      "The switch in Admin is off."
+    ] },
+    { h: "On a phone" },
+    { p: "On a phone a How is this worked out? line under the bar opens a one-sentence version of the above for that game, such as how many points better one side is rated and what the home advantage adds. It is hidden on big screens." },
+    { h: "How good is it" },
+    { p: "The Win chance check page (/winchance, club PIN, also under Tools in Admin) takes every finished game this season, works out the chance using only the games played before it, and compares it with what happened: how often the favourite won, a Brier score (0 is perfect; 0.25 is what saying 50/50 every time scores), the points the expected margin was out by, and whether a 70% chance really happened about 70% of the time. Read it before switching the bars on." },
+    { ex: [["Win chance check", "/winchance"]] }
+  ] },
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Links, Usage, Match sheet, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
@@ -1586,7 +1619,7 @@ const DOC_SECTIONS = [
       ["Data sources", "The England Rugby website back-up switch."],
       ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
       ["Access", "How long a PIN sign-in lasts."],
-      ["Tools", "Links to Team links, Usage, Match sheet and Documentation (and Release notes and the Probe page on the test site)."]
+      ["Tools", "Links to Team links, Usage, Match sheet, Win chance check and Documentation (and Release notes and the Probe page on the test site)."]
     ] },
     { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
     { h: "Our teams" },
@@ -1613,7 +1646,8 @@ const DOC_SECTIONS = [
       ["Last checked feed time", "The small line at the bottom of the Fixtures board."],
       ["Powered by The Stats Board line", "The small credit line at the bottom of team pages and TV screens. Off shows only the version."],
       ["Match Centre layout", "Modern (the default) shows the next game first with club and opponent crests, the ground and a table line such as 2nd v 3rd. Classic shows one row per team. Phones always get the stacked cards. With more than four teams Modern switches to Classic by itself. Preview links for both are on the Admin page, or add ly=next or ly=classic to a Match Centre link."],
-      ["Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip. Off means the winner is simply bold."]
+      ["Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip. Off means the winner is simply bold."],
+      ["Win chance on the next game", "A percentage chance for each side, shown as a bar wherever the next game is shown (Match Stats and the team page's Next fixture panel). Off by default. Read the Win chance check page first. How it works is in the Win chance section."]
     ] },
     { h: "Match day" },
     { p: "The Match sheet (/matchsheet, club PIN) shows, for each team, the next game and the last game with both team sheets (shirt number, position, captain and vice captain) and, for the last game, the scoring with the minute and player. If no sheet has been entered it says so. Under-18 teams are always shown without names, whatever the feed holds." },
@@ -1752,6 +1786,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30", "New win chance on the next game: a percentage for each side (adding to 100) as a split bar on Match Stats and the team page. It is off until switched on in Admin under Screens, and a new Win chance check page tests it against this season's finished games first."],
       ["v3.29.2", "Our teams no longer has a Short label box: the short name on the phone jump bar is worked out from the friendly name, so a rename updates it."],
       ["v3.29.1", "A team renamed in Admin now shows on the table and Match Centre pages within about a minute of reloading (browsers used to keep those pages for 5 minutes)."],
       ["v3.29", "New Our teams section in Admin: choose your teams once, give each a friendly name and colour, and put them in order. The name shows everywhere that team appears. A name typed into a link still wins; links from the Links page and link builder now follow Admin."],
@@ -1937,7 +1972,7 @@ const SETTINGS_KEY = "club:" + CLUB_ID;
 const MAINT_LINES_DEFAULT = ["We're just lining up the conversion - Try again soon!", "Back after the break.", "We've gone into touch.", "Currently in the scrum.", "Awaiting the TMO.", "Held up over the line."];
 const SETTINGS_DEFAULT = () => ({
   notices: { home: { on: false, text: "", style: "info", until: "" }, tv: { on: false, text: "", style: "info", applies: "club", teams: [], until: "" } },
-  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true },
+  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false },
   reporting: { days: 14 },
   signin: { days: 30 },
   matchCentre: { layout: "next" },
@@ -1968,6 +2003,94 @@ function teamShort(t, list) {
   const L = list || TEAMS, fw = L.map(x => String(x.name).split(/\s+/)[0].toLowerCase());
   return t.short || String(t.name).replace(/^The\s+/i, "").replace(/^(\S+)\s+(.+)$/, (m, w, rest) => fw.filter(x => x === w.toLowerCase()).length > 1 ? rest : m);
 }
+// ---- Win chance (v3.30) ----
+// Each team gets a strength in points from this season's results (a Massey rating: every game says margin = home strength - away
+// strength + home advantage, solved for all teams together and shrunk towards average while a team has few games). Last season counts
+// half and the season before a quarter. The expected margin of the next game, over the usual spread of margins, gives a chance for each side
+// (a draw is split evenly, so the two always add to 100).
+function normCdf(z) { // Abramowitz and Stegun 7.1.26
+  const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
+}
+const WIN_CFG = { minGames: 4, haPrior: 4, haK: 10, ridge: 3, sigma0: 17, sigmaK: 8, sigmaMin: 12, sigmaMax: 28, pMin: 3 };
+// games: [{ h: homeId, a: awayId, hs, as, w }] with w 1 for this season, 0.5 and 0.25 for earlier ones. Returns null when either side has fewer than minGames games this season.
+function winModel(games, homeId, awayId, cfg) {
+  const C = { ...WIN_CFG, ...(cfg || {}) }; homeId = String(homeId); awayId = String(awayId);
+  const gs = (games || []).filter(g => g && g.h !== g.a && Number.isFinite(g.hs) && Number.isFinite(g.as) && g.w > 0);
+  const cur = id => gs.filter(g => g.w >= 1 && (g.h === id || g.a === id)).length;
+  const nH = cur(homeId), nA = cur(awayId);
+  if (homeId === awayId || nH < C.minGames || nA < C.minGames) return null;
+  let cw = 0, cm = 0; for (const g of gs) if (g.w >= 1) { cw++; cm += g.hs - g.as; }
+  const ha = Math.max(0, Math.min(10, (cm + C.haK * C.haPrior) / (cw + C.haK)));
+  const ids = new Set([homeId, awayId]); for (const g of gs) { ids.add(g.h); ids.add(g.a); }
+  const r = {}, by = {}; for (const i of ids) { r[i] = 0; by[i] = []; }
+  for (const g of gs) { const t = g.hs - g.as - ha; by[g.h].push({ o: g.a, t, w: g.w }); by[g.a].push({ o: g.h, t: -t, w: g.w }); }
+  for (let it = 0; it < 300; it++) {
+    let mv = 0;
+    for (const i of ids) { let num = 0, den = C.ridge; for (const x of by[i]) { num += x.w * (r[x.o] + x.t); den += x.w; } const v = num / den; mv = Math.max(mv, Math.abs(v - r[i])); r[i] = v; }
+    if (mv < 1e-7) break;
+  }
+  let se = 0, sw = 0; for (const g of gs) { const e = g.hs - g.as - (r[g.h] - r[g.a] + ha); se += g.w * e * e; sw += g.w; }
+  const sigma = Math.max(C.sigmaMin, Math.min(C.sigmaMax, Math.sqrt((se + C.sigmaK * C.sigma0 * C.sigma0) / (sw + C.sigmaK)) * 1.1));
+  const gap = r[homeId] - r[awayId], mu = gap + ha;
+  return { pHome: normCdf(mu / sigma), mu, gap, ha, sigma, nHome: nH, nAway: nA, games: gs.length };
+}
+function winPercents(pHome) { const lo = WIN_CFG.pMin; const h = Math.max(lo, Math.min(100 - lo, Math.round(pHome * 100))); return { home: h, away: 100 - h }; }
+// Check on past games: each finished game is predicted using only the games played before it (this season only).
+// games need ts (time). Returns how often the favourite won, the Brier score (0 is perfect, 0.25 is always saying 50/50) and a calibration table.
+function winBacktest(games) {
+  const all = (games || []).filter(g => Number.isFinite(g.ts) && Number.isFinite(g.hs) && Number.isFinite(g.as)).sort((x, y) => x.ts - y.ts);
+  let n = 0, fav = 0, favN = 0, brier = 0, homeW = 0, homeN = 0, mae = 0, hs = 0; const bk = {};
+  for (const g of all) {
+    const m = winModel(all.filter(x => x.ts < g.ts).map(x => ({ ...x, w: 1 })), g.h, g.a); if (!m) continue;
+    const out = g.hs > g.as ? 1 : g.hs < g.as ? 0 : 0.5, p = winPercents(m.pHome).home / 100;
+    n++; brier += (p - out) ** 2; mae += Math.abs((g.hs - g.as) - m.mu); homeN++; homeW += out;
+    const f = p >= 0.5 ? p : 1 - p, fw = p >= 0.5 ? out : 1 - out; if (out !== 0.5) { favN++; fav += fw; }
+    const k = f >= 0.9 ? "90+" : f >= 0.8 ? "80-89" : f >= 0.7 ? "70-79" : f >= 0.6 ? "60-69" : "50-59"; const b = bk[k] || (bk[k] = { n: 0, p: 0, w: 0 }); b.n++; b.p += f; b.w += fw;
+  }
+  const r2 = x => Math.round(x * 1000) / 1000;
+  return { predicted: n, finished: all.length, favouriteWon: favN ? r2(fav / favN) : null, favouriteGames: favN, brier: n ? r2(brier / n) : null, brierAlways5050: 0.25, homeWinRate: n ? r2(homeW / homeN) : null, avgMarginError: n ? Math.round(mae / n * 10) / 10 : null,
+    buckets: ["50-59", "60-69", "70-79", "80-89", "90+"].filter(k => bk[k]).map(k => ({ band: k, games: bk[k].n, said: r2(bk[k].p / bk[k].n), happened: r2(bk[k].w / bk[k].n) })) };
+}
+const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}@media(max-width:800px){.wcx{display:block}}</style>`;
+// Win chance bar (v3.30). win = { home: {name, pct}, away: {name, pct}, gap, ha }; home is on the left, as everywhere else on the site.
+// o.left / o.right are the two colours (CSS values); o.fs the font size the bar is scaled from.
+function winHow(win) {
+  const g = Math.round(Math.abs(win.gap)), ha = Math.max(0, Math.round(win.ha)), hn = win.home.name, an = win.away.name;
+  const lead = g < 1 ? hn + " and " + an + " are rated level on results" : win.gap > 0 ? hn + " are rated about " + g + " points better than " + an + " on results" : an + " are rated about " + g + " points better than " + hn + " on results";
+  return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter.";
+}
+function winBarHtml(win, o) {
+  if (!win || !win.home || !win.away) return "";
+  const e = noticeEsc, op = o || {};
+  const label = "Win chance: " + win.home.name + " " + win.home.pct + " percent, " + win.away.name + " " + win.away.pct + " percent";
+  return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="--wcl:${e(op.left || "#2f9e5b")};--wcr:${e(op.right || "#7f93a3")};--wcfs:${e(op.fs || "16px")}"><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div><details class="wcx"><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details></div>`;
+}
+// Check page (club PIN): predicts every finished game this season from the games before it, for each club team's division.
+function winCheckPage(theme, teams, isDev) {
+  const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
+  const list = JSON.stringify(teams.map(x => ({ name: x.name, team: x.team, competition: x.competition, division: x.division, teamName: x.teamName, league: x.league }))).replace(/</g, "\\u003c");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Win chance check</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:980px}.cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:14px 18px;margin:14px 0}.cd h2{margin:0 0 4px;font-size:18px}.cd small{color:#91a49a}.kv{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.kv div{background:#0c1113;border:1px solid #26312d;border-radius:12px;padding:8px 12px;min-width:130px}.kv b{display:block;font-size:22px}.kv span{font-size:12px;color:#91a49a}table{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}th,td{text-align:left;padding:6px 8px;border-top:1px solid #26312d}th{font-size:12px;color:#91a49a;border-top:0}.good{color:#7fd19a}.warn{color:#f0c870}body.light .cd{background:#fff;border-color:#cbd8ce}body.light .kv div{background:#f4f8f5;border-color:#cbd8ce}body.light th,body.light td{border-color:#e0e7e1}.tw{overflow-x:auto}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Win chance check</h1><p class="sub">For every finished game this season, the win chance is worked out using only the games played before it, then compared with what happened. Nothing here is shown to the public. Brier score: 0 is perfect and 0.25 is what saying 50/50 every time scores, so lower is better.</p>
+<div id="all" class="cd"><h2>All club teams together</h2><div class="kv" id="tot"><div><b>Loading&hellip;</b></div></div></div><div id="out"></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var T=${list},out=document.getElementById("out"),tot={n:0,fav:0,favN:0,br:0,mae:0},done=0;
+function p(x){return x==null?"-":Math.round(x*100)+"%"}
+function add(t,d){var c=document.createElement("div");c.className="cd";var h="<h2>"+t.name+"</h2><small>"+(d.league||t.league||"")+" &middot; "+(d.season||"")+"</small>";
+if(!d||d.error||!d.predicted){h+='<p class="warn">Not enough finished games yet to check (each side needs at least four before a game can be predicted).</p>'}else{
+h+='<div class="kv"><div><b>'+d.predicted+'</b><span>games checked of '+d.finished+'</span></div><div><b class="'+(d.favouriteWon>=0.6?"good":"warn")+'">'+p(d.favouriteWon)+'</b><span>favourite won</span></div><div><b class="'+(d.brier<0.25?"good":"warn")+'">'+d.brier.toFixed(3)+'</b><span>Brier (50/50 = 0.250)</span></div><div><b>'+p(d.homeWinRate)+'</b><span>home sides won</span></div><div><b>'+d.avgMarginError+'</b><span>average points out</span></div></div>';
+if(d.buckets&&d.buckets.length){h+='<div class="tw"><table><tr><th>Favourite given</th><th>Games</th><th>Said</th><th>Happened</th></tr>'+d.buckets.map(function(b){return "<tr><td>"+b.band+"%</td><td>"+b.games+"</td><td>"+p(b.said)+"</td><td>"+p(b.happened)+"</td></tr>"}).join("")+"</table></div>"}
+tot.n+=d.predicted;tot.fav+=(d.favouriteWon||0)*d.favouriteGames;tot.favN+=d.favouriteGames;tot.br+=d.brier*d.predicted;tot.mae+=d.avgMarginError*d.predicted}
+c.innerHTML=h;out.appendChild(c)}
+function fin(){if(++done<T.length)return;var e=document.getElementById("tot");if(!tot.n){e.innerHTML="<div><b>-</b><span>no games to check yet</span></div>";return}
+e.innerHTML='<div><b>'+tot.n+'</b><span>games checked</span></div><div><b class="'+(tot.fav/tot.favN>=0.6?"good":"warn")+'">'+p(tot.fav/tot.favN)+'</b><span>favourite won</span></div><div><b class="'+(tot.br/tot.n<0.25?"good":"warn")+'">'+(tot.br/tot.n).toFixed(3)+'</b><span>Brier (50/50 = 0.250)</span></div><div><b>'+(tot.mae/tot.n).toFixed(1)+'</b><span>average points out</span></div>'}
+T.forEach(function(t){var q=new URLSearchParams({format:"summary",detail:"wcheck",competition:t.competition,division:t.division,team:t.team,teamName:t.teamName});
+fetch("/?"+q.toString(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){add(t,d);fin()}).catch(function(){add(t,{error:1});fin()})});
+})();</script></body></html>`;
+}
+const WC_CACHE = new Map(); // key -> { at, v }, 30 minutes
 let TEAMS_STAMP = "d";
 function applyClubTeams(list) {
   const st = JSON.stringify(list); if (st === TEAMS_STAMP.src) return;
@@ -1999,6 +2122,7 @@ function cleanSettings(raw) {
   d.notices.home = { on: h.on === true, text: txt(h.text, 200), style: style(h.style), until: until(h.until) };
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
   for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback"]) d.features[k] = f[k] === false ? false : true;
+  d.features.winchance = f.winchance === true;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
   { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
@@ -2106,7 +2230,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win chance check</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2143,6 +2267,7 @@ ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the nex
 ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The small line at the bottom of the Fixtures TV board.")}
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
+${sw("fwc", s.features.winchance, "Win chance on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats and the team page; more screens to follow). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win chance check</a>.")}
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
@@ -2225,7 +2350,7 @@ addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.retur
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -2399,7 +2524,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -4068,6 +4193,10 @@ const worker = {
       return new Response(usagePage(th, isDev === true, (await siteSettings()).reporting.days), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     }
     // Admin match sheet (v3.22): team sheets and scorers for a team's next and last game. Club PIN protected, never cached, not indexed.
+    if (url.pathname.replace(/\/+$/, "") === "/winchance") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(winCheckPage(th, TEAMS, isDev === true), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/matchsheet") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       const ti = Math.max(0, Math.min(TEAMS.length - 1, parseInt(url.searchParams.get("t") || "0", 10) || 0));
@@ -4314,7 +4443,7 @@ const worker = {
 <div class="hd"><div class="tm ta">${crest(L.id, L.name, "a", fixedA)}<div class="nm">${e(L.name)}</div><span class="tag">Home</span></div>
 <div class="vs">v</div>
 <div class="tm tb">${crest(R.id, R.name, "b", fixedB)}<div class="nm">${e(R.name)}</div><span class="tag">Away</span></div></div>
-<div class="bars">${bars}</div>
+${n.win ? winBarHtml(n.win, { left: "var(--ca)", right: "var(--cb)", fs: "1.1rem" }) : ""}<div class="bars">${bars}</div>
 ${h2hBlock}<div class="ft">${formBlock(L.form)}${formBlock(R.form, "fmr")}</div>
 <div class="upd">${cupMode ? "Form and stats here cover the " + e(d.cupName) + " only &middot; " : ""}${e(d.league || "")} &middot; Season ${e(season)} &middot; Last updated ${e(londonTime(Number(d.updatedAt) || Date.now()))} &middot; refreshes hourly</div>`;
       }
@@ -5641,6 +5770,42 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       const nextAwayName = nextSide ? (!nextSide.home ? displayTeamName : (teamNameOf(next.awayTeam) || "Away team")) : "";
       const nextHomeId = nextSide ? teamIdOf(next.homeTeam) : "";
       const nextAwayId = nextSide ? teamIdOf(next.awayTeam) : "";
+      // v3.30: win chance for the next league game, only when switched on in Admin (Screens) and only for the pages that show it.
+      const wcFmt = url.searchParams.get("format"), wcDet = url.searchParams.get("detail");
+      const winChanceFor = async () => {
+        const namesOfNext = [(next.group && next.group.name) || "", (next.competition && next.competition.name) || ""].join(" ");
+        if (NOT_LEAGUE_RE.test(namesOfNext)) return null;
+        const idHome = String(nextHomeId), idAway = String(nextAwayId), idMe = String(teamId), idOpp = String(nextSide.home ? nextAwayId : nextHomeId);
+        const divIds = new Set(table.map(t => String(t.id)));
+        if (!divIds.has(idHome) || !divIds.has(idAway)) return null;
+        const key = [season, competition, division, idHome, idAway, resultObjects.length].join("|");
+        const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 1800000) return hit.v;
+        const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm) }; };
+        const seen = new Set(), games = []; let priorOk = 0;
+        for (const mm of resultObjects) { const g = toGame(mm, 1); if (g && !seen.has(g.k)) { seen.add(g.k); games.push(g); } }
+        const mS = /^(\d{4})-(\d{4})$/.exec(String(season));
+        if (mS) {
+          const jobs = []; for (const [i, wt] of [[1, 0.5], [2, 0.25]]) { const sl = (Number(mS[1]) - i) + "-" + (Number(mS[2]) - i); for (const id of new Set([idMe, idOpp])) jobs.push({ sl, wt, id }); }
+          await Promise.all(jobs.map(async j => { try {
+            const u5 = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches"); u5.searchParams.set("season", j.sl); u5.searchParams.set("teamId", j.id);
+            const fr = await cachedText(u5, "application/json, text/plain, */*"); if (!fr.ok) return;
+            const dd = JSON.parse(fr.text); priorOk++;
+            for (const mm of findMatches(dd.results)) {
+              if (NOT_LEAGUE_RE.test([(mm.group && mm.group.name) || "", (mm.competition && mm.competition.name) || ""].join(" "))) continue;
+              const g = toGame(mm, j.wt); if (!g || !divIds.has(g.h) || !divIds.has(g.a)) continue;
+              const k = j.sl + "|" + g.k; if (seen.has(k)) continue; seen.add(k); games.push(g);
+            }
+          } catch (_) { /* this season's results alone are used */ } }));
+        }
+        const m = winModel(games, idHome, idAway);
+        let v = null;
+        if (m) { const pc = winPercents(m.pHome); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk }; }
+        WC_CACHE.set(key, { at: Date.now(), v }); return v;
+      };
+      let nextWin = null;
+      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match"))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
+      const winHex = v => { const t = String(v || "").trim().replace(/^#/, ""); return /^[0-9a-f]{6}$/i.test(t) ? "#" + t.toLowerCase() : ""; };
+      const winOpp = "#7f93a3", winMe = winHex(url.searchParams.get("colour")) || (TEAMS.find(t => String(t.team) === String(teamId)) || {}).accent || "#2f9e5b";
       const nextTeamCrest = (id, name) => {
         const url = crestFor(id);
         return `<div class="next-crest-frame">${url ? `<img class="next-crest" src="${esc(url)}" alt="${esc(name)} crest" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">` : ""}<div class="next-crest-fallback" style="display:${url ? "none" : "grid"}">${esc(initialsOf(name))}</div></div>`;
@@ -5659,7 +5824,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         } catch (_) { cupNext = null; }
       }
       const cupNextHtml = cupNext ? `<div class="next-date">${esc(cupNext.dateLabel)}${cupNext.time ? " &middot; " + esc(cupNext.time) : ""}</div><div class="next-opponent">${esc(String(cupNext.comp).toUpperCase())} &middot; ${cupNext.home ? "HOME FIXTURE" : "AWAY FIXTURE"}</div><div class="next-teams"><div class="next-team">${nextTeamCrest(cupNext.home ? teamId : cupNext.oppId, cupNext.home ? displayTeamName : cupNext.oppName)}<strong>${esc(cupNext.home ? displayTeamName : cupNext.oppName)}</strong></div><span class="next-vs">VS</span><div class="next-team">${nextTeamCrest(cupNext.home ? cupNext.oppId : teamId, cupNext.home ? cupNext.oppName : displayTeamName)}<strong>${esc(cupNext.home ? cupNext.oppName : displayTeamName)}</strong></div></div>${cupNext.venue ? `<div class="next-venue">${esc(cupNext.venue)}</div>` : ""}` : "";
-      const nextHtml = next && nextSide ? `<div class="next-date">${esc(dateLabel(next))}</div><div class="next-opponent">${nextSide.home?"HOME FIXTURE":"AWAY FIXTURE"}</div>${runIn ? `<div class="fdiff mobonly fd-${runIn.level}"><div class="fdt"><span>Next ${runIn.n} opponents</span><b>${runIn.label}</b></div><div class="fdbar"><i></i><i></i><i></i></div><div class="fdl"><span>Easy</span><span>Medium</span><span>Hard</span></div><div class="fdn">On average ${ordinalOf(runIn.avg)} of ${runIn.size} in the table.</div></div>` : ""}${gdQ ? `<div class="gdlazy" data-q="${esc(gdQ)}" data-sep="${runIn ? "1" : ""}">${runIn ? `<div class="fdsep mobonly"></div>` : ""}<div class="fdiff mobonly"><div class="fdt"><span>This game</span><b>Checking…</b></div></div></div><script>(function(){var e=document.querySelector(".gdlazy");if(!e)return;function gone(){e.parentNode&&e.parentNode.removeChild(e)}fetch("/?"+e.getAttribute("data-q")).then(function(r){return r.ok?r.text():""}).then(function(h){if(!h)return gone();e.innerHTML=(e.getAttribute("data-sep")?'<div class="fdsep mobonly"></div>':"")+h}).catch(gone)})();</script>` : ""}<div class="next-teams"><div class="next-team">${nextTeamCrest(nextHomeId,nextHomeName)}<strong>${esc(nextHomeName)}</strong></div><span class="next-vs">VS</span><div class="next-team">${nextTeamCrest(nextAwayId,nextAwayName)}<strong>${esc(nextAwayName)}</strong></div></div>${nextVenue ? `<div class="next-venue">${esc(nextVenue)}</div>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
+      const nextHtml = next && nextSide ? `<div class="next-date">${esc(dateLabel(next))}</div><div class="next-opponent">${nextSide.home?"HOME FIXTURE":"AWAY FIXTURE"}</div>${runIn ? `<div class="fdiff mobonly fd-${runIn.level}"><div class="fdt"><span>Next ${runIn.n} opponents</span><b>${runIn.label}</b></div><div class="fdbar"><i></i><i></i><i></i></div><div class="fdl"><span>Easy</span><span>Medium</span><span>Hard</span></div><div class="fdn">On average ${ordinalOf(runIn.avg)} of ${runIn.size} in the table.</div></div>` : ""}${gdQ ? `<div class="gdlazy" data-q="${esc(gdQ)}" data-sep="${runIn ? "1" : ""}">${runIn ? `<div class="fdsep mobonly"></div>` : ""}<div class="fdiff mobonly"><div class="fdt"><span>This game</span><b>Checking…</b></div></div></div><script>(function(){var e=document.querySelector(".gdlazy");if(!e)return;function gone(){e.parentNode&&e.parentNode.removeChild(e)}fetch("/?"+e.getAttribute("data-q")).then(function(r){return r.ok?r.text():""}).then(function(h){if(!h)return gone();e.innerHTML=(e.getAttribute("data-sep")?'<div class="fdsep mobonly"></div>':"")+h}).catch(gone)})();</script>` : ""}<div class="next-teams"><div class="next-team">${nextTeamCrest(nextHomeId,nextHomeName)}<strong>${esc(nextHomeName)}</strong></div><span class="next-vs">VS</span><div class="next-team">${nextTeamCrest(nextAwayId,nextAwayName)}<strong>${esc(nextAwayName)}</strong></div></div>${nextWin ? winBarHtml(nextWin, { left: nextSide.home ? winMe : winOpp, right: nextSide.home ? winOpp : winMe, fs: layout === "tv" ? "14px" : "13px" }) : ""}${nextVenue ? `<div class="next-venue">${esc(nextVenue)}</div>` : ""}` : `<div class="empty">No upcoming fixture found in this competition</div>`;
       const position = selectedTeam ? table.indexOf(selectedTeam)+1 : null;
       const gapToTop = selectedTeam && table.length ? table[0].pts-selectedTeam.pts : null;
 
@@ -5778,7 +5943,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           next: next && nextSide ? {
             dateLabel: dateLabel(next), iso: dateOf(next) ? dateOf(next).toISOString() : "", time: timeOf(next), mineHome: nextSide.home,
             homeName: nextHomeName, awayName: nextAwayName, homeId: nextHomeId, awayId: nextAwayId,
-            venue: nextVenue || "", venueElite: !!next.elite, wx: nextWx,
+            venue: nextVenue || "", venueElite: !!next.elite, wx: nextWx, ...(nextWin ? { win: nextWin } : {}),
             ...(() => { // v3.22: where the opponent sits in this league table (public table facts, used for the "2nd v 3rd" line on the Match Centre)
               const oid = String(nextSide.home ? nextAwayId : nextHomeId), onm = String(nextSide.home ? nextAwayName : nextHomeName).trim().toLowerCase();
               const orow = table.find(t => String(t.id) === oid) || table.find(t => String(t.name || "").trim().toLowerCase() === onm) || null;
@@ -5808,6 +5973,16 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
               if (dn && dn.cup) summary.last = { dateLabel: dn.dateLabel, outcome: dn.outcome, ...sideOf(dn), homeScore: dn.home ? dn.mineScore : dn.oppScore, awayScore: dn.home ? dn.oppScore : dn.mineScore, comp: dn.comp };
             }
           } catch (_) { /* league only */ }
+        }
+        if (url.searchParams.get("detail") === "wcheck") {
+          const seenC = new Set(), gsC = [];
+          for (const mm of resultObjects) {
+            if (walkoverInfo(mm)) continue;
+            const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) continue;
+            const k = matchKey(mm); if (seenC.has(k)) continue; seenC.add(k);
+            gsC.push({ h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, ts: dateOf(mm) ? dateOf(mm).getTime() : NaN });
+          }
+          return new Response(JSON.stringify({ team: displayTeamName, league: leagueTitle, season, ...winBacktest(gsC) }), {headers: {"Content-Type":"application/json;charset=utf-8", "Cache-Control": "no-store"}});
         }
         if (url.searchParams.get("detail") === "leaders") {
           return new Response(JSON.stringify({ team: displayTeamName, teamId, league: leagueTitle, updatedAt: dataTime, leaders: leaders || null }), {headers: {"Content-Type":"application/json;charset=utf-8"}});
@@ -6473,7 +6648,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -6617,7 +6792,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/usage") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/usage") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;
