@@ -1,6 +1,6 @@
 const mod=await import(process.argv[2]);const T=mod.__t;const w=mod.default;
 let pass=0,fail=0;const ok=(n,c)=>{console.log(c?'PASS':'FAIL',n);c?pass++:fail++};
-let clock=1_800_000_000_000;const realNow=Date.now;Date.now=()=>clock;
+let clock=1_800_000_000_000;const RD=Date;globalThis.Date=class extends RD{constructor(...a){a.length?super(...a):super(clock)}static now(){return clock}};  // also freezes new Date(), so the test does not depend on the day it runs
 // 2026-11-11 is a Wednesday (weekday clock = 1 hour). Use a fixed weekday time.
 clock=Date.UTC(2026,10,11,12,0,0);
 let calls=[],body='v1',failNext=false,timeouts=[];
@@ -50,7 +50,7 @@ ok('live clock is 10 minutes or 1 hour',[600,3600].includes(T.ttlFor(U)));
 // Server-Timing + page record with timing
 const written=[];T.setEnv({});
 const env={CLUB_PIN:'1234',USAGE:{writeDataPoint:d=>d.blobs[1]!=='up'&&written.push(d)}};
-Date.now=realNow;
+globalThis.Date=RD;
 globalThis.fetch=async()=>({ok:false,status:404,text:async()=>'',json:async()=>({})});
 const c2={waitUntil(p){bg.push(p)}};
 const res=await w.fetch(new Request('https://thestatsboard.co.uk/?team=11039&teamName=Ivybridge',{headers:{'User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148','CF-Connecting-IP':'1.1.1.1'}}),env,c2);
