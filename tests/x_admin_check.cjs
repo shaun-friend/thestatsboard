@@ -29,6 +29,8 @@ c('phone: no back link',(await p.$$('.sback')).length===0);
 await p.click('.adn a[data-s="status"]');await p.waitForTimeout(200);
 c('phone: tab switches section',await p.isVisible('#s-status')&&!(await p.isVisible('#s-home'))&&await p.isVisible('#adn'));
 c('phone: save bar hidden until changed',!(await p.isVisible('#sbar')));
+await p.click('.adn a[data-s="notices"]');await p.waitForTimeout(200);
+c('phone: date boxes fit their card',await p.$$eval('#hu,#tu',a=>a.every(e=>{var r=e.getBoundingClientRect(),q=e.closest('.card,.nb,section').getBoundingClientRect();return r.right<=q.right+1&&r.width>0})));
 await p.screenshot({path:__dirname+'/x_admin_phone.png'});
 await p.close();
 ({p,errs}=await open(390,844,'#data'));

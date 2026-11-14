@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.3 14-Nov-2026 Admin: the "Hide automatically after" date boxes no longer overflow their card on an iPhone.
 //   v3.27.2 14-Nov-2026 Admin on a phone: a swipeable row of section tabs replaces the full-screen list, sections reordered (Messages, Screens, Match day, Site status, Data sources, Privacy and counts, Access), Save bar only shows when something is changed, no jump to the top when switching sections.
 //   v3.27.1 14-Nov-2026 Documentation brought up to date for v3.22 to v3.27 (Admin sections, Modern/Classic, screen names, website back-up switch, Match sheet, cup games). Release check now requires every release to say which Documentation sections it updated.
 //   v3.27 14-Nov-2026 Admin: sections with a left menu (Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access, Site status), a Tools group, one sticky Save bar with an unsaved-changes marker; phones get a menu list then the section.
@@ -196,7 +197,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.2";
+const VERSION = "v3.27.3";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -239,6 +240,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.3_date_boxes.zip              | v3.27.2
 v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
 v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
 v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
@@ -410,6 +412,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.3 - Admin date boxes fit on an iPhone
+- The two "Hide automatically after" date boxes had a fixed iPhone style that made them wider than their card and left them empty and tall. They are now width-limited, left-aligned and the same height as the other boxes.
+- Docs: none - cosmetic fix, no change to how anything works
 
 v3.27.2 - Admin on a phone: tabs instead of a full-screen menu
 - A swipeable row of section tabs sits across the top on a phone (the side menu stays on wide screens). The Overview opens first; there is no separate list screen and no Back link.
@@ -1643,6 +1649,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.3", "Admin on an iPhone: the Hide automatically after date boxes now fit inside their card."],
       ["v3.27.2", "Admin on a phone now has a row of tabs across the top to switch sections, instead of a full-screen list. The sections are in a more logical order, and the Save bar only appears when you have changed something."],
       ["v3.27.1", "The Documentation is brought up to date: the Admin guide now follows the new Admin sections, and it covers Modern and Classic, screen names, the website back-up switch, the Match sheet and cup games with no name."],
       ["v3.27", "The Admin page is now organised into sections with a menu: Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access and Site status. Usage, Documentation, Release notes, Match sheet and Team links sit under Tools. One Save bar stays at the bottom and shows when something is unsaved."],
@@ -1924,7 +1931,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:6px 18px}
 .r{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #1f2925}.r:last-child{border:0}.r b{font-size:15px;display:block}.r small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
 .nb{padding:14px 0;border-bottom:1px solid #1f2925}.nb:last-child{border:0}.nh{display:flex;justify-content:space-between;align-items:center;gap:14px}.nh b{font-size:15px;display:block}.nh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
-.ad .in{margin-top:9px}.two{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.two>div{flex:1;min-width:200px}.l{font-size:12px;color:#9eafa5;font-weight:700;margin-top:10px}.l span{font-weight:400}
+.ad .in{margin-top:9px}.ad input.in[type=date]{display:block;-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;height:46px;text-align:left}.ad input.in[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}.ad input.in[type=date]::-webkit-calendar-picker-indicator{margin:0}.two{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.two>div{flex:1;min-width:200px}.l{font-size:12px;color:#9eafa5;font-weight:700;margin-top:10px}.l span{font-weight:400}
 .cnt{font-size:12px;color:#91a49a;text-align:right;margin-top:3px}
 .tg{position:relative;flex:0 0 auto;width:46px;height:27px}.tg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}.tg span{position:absolute;inset:0;border-radius:99px;background:#2c3a34;transition:.15s}.tg span::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#cfd8d3;transition:.15s}.tg input:checked+span{background:#2f9d57}.tg input:checked+span::after{left:22px;background:#fff}.tg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}
 .seg{display:inline-flex;flex-wrap:wrap;border:1px solid #2c3a34;border-radius:18px;overflow:hidden;font-size:13px;font-weight:700;margin-top:6px}.seg label{position:relative}.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}.seg span{display:block;padding:7px 12px;color:#91a49a}.seg input:checked+span{background:#2f9d57;color:#fff}.seg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:-3px}

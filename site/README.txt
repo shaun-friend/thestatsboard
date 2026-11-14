@@ -37,6 +37,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.3_date_boxes.zip              | v3.27.2
 v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
 v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
 v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
@@ -208,6 +209,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.3 - Admin date boxes fit on an iPhone
+- The two "Hide automatically after" date boxes had a fixed iPhone style that made them wider than their card and left them empty and tall. They are now width-limited, left-aligned and the same height as the other boxes.
+- Docs: none - cosmetic fix, no change to how anything works
 
 v3.27.2 - Admin on a phone: tabs instead of a full-screen menu
 - A swipeable row of section tabs sits across the top on a phone (the side menu stays on wide screens). The Overview opens first; there is no separate list screen and no Back link.
