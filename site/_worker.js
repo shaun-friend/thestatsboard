@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.29.1 14-Nov-2026 A renamed team now shows on the team table and Match Centre pages within about a minute of reloading: the browser kept those pages for 5 minutes, now 1.
 //   v3.29 14-Nov-2026 New Our teams section in Admin: the club picks its teams once and gives each a friendly name, short label and colour, and puts them in order. The name is used everywhere that team appears (Links page, Match Centre, phone team bar, TV banners, page titles). A name typed into a link still wins. Links made from the Links page and the link builder no longer carry a name, so they follow Admin. The team list no longer lives only in the code.
 //   v3.28.4 14-Nov-2026 Usage: the Outside calls chart lines up when a bar has website calls (the gold count no longer wraps onto two lines and lifts its column); hour labels are two digits so they do not run together on a phone.
 //   v3.28.3 14-Nov-2026 Usage: Teams people look up is merged by team number (no more twin rows for one team) and shows the number so two clubs with the same name can be told apart.
@@ -207,7 +208,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.29";
+const VERSION = "v3.29.1";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -254,6 +255,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.29.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.1_name_refresh.zip               | v3.29
 v3.29   | 14-Nov-2026 | RFU_Club_Dashboard_v3.29_our_teams.zip                    | v3.28.4
 v3.28.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.4_usage_chart.zip                | v3.28.3
 v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
@@ -436,6 +438,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.29.1 - Renamed teams show sooner
+- After renaming a team in Admin, the team table and Match Centre pages still showed the old name when reloaded, because the browser was told to keep those two pages for 5 minutes. It is now 1 minute. Allow up to about two minutes in all after pressing Save (settings are read about every 30 to 60 seconds, then the page).
+- Docs: none - behaviour of one setting, no new feature
 
 v3.29 - Our teams: friendly names set once in Admin
 - New Our teams section in Admin (second in the menu). It holds the club's list of teams: friendly name, short label, colour, league and order. Add a team by searching the RFU and choosing its league; Change league moves a team to a new division; Move up, Move down and Remove set the order. It replaces the TEAMS list that was written into the code, which is now only the starting default for a club that has not saved a list.
@@ -1739,6 +1745,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.29.1", "A team renamed in Admin now shows on the table and Match Centre pages within about a minute of reloading (browsers used to keep those pages for 5 minutes)."],
       ["v3.29", "New Our teams section in Admin: choose your teams once, give each a friendly name, short label and colour, and put them in order. The name shows everywhere that team appears. A name typed into a link still wins; links from the Links page and link builder now follow Admin."],
       ["v3.28.4", "Usage page: the Outside calls chart now lines up when some hours have website calls, and the hour labels no longer run together on a phone."],
       ["v3.28.3", "Usage page: Teams people look up now shows one row per team and its team number, so the same team is never listed twice."],
@@ -5139,7 +5146,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rs-c .rw{border:.25rem solid var(--ac);padding:0;background:var(--card)}
 .rs-d .stab{display:block;writing-mode:horizontal-tb;transform:none;font-size:1.05rem;padding:.45rem 1.05rem;border-radius:0;text-align:left}}
 </style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? "" : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)} &middot; refreshes every hour</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
-      return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=300"}});
+      return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=60"}});
     }
 
     const season = url.searchParams.get("season") || AUTO.season;
@@ -6268,7 +6275,7 @@ ${leaders ? `<section class="panel mobonly lead"><h2>League leaders</h2>${leader
 ${layout === "tv" ? "" : themeToggleScript}${refreshScript}</body></html>`;
 
       return new Response(html, {
-        headers: {"Content-Type":"text/html;charset=utf-8","Cache-Control":"public,max-age=300"}
+        headers: {"Content-Type":"text/html;charset=utf-8","Cache-Control":"public,max-age=60"}
       });
     } catch (error) {
       const message = String(error).replace(/</g,"&lt;").replace(/>/g,"&gt;");

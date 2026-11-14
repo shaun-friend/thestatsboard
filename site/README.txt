@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.29.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.1_name_refresh.zip               | v3.29
 v3.29   | 14-Nov-2026 | RFU_Club_Dashboard_v3.29_our_teams.zip                    | v3.28.4
 v3.28.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.4_usage_chart.zip                | v3.28.3
 v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
@@ -223,6 +224,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.29.1 - Renamed teams show sooner
+- After renaming a team in Admin, the team table and Match Centre pages still showed the old name when reloaded, because the browser was told to keep those two pages for 5 minutes. It is now 1 minute. Allow up to about two minutes in all after pressing Save (settings are read about every 30 to 60 seconds, then the page).
+- Docs: none - behaviour of one setting, no new feature
 
 v3.29 - Our teams: friendly names set once in Admin
 - New Our teams section in Admin (second in the menu). It holds the club's list of teams: friendly name, short label, colour, league and order. Add a team by searching the RFU and choosing its league; Change league moves a team to a new division; Move up, Move down and Remove set the order. It replaces the TEAMS list that was written into the code, which is now only the starting default for a club that has not saved a list.
