@@ -37,6 +37,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
 v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
 v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
 v3.26.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.26.1_builder_screen.zip       | v3.26
@@ -207,6 +208,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.2 - Admin on a phone: tabs instead of a full-screen menu
+- A swipeable row of section tabs sits across the top on a phone (the side menu stays on wide screens). The Overview opens first; there is no separate list screen and no Back link.
+- Sections are in a new order: Overview, Messages, Screens, Match day, Site status, Data sources, Privacy and counts, Access, then Tools.
+- The Save bar is only shown once something has been changed (with Discard), and it hides a few seconds after a successful save. The page no longer jumps to the top when you switch section.
+- Docs: Admin guide, What's new
 
 v3.27.1 - Documentation brought up to date, and a release check for it
 - Admin guide rewritten around the new Admin sections (menu, Overview, Save bar, phone layout, deep links).

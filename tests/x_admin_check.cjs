@@ -10,9 +10,10 @@ c('desktop opens on Overview',await p.isVisible('#s-home')&&!(await p.isVisible(
 c('overview shows visitors and screens',(await p.textContent('#ovp'))==='30'&&(await p.textContent('#ovs'))==='5');
 await p.click('.adn a[data-s="screens"]');await p.waitForTimeout(200);
 c('menu opens Screens only',await p.isVisible('#s-screens')&&!(await p.isVisible('#s-home'))&&(await p.getAttribute('.adn a[data-s="screens"]','class')).includes('on'));
-c('save bar clean at first',!(await p.isVisible('#dirty')));
+c('save bar hidden at first',!(await p.isVisible('#sbar')));
+c('menu order',JSON.stringify(await p.$$eval('.adn a[data-s]',a=>a.map(x=>x.dataset.s)))===JSON.stringify(['home','notices','screens','match','status','data','privacy','access']));
 await p.click('#fa+span');await p.waitForTimeout(100);
-c('unsaved marker after a change',await p.isVisible('#dirty')&&await p.isVisible('#dis'));
+c('unsaved marker after a change',await p.isVisible('#sbar')&&await p.isVisible('#dirty')&&await p.isVisible('#dis'));
 await p.screenshot({path:__dirname+'/x_admin_desktop.png'});
 // every setting id still exists exactly once
 for(const id of ['hon','ht','hu','ton','tt','tu','fa','fw','fc','fp','fo','fb','fv','fs','mon','mpun','mex','mpin','as','am']){c('id '+id,(await p.$$('#'+id)).length===1)}
@@ -22,13 +23,13 @@ await p.close();
 // phone
 ({p,errs}=await open(390,844));
 c('phone: no page errors',errs.length===0);
-c('phone opens on the menu list',await p.isVisible('#adn')&&!(await p.isVisible('#s-home')));
+c('phone opens on Overview',await p.isVisible('#s-home')&&await p.isVisible('#adn'));
+c('phone: tabs are one row',await p.$eval('#adn',e=>e.scrollWidth>e.clientWidth&&getComputedStyle(e).flexDirection==='row'));
+c('phone: no back link',(await p.$$('.sback')).length===0);
 await p.click('.adn a[data-s="status"]');await p.waitForTimeout(200);
-c('phone: section replaces menu',await p.isVisible('#s-status')&&!(await p.isVisible('#adn')));
-c('phone: back link visible',await p.isVisible('#s-status .sback'));
+c('phone: tab switches section',await p.isVisible('#s-status')&&!(await p.isVisible('#s-home'))&&await p.isVisible('#adn'));
+c('phone: save bar hidden until changed',!(await p.isVisible('#sbar')));
 await p.screenshot({path:__dirname+'/x_admin_phone.png'});
-await p.click('#s-status .sback');await p.waitForTimeout(200);
-c('phone: back returns to menu',await p.isVisible('#adn'));
 await p.close();
 ({p,errs}=await open(390,844,'#data'));
 c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible('#fb'));

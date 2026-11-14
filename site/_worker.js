@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.2 14-Nov-2026 Admin on a phone: a swipeable row of section tabs replaces the full-screen list, sections reordered (Messages, Screens, Match day, Site status, Data sources, Privacy and counts, Access), Save bar only shows when something is changed, no jump to the top when switching sections.
 //   v3.27.1 14-Nov-2026 Documentation brought up to date for v3.22 to v3.27 (Admin sections, Modern/Classic, screen names, website back-up switch, Match sheet, cup games). Release check now requires every release to say which Documentation sections it updated.
 //   v3.27 14-Nov-2026 Admin: sections with a left menu (Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access, Site status), a Tools group, one sticky Save bar with an unsaved-changes marker; phones get a menu list then the section.
 //   v3.26.1 14-Nov-2026 The Screen name box is on the /builder page only (it had wrongly gone on the find-your-team welcome page).
@@ -195,7 +196,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.1";
+const VERSION = "v3.27.2";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -238,6 +239,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
 v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
 v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
 v3.26.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.26.1_builder_screen.zip       | v3.26
@@ -408,6 +410,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.2 - Admin on a phone: tabs instead of a full-screen menu
+- A swipeable row of section tabs sits across the top on a phone (the side menu stays on wide screens). The Overview opens first; there is no separate list screen and no Back link.
+- Sections are in a new order: Overview, Messages, Screens, Match day, Site status, Data sources, Privacy and counts, Access, then Tools.
+- The Save bar is only shown once something has been changed (with Discard), and it hides a few seconds after a successful save. The page no longer jumps to the top when you switch section.
+- Docs: Admin guide, What's new
 
 v3.27.1 - Documentation brought up to date, and a release check for it
 - Admin guide rewritten around the new Admin sections (menu, Overview, Save bar, phone layout, deep links).
@@ -1469,19 +1477,19 @@ const DOC_SECTIONS = [
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It asks for the club PIN, like the Links page. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
-    { p: "A menu runs down the left (on a phone it is a list; tap a section to open it and use the Admin link at the top to come back). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
+    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, Match day) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
     { dl: [
       ["Overview", "Status cards and a shortcut to each section."],
       ["Messages", "The homepage notice and the TV screen notice."],
       ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
       ["Match day", "The Match sheet (team sheets and scorers)."],
+      ["Site status", "Maintenance mode and its pun lines."],
       ["Data sources", "The England Rugby website back-up switch."],
       ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
       ["Access", "How long a PIN sign-in lasts."],
-      ["Site status", "Maintenance mode and its pun lines."],
       ["Tools", "Links to Usage, Documentation, Release notes, Match sheet and Team links (and the Probe page on the test site)."]
     ] },
-    { note: "One Save bar stays at the bottom of every section. It shows Unsaved changes when you have edited something, with a Discard button to go back to what is saved. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
+    { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
     { h: "Messages" },
     { ul: [
       "Homepage notice: a block at the top of the page where visitors pick a team. Text up to 200 characters.",
@@ -1635,6 +1643,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.2", "Admin on a phone now has a row of tabs across the top to switch sections, instead of a full-screen list. The sections are in a more logical order, and the Save bar only appears when you have changed something."],
       ["v3.27.1", "The Documentation is brought up to date: the Admin guide now follows the new Admin sections, and it covers Modern and Classic, screen names, the website back-up switch, the Match sheet and cup games with no name."],
       ["v3.27", "The Admin page is now organised into sections with a menu: Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access and Site status. Usage, Documentation, Release notes, Match sheet and Team links sit under Tools. One Save bar stays at the bottom and shows when something is unsaved."],
       ["v3.26.1", "The Screen name box is on the Link builder page (/builder) only; it is no longer on the find-your-team page."],
@@ -1903,13 +1912,12 @@ ${MENU_CSS}
 .adt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;font-weight:700;padding:14px 12px 4px;border-top:1px solid #26312d;margin-top:8px}
 .adt~a{color:#7fd89a;font-weight:600;font-size:14px;min-height:40px}
 .adm{min-width:0;padding-bottom:84px}.adm h1{margin:0 0 4px}.adm .sub{margin:0 0 14px}
-.sback{display:none;color:#7fd89a;font-weight:700;text-decoration:none;min-height:44px;align-items:center}
 .ov{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:6px}.oc{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}.oc small{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#91a49a;font-weight:700}.oc b{font-size:28px;line-height:1.45}.oc b.good{color:#7fd19a}.oc b.bad{color:#f0c870}.oc span{font-size:12.5px;color:#91a49a;line-height:1.4}
 .warn{margin:14px 0 0;background:#3a2f12;color:#f0c870;border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.5}
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tile{display:flex;flex-direction:column;justify-content:center;gap:2px;min-height:72px;background:#111719;border:1px solid #26312d;border-radius:14px;padding:12px 16px;color:inherit;text-decoration:none}.tile b{font-size:16px}.tile small{color:#91a49a;font-size:13px;line-height:1.4}
-.sbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0c1113;border-top:1px solid #26312d;padding:12px max(16px,calc((100vw - 1040px)/2 + 246px)) calc(12px + env(safe-area-inset-bottom)) ;}
+.sbar:not(.show){display:none}.sbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0c1113;border-top:1px solid #26312d;padding:12px max(16px,calc((100vw - 1040px)/2 + 246px)) calc(12px + env(safe-area-inset-bottom)) ;}
 .sbar .dirty{color:#f0c870;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}.sbar .dirty::before{content:"";width:10px;height:10px;border-radius:50%;background:#f0c870}.sbar .n{flex:1;min-width:140px}.sbb{display:flex;gap:10px}
-@media (max-width:820px){.adw{grid-template-columns:1fr;gap:0}.adw.list .adm{display:none}.adw:not(.list) .adn{display:none}.adn{position:static}.sback{display:flex}.ov{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles{grid-template-columns:1fr}.sbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}}
+@media (max-width:820px){.adw{grid-template-columns:1fr;gap:0}.adn{position:static;flex-direction:row;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px;border-radius:14px;margin-bottom:14px}.adn::-webkit-scrollbar{display:none}.adn .adh{display:none}.adn a{flex:none;white-space:nowrap;padding:10px 14px!important;border-radius:999px}.adn .adt{flex:none;padding:0 4px;margin:0;border:0}.ov{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles{grid-template-columns:1fr}.sbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}}
 body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cbd8ce}body.light .adn a{color:#24332b}body.light .adn a.on{background:#e3f0e7;color:#0b1110}body.light .sbar{background:#f4f8f5;border-color:#cbd8ce}body.light .warn{background:#fff1cf;color:#5a3a00}
 .cs{display:flex;justify-content:space-between;align-items:center;margin:14px 0 0;background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 16px}.cs b{font-size:16px}.cs small{color:#91a49a;font-size:12.5px;display:block}
 .ad h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:26px 0 8px}
@@ -1927,8 +1935,8 @@ body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw list" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><a href="#status" data-s="status">Site status</a><div class="adt">Tools</div><a href="/usage">Usage</a><a href="/docs">Documentation</a><a href="/release-notes">Release notes</a><a href="/matchsheet">Match sheet</a><a href="/?view=teams">Team links</a>${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
-<section class="sec" id="s-home"><a class="sback" href="#">&lsaquo; Admin</a><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/usage">Usage</a><a href="/docs">Documentation</a><a href="/release-notes">Release notes</a><a href="/matchsheet">Match sheet</a><a href="/?view=teams">Team links</a>${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
 <div class="oc"><small>Visitors today</small><b id="ovp">&ndash;</b><span>People across web and TV</span></div>
@@ -1941,12 +1949,12 @@ ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: 
 <a class="tile" href="#notices"><b>Messages</b><small>Homepage and TV notices</small></a>
 <a class="tile" href="#screens"><b>Screens</b><small>Match Centre layout, strips, weather, credit line</small></a>
 <a class="tile" href="#match"><b>Match day</b><small>Match sheet</small></a>
+<a class="tile" href="#status"><b>Site status</b><small>Maintenance mode and pun lines</small></a>
 <a class="tile" href="#data"><b>Data sources</b><small>England Rugby website back-up</small></a>
 <a class="tile" href="#privacy"><b>Privacy and counts</b><small>Visit counts, screen counts, Usage period</small></a>
 <a class="tile" href="#access"><b>Access</b><small>How long a PIN sign-in lasts</small></a>
-<a class="tile" href="#status"><b>Site status</b><small>Maintenance mode and pun lines</small></a>
 </div></section>
-<section class="sec" id="s-notices" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Messages</h1><p class="sub">Notices shown to visitors and on the clubhouse TVs.</p>
+<section class="sec" id="s-notices" hidden><h1>Messages</h1><p class="sub">Notices shown to visitors and on the clubhouse TVs.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Homepage notice</b><small>Shown at the top of the page where visitors pick a team. Everyone sees it.</small></div><label class="tg"><input type="checkbox" id="hon"${h.on ? " checked" : ""}><span></span></label></div>
 <input class="in" id="ht" maxlength="200" autocomplete="off" placeholder="e.g. The RFU feed is having problems today, so some results may be late." value="${ea(h.text)}"><div class="cnt" id="hc"></div>
@@ -1959,7 +1967,7 @@ ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: 
 <div class="two"><div><div class="l">Style</div>${seg("ts", v.style, styleOpts)}</div><div><div class="l">Hide automatically after <span>(optional)</span></div><input class="in" type="date" id="tu" value="${ea(v.until)}" style="margin-top:6px"></div></div></div>
 </div>
 </section>
-<section class="sec" id="s-screens" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Screens</h1><p class="sub">What appears on the clubhouse TVs and the Match Centre. Phones are not affected.</p>
+<section class="sec" id="s-screens" hidden><h1>Screens</h1><p class="sub">What appears on the clubhouse TVs and the Match Centre. Phones are not affected.</p>
 <div class="cd">
 ${sw("fa", s.features.around, "&ldquo;Around the league today&rdquo; strip", "Other results in the same division on match days (Fixtures TV board).")}
 ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the next game, home or away (Fixtures TV board).")}
@@ -1969,30 +1977,30 @@ ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", 
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
-<section class="sec" id="s-match" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Match day</h1><p class="sub">Tools for match days.</p>
+<section class="sec" id="s-match" hidden><h1>Match day</h1><p class="sub">Tools for match days.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
 </div>
 </section>
-<section class="sec" id="s-data" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Data sources</h1><p class="sub">Where the site gets its information.</p>
+<section class="sec" id="s-data" hidden><h1>Data sources</h1><p class="sub">Where the site gets its information.</p>
 <div class="cd">
 ${sw("fb", s.features.webfallback, "England Rugby website as a back-up", "When the RFU data service has no league table, ground or team list, the site asks the englandrugby.com website instead. Turn this off to use the data service only: a table or ground it cannot supply is then left blank. Check the RFU web page row on the Usage page first.")}
 </div>
 <p class="n" style="margin:10px 2px 0">Today the data comes from the RFU data service. The England Rugby website is only used as a back-up when the data service has nothing. Check the &ldquo;RFU web page&rdquo; row on the Usage page before turning the back-up off.</p>
 </section>
-<section class="sec" id="s-privacy" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Privacy and counts</h1><p class="sub">What is counted, and the Usage page default. Nothing identifies a person.</p>
+<section class="sec" id="s-privacy" hidden><h1>Privacy and counts</h1><p class="sub">What is counted, and the Usage page default. Nothing identifies a person.</p>
 <div class="cd">
 ${sw("fv", s.features.count, "Count visits", "Anonymous counts of pages, teams and devices. No cookies, no IP addresses, no typed text. Needs the USAGE binding.")}
 ${sw("fs", s.features.screens, "Count clubhouse screen loads", "Adds each TV screen load to the counts, for the screens-per-day chart. Off means screens are not counted at all.")}
 <div class="nb"><div class="nh"><div><b>Default period on the Usage page</b><small>The range shown first. It can still be changed on the page. <a href="/usage" style="color:#7fd89a">See the usage report</a>.</small></div></div>${seg("rd", String(s.reporting.days), [["7", "7 days"], ["14", "14 days"], ["30", "30 days"], ["90", "90 days"]])}</div>
 </div>
 </section>
-<section class="sec" id="s-access" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Access</h1><p class="sub">Who can see the club pages.</p>
+<section class="sec" id="s-access" hidden><h1>Access</h1><p class="sub">Who can see the club pages.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>How long a PIN sign-in lasts</b><small>After this many days a device is asked for the club PIN again. Devices already signed in keep the length they were given; changing the PIN signs everyone out at once. Anyone can also use Sign out (bottom of the Links, Documentation and Admin pages).</small></div></div>${seg("sd", String(s.signin.days), [["1", "1 day"], ["7", "7 days"], ["14", "14 days"], ["30", "30 days"]])}</div>
 </div>
 </section>
-<section class="sec" id="s-status" hidden><a class="sback" href="#">&lsaquo; Admin</a><h1>Site status</h1><p class="sub">Maintenance mode and its pun lines.</p>
+<section class="sec" id="s-status" hidden><h1>Site status</h1><p class="sub">Maintenance mode and its pun lines.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Maintenance mode</b><small>Shows a &ldquo;Back soon&rdquo; page in place of every page, TV screen, calendar and data call. Only this Admin page and the PIN pages stay open.</small></div><label class="tg"><input type="checkbox" id="mon"${m.on ? " checked" : ""}><span></span></label></div>
 <div id="mpr" hidden style="margin-top:10px"><div class="l">Enter the club PIN to switch maintenance mode on</div><input class="in" id="mpin" type="password" inputmode="numeric" autocomplete="off" maxlength="40" placeholder="Club PIN" style="max-width:220px"></div>
@@ -2026,16 +2034,16 @@ $("mad").addEventListener("click",function(){var v=$("mnl").value.replace(/\s+/g
 $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
 var SECS=["home","notices","screens","match","data","privacy","access","status"];
-function route(){var h=location.hash.replace("#","");var wide=!matchMedia("(max-width:820px)").matches;if(SECS.indexOf(h)<0)h=wide?"home":"";var w=$("adw");w.classList.toggle("list",!h);SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){a.classList.toggle("on",a.getAttribute("data-s")===h)});if(h)window.scrollTo(0,0)}
-addEventListener("hashchange",route);addEventListener("resize",route);route();
-var dirty=false;function md(){if(dirty)return;dirty=true;$("dirty").hidden=false;$("dis").hidden=false}
+function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}
+addEventListener("hashchange",route);route();
+var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add("show");$("dirty").hidden=false;$("dis").hidden=false}
 $("af").addEventListener("input",md);$("af").addEventListener("change",md);$("dis").addEventListener("click",function(){dirty=false;location.reload()});
 addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue=""}});
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
 var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")}};
-fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
+fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
 }
