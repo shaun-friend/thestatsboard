@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.26 14-Nov-2026 Match Centre layouts are called Modern and Classic; the link builder has a Screen name box that adds &screen= to every link.
 //   v3.25.1 14-Nov-2026 Admin: the website back-up switch had the same id as the weather switch, so saving read the wrong box. Fixed.
 //   v3.25 13-Nov-2026 Admin: switch "England Rugby website as a back-up" (default on). Off = RFU data service only; no website table, ground or team-search calls.
 //   v3.24 13-Nov-2026 Usage: optional &screen=Name on a TV link labels that screen; the Usage page lists named screens with loads and last seen. Ignored when absent.
@@ -191,7 +192,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.25.1";
+const VERSION = "v3.26";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -233,6 +234,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.26   | 14-Nov-2026 | RFU_Club_Dashboard_v3.26_modern_classic.zip         | v3.25.1
 v3.25.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.25.1_switch_fix.zip           | v3.25
 v3.25   | 13-Nov-2026 | RFU_Club_Dashboard_v3.25_website_switch.zip         | v3.24
 v3.24   | 13-Nov-2026 | RFU_Club_Dashboard_v3.24_screen_names.zip           | v3.23.3
@@ -399,6 +401,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.26 - Modern and Classic, screen name in the link builder
+- The Match Centre layouts are now called Modern (was Next game first) and Classic (was Classic rows) in Admin. The settings and &ly=next / &ly=classic links are unchanged.
+- The link builder has a Screen name box (shown for TV links). Whatever you type is added to every link as &screen=, so the screen shows by name on the Usage page.
 
 v3.25.1 - Website back-up switch fix
 - The new website back-up switch shared an id with the weather switch, so saving Admin read the weather switch for both. It now has its own id, and a test checks that no two controls on the Admin page share one.
@@ -1342,6 +1348,8 @@ const DOCS = [
     { v: "colour", values: "6-digit hex, no #, e.g. 1b7f3b", where: "Match Stats, Fixtures TV", what: "Match Stats: your team's colour. Fixtures TV: the first accent colour (edge stripe, highlight). Fixtures TV takes the second colour from the crest.", ex: [["Match Stats in green", "?view=match&colour=1b7f3b&" + DOCS_TEAM], ["Fixtures TV in red", "?view=fixtures&layout=tv&colour=c0392b&" + DOCS_TEAM]] },
     { v: "oppColour", values: "6-digit hex", where: "Match Stats", what: "The opponent's colour.", ex: [["Blue opponent", "?view=match&oppColour=1f5fbf&" + DOCS_TEAM]] },
     { v: "club", values: "text", where: "Fixtures TV", what: "The club name top right. Default is the team name without U18 / XV / Women, with RFC added.", ex: [["Custom club name", "?view=fixtures&layout=tv&club=Ivybridge%20Rugby%20Club&" + DOCS_TEAM]] },
+    { v: "ly", values: "next (Modern) · classic (Classic)", where: "Stack", what: "The Match Centre layout for this link. Without it the layout chosen in Admin is used. Modern shows each team's next game first with crests; Classic is the original rows. With more than four teams Modern uses Classic.", ex: [["Modern Match Centre", "?view=stack&ly=next"], ["Classic Match Centre", "?view=stack&ly=classic"]] },
+    { v: "screen", values: "text, e.g. Clubhouse Bar", where: "TV pages", what: "Names this screen. The Usage page then lists it by name with its loads and when it was last seen. Letters, numbers, spaces and - _ . only, up to 24 characters. The link builder has a Screen name box that adds it for you.", ex: [["Named Match Centre", "?view=stack&screen=Clubhouse%20Bar"]] },
     { v: "clubName", values: "text", where: "Stack", what: "The heading of the all-teams stack screen.", ex: [["Custom heading", "?view=stack&clubName=Clubhouse%20Screen"]] },
     { v: "title", values: "text", where: "Table page", what: "Replaces the page title on the league table page.", ex: [["Custom title", "?title=Our%20League&" + DOCS_TEAM]] },
     { v: "rows", values: "a · b · c · d (default)", where: "Stack", what: "The row style of the stack screen.", ex: [["Row style a", "?view=stack&rows=a"], ["Row style c", "?view=stack&rows=c"]] },
@@ -1575,6 +1583,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.26", "The Match Centre layouts are now called Modern and Classic. The link builder has a Screen name box, so you can name a TV when you copy its link."],
       ["v3.25.1", "Admin: fixed the England Rugby website back-up switch, which was reading the weather switch when saved."],
       ["v3.25", "Admin has a new switch, England Rugby website as a back-up. It is on by default; turn it off to use only the RFU data service."],
       ["v3.24", "You can name a TV screen by adding &screen=Clubhouse+Bar to its link. The Usage page then lists each named screen with its loads and when it was last seen. Links without it work as before."],
@@ -1864,7 +1873,7 @@ ${sw("fa", s.features.around, "&ldquo;Around the league today&rdquo; strip", "Ot
 ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the next game, home or away (Fixtures TV board).")}
 ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The small line at the bottom of the Fixtures TV board.")}
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
-<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Next game first&rdquo; switches to Classic rows automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview next game first</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Next game first"], ["classic", "Classic rows"]])}</div>
+<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 <div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 ${sw("fb", s.features.webfallback, "England Rugby website as a back-up", "When the RFU data service has no league table, ground or team list, the site asks the englandrugby.com website instead. Turn this off to use the data service only: a table or ground it cannot supply is then left blank. Check the RFU web page row on the Usage page first.")}
@@ -3446,9 +3455,10 @@ function crest(id,name){var w=document.createElement("span");w.className="crest"
 function api(p,q){return fetch(p+"?"+new URLSearchParams(q)).then(function(r){return r.json()})}
 function theme(){return document.body.classList.contains("light")?"light":"dark"}
 function qs(o){return new URLSearchParams(o).toString()}
-function teamLink(layout){var o={season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(layout)o.layout=layout;return SB_BASE+"/?"+qs(o)}
+var SCR="";
+function teamLink(layout){var o={season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(layout)o.layout=layout;if(SCR)o.screen=SCR;return SB_BASE+"/?"+qs(o)}
 function linkFor(k){return k==="match"?matchLink():k==="fixtures"?matchLink().replace("view=match","view=fixtures"):k==="fixturestv"?matchLink().replace("view=match","view=fixtures")+"&layout=tv":k==="leaders"?matchLink().replace("view=match","view=leaders"):k==="leaderstv"?matchLink().replace("view=match","view=leaders")+"&layout=tv":k==="opp"?matchLink().replace("view=match","view=opposition"):k==="oppwide"?matchLink().replace("view=match","view=opposition")+"&layout=wide":teamLink(k)}
-function matchLink(){return SB_BASE+"/?"+qs({view:"match",season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()})}
+function matchLink(){var o={view:"match",season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(SCR)o.screen=SCR;return SB_BASE+"/?"+qs(o)}
 var KEY="statsBoardRecent";
 function okRec(r){return r&&/^\\d+$/.test(r.team)&&/^\\d+$/.test(r.competition)&&/^\\d+$/.test(r.division)&&/^\\d{4}-\\d{4}$/.test(r.season)&&typeof r.name==="string"&&typeof r.league==="string"}
 function recGet(){try{var a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a.filter(okRec).slice(0,3):[]}catch(e){return[]}}
@@ -3477,6 +3487,10 @@ function finish(lg,season){
  var chip=el("div","chip"),left=el("div","tid"),d=el("div");d.appendChild(el("b",null,sel.name));d.appendChild(el("span",null,sel.league+" \\u00b7 "+season));left.appendChild(crest(sel.team,sel.name));left.appendChild(d);chip.appendChild(left);
  var ch=el("button","pill","Change team");ch.type="button";ch.addEventListener("click",showSearch);chip.appendChild(ch);out.appendChild(chip);
  var tip=el("p","tip","Showing the links that suit this device. "),al=el("a",null,"Show all links");al.href="#";al.addEventListener("click",function(ev){ev.preventDefault();var on=document.body.classList.toggle("all");al.textContent=on?"Show device links only":"Show all links"});tip.appendChild(al);out.appendChild(tip);
+ var sn=el("div","row only-tv"),sl=el("label",null,"Screen name (optional)"),si=el("input","in");si.type="text";si.maxLength=24;si.value=SCR;si.placeholder="e.g. Clubhouse Bar";si.setAttribute("aria-label","Screen name");sl.appendChild(si);sn.appendChild(sl);
+ var sh=el("p","tip","Names this TV on the Usage page. Letters, numbers and spaces only. Leave blank if you do not need it.");
+ si.addEventListener("input",function(){SCR=si.value.replace(/[^A-Za-z0-9 _.\\-]/g,"").slice(0,24).trim();out.refresh&&out.refresh()});
+ out.appendChild(sn);out.appendChild(sh);
  var card=el("div","card");
  [["Standard / TV view","",""," only-tv"],["Mobile view","mobile","mob"," only-mob"],["Match Stats (next match)","match","lt",""],["Fixtures and Results (Mobile)","fixtures","mob"," only-mob"],["Fixtures and Results (TV View)","fixturestv","lt"," only-tv"],["League Leaders (Mobile)","leaders","mob"," only-mob"],["League Leaders (TV View)","leaderstv","lt"," only-tv"],["Opposition Report (Mobile)","opp","mob"," only-mob"],["Opposition Report (Wide Screen)","oppwide","lt"," only-tv"]].forEach(function(r){
   var row=el("div","row"+r[3]),a=el("a","btn "+r[2],r[0]);a.setAttribute("data-k",r[1]);a.href=linkFor(r[1]);row.appendChild(a);card.appendChild(row)});
