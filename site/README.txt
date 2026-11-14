@@ -231,7 +231,7 @@ Earlier versions are described in the notes below. Zips from v22g and earlier we
 
 v3.30.1 - Win Predictor on the Match Centre
 - Renamed: the win chance is now called Win Predictor in Admin (Screens switch and Tools link), the check page, the Documentation and on every bar, which carries a small-capitals "WIN PREDICTOR" heading.
-- New on the Match Centre: a slim bar with the percentages inside it and no team names (the card already names the teams). Modern (TV): in the coloured Next game block, our side in the block's reversed colour and the opponent faded. Classic (TV) and the phone cards: in the Next game box under the two teams, our side in the team colour and the opponent slate. The home side is on the left. The phone cards also have the "How is this worked out?" line. A team with no prediction shows no bar and leaves no gap.
+- New on the Match Centre: a slim bar with the percentage and the team name inside each side, so it is clear whose is whose (the name is left out of a side under 28%, which is then just the percentage). Modern (TV): in the coloured Next game block, our side in the block's reversed colour and the opponent faded. Classic (TV) and the phone cards: in the Next game box under the two teams, our side in the team colour and the opponent slate. The home side is on the left. The phone cards also have the "How is this worked out?" line. A team with no prediction shows no bar and leaves no gap.
 - Not on the Fixtures board (owner decision, 14-Nov-2026).
 - Still off until switched on in Admin under Screens. Not seen on a real TV yet.
 - Docs: Win Predictor, What's new
