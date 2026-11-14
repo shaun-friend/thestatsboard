@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.7 14-Nov-2026 Match Stats on a big screen: waits until the page has been still for 0.7 s (crests, fonts, colours) before fading in, so it no longer resizes after it appears.
 //   v3.27.6 14-Nov-2026 Match Stats page on a big screen: hidden while its text is being fitted, then faded in once (no resize flicker), same as the Match Centre.
 //   v3.27.5 14-Nov-2026 Club access: the welcome-page footer now has one Club access link that opens Admin (Release notes and Documentation links removed from the public footer). Links, Usage, Match sheet, Documentation and Release notes have an Admin link at the top. Admin Tools lists Team links first and shows Release notes on the test site only.
 //   v3.27.4 14-Nov-2026 Admin Overview: the Settings tiles are removed (the menu and phone tabs already do that job).
@@ -200,7 +201,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.6";
+const VERSION = "v3.27.7";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -244,6 +245,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.7_stats_settle.zip             | v3.27.6
 v3.27.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.6_stats_flicker.zip            | v3.27.5
 v3.27.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.5_club_access.zip              | v3.27.4
 v3.27.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.4_overview_tidy.zip            | v3.27.3
@@ -419,6 +421,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.7 - Match Stats waits until the page is still
+- v3.27.6 faded the page in after a fixed half second, but crests and fonts arriving later made it resize again, once while fading in and once about a second after. The page now stays hidden until nothing has changed for 0.7 seconds (up to 3.5 seconds at most, 4.5 as a last-resort timer), so it appears once, fitted.
+- Docs: none - cosmetic fix, no change to how anything works
 
 v3.27.6 - Match Stats page flicker on big screens
 - The Match Stats page (view=match) shrinks its text to fit the screen. It showed at full size first, then shrank in steps as crests, fonts and weather arrived, which looked like flicker. It is now hidden until fitted (about half a second) and fades in once. A 2.5 second safety timer shows it anyway. Phones and small windows are unchanged.
@@ -1670,6 +1676,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.7", "The Match Stats page now waits until it has stopped changing before it fades in, so it no longer resizes after appearing."],
       ["v3.27.6", "The Match Stats page on a big screen no longer flickers while it sizes itself to the screen: it appears once, fully fitted."],
       ["v3.27.5", "The welcome page footer has a single Club access link, which now opens Admin. Links, Usage, Match sheet and Documentation each have an Admin link at the top, and Admin Tools lists Team links first."],
       ["v3.27.4", "The Admin Overview no longer repeats the section menu: it now shows only the status cards and any live notices."],
@@ -4217,9 +4224,10 @@ return bars.scrollHeight>bars.clientHeight+1||sum+k*.45*fsz()>bars.clientHeight}
 var settled=false;function settle(){if(settled)return;settled=true;B.classList.add("fitshow");B.classList.remove("fitwait")}
 var busy=false;function fit(){if(busy)return;busy=true;try{H.style.fontSize="";if(matchMedia(MQ).matches){var fs=fsz(),n=0;while(over()&&fs>7&&n++<80){fs-=.25;H.style.fontSize=fs+"px"}}}catch(e){}busy=false}
 function check(){try{if(matchMedia(MQ).matches&&over())fit()}catch(e){}}
-var tm;function later(){clearTimeout(tm);tm=setTimeout(check,120)}
-fit();addEventListener("load",function(){fit();setTimeout(function(){check();settle()},600)});setTimeout(function(){fit();settle()},2500);addEventListener("resize",function(){clearTimeout(tm);tm=setTimeout(fit,150)});
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+var tm,last=Date.now();function later(){last=Date.now();clearTimeout(tm);tm=setTimeout(check,120)}
+function quiet(){var t0=Date.now();(function p(){if(settled)return;if(Date.now()-last>=700||Date.now()-t0>3500){fit();settle()}else setTimeout(p,100)})()}
+fit();addEventListener("load",function(){fit();last=Date.now();quiet()});setTimeout(function(){fit();settle()},4500);addEventListener("resize",function(){clearTimeout(tm);tm=setTimeout(fit,150)});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){last=Date.now();fit()});
 document.addEventListener("load",later,true);
 try{new MutationObserver(later).observe(B,{childList:true,subtree:true,characterData:true})}catch(e){}
 try{var ro=new ResizeObserver(later);[".top",".hd",".bars",".h2h",".ft"].forEach(function(q){var e=document.querySelector(q);if(e)ro.observe(e)})}catch(e){}
