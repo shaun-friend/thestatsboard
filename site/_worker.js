@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.28.2 14-Nov-2026 Usage: "Teams that are not in our list" becomes "Teams people look up" and counts every team opened by people or picked in the link builder, ours included (marked), not TV screens.
 //   v3.28.1 14-Nov-2026 Match Stats on a big screen: two fitting scripts were fighting (the shared one reset the text size every few seconds); the page now uses only its own, and waits for crests to load before fading in.
 //   v3.28 14-Nov-2026 TV and tablet pages refresh by crossfade: the new page loads in a hidden frame, fits itself, then fades in over the old one (no blank, no resize). Phones and small windows still reload as before. If the new page is slow or fails the old one stays on screen.
 //   v3.27.7 14-Nov-2026 Match Stats on a big screen: waits until the page has been still for 0.7 s (crests, fonts, colours) before fading in, so it no longer resizes after it appears.
@@ -203,7 +204,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.28.1";
+const VERSION = "v3.28.2";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -218,6 +219,7 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
+- Around the league, all of today's games (idea 14-Nov-2026, parked until the current behaviour has been watched for a few weekends; nothing built): today the Fixtures board strip only shows finished results in the same division, once the first one is in the feed. Idea: from a set time on a game day (default 12:00, set in Admin) show all of the division's games that day, with scores filling in as results arrive. Admin choice: Off, Results only (today), All games from [time]. No kick-off times (decided earlier). Nearest to the club in the table first, up to 8 rows then +N more, table positions on each row. The RFU feed has no live scores, so a game in progress looks like one still to come. Needs a layout decision with the TV table review and the rotating screen because the Fixtures board is already tight.
 - Rotating screen, one link for all content (idea 14-Nov-2026, to explore with mock-ups first, nothing built): a single TV link that rotates through pages on a schedule, so a screen needs only one address. A page per team (its table, then its fixtures, as the screens rotate today). The site owner can switch each page of the rotation on or off and put them in order, in Admin, with a time for each page. To explore at the same time: the TV league table view is getting cramped and shows too much (user feedback), so decide what a TV table should show and mock up a simpler layout before it goes into the rotation.
 - TV quick setup (idea 14-Nov-2026, the next one to explore; mock-ups first, nothing built): on a TV, visit thestatsboard.co.uk/setup and get a branded page with a QR code. An admin scans it with a phone camera, picks the screen link on the builder page (/builder) and the link appears on the TV. For TV screens only: on-screen keyboards need a remote control, so the aim is to type as little as possible on the TV. To explore: how the TV and phone pair (short code or QR), how the chosen link reaches the TV (the TV polls for it), the admin sign-in on the phone, how long a code lasts and how pairing is secured, and what the TV shows before and after pairing. Mock up both the TV page and the phone steps.
 - Request logging and a Status page: record view, team, status, cache hit and stale-data flag (country and device type, no IP addresses) in Workers Analytics Engine, with a PIN-protected page showing whether each TV is still checking in. Needs a Pages binding set up in Cloudflare first.
@@ -247,6 +249,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.2_usage_teams.zip                | v3.28.1
 v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
 v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
 v3.27.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.7_stats_settle.zip             | v3.27.6
@@ -425,6 +428,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.2 - Usage: Teams people look up
+- The Usage card "Teams that are not in our list" is now "Teams people look up". It lists every team opened by people (phone, tablet or computer) or picked in the link builder, whether or not it is in our list. Our own teams carry an "ours" mark. TV screens are no longer counted in it, so they cannot swamp the list.
+- Counting is unchanged: only the team, league ids and county are kept, and typed search text is never stored. The card shows up to 30 teams.
+- Docs: Admin guide, What's new
 
 v3.28.1 - Match Stats size jump fixed (real cause found)
 - Two scripts were fitting the Match Stats page: its own, and the shared TV one added to every page that has a form strip. The shared one reset the text size 0.4 and 2.5 seconds after load, so the page jumped larger and back about a tenth of a second later. That is the "readjusts after a few seconds" you saw. The page now carries a marker so only its own script runs.
@@ -1455,7 +1463,7 @@ const DOCS = [
     { v: "/version", values: "none", where: "Any", what: "Shows which version is live (compare PROD and DEV).", ex: [["Version", "/version"]] },
     { v: "/release-notes", values: "none", where: "DEV only", what: "The release notes (README).", ex: [["Release notes", "/release-notes", "dev"]] },
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
-    { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams that are not in our list, devices.", ex: [["Usage", "/usage"]] },
+    { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
     { v: "/admin", values: "none", where: "Club PIN", what: "The admin page: homepage and TV notices, and switches for screen features. Settings are stored per club in Cloudflare KV (the SETTINGS binding).", ex: [["Admin", "/admin"]] },
     { v: "/unlock, /club-unlock", values: "pin, next", where: "PIN pages", what: "The DEV PIN page and the club PIN page. Redirects here automatically.", ex: [] }
   ] }
@@ -1694,6 +1702,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.28.2", "Usage page: the card for other teams is now Teams people look up. It lists every team that people open or pick, including the club's own (marked as ours)."],
       ["v3.28.1", "Match Stats on a big screen no longer jumps in size a second or two after appearing."],
       ["v3.28", "Big screens now refresh smoothly: the new version of a page loads out of sight and fades in over the old one, with no blank moment and no resizing. If a refresh fails the old page simply stays up."],
       ["v3.27.7", "The Match Stats page now waits until it has stopped changing before it fades in, so it no longer resizes after appearing."],
@@ -2341,7 +2350,7 @@ async function usageApi(url) {
       usageQuery(`SELECT blob3 AS view, SUM(_sample_interval) AS n ${W} AND blob2 = 'page' GROUP BY view ORDER BY n DESC LIMIT 12`),
       usageQuery(`SELECT blob4 AS team, blob5 AS name, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','tv') AND blob11 = '1' GROUP BY team, name ORDER BY n DESC LIMIT 20`),
       usageQuery(`SELECT blob8 AS device, COUNT(DISTINCT blob12) AS who ${W} AND blob2 = 'page' GROUP BY device`),
-      usageQuery(`SELECT blob4 AS team, blob5 AS name, blob6 AS comp, blob7 AS div, blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','tv','pick') AND blob11 = '0' AND blob4 != '' GROUP BY team, name, comp, div, region, country ORDER BY n DESC LIMIT 25`),
+      usageQuery(`SELECT blob4 AS team, blob5 AS name, blob6 AS comp, blob7 AS div, blob10 AS region, blob9 AS country, blob11 AS own, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','pick') AND blob4 != '' GROUP BY team, name, comp, div, region, country, own ORDER BY n DESC LIMIT 30`),
       usageQuery(`SELECT blob2 AS kind, SUM(_sample_interval) AS n ${W} AND blob2 IN ('search','pick') GROUP BY kind`),
       usageQuery(`SELECT SUM(_sample_interval) AS n FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND blob2 NOT IN ('up', 'pinfail', 'sec') AND timestamp > ${limSince}`),
       usageQuery(`SELECT ${bucket} AS d, SUM(_sample_interval) AS loads, COUNT(DISTINCT blob12) AS screens ${W} AND blob2 = 'tv' GROUP BY d ORDER BY d`),
@@ -2447,8 +2456,8 @@ function show(d){
  '<div class="cd"><h2>Clubhouse screen loads per '+(d.days===1?"hour":"day")+'</h2><p class="n">'+(d.screensOn?"Each time a TV screen loads or reloads the page. The small number under each bar is the number of different screens that day.":"Screen counting is switched off on the Admin page, so nothing new is recorded here.")+'</p>'+(d.tvDay.length?'<div class="ch" style="height:170px">'+d.tvDay.map(function(r){var m2=Math.max.apply(null,d.tvDay.map(function(x){return Number(x.loads)})),hr=d.days===1&&String(r.d).length>10,dt=new Date(hr?String(r.d).replace(" ","T")+"Z":r.d+"T12:00:00Z"),lab=hr?String(r.d).slice(11,16):dt.toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"});return'<div class="col"><div class="bv">'+num(r.loads)+'</div><div class="bar" style="background:#4a8fd6;height:'+Math.max(3,Number(r.loads)/m2*120)+'px"></div><div class="bl">'+esc(lab)+'</div><div class="bv">'+num(r.screens)+(Number(r.screens)===1?" screen":" screens")+"</div></div>"}).join("")+"</div>":'<p class="msg mu">Nothing yet.</p>')+"</div>"+
  screensCard(d)+'<div class="tw"><div class="cd"><h2>What people look at</h2><p class="n">Share of page views</p>'+rows(d.pages,function(r){return"<tr><td>"+esc(VN[r.view]||r.view)+'</td><td class="nu">'+num(r.n)+'</td><td class="nu mu">'+Math.round(Number(r.n)/pt*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Our teams</h2><p class="n">Views of teams on the club list</p>'+rows(ours,function(r){return"<tr><td>"+esc(r.n)+'</td><td class="nu">'+num(r.v)+"</td></tr>"})+"</div></div>"+
- '<div class="cd hl"><h2>Teams that are not in our list</h2><p class="n">Where other clubs show up. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
- rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
+ '<div class="cd hl"><h2>Teams people look up</h2><p class="n">Every team opened on a phone, tablet or computer, or picked in the link builder, whether or not it is in our list (ours are marked). TV screens are not counted here. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
+ rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+(String(r.own)==="1"?' <span class="mu">&middot; ours</span>':"")+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
  clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}

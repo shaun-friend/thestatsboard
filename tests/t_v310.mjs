@@ -6,7 +6,7 @@ globalThis.fetch=async(u,o)=>{ if(String(u).includes('analytics_engine/sql')){ca
   else if(/GROUP BY kind$/.test(b)&&/COUNT\(DISTINCT/.test(b)) data=[{kind:'page',who:'20',n:'60'},{kind:'tv',who:'3',n:'900'},{kind:'cal',who:'4',n:'40'}];
   else if(/GROUP BY view/.test(b)) data=[{view:'team',n:'40'},{view:'fixtures'  ,n:'20'}];
   else if(/blob11 = '1'/.test(b)) data=[{team:'11039',name:'Ivybridge',n:'30'}];
-  else if(/blob11 = '0'/.test(b)) data=[{name:'Exeter Chiefs',comp:'1',div:'2',region:'Devon',country:'GB',n:'5'}];
+  else if(/blob11 AS own/.test(b)) data=[{name:'Exeter Chiefs',comp:'1',div:'2',region:'Devon',country:'GB',n:'5'}];
   else if(/GROUP BY device/.test(b)) data=[{device:'phone',who:'15'}];
   else if(/'search','pick'/.test(b)) data=[{kind:'search',n:'7'}];
   else data=[{n:'1234'}];
