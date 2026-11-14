@@ -10,7 +10,7 @@ const ck=((await w.fetch(new Request('https://x.co.uk/club-unlock',{method:'POST
 let r=await get('/');let t=await r.text();
 c('welcome tagline',t.includes('Your club’s rugby fixtures, results and tables at a glance.'));c('welcome logo',t.includes('class="sblg"')&&t.includes('STATS <span'));
 c('welcome og',/property="og:image" content="https:\/\/x\.co\.uk\/og-image\.jpg"/.test(t)&&/og:title/.test(t));
-c('welcome docs link, no duplicate footer',!t.includes('class="sbft"')&&t.includes('href="/docs"'));c('powered line on',/Powered by The Stats Board v3/.test(t)||/class="ver"/.test(t));
+c('welcome footer: one Club access link to Admin, no docs or release notes links, no duplicate footer',!t.includes('class="sbft"')&&t.includes('href="/admin"')&&!t.includes('href="/docs"')&&!t.includes('href="/release-notes"'));c('powered line on',/Powered by The Stats Board v3/.test(t)||/class="ver"/.test(t));
 r=await get('/?team=11039&friendlyName=Test%20U18%20%3Cb%3E');t=await r.text();
 c('team og title',t.includes('property="og:title" content="Test U18 b · Fixtures and results"'));c('team no raw tag in og',!/og:title" content="[^"]*<b>/.test(t));
 for(const [f,ty,min] of [['/og-image.jpg','image/jpeg',5000],['/icon-192.png','image/png',1000],['/icon-512.png','image/png',1000],['/apple-touch-icon.png','image/png',1000],['/favicon.ico','image/png',1000]]){r=await get(f);const b=Buffer.from(await r.arrayBuffer());c('file '+f,r.status===200&&r.headers.get('Content-Type')===ty&&b.length>min)}

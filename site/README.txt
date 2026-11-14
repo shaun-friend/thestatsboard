@@ -38,6 +38,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.5_club_access.zip              | v3.27.4
 v3.27.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.4_overview_tidy.zip            | v3.27.3
 v3.27.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.3_date_boxes.zip              | v3.27.2
 v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
@@ -211,6 +212,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.5 - One club entry point: Club access opens Admin
+- The public welcome-page footer shows only the version and Club access. Release notes and Documentation links are gone from it (both need the PIN anyway).
+- Club access signs in and opens Admin. Links, Usage, Match sheet, Documentation and Release notes have an "Admin" link at the top to return.
+- Admin Tools order: Team links, Usage, Match sheet, Documentation, then Release notes (test site only; the live site has no Release notes page).
+- Docs: Admin guide, What's new
 
 v3.27.4 - Admin Overview tidy-up
 - The Settings tiles on the Overview repeated the menu (left menu on wide screens, tabs on a phone), so they are removed. The Overview shows the status cards and any live notices only.

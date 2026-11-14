@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.5 14-Nov-2026 Club access: the welcome-page footer now has one Club access link that opens Admin (Release notes and Documentation links removed from the public footer). Links, Usage, Match sheet, Documentation and Release notes have an Admin link at the top. Admin Tools lists Team links first and shows Release notes on the test site only.
 //   v3.27.4 14-Nov-2026 Admin Overview: the Settings tiles are removed (the menu and phone tabs already do that job).
 //   v3.27.3 14-Nov-2026 Admin: the "Hide automatically after" date boxes no longer overflow their card on an iPhone.
 //   v3.27.2 14-Nov-2026 Admin on a phone: a swipeable row of section tabs replaces the full-screen list, sections reordered (Messages, Screens, Match day, Site status, Data sources, Privacy and counts, Access), Save bar only shows when something is changed, no jump to the top when switching sections.
@@ -198,7 +199,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.4";
+const VERSION = "v3.27.5";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -242,6 +243,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.5_club_access.zip              | v3.27.4
 v3.27.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.4_overview_tidy.zip            | v3.27.3
 v3.27.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.3_date_boxes.zip              | v3.27.2
 v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
@@ -415,6 +417,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.5 - One club entry point: Club access opens Admin
+- The public welcome-page footer shows only the version and Club access. Release notes and Documentation links are gone from it (both need the PIN anyway).
+- Club access signs in and opens Admin. Links, Usage, Match sheet, Documentation and Release notes have an "Admin" link at the top to return.
+- Admin Tools order: Team links, Usage, Match sheet, Documentation, then Release notes (test site only; the live site has no Release notes page).
+- Docs: Admin guide, What's new
 
 v3.27.4 - Admin Overview tidy-up
 - The Settings tiles on the Overview repeated the menu (left menu on wide screens, tabs on a phone), so they are removed. The Overview shows the status cards and any live notices only.
@@ -1488,7 +1496,7 @@ const DOC_SECTIONS = [
     { p: "Every setting you can add to a link, what it does and where it works. Press an example to try it. The examples use Ivybridge 1XV." }
   ] },
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
-    { p: "The Admin page (/admin) changes site settings without editing code. It asks for the club PIN, like the Links page. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
+    { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Links, Usage, Match sheet, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
     { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, Match day) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
     { dl: [
@@ -1500,7 +1508,7 @@ const DOC_SECTIONS = [
       ["Data sources", "The England Rugby website back-up switch."],
       ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
       ["Access", "How long a PIN sign-in lasts."],
-      ["Tools", "Links to Usage, Documentation, Release notes, Match sheet and Team links (and the Probe page on the test site)."]
+      ["Tools", "Links to Team links, Usage, Match sheet and Documentation (and Release notes and the Probe page on the test site)."]
     ] },
     { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
     { h: "Messages" },
@@ -1656,6 +1664,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.5", "The welcome page footer has a single Club access link, which now opens Admin. Links, Usage, Match sheet and Documentation each have an Admin link at the top, and Admin Tools lists Team links first."],
       ["v3.27.4", "The Admin Overview no longer repeats the section menu: it now shows only the status cards and any live notices."],
       ["v3.27.3", "Admin on an iPhone: the Hide automatically after date boxes now fit inside their card."],
       ["v3.27.2", "Admin on a phone now has a row of tabs across the top to switch sections, instead of a full-screen list. The sections are in a more logical order, and the Save bar only appears when you have changed something."],
@@ -1790,7 +1799,7 @@ body.light .side a{color:#33443a}body.light .side a:hover{background:#e4efe7;col
 @media(max-width:860px){body.light .side a{background:#eef5ef;border-color:#cbd8ce}}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap dc">
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Documentation</h1><p class="sub">${esc(VERSION_LABEL)} &middot; how The Stats Board works, how to set up a screen, and every setting you can put in a link.</p>
+<a href="/admin" style="color:#7fd89a;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;margin:2px 0 6px">&lsaquo; Admin</a><h1>Documentation</h1><p class="sub">${esc(VERSION_LABEL)} &middot; how The Stats Board works, how to set up a screen, and every setting you can put in a link.</p>
 <div class="dg"><nav class="side" aria-label="Contents">${side}</nav><div class="main">${sections}</div></div>
 <p class="ver">${esc(VERSION_LABEL)} &middot; <a href="/club-signout" style="color:inherit">Sign out</a></p></div>
 ${themeToggleScript}
@@ -1808,7 +1817,7 @@ body.light .notes{background:#fff;border-color:#cbd8ce;color:#24342a}
 .wrap.nt{max-width:900px}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap nt">
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Release notes</h1><p class="sub">${esc(VERSION_LABEL)}</p>
+<a href="/admin" style="color:#7fd89a;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;margin:2px 0 6px">&lsaquo; Admin</a><h1>Release notes</h1><p class="sub">${esc(VERSION_LABEL)}</p>
 <pre class="notes">${esc(RELEASE_NOTES)}</pre>
 <p class="ver">${VERSION_LABEL}</p>
 </div>
@@ -1950,7 +1959,7 @@ body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/usage">Usage</a><a href="/docs">Documentation</a><a href="/release-notes">Release notes</a><a href="/matchsheet">Match sheet</a><a href="/?view=teams">Team links</a>${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2169,7 +2178,7 @@ body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--ac:
 .evs{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 28px}.ev{display:grid;grid-template-columns:44px 140px 1fr;gap:8px;align-items:center;min-height:34px;border-bottom:1px solid var(--bd);font-size:.92rem}.mn{font-weight:700;color:var(--mu)}.try{font-weight:700;color:var(--ac)}.conv{font-weight:700;color:var(--am)}.other{font-weight:700;color:var(--mu)}.who{color:var(--tx)}
 .ft{color:var(--mu);font-size:.85rem;margin-top:10px;line-height:1.5}
 </style></head><body class="${t}"><div class="wrap">
-<div class="kk">Admin</div><h1>Match sheet</h1>
+<a href="/admin" style="color:#7fd89a;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;margin:2px 0 6px">&lsaquo; Admin</a><h1>Match sheet</h1>
 <div class="tabs">${teams.map(tab).join("")}</div>
 <div class="note">Admin only. Player names never appear on a public screen, a TV board or any link without the club PIN. Under-18 teams and any player the RFU marks as under 18 are shown by shirt number and position only. "Name withheld" is shown exactly as the RFU supplies it.</div>
 ${block("Next game", d.next, d.nextG, false)}
@@ -3574,7 +3583,7 @@ ${WELCOME_CSS}
 <div id="res" class="res" hidden></div>
 <div id="out" hidden></div>
 <p class="ver">${VERSION_LABEL}</p>
-<p class="ver" style="margin-top:6px"><a href="/?view=teams" style="color:inherit">Club access</a> &middot; <a href="/docs" style="color:inherit">Documentation</a></p>
+<p class="ver" style="margin-top:6px"><a href="/admin" style="color:inherit">Club access</a></p>
 </div>
 ${themeToggleScript}
 <script>
@@ -4656,7 +4665,7 @@ ${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: t
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>Club dashboard links</title>
 <style>
 ${MENU_CSS}
-</style></head><body class="${theme}${deviceCls}">${themeBoot("true")}<div class="wrap"><div class="top"><h1>Club dashboard links</h1><button type="button" class="pill tgl">Light mode</button></div><p class="sub">${seasonCtl} Showing the links that suit this device. Links open in the theme selected at the top. <a href="#" class="alll" style="color:inherit">Show all links</a></p>${groups}${builderCard}<p class="ver">${VERSION_LABEL} &middot; <a href="/docs" style="color:inherit">Documentation</a> &middot; <a href="/admin" style="color:inherit">Admin</a> &middot; <a href="/club-signout" style="color:inherit">Sign out</a></p></div>
+</style></head><body class="${theme}${deviceCls}">${themeBoot("true")}<div class="wrap"><a href="/admin" style="color:#7fd89a;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;margin:2px 0 6px">&lsaquo; Admin</a><div class="top"><h1>Club dashboard links</h1><button type="button" class="pill tgl">Light mode</button></div><p class="sub">${seasonCtl} Showing the links that suit this device. Links open in the theme selected at the top. <a href="#" class="alll" style="color:inherit">Show all links</a></p>${groups}${builderCard}<p class="ver">${VERSION_LABEL} &middot; <a href="/docs" style="color:inherit">Documentation</a> &middot; <a href="/admin" style="color:inherit">Admin</a> &middot; <a href="/club-signout" style="color:inherit">Sign out</a></p></div>
 ${themeToggleScript}<script>(function(){var ss=document.getElementById("seasonSel");if(ss)ss.addEventListener("change",function(){var u=new URL(location.href);if(ss.value)u.searchParams.set("season",ss.value);else u.searchParams.delete("season");location.href=u.toString()})})();</script><script>(function(){function fix(){var t=document.body.classList.contains("light")?"light":"dark";document.querySelectorAll("a.btn").forEach(function(el){var attr="href",v=el.getAttribute(attr);if(!v)return;try{var u=new URL(v,location.href);if(!u.searchParams.has("theme"))return;u.searchParams.set("theme",t);el.setAttribute(attr,u.toString())}catch(e){}})}fix();document.addEventListener("click",function(ev){if(ev.target.closest(".tgl"))setTimeout(fix,0)})})();document.addEventListener("click",function(ev){var a=ev.target.closest(".alll");if(!a)return;ev.preventDefault();var on=document.body.classList.toggle("all");a.textContent=on?"Show device links only":"Show all links"});</script></body></html>`;
       return new Response(page, { headers: { "Content-Type": "text/html;charset=utf-8" } });
     }
@@ -6513,7 +6522,6 @@ export default {
       return out; }
     const safe = label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const banner = `<div role="note" style="position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:2147483647;pointer-events:none;background:#f0a020;color:#1a1200;font:700 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,.35)">${safe} environment</div>`;
-    page = page.replace(/(<p class="ver">)([^<]*)(<\/p>)/, '$1$2 \u00b7 <a href="/release-notes" style="color:inherit">Release notes</a>$3');
     let html = withStamp(page, powered);
     html = html.replace(/<title>/i, `<title>[${safe}] `).replace(/<body([^>]*)>/i, m => m + banner);
     const headers = new Headers(response.headers);
