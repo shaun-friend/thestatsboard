@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.4 14-Nov-2026 Fix: Error 1102 (the server running out of working time) after Win Predictor was switched on. The sums are about three times quicker, the results are kept in Cloudflare's shared cache for 24 hours (the check page 6 hours) so only one server instance has to do them.
 //   v3.30.3 14-Nov-2026 This season's RFU data is kept for 30 minutes at weekends and 24 hours Monday to Friday (was 10 minutes and 1 hour). Open pages still reload on the old timing.
 //   v3.30.2 14-Nov-2026 Win Predictor is kept for 24 hours (a new result still changes it at once, because the number of results is part of the key), and earlier seasons fetched for it, and for the Match Stats meetings, are kept for 24 hours instead of 10 minutes to an hour.
 //   v3.30.1 14-Nov-2026 Win chance is now called Win Predictor everywhere, with a small-capitals heading on every bar, and it appears on the Match Centre (Modern and Classic on a TV, and the phone cards) as a compact bar with the percentages and the team name inside each side (the name is left out of a side under 28%). Not on the Fixtures board (owner decision).
@@ -213,7 +214,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.30.3";
+const VERSION = "v3.30.4";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -261,6 +262,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
 v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
 v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
 v3.30.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.1_win_predictor.zip              | v3.30
@@ -449,6 +451,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.4 - Fix: Error 1102 with Win Predictor on
+- Seen on DEV (14-Nov-2026) after the Win Predictor was switched on: Cloudflare Error 1102 ("Worker exceeded resource limits"), which then cleared by itself.
+- Cause (measured in the test rig, not confirmed from Cloudflare's own logs): each Win Predictor figure takes about 6 to 10 ms of working time to solve, and the check page about 85 ms per team. The result was only remembered inside one running server instance, so after every deploy or restart each new instance redid the sums for every team on every Match Centre load (four teams and more at once) on top of an already heavy page. Peaks of busy screens and phones starting together went over the limit, then calmed down once each instance had its figures.
+- Fix: the solving stops at a thousandth of a point (was a ten-millionth): about three times quicker, same percentages. Predictions are now also stored in Cloudflare's shared cache (24 hours; the check page result 6 hours), so one instance does the work and the others reuse it. The in-memory copy stays as the first stop.
+- To confirm: Cloudflare dashboard > the Pages project > Metrics or the real-time logs show the exception type (CPU time or memory). If 1102 returns, look there first.
+- Docs: none - speed fix only, nothing a visitor sees
 
 v3.30.3 - This season's data kept longer
 - Owner decision (14-Nov-2026): the site is for looking at stats after a game, not during it. This season's results, fixtures and tables from the RFU are now kept for 30 minutes on Saturdays and Sundays and 24 hours Monday to Friday (was 10 minutes and 1 hour). This is the setting behind the "Updated" time on every screen.
@@ -1812,6 +1821,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.4", "Fix: some pages showed Error 1102 after Win Predictor was switched on (the server ran out of working time). The Win Predictor sums are about three times quicker and the results are now shared between servers, so they are worked out once rather than over and over."],
       ["v3.30.3", "This season's results and tables are now fetched from the RFU at most every 30 minutes at weekends and once a day Monday to Friday (was every 10 minutes and every hour). A result entered on a weekday can take up to a day to appear."],
       ["v3.30.2", "Win Predictor is kept for a day instead of half an hour, and so are earlier seasons fetched for it, so pages load faster and ask the RFU less often. A new result still updates it."],
       ["v3.30.1", "The win chance is now called Win Predictor, and it now shows on the Match Centre (both TV layouts and the phone cards) as a slim bar with the percentages inside it. It is still off until switched on in Admin under Screens."],
@@ -2055,10 +2065,10 @@ function winModel(games, homeId, awayId, cfg) {
   const ids = new Set([homeId, awayId]); for (const g of gs) { ids.add(g.h); ids.add(g.a); }
   const r = {}, by = {}; for (const i of ids) { r[i] = 0; by[i] = []; }
   for (const g of gs) { const t = g.hs - g.as - ha; by[g.h].push({ o: g.a, t, w: g.w }); by[g.a].push({ o: g.h, t: -t, w: g.w }); }
-  for (let it = 0; it < 300; it++) {
+  for (let it = 0; it < 120; it++) { // v3.30.4: stops at a thousandth of a point (was a ten-millionth, up to 300 rounds); far less work, same percentages
     let mv = 0;
     for (const i of ids) { let num = 0, den = C.ridge; for (const x of by[i]) { num += x.w * (r[x.o] + x.t); den += x.w; } const v = num / den; mv = Math.max(mv, Math.abs(v - r[i])); r[i] = v; }
-    if (mv < 1e-7) break;
+    if (mv < 1e-3) break;
   }
   let se = 0, sw = 0; for (const g of gs) { const e = g.hs - g.as - (r[g.h] - r[g.a] + ha); se += g.w * e * e; sw += g.w; }
   const sigma = Math.max(C.sigmaMin, Math.min(C.sigmaMax, Math.sqrt((se + C.sigmaK * C.sigma0 * C.sigma0) / (sw + C.sigmaK)) * 1.1));
@@ -2121,6 +2131,13 @@ e.innerHTML='<div><b>'+tot.n+'</b><span>games checked</span></div><div><b class=
 T.forEach(function(t){var q=new URLSearchParams({format:"summary",detail:"wcheck",competition:t.competition,division:t.division,team:t.team,teamName:t.teamName});
 fetch("/?"+q.toString(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){add(t,d);fin()}).catch(function(){add(t,{error:1});fin()})});
 })();</script></body></html>`;
+}
+// v3.30.4: results are also kept in Cloudflare's shared cache, so one server instance doing the sums serves them all (the memory copy alone was lost every time a fresh instance started).
+async function sharedGet(key) {
+  try { if (typeof caches === "undefined" || !caches.default) return null; const r = await caches.default.match(new Request("https://wp.cache.internal/" + encodeURIComponent(key))); return r ? await r.json() : null; } catch (_) { return null; }
+}
+async function sharedPut(key, v, secs) {
+  try { if (typeof caches === "undefined" || !caches.default) return; await caches.default.put(new Request("https://wp.cache.internal/" + encodeURIComponent(key)), new Response(JSON.stringify(v), { headers: { "Cache-Control": "public, max-age=" + secs, "Content-Type": "application/json" } })); } catch (_) { /* memory copy only */ }
 }
 const WC_CACHE = new Map(); // key -> { at, v }, 24 hours (the key holds the number of results, so a new result is a new key)
 let TEAMS_STAMP = "d";
@@ -5825,6 +5842,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         if (!divIds.has(idHome) || !divIds.has(idAway)) return null;
         const key = [season, competition, division, idHome, idAway, resultObjects.length].join("|");
         const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 86400000) return hit.v;
+        { const sh = await sharedGet("wp|" + key); if (sh && sh.ok) { WC_CACHE.set(key, { at: Date.now(), v: sh.v }); return sh.v; } }
         const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm) }; };
         const seen = new Set(), games = []; let priorOk = 0;
         for (const mm of resultObjects) { const g = toGame(mm, 1); if (g && !seen.has(g.k)) { seen.add(g.k); games.push(g); } }
@@ -5845,7 +5863,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         const m = winModel(games, idHome, idAway);
         let v = null;
         if (m) { const pc = winPercents(m.pHome); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk }; }
-        if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); return v;
+        if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); await sharedPut("wp|" + key, { ok: true, v }, 86400); return v;
       };
       let nextWin = null;
       if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match"))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
@@ -6020,6 +6038,8 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           } catch (_) { /* league only */ }
         }
         if (url.searchParams.get("detail") === "wcheck") {
+          const wckey = "wc|" + [season, competition, division, resultObjects.length].join("|"), wchit = await sharedGet(wckey);
+          if (wchit && wchit.ok) return new Response(JSON.stringify({ team: displayTeamName, league: leagueTitle, season, ...wchit.v }), {headers: {"Content-Type":"application/json;charset=utf-8", "Cache-Control": "no-store"}});
           const seenC = new Set(), gsC = [];
           for (const mm of resultObjects) {
             if (walkoverInfo(mm)) continue;
@@ -6027,7 +6047,8 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
             const k = matchKey(mm); if (seenC.has(k)) continue; seenC.add(k);
             gsC.push({ h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, ts: dateOf(mm) ? dateOf(mm).getTime() : NaN });
           }
-          return new Response(JSON.stringify({ team: displayTeamName, league: leagueTitle, season, ...winBacktest(gsC) }), {headers: {"Content-Type":"application/json;charset=utf-8", "Cache-Control": "no-store"}});
+          const bt = winBacktest(gsC); await sharedPut(wckey, { ok: true, v: bt }, 21600);
+          return new Response(JSON.stringify({ team: displayTeamName, league: leagueTitle, season, ...bt }), {headers: {"Content-Type":"application/json;charset=utf-8", "Cache-Control": "no-store"}});
         }
         if (url.searchParams.get("detail") === "leaders") {
           return new Response(JSON.stringify({ team: displayTeamName, teamId, league: leagueTitle, updatedAt: dataTime, leaders: leaders || null }), {headers: {"Content-Type":"application/json;charset=utf-8"}});

@@ -69,6 +69,13 @@ const ad=await (await get('/admin')).text();
 c('admin has the switch, on',/id="fwc" checked|id="fwc"[^>]* checked/.test(ad));
 c('admin tools list the check page',/href="\/winchance">Win Predictor check/.test(ad));
 c('admin save sends the switch',/winchance:\$\("fwc"\)\.checked/.test(ad));
+// 4b. shared cache: a fresh server instance reuses the sums instead of redoing them
+{const sc=new Map();globalThis.caches={default:{match:async r=>{const v=sc.get(String(r.url||r));return v?new Response(v.body,{headers:v.h}):undefined},put:async(r,x)=>{sc.set(String(r.url||r),{body:await x.text(),h:[...x.headers]})}}};
+ w=await load();j=await sumM();const w1=j.next&&j.next.win;c('shared cache: first instance works the figure out and stores it',!!w1&&[...sc.keys()].some(k=>k.includes('wp.cache.internal')));
+ calls.length=0;w=await load();j=await sumM();c('shared cache: a fresh instance gives the same figure',j.next&&j.next.win&&j.next.win.home.pct===w1.home.pct);
+ c('shared cache: and does not fetch earlier seasons again',!calls.some(u=>/season=2025-2026|season=2024-2025/.test(u)));
+ const before=sc.size;await get('/?'+base+'&format=summary&detail=wcheck');await get('/?'+base+'&format=summary&detail=wcheck');c('shared cache: the check result is stored too',sc.size>before&&[...sc.keys()].some(k=>k.includes('wc%7C')));
+ delete globalThis.caches;}
 // 5. switch off again
 r=await post({features:{winchance:false}});w=await load();j=await sumM();c('off again: no win',j.next&&!j.next.win);
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

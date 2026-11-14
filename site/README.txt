@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
 v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
 v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
 v3.30.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.1_win_predictor.zip              | v3.30
@@ -230,6 +231,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.4 - Fix: Error 1102 with Win Predictor on
+- Seen on DEV (14-Nov-2026) after the Win Predictor was switched on: Cloudflare Error 1102 ("Worker exceeded resource limits"), which then cleared by itself.
+- Cause (measured in the test rig, not confirmed from Cloudflare's own logs): each Win Predictor figure takes about 6 to 10 ms of working time to solve, and the check page about 85 ms per team. The result was only remembered inside one running server instance, so after every deploy or restart each new instance redid the sums for every team on every Match Centre load (four teams and more at once) on top of an already heavy page. Peaks of busy screens and phones starting together went over the limit, then calmed down once each instance had its figures.
+- Fix: the solving stops at a thousandth of a point (was a ten-millionth): about three times quicker, same percentages. Predictions are now also stored in Cloudflare's shared cache (24 hours; the check page result 6 hours), so one instance does the work and the others reuse it. The in-memory copy stays as the first stop.
+- To confirm: Cloudflare dashboard > the Pages project > Metrics or the real-time logs show the exception type (CPU time or memory). If 1102 returns, look there first.
+- Docs: none - speed fix only, nothing a visitor sees
 
 v3.30.3 - This season's data kept longer
 - Owner decision (14-Nov-2026): the site is for looking at stats after a game, not during it. This season's results, fixtures and tables from the RFU are now kept for 30 minutes on Saturdays and Sundays and 24 hours Monday to Friday (was 10 minutes and 1 hour). This is the setting behind the "Updated" time on every screen.
