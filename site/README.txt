@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
 v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
 v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
 v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
@@ -243,6 +244,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.17 - friendlyName back after the DEV PIN page
+- Owner report (14-Nov-2026, DEV): a page address still ended with &friendlyName=Ivybridge+1XV after v3.30.15 (competition, division, team, teamName, theme, force, app, then friendlyName).
+- Cause: the Admin name is filled into each request first thing, and the DEV PIN page then remembers where to send you back to from that filled-in request, so after typing the PIN you land on an address that carries the name. It was at the end because the filler appends it last. Reproduced in a test (the return address contained friendlyName) and fixed. The DEV PIN page is DEV only, so the live site did not do this; the club PIN page (Links, Admin) has the same shape but those addresses carry no team, so nothing was added.
+- Fix: the Admin name is now filled in after the PIN, maintenance and address checks, so those pages see the address as typed. A name typed into a link still survives the PIN page.
+- If a page address still shows friendlyName after this, tell me what you tapped to get there: the in-app team switcher and the links made by the pages were also checked and do not add it.
+- Docs: none - behind the scenes
 
 v3.30.16 - Match Centre rows with five or six teams
 - Owner report (14-Nov-2026, iPad photo): with more than four teams the row view is cramped; the "Next game" box was cut off at the bottom (the Next Saturday tag and the Win Predictor bar).

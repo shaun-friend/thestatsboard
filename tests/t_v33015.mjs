@@ -44,4 +44,12 @@ const cu=await (await get('/?view=match&'+base+'&friendlyName=Seniors')).text();
 await setTeams(['Ivybridge']);
 const cw=await (await get('/?view=match&'+base+'&friendlyName=Ivybridge+Women')).text();
 c('a longer name starting with an Admin name is not cut short',/friendlyName(=|%3D)Ivybridge(\+|%2B)Women/.test(cw));
+// the DEV PIN page's return address does not pick up the Admin name
+{const envD={...env,ENV_LABEL:'TEST',DEV_PIN:'4321'};
+ await setTeams(['Ivybridge 1XV']);
+ const r0=await w.fetch(new Request('https://dev.x.co.uk/?competition=1699&division=75791&team=11039&teamName=Ivybridge&theme=dark&app=1',{headers:{'User-Agent':'Mozilla/5.0'}}),envD,ctx);
+ const loc=r0.headers.get('Location')||'';c('DEV PIN redirect is issued',r0.status===303&&/unlock/.test(loc));
+ c('DEV PIN return address has no friendlyName',!/friendlyName/i.test(decodeURIComponent(loc)));
+ const r1=await w.fetch(new Request('https://dev.x.co.uk/?competition=1699&division=75791&team=11039&teamName=Ivybridge&theme=dark&friendlyName=Seniors',{headers:{'User-Agent':'Mozilla/5.0'}}),envD,ctx);
+ c('a name typed into the link survives the PIN page',/friendlyName%3DSeniors|friendlyName=Seniors/.test(r1.headers.get('Location')||''));}
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

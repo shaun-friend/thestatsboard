@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.17 14-Nov-2026 DEV: the PIN page's return address no longer picks up the filled-in Admin friendly name (it showed as &friendlyName=... after unlocking).
 //   v3.30.16 14-Nov-2026 Match Centre rows with five or six teams: a more compact Next game box so the tag and the Win Predictor bar are no longer cut off.
 //   v3.30.15 14-Nov-2026 Links made by team pages (Match Stats, Opposition Report, Fixtures, Share, Add to home screen, WhatsApp, calendar) no longer carry the Admin friendly name; they follow Admin by themselves. A different name typed into a link is kept.
 //   v3.30.14 14-Nov-2026 Our teams: at most six teams. Adding a team clears the search list once one is picked (only its leagues remain, or it is added straight away if it has just one league).
@@ -238,7 +239,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.16";
+const VERSION = "v3.30.17";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -286,6 +287,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
 v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
 v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
 v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
@@ -487,6 +489,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.17 - friendlyName back after the DEV PIN page
+- Owner report (14-Nov-2026, DEV): a page address still ended with &friendlyName=Ivybridge+1XV after v3.30.15 (competition, division, team, teamName, theme, force, app, then friendlyName).
+- Cause: the Admin name is filled into each request first thing, and the DEV PIN page then remembers where to send you back to from that filled-in request, so after typing the PIN you land on an address that carries the name. It was at the end because the filler appends it last. Reproduced in a test (the return address contained friendlyName) and fixed. The DEV PIN page is DEV only, so the live site did not do this; the club PIN page (Links, Admin) has the same shape but those addresses carry no team, so nothing was added.
+- Fix: the Admin name is now filled in after the PIN, maintenance and address checks, so those pages see the address as typed. A name typed into a link still survives the PIN page.
+- If a page address still shows friendlyName after this, tell me what you tapped to get there: the in-app team switcher and the links made by the pages were also checked and do not add it.
+- Docs: none - behind the scenes
 
 v3.30.16 - Match Centre rows with five or six teams
 - Owner report (14-Nov-2026, iPad photo): with more than four teams the row view is cramped; the "Next game" box was cut off at the bottom (the Next Saturday tag and the Win Predictor bar).
@@ -1950,6 +1959,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.17", "Test site only: after typing the test PIN, the page address no longer gains a friendlyName setting."],
       ["v3.30.16", "Match Centre: with five or six teams the rows are less cramped; the Next game box now fits, including the Win Predictor bar."],
       ["v3.30.15", "Links made from a team's pages no longer carry the friendly name; they follow the name set in Admin, so they are shorter and a rename in Admin reaches them. A name typed into a link is still respected."],
       ["v3.30.14", "Our teams in Admin now holds up to six teams. Picking a team from the search now clears the list, leaving only that team's leagues to choose from (or adding it straight away if it plays in just one league)."],
@@ -7188,12 +7198,12 @@ export default {
     SITE_ENV = env || {}; SITE_CTX = ctx || null;
     const t0 = Date.now();
     try { await siteSettings(); } catch (_) { /* default team list */ }
-    request = withClubName(request);
     const label = env && typeof env.ENV_LABEL === "string" ? env.ENV_LABEL.trim().slice(0, 30) : "";
     if (label) { const blocked = await devGate(request, env, label); if (blocked) return blocked; }
     { const cb = await clubGate(request, env, label); if (cb) return cb; }
     { const mg = await maintenanceGate(request); if (mg) return mg; }
     { const ag = await addressGate(request); if (ag) return ag; }
+    request = withClubName(request); // v3.30.17: after the gates, so the PIN pages' return address does not pick up the filled-in name
     const serve = async () => {
     // v3.30.6: finished team, Match Centre, fixtures and match pages are kept at the edge (see pageState: the rest of the UK day Monday to Friday, 30 minutes at weekends
     // with an older same-day copy shown at once while a new one builds). The key holds the version, the team list and the time Admin was last saved, so a deploy or an Admin change shows at once.
