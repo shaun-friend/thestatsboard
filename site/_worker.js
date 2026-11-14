@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.6 14-Nov-2026 Match Stats page on a big screen: hidden while its text is being fitted, then faded in once (no resize flicker), same as the Match Centre.
 //   v3.27.5 14-Nov-2026 Club access: the welcome-page footer now has one Club access link that opens Admin (Release notes and Documentation links removed from the public footer). Links, Usage, Match sheet, Documentation and Release notes have an Admin link at the top. Admin Tools lists Team links first and shows Release notes on the test site only.
 //   v3.27.4 14-Nov-2026 Admin Overview: the Settings tiles are removed (the menu and phone tabs already do that job).
 //   v3.27.3 14-Nov-2026 Admin: the "Hide automatically after" date boxes no longer overflow their card on an iPhone.
@@ -199,7 +200,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.5";
+const VERSION = "v3.27.6";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -243,6 +244,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.6_stats_flicker.zip            | v3.27.5
 v3.27.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.5_club_access.zip              | v3.27.4
 v3.27.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.4_overview_tidy.zip            | v3.27.3
 v3.27.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.3_date_boxes.zip              | v3.27.2
@@ -417,6 +419,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.6 - Match Stats page flicker on big screens
+- The Match Stats page (view=match) shrinks its text to fit the screen. It showed at full size first, then shrank in steps as crests, fonts and weather arrived, which looked like flicker. It is now hidden until fitted (about half a second) and fades in once. A 2.5 second safety timer shows it anyway. Phones and small windows are unchanged.
+- Docs: none - cosmetic fix, no change to how anything works
 
 v3.27.5 - One club entry point: Club access opens Admin
 - The public welcome-page footer shows only the version and Club access. Release notes and Documentation links are gone from it (both need the PIN anyway).
@@ -1664,6 +1670,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.6", "The Match Stats page on a big screen no longer flickers while it sizes itself to the screen: it appears once, fully fitted."],
       ["v3.27.5", "The welcome page footer has a single Club access link, which now opens Admin. Links, Usage, Match sheet and Documentation each have an Admin link at the top, and Admin Tools lists Team links first."],
       ["v3.27.4", "The Admin Overview no longer repeats the section menu: it now shows only the status cards and any live notices."],
       ["v3.27.3", "Admin on an iPhone: the Hide automatically after date boxes now fit inside their card."],
@@ -4200,17 +4207,18 @@ body{height:auto;overflow:visible;gap:.9rem;padding:max(.8rem,env(safe-area-inse
 .hsn{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:.7rem 0 .2rem;font-weight:700}.hrw{text-align:left;display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;padding:.3rem 0 .3rem .6rem;margin:.2rem 0;font-size:.95rem;border-left:.3rem solid #7a6a2a}.hrw.wa{border-color:var(--ca)}.hrw.wb{border-color:var(--cb)}.hrw small{display:block;color:var(--mu);font-size:.75rem}}
 @media (max-height:560px) and (orientation:landscape){html{font-size:14px}.top .dt{font-size:1.6rem}.big{width:3.8rem;height:3.8rem}.big .ini{font-size:1.3rem}.nm{font-size:1.1rem}.hd{gap:.4rem}.tag{margin-top:.3rem}.t{height:1.8rem}.b{font-size:.95rem}}`;
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>Match Stats</title>
-<style>${css}</style></head><body class="${theme}${m && Array.isArray(m.h2hAll) && m.h2hAll.length ? " hx" : ""}">${themeBoot('window.matchMedia("(max-width:800px),(max-height:560px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>
+<style>${css}@media (min-width:801px) and (min-height:561px){body.fitwait{opacity:0}body.fitshow{transition:opacity .25s}}</style></head><body class="${theme}${m && Array.isArray(m.h2hAll) && m.h2hAll.length ? " hx" : ""} fitwait">${themeBoot('window.matchMedia("(max-width:800px),(max-height:560px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>
 ${inner}
 ${themeToggleScript}${colourScript}${refresh}<script>(function(){var H=document.documentElement,B=document.body,MQ="(min-width:801px) and (min-height:561px)";
 // TV / big screen: if everything does not fit the screen height (short browser window, long venue name, extra head-to-head text, weather or crests that arrive a moment after the page), shrink the text a step at a time until it does, with a gap kept between the bar rows. It re-checks whenever the page changes size or content, so it cannot slip back to bunched-up bars.
 function fsz(){return parseFloat(getComputedStyle(H).fontSize)||16}
 function over(){var bars=document.querySelector(".bars");if(B.scrollHeight>B.clientHeight+1)return true;if(!bars)return false;var sum=0,k=bars.children.length;for(var i=0;i<k;i++)sum+=bars.children[i].getBoundingClientRect().height;
 return bars.scrollHeight>bars.clientHeight+1||sum+k*.45*fsz()>bars.clientHeight}
+var settled=false;function settle(){if(settled)return;settled=true;B.classList.add("fitshow");B.classList.remove("fitwait")}
 var busy=false;function fit(){if(busy)return;busy=true;try{H.style.fontSize="";if(matchMedia(MQ).matches){var fs=fsz(),n=0;while(over()&&fs>7&&n++<80){fs-=.25;H.style.fontSize=fs+"px"}}}catch(e){}busy=false}
 function check(){try{if(matchMedia(MQ).matches&&over())fit()}catch(e){}}
 var tm;function later(){clearTimeout(tm);tm=setTimeout(check,120)}
-fit();addEventListener("load",function(){fit();setTimeout(check,600)});addEventListener("resize",function(){clearTimeout(tm);tm=setTimeout(fit,150)});
+fit();addEventListener("load",function(){fit();setTimeout(function(){check();settle()},600)});setTimeout(function(){fit();settle()},2500);addEventListener("resize",function(){clearTimeout(tm);tm=setTimeout(fit,150)});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 document.addEventListener("load",later,true);
 try{new MutationObserver(later).observe(B,{childList:true,subtree:true,characterData:true})}catch(e){}
