@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.4 14-Nov-2026 Admin Overview: the Settings tiles are removed (the menu and phone tabs already do that job).
 //   v3.27.3 14-Nov-2026 Admin: the "Hide automatically after" date boxes no longer overflow their card on an iPhone.
 //   v3.27.2 14-Nov-2026 Admin on a phone: a swipeable row of section tabs replaces the full-screen list, sections reordered (Messages, Screens, Match day, Site status, Data sources, Privacy and counts, Access), Save bar only shows when something is changed, no jump to the top when switching sections.
 //   v3.27.1 14-Nov-2026 Documentation brought up to date for v3.22 to v3.27 (Admin sections, Modern/Classic, screen names, website back-up switch, Match sheet, cup games). Release check now requires every release to say which Documentation sections it updated.
@@ -197,7 +198,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.3";
+const VERSION = "v3.27.4";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -212,6 +213,7 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
+- Rotating screen, one link for all content (idea 14-Nov-2026, to explore with mock-ups first, nothing built): a single TV link that rotates through pages on a schedule, so a screen needs only one address. A page per team (its table, then its fixtures, as the screens rotate today). The site owner can switch each page of the rotation on or off and put them in order, in Admin, with a time for each page. To explore at the same time: the TV league table view is getting cramped and shows too much (user feedback), so decide what a TV table should show and mock up a simpler layout before it goes into the rotation.
 - TV quick setup (idea 14-Nov-2026, the next one to explore; mock-ups first, nothing built): on a TV, visit thestatsboard.co.uk/setup and get a branded page with a QR code. An admin scans it with a phone camera, picks the screen link on the builder page (/builder) and the link appears on the TV. For TV screens only: on-screen keyboards need a remote control, so the aim is to type as little as possible on the TV. To explore: how the TV and phone pair (short code or QR), how the chosen link reaches the TV (the TV polls for it), the admin sign-in on the phone, how long a code lasts and how pairing is secured, and what the TV shows before and after pairing. Mock up both the TV page and the phone steps.
 - Request logging and a Status page: record view, team, status, cache hit and stale-data flag (country and device type, no IP addresses) in Workers Analytics Engine, with a PIN-protected page showing whether each TV is still checking in. Needs a Pages binding set up in Cloudflare first.
 - More statistics: close games (decided by 7 points or fewer), points per game against the league average, season pace (labelled as a rough guide), home/away split of points scored.
@@ -240,6 +242,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.4_overview_tidy.zip            | v3.27.3
 v3.27.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.3_date_boxes.zip              | v3.27.2
 v3.27.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.2_admin_tabs.zip               | v3.27.1
 v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
@@ -412,6 +415,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.4 - Admin Overview tidy-up
+- The Settings tiles on the Overview repeated the menu (left menu on wide screens, tabs on a phone), so they are removed. The Overview shows the status cards and any live notices only.
+- Docs: Admin guide, What's new
 
 v3.27.3 - Admin date boxes fit on an iPhone
 - The two "Hide automatically after" date boxes had a fixed iPhone style that made them wider than their card and left them empty and tall. They are now width-limited, left-aligned and the same height as the other boxes.
@@ -1485,7 +1492,7 @@ const DOC_SECTIONS = [
     { h: "How the Admin page is laid out" },
     { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, Match day) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
     { dl: [
-      ["Overview", "Status cards and a shortcut to each section."],
+      ["Overview", "Status cards and any live notices."],
       ["Messages", "The homepage notice and the TV screen notice."],
       ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
       ["Match day", "The Match sheet (team sheets and scorers)."],
@@ -1649,6 +1656,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.4", "The Admin Overview no longer repeats the section menu: it now shows only the status cards and any live notices."],
       ["v3.27.3", "Admin on an iPhone: the Hide automatically after date boxes now fit inside their card."],
       ["v3.27.2", "Admin on a phone now has a row of tabs across the top to switch sections, instead of a full-screen list. The sections are in a more logical order, and the Save bar only appears when you have changed something."],
       ["v3.27.1", "The Documentation is brought up to date: the Admin guide now follows the new Admin sections, and it covers Modern and Classic, screen names, the website back-up switch, the Match sheet and cup games with no name."],
@@ -1921,10 +1929,10 @@ ${MENU_CSS}
 .adm{min-width:0;padding-bottom:84px}.adm h1{margin:0 0 4px}.adm .sub{margin:0 0 14px}
 .ov{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:6px}.oc{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}.oc small{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#91a49a;font-weight:700}.oc b{font-size:28px;line-height:1.45}.oc b.good{color:#7fd19a}.oc b.bad{color:#f0c870}.oc span{font-size:12.5px;color:#91a49a;line-height:1.4}
 .warn{margin:14px 0 0;background:#3a2f12;color:#f0c870;border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.5}
-.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tile{display:flex;flex-direction:column;justify-content:center;gap:2px;min-height:72px;background:#111719;border:1px solid #26312d;border-radius:14px;padding:12px 16px;color:inherit;text-decoration:none}.tile b{font-size:16px}.tile small{color:#91a49a;font-size:13px;line-height:1.4}
+
 .sbar:not(.show){display:none}.sbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0c1113;border-top:1px solid #26312d;padding:12px max(16px,calc((100vw - 1040px)/2 + 246px)) calc(12px + env(safe-area-inset-bottom)) ;}
 .sbar .dirty{color:#f0c870;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}.sbar .dirty::before{content:"";width:10px;height:10px;border-radius:50%;background:#f0c870}.sbar .n{flex:1;min-width:140px}.sbb{display:flex;gap:10px}
-@media (max-width:820px){.adw{grid-template-columns:1fr;gap:0}.adn{position:static;flex-direction:row;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px;border-radius:14px;margin-bottom:14px}.adn::-webkit-scrollbar{display:none}.adn .adh{display:none}.adn a{flex:none;white-space:nowrap;padding:10px 14px!important;border-radius:999px}.adn .adt{flex:none;padding:0 4px;margin:0;border:0}.ov{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles{grid-template-columns:1fr}.sbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}}
+@media (max-width:820px){.adw{grid-template-columns:1fr;gap:0}.adn{position:static;flex-direction:row;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px;border-radius:14px;margin-bottom:14px}.adn::-webkit-scrollbar{display:none}.adn .adh{display:none}.adn a{flex:none;white-space:nowrap;padding:10px 14px!important;border-radius:999px}.adn .adt{flex:none;padding:0 4px;margin:0;border:0}.ov{grid-template-columns:repeat(2,minmax(0,1fr))}.sbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}}
 body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cbd8ce}body.light .adn a{color:#24332b}body.light .adn a.on{background:#e3f0e7;color:#0b1110}body.light .sbar{background:#f4f8f5;border-color:#cbd8ce}body.light .warn{background:#fff1cf;color:#5a3a00}
 .cs{display:flex;justify-content:space-between;align-items:center;margin:14px 0 0;background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 16px}.cs b{font-size:16px}.cs small{color:#91a49a;font-size:12.5px;display:block}
 .ad h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:26px 0 8px}
@@ -1951,16 +1959,7 @@ ${setup}
 <div class="oc"><small>Website back-up</small><b class="${s.features.webfallback === false ? "bad" : "good"}">${s.features.webfallback === false ? "Off" : "On"}</b><span>${s.features.webfallback === false ? "RFU data service only" : "Used if the data service has nothing"}</span></div>
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
-<h2>Settings</h2>
-<div class="tiles">
-<a class="tile" href="#notices"><b>Messages</b><small>Homepage and TV notices</small></a>
-<a class="tile" href="#screens"><b>Screens</b><small>Match Centre layout, strips, weather, credit line</small></a>
-<a class="tile" href="#match"><b>Match day</b><small>Match sheet</small></a>
-<a class="tile" href="#status"><b>Site status</b><small>Maintenance mode and pun lines</small></a>
-<a class="tile" href="#data"><b>Data sources</b><small>England Rugby website back-up</small></a>
-<a class="tile" href="#privacy"><b>Privacy and counts</b><small>Visit counts, screen counts, Usage period</small></a>
-<a class="tile" href="#access"><b>Access</b><small>How long a PIN sign-in lasts</small></a>
-</div></section>
+</section>
 <section class="sec" id="s-notices" hidden><h1>Messages</h1><p class="sub">Notices shown to visitors and on the clubhouse TVs.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Homepage notice</b><small>Shown at the top of the page where visitors pick a team. Everyone sees it.</small></div><label class="tg"><input type="checkbox" id="hon"${h.on ? " checked" : ""}><span></span></label></div>
