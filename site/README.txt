@@ -39,6 +39,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.4_usage_chart.zip                | v3.28.3
 v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
 v3.28.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.2_usage_teams.zip                | v3.28.1
 v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
@@ -219,6 +220,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.4 - Usage: Outside calls chart lines up
+- In a bar with website calls, the gold count read "4 web" and wrapped onto two lines on a phone, which made that column taller and lifted its bar and hour label above its neighbours. The gold count is now just the number (the gold colour and the note under the heading say what it is), every label row has a fixed height, and none of them wrap.
+- Hour labels are two digits (09, 10, 11) instead of 09:00, so they stop running together on a phone. They are still UTC hours.
+- Docs: none - cosmetic fix on a report page
 
 v3.28.3 - Usage: one row per team
 - "Teams people look up" showed Ivybridge twice (29 as ours, 8 not ours). Records were grouped by name, league and the "ours" flag, so one team with two spellings of its name, or recorded before and after joining the list, got two rows. Rows are now merged by team number: counts add up, "ours" shows if any record says so, and the team number is shown next to the name. If two rows still appear, they have different team numbers and are different teams with the same name.

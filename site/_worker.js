@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.28.4 14-Nov-2026 Usage: the Outside calls chart lines up when a bar has website calls (the gold count no longer wraps onto two lines and lifts its column); hour labels are two digits so they do not run together on a phone.
 //   v3.28.3 14-Nov-2026 Usage: Teams people look up is merged by team number (no more twin rows for one team) and shows the number so two clubs with the same name can be told apart.
 //   v3.28.2 14-Nov-2026 Usage: "Teams that are not in our list" becomes "Teams people look up" and counts every team opened by people or picked in the link builder, ours included (marked), not TV screens.
 //   v3.28.1 14-Nov-2026 Match Stats on a big screen: two fitting scripts were fighting (the shared one reset the text size every few seconds); the page now uses only its own, and waits for crests to load before fading in.
@@ -205,7 +206,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.28.3";
+const VERSION = "v3.28.4";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -250,6 +251,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.4_usage_chart.zip                | v3.28.3
 v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
 v3.28.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.2_usage_teams.zip                | v3.28.1
 v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
@@ -430,6 +432,11 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.4 - Usage: Outside calls chart lines up
+- In a bar with website calls, the gold count read "4 web" and wrapped onto two lines on a phone, which made that column taller and lifted its bar and hour label above its neighbours. The gold count is now just the number (the gold colour and the note under the heading say what it is), every label row has a fixed height, and none of them wrap.
+- Hour labels are two digits (09, 10, 11) instead of 09:00, so they stop running together on a phone. They are still UTC hours.
+- Docs: none - cosmetic fix on a report page
 
 v3.28.3 - Usage: one row per team
 - "Teams people look up" showed Ivybridge twice (29 as ours, 8 not ours). Records were grouped by name, league and the "ours" flag, so one team with two spellings of its name, or recorded before and after joining the list, got two rows. Rows are now merged by team number: counts add up, "ours" shows if any record says so, and the team number is shown next to the name. If two rows still appear, they have different team numbers and are different teams with the same name.
@@ -1708,6 +1715,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.28.4", "Usage page: the Outside calls chart now lines up when some hours have website calls, and the hour labels no longer run together on a phone."],
       ["v3.28.3", "Usage page: Teams people look up now shows one row per team and its team number, so the same team is never listed twice."],
       ["v3.28.2", "Usage page: the card for other teams is now Teams people look up. It lists every team that people open or pick, including the club's own (marked as ours)."],
       ["v3.28.1", "Match Stats on a big screen no longer jumps in size a second or two after appearing."],
@@ -2403,7 +2411,7 @@ ${MENU_CSS}
 .rng{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.rng button{border:1px solid #26312d;background:transparent;color:#91a49a;border-radius:99px;padding:7px 16px;font-size:14px;cursor:pointer}.rng button.on{background:#163d26;color:#7fd89a;border-color:#2c6a43}
 .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:12px}.k,.cd{background:#111719;border:1px solid #26312d;border-radius:12px;padding:14px 16px}.k b{display:block;font-size:28px;margin-top:3px}.k span{font-size:13px;color:#91a49a}.k em{font-style:normal;font-size:12px;color:#91a49a;display:block;margin-top:2px}
 .cd{margin-bottom:12px}.cd h2{font-size:15px;margin:0 0 3px;text-transform:none;letter-spacing:0;color:#f5f7f6}.cd .n{font-size:13px;color:#91a49a;margin:0 0 10px;line-height:1.45}
-.ch{display:flex;gap:6px;align-items:flex-end;height:190px}.col{flex:1;min-width:0;text-align:center}.bar{background:#3f8f62;border-radius:4px 4px 0 0;margin:2px auto 0;width:70%}.bar.we{background:#e0b84c}.bv,.bl{font-size:11px;color:#91a49a}.bl{margin-top:5px;white-space:nowrap}
+.ch{display:flex;gap:6px;align-items:flex-end;height:190px}.col{flex:1;min-width:0;text-align:center}.bar{background:#3f8f62;border-radius:4px 4px 0 0;margin:2px auto 0;width:70%}.bar.we{background:#e0b84c}.bv,.bl{font-size:11px;line-height:14px;height:14px;color:#91a49a;white-space:nowrap;overflow:visible}.bl{margin-top:5px}
 .tw{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.tw{grid-template-columns:1fr}}
 table{width:100%;border-collapse:collapse;font-size:14px}td{padding:7px 4px;border-top:1px solid #1f2925}tr:first-child td{border-top:0}td.nu{text-align:right;width:60px;font-variant-numeric:tabular-nums}.mu{color:#91a49a}
 .hl{border-color:rgba(224,182,76,.5)}.msg{color:#c9d4ce;line-height:1.5;font-size:14px}
@@ -2447,9 +2455,9 @@ function upDayCard(d){
  var mx=Math.max.apply(null,keys.map(function(k2){var o2=by[k2];return o2.web+o2.svc+o2.oth}).concat([1])),tw=0,ts=0,sc=140/mx;
  keys.forEach(function(k2){tw+=by[k2].web;ts+=by[k2].svc});
  var seg=function(v,c){return v?'<div style="background:'+c+';height:'+Math.max(2,Math.round(v*sc))+'px;margin-top:1px"></div>':""};
- var cols=keys.map(function(k2){var o2=by[k2],h2=k2.length>10,dt=new Date(h2?k2.replace(" ","T")+"Z":k2+"T12:00:00Z"),lab=h2?k2.slice(11,16):dt.toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"});
-  return'<div class="col"><div class="bv">'+num(o2.web+o2.svc+o2.oth)+'</div><div style="width:70%;margin:2px auto 0;border-radius:4px 4px 0 0;overflow:hidden">'+seg(o2.oth,"#6b7a73")+seg(o2.svc,"#3f8f62")+seg(o2.web,"#e0b84c")+'</div><div class="bl">'+esc(lab)+'</div><div class="bv" style="color:#e0b84c">'+(o2.web?num(o2.web)+" web":"&nbsp;")+"</div></div>"}).join("");
- return'<div class="cd"><h2>Outside calls per '+(hr?"hour":"day")+'</h2><p class="n">Each time the site went outside for fresh data (stored copies are not counted). <b style="color:#e0b84c">Gold</b> is the RFU website, which we are trying to cut back; <b style="color:#5fbf86">green</b> is the RFU data service; grey is the weather and postcode services. The gold number under a bar is the website calls in that '+(hr?"hour":"day")+'.</p>'+(keys.length?'<p class="msg"><b>'+num(tw)+'</b> website calls and <b>'+num(ts)+'</b> data service calls in this period.</p><div class="ch" style="height:210px">'+cols+"</div>":'<p class="msg mu">Nothing yet.</p>')+"</div>"}
+ var cols=keys.map(function(k2){var o2=by[k2],h2=k2.length>10,dt=new Date(h2?k2.replace(" ","T")+"Z":k2+"T12:00:00Z"),lab=h2?k2.slice(11,13):dt.toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"});
+  return'<div class="col"><div class="bv">'+num(o2.web+o2.svc+o2.oth)+'</div><div style="width:70%;margin:2px auto 0;border-radius:4px 4px 0 0;overflow:hidden">'+seg(o2.oth,"#6b7a73")+seg(o2.svc,"#3f8f62")+seg(o2.web,"#e0b84c")+'</div><div class="bl">'+esc(lab)+'</div><div class="bv" style="color:#e0b84c">'+(o2.web?num(o2.web):"&nbsp;")+"</div></div>"}).join("");
+ return'<div class="cd"><h2>Outside calls per '+(hr?"hour":"day")+'</h2><p class="n">Each time the site went outside for fresh data (stored copies are not counted). <b style="color:#e0b84c">Gold</b> is the RFU website, which we are trying to cut back; <b style="color:#5fbf86">green</b> is the RFU data service; grey is the weather and postcode services. The gold number under a bar is the website calls in that '+(hr?"hour (labelled by the hour, UTC)":"day")+'.</p>'+(keys.length?'<p class="msg"><b>'+num(tw)+'</b> website calls and <b>'+num(ts)+'</b> data service calls in this period.</p><div class="ch" style="height:210px">'+cols+"</div>":'<p class="msg mu">Nothing yet.</p>')+"</div>"}
 function speedCard(d){
  var sp=d.speed||{};
  if(!sp.pages&&!sp.up)return'<div class="cd"><h2>Speed</h2><p class="n">Speed figures could not be read this time.</p></div>';
