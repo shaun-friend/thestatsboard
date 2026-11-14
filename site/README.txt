@@ -39,6 +39,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
 v3.28.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.2_usage_teams.zip                | v3.28.1
 v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
 v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
@@ -218,6 +219,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.3 - Usage: one row per team
+- "Teams people look up" showed Ivybridge twice (29 as ours, 8 not ours). Records were grouped by name, league and the "ours" flag, so one team with two spellings of its name, or recorded before and after joining the list, got two rows. Rows are now merged by team number: counts add up, "ours" shows if any record says so, and the team number is shown next to the name. If two rows still appear, they have different team numbers and are different teams with the same name.
+- Docs: none - small fix to a report, no change to how anything works
 
 v3.28.2 - Usage: Teams people look up
 - The Usage card "Teams that are not in our list" is now "Teams people look up". It lists every team opened by people (phone, tablet or computer) or picked in the link builder, whether or not it is in our list. Our own teams carry an "ours" mark. TV screens are no longer counted in it, so they cannot swamp the list.

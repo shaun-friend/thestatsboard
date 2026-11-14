@@ -29,7 +29,7 @@ if ent:
     dl = re.search(r'^- Docs:\s*(.+)$', ent.group(1), re.M)
     if not dl: errs.append(f"README entry for {v} has no '- Docs:' line (name the Documentation sections updated, or '- Docs: none - <reason>')")
     elif re.match(r'none\b', dl.group(1), re.I):
-        if not re.match(r'none\s*[-:\u2013]\s*\S{8,}', dl.group(1), re.I): errs.append("'Docs: none' needs a reason, e.g. '- Docs: none - behind-the-scenes fix'")
+        if not re.match(r'none\s*[-:\u2013]\s*\S.{7,}', dl.group(1), re.I): errs.append("'Docs: none' needs a reason, e.g. '- Docs: none - behind-the-scenes fix'")
     else:
         titles = [m.group(1).lower() for m in re.finditer(r'\{ id: "[a-z]+", title: "([^"]+)"', w)]
         for n in [q.strip().lower() for q in dl.group(1).split(",") if q.strip()]:

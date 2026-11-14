@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.28.3 14-Nov-2026 Usage: Teams people look up is merged by team number (no more twin rows for one team) and shows the number so two clubs with the same name can be told apart.
 //   v3.28.2 14-Nov-2026 Usage: "Teams that are not in our list" becomes "Teams people look up" and counts every team opened by people or picked in the link builder, ours included (marked), not TV screens.
 //   v3.28.1 14-Nov-2026 Match Stats on a big screen: two fitting scripts were fighting (the shared one reset the text size every few seconds); the page now uses only its own, and waits for crests to load before fading in.
 //   v3.28 14-Nov-2026 TV and tablet pages refresh by crossfade: the new page loads in a hidden frame, fits itself, then fades in over the old one (no blank, no resize). Phones and small windows still reload as before. If the new page is slow or fails the old one stays on screen.
@@ -204,7 +205,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.28.2";
+const VERSION = "v3.28.3";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -249,6 +250,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
 v3.28.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.2_usage_teams.zip                | v3.28.1
 v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
 v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
@@ -428,6 +430,10 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.3 - Usage: one row per team
+- "Teams people look up" showed Ivybridge twice (29 as ours, 8 not ours). Records were grouped by name, league and the "ours" flag, so one team with two spellings of its name, or recorded before and after joining the list, got two rows. Rows are now merged by team number: counts add up, "ours" shows if any record says so, and the team number is shown next to the name. If two rows still appear, they have different team numbers and are different teams with the same name.
+- Docs: none - small fix to a report, no change to how anything works
 
 v3.28.2 - Usage: Teams people look up
 - The Usage card "Teams that are not in our list" is now "Teams people look up". It lists every team opened by people (phone, tablet or computer) or picked in the link builder, whether or not it is in our list. Our own teams carry an "ours" mark. TV screens are no longer counted in it, so they cannot swamp the list.
@@ -1702,6 +1708,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.28.3", "Usage page: Teams people look up now shows one row per team and its team number, so the same team is never listed twice."],
       ["v3.28.2", "Usage page: the card for other teams is now Teams people look up. It lists every team that people open or pick, including the club's own (marked as ours)."],
       ["v3.28.1", "Match Stats on a big screen no longer jumps in size a second or two after appearing."],
       ["v3.28", "Big screens now refresh smoothly: the new version of a page loads out of sight and fades in over the old one, with no blank moment and no resizing. If a refresh fails the old page simply stays up."],
@@ -2323,6 +2330,22 @@ async function usageRecord(request, url, ms, status, hit) {
   const cf = request.cf || {};
   ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), c.kind, c.view, c.team, c.teamName, c.comp, c.div, c.device, String(cf.country || ""), String(cf.region || "").slice(0, 40), c.known, who, String(status || ""), hit ? "hit" : "miss", c.screen || ""], doubles: [1, Math.max(1, Math.round(ms || 0))] });
 }
+// v3.28.3: one row per team number. The same team can be recorded with different spellings of its name, or as ours and not ours
+// (for example before and after it joined the list), so rows are merged by team number: counts add up, the most-used name and
+// league win, and "ours" shows if any record says so.
+function mergeTeamRows(rows) {
+  const by = new Map();
+  for (const r of rows || []) {
+    const k = String(r.team || "");
+    const n = Number(r.n) || 0;
+    const m = by.get(k) || { team: k, n: 0, own: "0", best: -1 };
+    m.n += n;
+    if (String(r.own) === "1") m.own = "1";
+    if (n > m.best) { m.best = n; m.name = r.name; m.comp = r.comp; m.div = r.div; m.region = r.region; m.country = r.country; }
+    by.set(k, m);
+  }
+  return [...by.values()].sort((a, b) => b.n - a.n).slice(0, 25).map(({ best, ...r }) => r);
+}
 async function usageQuery(sql) {
   const id = SITE_ENV.CF_ACCOUNT_ID, tok = SITE_ENV.CF_API_TOKEN;
   const r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + encodeURIComponent(id) + "/analytics_engine/sql", { method: "POST", headers: { "Authorization": "Bearer " + tok }, body: sql });
@@ -2368,7 +2391,7 @@ async function usageApi(url) {
       usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null),
       usageQuery(`SELECT blob15 AS screen, blob3 AS view, COUNT(DISTINCT blob12) AS devices, SUM(_sample_interval) AS loads, MAX(timestamp) AS last ${W} AND blob2 = 'tv' AND blob15 != '' GROUP BY screen, view ORDER BY loads DESC LIMIT 40`).catch(() => null)
     ]);
-    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others, srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
+    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
   } catch (e) { return J({ ok: false, error: "Could not read the usage data: " + String(e && e.message || e).slice(0, 120) }, 502); }
 }
 function usagePage(theme, isDev, defDays) {
@@ -2457,7 +2480,7 @@ function show(d){
  screensCard(d)+'<div class="tw"><div class="cd"><h2>What people look at</h2><p class="n">Share of page views</p>'+rows(d.pages,function(r){return"<tr><td>"+esc(VN[r.view]||r.view)+'</td><td class="nu">'+num(r.n)+'</td><td class="nu mu">'+Math.round(Number(r.n)/pt*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Our teams</h2><p class="n">Views of teams on the club list</p>'+rows(ours,function(r){return"<tr><td>"+esc(r.n)+'</td><td class="nu">'+num(r.v)+"</td></tr>"})+"</div></div>"+
  '<div class="cd hl"><h2>Teams people look up</h2><p class="n">Every team opened on a phone, tablet or computer, or picked in the link builder, whether or not it is in our list (ours are marked). TV screens are not counted here. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
- rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+(String(r.own)==="1"?' <span class="mu">&middot; ours</span>':"")+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
+ rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+(String(r.own)==="1"?' <span class="mu">&middot; ours</span>':"")+' <span class="mu">&middot; no. '+esc(r.team)+'</span>'+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
  clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}
