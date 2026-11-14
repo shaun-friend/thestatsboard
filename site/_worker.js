@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.26.1 14-Nov-2026 The Screen name box is on the /builder page only (it had wrongly gone on the find-your-team welcome page).
 //   v3.26 14-Nov-2026 Match Centre layouts are called Modern and Classic; the link builder has a Screen name box that adds &screen= to every link.
 //   v3.25.1 14-Nov-2026 Admin: the website back-up switch had the same id as the weather switch, so saving read the wrong box. Fixed.
 //   v3.25 13-Nov-2026 Admin: switch "England Rugby website as a back-up" (default on). Off = RFU data service only; no website table, ground or team-search calls.
@@ -192,7 +193,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.26";
+const VERSION = "v3.26.1";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -234,6 +235,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.26.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.26.1_builder_screen.zip       | v3.26
 v3.26   | 14-Nov-2026 | RFU_Club_Dashboard_v3.26_modern_classic.zip         | v3.25.1
 v3.25.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.25.1_switch_fix.zip           | v3.25
 v3.25   | 13-Nov-2026 | RFU_Club_Dashboard_v3.25_website_switch.zip         | v3.24
@@ -402,9 +404,12 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.26.1 - Screen name on the Link builder page only
+- The Screen name box is on the Link builder page (/builder), as intended. I had put it on the find-your-team page by mistake; it is removed from there.
+
 v3.26 - Modern and Classic, screen name in the link builder
 - The Match Centre layouts are now called Modern (was Next game first) and Classic (was Classic rows) in Admin. The settings and &ly=next / &ly=classic links are unchanged.
-- The link builder has a Screen name box (shown for TV links). Whatever you type is added to every link as &screen=, so the screen shows by name on the Usage page.
+- The Link builder page (/builder) has a Screen name box. Whatever you type is added to every link as &screen=, so the screen shows by name on the Usage page.
 
 v3.25.1 - Website back-up switch fix
 - The new website back-up switch shared an id with the weather switch, so saving Admin read the weather switch for both. It now has its own id, and a test checks that no two controls on the Admin page share one.
@@ -1583,7 +1588,8 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
-      ["v3.26", "The Match Centre layouts are now called Modern and Classic. The link builder has a Screen name box, so you can name a TV when you copy its link."],
+      ["v3.26.1", "The Screen name box is on the Link builder page (/builder) only; it is no longer on the find-your-team page."],
+      ["v3.26", "The Match Centre layouts are now called Modern and Classic. The Link builder (/builder) has a Screen name box, so you can name a TV when you copy its link."],
       ["v3.25.1", "Admin: fixed the England Rugby website back-up switch, which was reading the weather switch when saved."],
       ["v3.25", "Admin has a new switch, England Rugby website as a back-up. It is on by default; turn it off to use only the RFU data service."],
       ["v3.24", "You can name a TV screen by adding &screen=Clubhouse+Bar to its link. The Usage page then lists each named screen with its loads and when it was last seen. Links without it work as before."],
@@ -3455,10 +3461,9 @@ function crest(id,name){var w=document.createElement("span");w.className="crest"
 function api(p,q){return fetch(p+"?"+new URLSearchParams(q)).then(function(r){return r.json()})}
 function theme(){return document.body.classList.contains("light")?"light":"dark"}
 function qs(o){return new URLSearchParams(o).toString()}
-var SCR="";
-function teamLink(layout){var o={season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(layout)o.layout=layout;if(SCR)o.screen=SCR;return SB_BASE+"/?"+qs(o)}
+function teamLink(layout){var o={season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(layout)o.layout=layout;return SB_BASE+"/?"+qs(o)}
 function linkFor(k){return k==="match"?matchLink():k==="fixtures"?matchLink().replace("view=match","view=fixtures"):k==="fixturestv"?matchLink().replace("view=match","view=fixtures")+"&layout=tv":k==="leaders"?matchLink().replace("view=match","view=leaders"):k==="leaderstv"?matchLink().replace("view=match","view=leaders")+"&layout=tv":k==="opp"?matchLink().replace("view=match","view=opposition"):k==="oppwide"?matchLink().replace("view=match","view=opposition")+"&layout=wide":teamLink(k)}
-function matchLink(){var o={view:"match",season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(SCR)o.screen=SCR;return SB_BASE+"/?"+qs(o)}
+function matchLink(){return SB_BASE+"/?"+qs({view:"match",season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()})}
 var KEY="statsBoardRecent";
 function okRec(r){return r&&/^\\d+$/.test(r.team)&&/^\\d+$/.test(r.competition)&&/^\\d+$/.test(r.division)&&/^\\d{4}-\\d{4}$/.test(r.season)&&typeof r.name==="string"&&typeof r.league==="string"}
 function recGet(){try{var a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a.filter(okRec).slice(0,3):[]}catch(e){return[]}}
@@ -3487,10 +3492,6 @@ function finish(lg,season){
  var chip=el("div","chip"),left=el("div","tid"),d=el("div");d.appendChild(el("b",null,sel.name));d.appendChild(el("span",null,sel.league+" \\u00b7 "+season));left.appendChild(crest(sel.team,sel.name));left.appendChild(d);chip.appendChild(left);
  var ch=el("button","pill","Change team");ch.type="button";ch.addEventListener("click",showSearch);chip.appendChild(ch);out.appendChild(chip);
  var tip=el("p","tip","Showing the links that suit this device. "),al=el("a",null,"Show all links");al.href="#";al.addEventListener("click",function(ev){ev.preventDefault();var on=document.body.classList.toggle("all");al.textContent=on?"Show device links only":"Show all links"});tip.appendChild(al);out.appendChild(tip);
- var sn=el("div","row only-tv"),sl=el("label",null,"Screen name (optional)"),si=el("input","in");si.type="text";si.maxLength=24;si.value=SCR;si.placeholder="e.g. Clubhouse Bar";si.setAttribute("aria-label","Screen name");sl.appendChild(si);sn.appendChild(sl);
- var sh=el("p","tip","Names this TV on the Usage page. Letters, numbers and spaces only. Leave blank if you do not need it.");
- si.addEventListener("input",function(){SCR=si.value.replace(/[^A-Za-z0-9 _.\\-]/g,"").slice(0,24).trim();out.refresh&&out.refresh()});
- out.appendChild(sn);out.appendChild(sh);
  var card=el("div","card");
  [["Standard / TV view","",""," only-tv"],["Mobile view","mobile","mob"," only-mob"],["Match Stats (next match)","match","lt",""],["Fixtures and Results (Mobile)","fixtures","mob"," only-mob"],["Fixtures and Results (TV View)","fixturestv","lt"," only-tv"],["League Leaders (Mobile)","leaders","mob"," only-mob"],["League Leaders (TV View)","leaderstv","lt"," only-tv"],["Opposition Report (Mobile)","opp","mob"," only-mob"],["Opposition Report (Wide Screen)","oppwide","lt"," only-tv"]].forEach(function(r){
   var row=el("div","row"+r[3]),a=el("a","btn "+r[2],r[0]);a.setAttribute("data-k",r[1]);a.href=linkFor(r[1]);row.appendChild(a);card.appendChild(row)});
@@ -4616,6 +4617,7 @@ ${MENU_CSS}
 <label class="f" for="lg">League</label><select id="lg" class="in"></select><p id="lm" class="msg" aria-live="polite"></p>
 <label class="f" for="fn">Name shown on the dashboard</label><input id="fn" class="in" autocomplete="off">
 <label class="f" for="th">Theme</label><select id="th" class="in"><option value="dark">Dark</option><option value="light">Light</option></select>
+<label class="f" for="sn">Screen name (optional)</label><input id="sn" class="in" type="text" maxlength="24" placeholder="e.g. Clubhouse Bar" autocomplete="off"><p class="tip" style="margin:6px 0 0">Names a TV on the Usage page. Letters, numbers and spaces only. Leave blank if you do not need it.</p>
 <div id="links"></div></div>
 <p class="ver">${VERSION_LABEL}</p>
 </div>
@@ -4629,8 +4631,9 @@ function crest(id,name){var w=document.createElement("span");w.className="crest"
 function api(p,q){return fetch(p+"?"+new URLSearchParams(q)).then(function(r){return r.json()})}
 function linkRow(label,href,cls){var d=document.createElement("div");d.className="row";var a=document.createElement("a");a.className="btn "+(cls||"");a.href=href;a.textContent=label;d.appendChild(a);return d}
 function sq(t){return $("fol")&&$("fol").checked?{}:{season:t.season}}
-function teamLink(t,layout){var q=new URLSearchParams(Object.assign(sq(t),{competition:t.competition,division:t.division,team:t.team,teamName:t.teamName,friendlyName:t.name,theme:$("th").value}));if(layout)q.set("layout",layout);return SB_BASE+"/?"+q.toString()}
-function matchLink(t){var q=new URLSearchParams(Object.assign({view:"match"},sq(t),{competition:t.competition,division:t.division,team:t.team,teamName:t.teamName,friendlyName:t.name,theme:$("th").value}));return SB_BASE+"/?"+q.toString()}
+function scr(){return($("sn").value||"").replace(/[^A-Za-z0-9 _.\\-]/g,"").trim().slice(0,24)}
+function teamLink(t,layout){var q=new URLSearchParams(Object.assign(sq(t),{competition:t.competition,division:t.division,team:t.team,teamName:t.teamName,friendlyName:t.name,theme:$("th").value}));if(layout)q.set("layout",layout);if(scr())q.set("screen",scr());return SB_BASE+"/?"+q.toString()}
+function matchLink(t){var q=new URLSearchParams(Object.assign({view:"match"},sq(t),{competition:t.competition,division:t.division,team:t.team,teamName:t.teamName,friendlyName:t.name,theme:$("th").value}));if(scr())q.set("screen",scr());return SB_BASE+"/?"+q.toString()}
 function selected(){var o=$("lg").selectedOptions[0];if(!cur||!o)return null;return {name:$("fn").value.trim()||cur.name,teamName:cur.name,competition:o.getAttribute("data-c"),division:o.value,team:cur.team,league:o.textContent,season:$("season").value}}
 function render(){var box=$("links");box.innerHTML="";var t=selected();if(!t)return;box.appendChild(linkRow("Standard / TV view",teamLink(t,"")));box.appendChild(linkRow("Mobile view",teamLink(t,"mobile"),"mob"));box.appendChild(linkRow("Auto layout (phone or TV)",teamLink(t,"auto"),"lt"));box.appendChild(linkRow("Match Stats (next match)",matchLink(t),"lt"));box.appendChild(linkRow("Fixtures and Results (Mobile)",matchLink(t).replace("view=match","view=fixtures"),"lt"));box.appendChild(linkRow("Fixtures and Results (TV View)",matchLink(t).replace("view=match","view=fixtures")+"&layout=tv","lt"));box.appendChild(linkRow("League Leaders (Mobile)",matchLink(t).replace("view=match","view=leaders"),"lt"));box.appendChild(linkRow("League Leaders (TV View)",matchLink(t).replace("view=match","view=leaders")+"&layout=tv","lt"));box.appendChild(linkRow("Opposition Report (Mobile)",matchLink(t).replace("view=match","view=opposition"),"lt"));box.appendChild(linkRow("Opposition Report (Wide Screen)",matchLink(t).replace("view=match","view=opposition")+"&layout=wide","lt"));
 var title=t.name+" dashboard",text=t.name+" \u2022 "+t.league+" ("+t.season+")\\n\\nStandard / TV view - full-screen layout for TVs and large screens:\\n"+teamLink(t,"")+"\\n\\nMobile view - scrolling layout for phones:\\n"+teamLink(t,"mobile")+"\\n\\nAuto layout - phone layout on small screens, TV layout on larger ones (use this if you are not sure what device it will be opened on):\\n"+teamLink(t,"auto");
@@ -4649,7 +4652,7 @@ $("sf").addEventListener("submit",function(ev){ev.preventDefault();var n=$("q").
 api("/api/builder/search",{name:n}).then(function(d){var ts=d.teams||[];$("sm").textContent=ts.length?ts.length+" teams found":"No teams match \u201c"+n+"\u201d. Check the spelling or try the club name only.";
 ts.forEach(function(t){var b=document.createElement("button");b.type="button";b.className="hit";b.textContent=t.name;b.addEventListener("click",function(){document.querySelectorAll(".hit").forEach(function(x){x.removeAttribute("aria-current")});b.setAttribute("aria-current","true");cur=null;loadTeam(t.id);$("cfg").scrollIntoView({behavior:"smooth",block:"start"})});$("hits").appendChild(b)})}).catch(function(e){$("sm").className="msg err";$("sm").textContent="Search failed: "+e.message})});
 $("season").addEventListener("change",function(){if(cur)loadTeam(cur.team,$("season").value)});
-["lg","th","fol"].forEach(function(i){$(i).addEventListener("change",render)});$("fn").addEventListener("input",render);
+["lg","th","fol"].forEach(function(i){$(i).addEventListener("change",render)});$("fn").addEventListener("input",render);$("sn").addEventListener("input",render);
 document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");if(!b)return;var u=b.getAttribute("data-url"),done=function(){var o=b.textContent;b.textContent="Copied";setTimeout(function(){b.textContent=o},1500)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done,function(){window.prompt("Copy this",u)})}else{window.prompt("Copy this",u)}});
 })();
 </script></body></html>`;
