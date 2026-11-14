@@ -9,6 +9,7 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
+- TV quick setup (idea 14-Nov-2026, the next one to explore; mock-ups first, nothing built): on a TV, visit thestatsboard.co.uk/setup and get a branded page with a QR code. An admin scans it with a phone camera, picks the screen link on the builder page (/builder) and the link appears on the TV. For TV screens only: on-screen keyboards need a remote control, so the aim is to type as little as possible on the TV. To explore: how the TV and phone pair (short code or QR), how the chosen link reaches the TV (the TV polls for it), the admin sign-in on the phone, how long a code lasts and how pairing is secured, and what the TV shows before and after pairing. Mock up both the TV page and the phone steps.
 - Request logging and a Status page: record view, team, status, cache hit and stale-data flag (country and device type, no IP addresses) in Workers Analytics Engine, with a PIN-protected page showing whether each TV is still checking in. Needs a Pages binding set up in Cloudflare first.
 - More statistics: close games (decided by 7 points or fewer), points per game against the league average, season pace (labelled as a rough guide), home/away split of points scored.
 - Standard dashboard in portrait on an iPad: it fits the screen but the stat boxes and results list are tight.
