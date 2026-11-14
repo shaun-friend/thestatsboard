@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
 v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
 v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
 v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
@@ -241,6 +242,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.15 - Links from team pages follow Admin names
+- Owner report (14-Nov-2026): links made from a team's mobile page still carried the friendly name, which is not needed now that names are set in Admin.
+- Cause: when a link has no name the server fills in the Admin name so the page shows it, and the page then built its own links (Match Stats, Opposition Report, Fixtures, Share, Add to home screen, WhatsApp text) from that filled-in request, so the name came back out in every one. Measured before the fix: the mobile page had four such links, the TV page three, the opposition page three, fixtures three.
+- Fix: when a page is built, any friendlyName that is just the Admin name of one of the club's teams is taken out of its links (plain, escaped and the double-encoded form inside the home-screen and WhatsApp links). A different name typed into a link is kept, and a longer name that begins with an Admin name (for example Admin "Ivybridge" and a link saying "Ivybridge Women") is left alone.
+- The calendar file link now also follows Admin when it has no name, since it no longer carries one.
+- Cost: one pattern replace when a page is built (about 0.02 ms on a large page); nothing on a cached page.
+- Docs: none - links only
 
 v3.30.14 - Our teams: six at most, and a tidier add
 - Owner request (14-Nov-2026): limit the club to six teams for now (checked first: a Match Centre of 10 or more rows is cut off on a 1080p TV, 8 fits at 1080p but not at 1366x768, 5 and 6 fit at both).

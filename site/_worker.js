@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.15 14-Nov-2026 Links made by team pages (Match Stats, Opposition Report, Fixtures, Share, Add to home screen, WhatsApp, calendar) no longer carry the Admin friendly name; they follow Admin by themselves. A different name typed into a link is kept.
 //   v3.30.14 14-Nov-2026 Our teams: at most six teams. Adding a team clears the search list once one is picked (only its leagues remain, or it is added straight away if it has just one league).
 //   v3.30.13 14-Nov-2026 Win Predictor on the Opposition Report: first card under "This game", with the how-it-works text open. Same switch and hiding rules as the other screens.
 //   v3.30.12 14-Nov-2026 New Feed log page (/feedlog, club PIN, Admin > Tools): records when a game goes missing from the RFU feed, an answer is incomplete or a team will not load, so a wrong next game can be traced afterwards.
@@ -236,7 +237,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.14";
+const VERSION = "v3.30.15";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -284,6 +285,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
 v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
 v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
 v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
@@ -483,6 +485,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.15 - Links from team pages follow Admin names
+- Owner report (14-Nov-2026): links made from a team's mobile page still carried the friendly name, which is not needed now that names are set in Admin.
+- Cause: when a link has no name the server fills in the Admin name so the page shows it, and the page then built its own links (Match Stats, Opposition Report, Fixtures, Share, Add to home screen, WhatsApp text) from that filled-in request, so the name came back out in every one. Measured before the fix: the mobile page had four such links, the TV page three, the opposition page three, fixtures three.
+- Fix: when a page is built, any friendlyName that is just the Admin name of one of the club's teams is taken out of its links (plain, escaped and the double-encoded form inside the home-screen and WhatsApp links). A different name typed into a link is kept, and a longer name that begins with an Admin name (for example Admin "Ivybridge" and a link saying "Ivybridge Women") is left alone.
+- The calendar file link now also follows Admin when it has no name, since it no longer carries one.
+- Cost: one pattern replace when a page is built (about 0.02 ms on a large page); nothing on a cached page.
+- Docs: none - links only
 
 v3.30.14 - Our teams: six at most, and a tidier add
 - Owner request (14-Nov-2026): limit the club to six teams for now (checked first: a Match Centre of 10 or more rows is cut off on a 1080p TV, 8 fits at 1080p but not at 1366x768, 5 and 6 fit at both).
@@ -1931,6 +1941,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.15", "Links made from a team's pages no longer carry the friendly name; they follow the name set in Admin, so they are shorter and a rename in Admin reaches them. A name typed into a link is still respected."],
       ["v3.30.14", "Our teams in Admin now holds up to six teams. Picking a team from the search now clears the list, leaving only that team's leagues to choose from (or adding it straight away if it plays in just one league)."],
       ["v3.30.13", "The Win Predictor now also shows on the Opposition Report, at the top of \"This game\", when the Win Predictor switch is on."],
       ["v3.30.12", "New Feed log page under Admin > Tools: records when the RFU feed leaves out a game or answers incompletely, to help trace a wrong next game."],
@@ -2298,7 +2309,7 @@ function applyClubTeams(list) {
 function withClubName(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return request;
   let u; try { u = new URL(request.url); } catch (_) { return request; }
-  if (u.pathname !== "/") return request;
+  if (u.pathname !== "/" && u.pathname !== "/calendar.ics") return request;
   const team = u.searchParams.get("team"); if (!team) return request;
   const t = TEAMS.find(x => String(x.team) === team); if (!t) return request;
   const fn = (u.searchParams.get("friendlyName") || "").trim(), tn = (u.searchParams.get("teamName") || "").trim();
@@ -7134,7 +7145,22 @@ function fail(){if(done)return;done=true;stop();busy=false;try{f.remove()}catch(
 function on(e){if(done||e.source!==f.contentWindow||e.data!=="rfu-sr-ready")return;done=true;stop();LAST=Date.now();f.style.opacity="1";var prev=old;old=f;setTimeout(function(){try{if(prev)prev.remove()}catch(e){}busy=false},1500)}
 addEventListener("message",on);var tm=setTimeout(fail,20000);document.body.appendChild(f)};
 })();</script>`;
+// v3.30.15: the Admin name is filled into a request by withClubName, so the page then built links carrying it (friendlyName=Ivybridge+1XV). Those are left out again: a link for a team on the club's list follows Admin by itself. A different name in a link is kept.
+let CLUB_NAME_RE = null, CLUB_NAME_STAMP = "";
+function stripClubNames(html) {
+  if (typeof html !== "string" || html.indexOf("friendlyName") < 0) return html;
+  const stamp = String(TEAMS_STAMP);
+  if (CLUB_NAME_STAMP !== stamp) {
+    CLUB_NAME_STAMP = stamp;
+    const esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), plain = new Set(), dbl = new Set();
+    for (const t of TEAMS) { const nm = String(t.name || ""); if (!nm) continue; for (const f of [new URLSearchParams({ friendlyName: nm }).toString(), "friendlyName=" + encodeURIComponent(nm)]) { plain.add(f); dbl.add(encodeURIComponent(f)); } }
+    const end = "(?=$|[&\"'#<\\s]|%26|%0A|%23)";
+    CLUB_NAME_RE = plain.size ? [new RegExp("(?:&amp;|&)(?:" + [...plain].map(esc).join("|") + ")" + end, "g"), new RegExp("(?:" + [...dbl].map(f => esc("%26" + f)).join("|") + ")" + end, "g")] : null;
+  }
+  return CLUB_NAME_RE ? html.replace(CLUB_NAME_RE[0], "").replace(CLUB_NAME_RE[1], "") : html;
+}
 function withStamp(html, powered) {
+  html = stripClubNames(html);
   const stampHtml = powered === false ? VERSION_STAMP : VERSION_STAMP.replace(`>${VERSION_LABEL}</div>`, `>${sbLogo(11).replace('style="', 'style="margin-right:4px;vertical-align:-2px;')}Powered by ${VERSION_LABEL}</div>`);
   const stamped0 = html.includes('class="ver"') ? html : html.replace(/<\/body>/i, stampHtml + "</body>");
   const stamped = stamped0.includes("rfu-soft") ? stamped0 : stamped0.replace(/<\/body>/i, SOFT_SCRIPT + "</body>");

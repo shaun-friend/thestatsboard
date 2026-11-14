@@ -41,6 +41,7 @@ run node t_v3306.mjs "$S/t_worker.mjs"
 run node t_v3307.mjs "$S/t_worker.mjs"
 run node t_v33011.mjs "$S/t_worker.mjs"
 run node t_v33013.mjs "$S/t_worker.mjs"
+run node t_v33015.mjs "$S/t_worker.mjs"
 run node t_v3309.mjs "$S/t_worker.mjs"
 NODE_PATH=$(npm root -g) node t_v328.mjs || { echo "CROSSFADE TEST FAILED"; exit 1; }
 node x_ms_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_ms_timeline.cjs 1920 1080 1500 300 assert | head -1 | grep -q "^STABLE" || { echo "MATCH STATS SIZE JUMP TEST FAILED"; exit 1; }; echo "match stats size stable"
