@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.20 14-Nov-2026 Each visit now counts its outside requests (free plan allows 50): essential feeds may use 42, extras stop at 24. A cold six-team Match Centre made 83 requests and lost the Colts cup feed; it now makes 31.
 //   v3.30.19 14-Nov-2026 A feed that fails quickly (server error, too many requests, dropped connection) is asked once more; the Feed log now says why a feed failed. Found from the first Feed log rows (Colts competition 1608, Brixham team feed).
 //   v3.30.18 14-Nov-2026 Phone app: the Links button's sheet (and the app's own page addresses) no longer carry the Admin friendly name; a name typed into the address is kept.
 //   v3.30.17 14-Nov-2026 DEV: the PIN page's return address no longer picks up the filled-in Admin friendly name (it showed as &friendlyName=... after unlocking).
@@ -241,7 +242,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.19";
+const VERSION = "v3.30.20";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -289,6 +290,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
 v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
 v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
 v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
@@ -494,6 +496,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.30.20 - Request budget: stop a busy Match Centre running out of outside requests
+- Owner report (14-Nov-2026, DEV, Feed log): Colts 22:04 "Missing: competition 1608 (error: Too many subrequests by single Worker invocation)". The wrong next game came back again.
+- Cause: the free Cloudflare plan allows 50 outside requests per visit. A cold Match Centre with six teams made 83 (6 competition feeds, 36 team feeds, 16 + 12 website lookups, 6 match records, 6 venue pages). Past 50, Cloudflare refused the rest, and the cup competition feed was one of them. The retry added in v3.30.19 could not help.
+- Fix: each visit now keeps a count. Essential feeds (results, fixtures, other competitions) may use 42; extras (venue and match records, website lookups, earlier seasons for the Win Predictor) stop at 24, so they can never starve a feed that decides the next game. Skipped extras fill in on later visits as the cache warms. A cold six-team load now makes 31 requests.
+- Feed log: a refused-for-budget feed shows as "request limit reached for this visit".
+- Tests: cold six-team Match Centre stays under 45 requests and all six competition feeds are fetched.
+- Docs: none - behind the scenes
 v3.30.19 - Feed log findings: ask a failed feed once more, and say why it failed
 - Owner report (14-Nov-2026, DEV, from the new Feed log): Colts 21:24 "Incomplete answer, nothing earlier to keep: Missing: competition 1608, unlabelled games: 2. Showing: Sat 28 Nov v Kingsbridge Colts" and Brixham 21:29 "Missing: team feed. Showing: Sat 21 Nov v St Austell".
 - What it shows: the Colts' cup games come from competition 1608; its feed failed once, so the two cup games had no competition name and the next game came out as the league game. There was nothing earlier to keep because it was the first Match Centre load after the deploy (the last complete answer is only kept from then on). Only one Colts row, not a run of them, so the failure was occasional, not constant. Brixham's own team feed failed once the same way.
@@ -1979,6 +1988,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.20", "The Match Centre no longer runs out of outside requests with six teams (the cause of the Colts showing the wrong next game): extras like venue pages now wait their turn so the results feeds always get through."],
       ["v3.30.19", "A feed from the RFU that fails for a quick reason is now asked again once, which should stop the Colts next game flipping; the Feed log also says why a feed failed."],
       ["v3.30.18", "Phone view: the links from the Links button no longer include the team name setting; they follow the name set in Admin."],
       ["v3.30.17", "Test site only: after typing the test PIN, the page address no longer gains a friendlyName setting."],
@@ -3937,8 +3947,15 @@ function usageUp(key, ms, outcome, waited) {
   } catch (_) { /* timing never breaks a page */ }
 }
 // The real fetch from outside. Returns { kind: "ok" | "blocked" | "http", v } and stores good answers; throws on network failure or timeout.
-async function rfuNetwork(key, accept, cache, ttlS, timeoutMs, waited) {
+// v3.30.20: the free plan allows 50 outside requests per visit. Essential feeds (results, fixtures) may use 42 of them; extras (venue and match
+// records, website lookups, earlier seasons for the Win Predictor) stop at 24 so they can never starve a feed that decides the next game.
+const SUB = { n: 0, skipped: 0 };
+const SUB_ESSENTIAL = 42, SUB_OPTIONAL = 24;
+const optionalKey = k => /\/gms\/matches\/|englandrugby\.com/.test(k);
+async function rfuNetwork(key, accept, cache, ttlS, timeoutMs, waited, optional) {
   const t0 = Date.now();
+  if (SUB.n >= ((optional || optionalKey(key)) ? SUB_OPTIONAL : SUB_ESSENTIAL)) { SUB.skipped++; return { kind: "budget", v: { ok: false, status: 0, text: "", fetchedAt: t0, budget: true } }; }
+  SUB.n++;
   let r, text;
   try {
     r = await fetch(key, { headers: { "Accept": accept || "*/*", "User-Agent": UA }, signal: typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined });
@@ -3983,7 +4000,7 @@ async function rememberFailure(cache, key, v) {
   if (!cache) return;
   try { await cache.put(failKeyOf(key), new Response("x", { headers: { "Cache-Control": "public, max-age=" + secs, "x-until": String(until), "x-status": String(v.status || 0), "x-blocked": v.blocked ? "1" : "" } })); } catch (_) { /* in-memory note still used */ }
 }
-async function cachedText(target, accept) {
+async function cachedText(target, accept, optional) {
   const key = String(target);
   const now = Date.now();
   const ttlS = ttlFor(key), ttl = ttlS * 1000;
@@ -4047,9 +4064,9 @@ async function cachedText(target, accept) {
     return { ok: true, status: 200, text: stale.text, fetchedAt: stale.fetchedAt };
   }
   let res;
-  try { res = await rfuNetwork(key, accept, cache, ttlS, stale ? RFU_TIMEOUT_STALE_MS : RFU_TIMEOUT_MS, true); }
+  try { res = await rfuNetwork(key, accept, cache, ttlS, stale ? RFU_TIMEOUT_STALE_MS : RFU_TIMEOUT_MS, true, optional); }
   catch (err) { if (stale) return useStale(null); throw err; }
-  if (res.kind === "blocked") return useStale(res.v);
+  if (res.kind === "blocked" || res.kind === "budget") return useStale(res.v);
   if (res.kind === "http" && stale) return useStale(res.v);
   return res.v;
 }
@@ -4057,7 +4074,7 @@ async function cachedText(target, accept) {
 async function cachedTextTry(target, accept) {
   let r = null, err = null;
   try { r = await cachedText(target, accept); } catch (e) { err = e; }
-  const quick = err ? !/timeout|abort/i.test(String(err && (err.name || err.message))) : (!r.ok && !r.blocked && (r.status === 0 || r.status === 429 || r.status >= 500));
+  const quick = err ? !/timeout|abort/i.test(String(err && (err.name || err.message))) : (!r.ok && !r.blocked && !r.budget && (r.status === 0 || r.status === 429 || r.status >= 500));
   if (quick) { await new Promise(res => setTimeout(res, 400)); try { const r2 = await cachedText(target, accept); if (r2.ok || !err) { r2.retried = true; return r2; } } catch (e2) { if (err) throw e2; } }
   if (err) throw err;
   return r;
@@ -6110,7 +6127,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
           const jobs = []; for (const [i, wt] of [[1, 0.5], [2, 0.25]]) { const sl = (Number(mS[1]) - i) + "-" + (Number(mS[2]) - i); for (const id of new Set([idMe, idOpp])) jobs.push({ sl, wt, id }); }
           await Promise.all(jobs.map(async j => { try {
             const u5 = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches"); u5.searchParams.set("season", j.sl); u5.searchParams.set("teamId", j.id);
-            const fr = await cachedText(u5, "application/json, text/plain, */*"); if (!fr.ok) return;
+            const fr = await cachedText(u5, "application/json, text/plain, */*", true); if (!fr.ok) return;
             const dd = JSON.parse(fr.text); priorOk++;
             for (const mm of findMatches(dd.results)) {
               if (NOT_LEAGUE_RE.test([(mm.group && mm.group.name) || "", (mm.competition && mm.competition.name) || ""].join(" "))) continue;
@@ -6355,7 +6372,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
               fxDbg.teamFeed = tf;
               teamFeedOk = true;
             }
-            else fxDbg.teamFeed = { url: ut.toString(), ok: false, status: fr.status, blocked: !!fr.blocked };
+            else fxDbg.teamFeed = { url: ut.toString(), ok: false, status: fr.status, blocked: !!fr.blocked, budget: !!fr.budget };
           } catch (err) { teamFeedOk = false; fxDbg.teamFeed = { error: String(err && err.message || err) }; }
           // v31b diagnosis: the RFU team season feed lists the team's games but carries no competition names, and cups can
           // sit in their own competition/division. So read every competition/division the team is entered in this season
@@ -6380,7 +6397,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
                 const ud = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches");
                 ud.searchParams.set("season", season); ud.searchParams.set("competitionId", l.competition); ud.searchParams.set("groupId", l.division);
                 const fd = await cachedTextTry(ud, "application/json, text/plain, */*");
-                const row = { competition: l.competition, division: l.division, ok: !!fd.ok, status: fd.status, blocked: !!fd.blocked, retried: !!fd.retried, mine: 0, added: 0 };
+                const row = { competition: l.competition, division: l.division, ok: !!fd.ok, status: fd.status, blocked: !!fd.blocked, budget: !!fd.budget, retried: !!fd.retried, mine: 0, added: 0 };
                 if (fd.ok) {
                   const dj = JSON.parse(fd.text);
                   for (const mm of [...findMatches(dj.results), ...findMatches(dj.fixtures)]) {
@@ -6470,7 +6487,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           const compNames = [...new Set(dedup.map(g => g.comp))];
           // v3.30.7: say so when a feed was missing, because the list may then lack a cup game (the next game would then show the league game instead)
           const partialWhy = [], partialDetail = [];
-          const reasonOf = o => o ? (o.error ? "error: " + o.error : o.blocked ? "refused (robot check)" : o.status ? "HTTP " + o.status : "no answer") : "";
+          const reasonOf = o => o ? (o.error ? "error: " + o.error : o.budget ? "request limit reached for this visit" : o.blocked ? "refused (robot check)" : o.status ? "HTTP " + o.status : "no answer") : "";
           if (!teamFeedOk) { partialWhy.push("team feed"); partialDetail.push("team feed (" + reasonOf(fxDbg.teamFeed) + ")"); }
           if (fxDbg.leaguesError) { partialWhy.push("competition list"); partialDetail.push("competition list (" + fxDbg.leaguesError + ")"); }
           for (const rw of (fxDbg.otherDivisions || [])) if (!rw.ok) { partialWhy.push("competition " + rw.competition); partialDetail.push("competition " + rw.competition + " (" + reasonOf(rw) + (rw.retried ? ", asked twice" : "") + ")"); }
@@ -7229,7 +7246,7 @@ function withStamp(html, powered) {
 // the page, so no layout (TV or phone) is moved.
 export default {
   async fetch(request, env, ctx) {
-    SITE_ENV = env || {}; SITE_CTX = ctx || null;
+    SITE_ENV = env || {}; SITE_CTX = ctx || null; SUB.n = 0; SUB.skipped = 0;
     const t0 = Date.now();
     try { await siteSettings(); } catch (_) { /* default team list */ }
     const label = env && typeof env.ENV_LABEL === "string" ? env.ENV_LABEL.trim().slice(0, 30) : "";

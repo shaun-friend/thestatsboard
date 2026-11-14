@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
 v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
 v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
 v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
@@ -247,6 +248,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.30.20 - Request budget: stop a busy Match Centre running out of outside requests
+- Owner report (14-Nov-2026, DEV, Feed log): Colts 22:04 "Missing: competition 1608 (error: Too many subrequests by single Worker invocation)". The wrong next game came back again.
+- Cause: the free Cloudflare plan allows 50 outside requests per visit. A cold Match Centre with six teams made 83 (6 competition feeds, 36 team feeds, 16 + 12 website lookups, 6 match records, 6 venue pages). Past 50, Cloudflare refused the rest, and the cup competition feed was one of them. The retry added in v3.30.19 could not help.
+- Fix: each visit now keeps a count. Essential feeds (results, fixtures, other competitions) may use 42; extras (venue and match records, website lookups, earlier seasons for the Win Predictor) stop at 24, so they can never starve a feed that decides the next game. Skipped extras fill in on later visits as the cache warms. A cold six-team load now makes 31 requests.
+- Feed log: a refused-for-budget feed shows as "request limit reached for this visit".
+- Tests: cold six-team Match Centre stays under 45 requests and all six competition feeds are fetched.
+- Docs: none - behind the scenes
 v3.30.19 - Feed log findings: ask a failed feed once more, and say why it failed
 - Owner report (14-Nov-2026, DEV, from the new Feed log): Colts 21:24 "Incomplete answer, nothing earlier to keep: Missing: competition 1608, unlabelled games: 2. Showing: Sat 28 Nov v Kingsbridge Colts" and Brixham 21:29 "Missing: team feed. Showing: Sat 21 Nov v St Austell".
 - What it shows: the Colts' cup games come from competition 1608; its feed failed once, so the two cup games had no competition name and the next game came out as the league game. There was nothing earlier to keep because it was the first Match Centre load after the deploy (the last complete answer is only kept from then on). Only one Colts row, not a run of them, so the failure was occasional, not constant. Brixham's own team feed failed once the same way.
