@@ -34,4 +34,23 @@ bx=await box(p,'.wc');c('dashboard phone: bar fits the width',bx.l>=0&&bx.r<=391
 c('dashboard phone: how-it-works shown and opens',await p.isVisible('.wcx')&&(await p.click('.wcx summary'),await p.waitForTimeout(150),await p.isVisible('.wcx p')));
 c('dashboard phone: no sideways scroll',await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
 await p.locator('.wc:visible').first().scrollIntoViewIfNeeded();await p.screenshot({path:__dirname+'/w/wc_dash_phone.png'});await p.close();
+// Match Centre: Modern and Classic on a TV, and the stacked cards on a phone
+for(const [f,n] of [['wc_mc_next.html','modern'],['wc_mc_classic.html','classic']]){
+ ({p,errs}=await open(f,1920,1080));
+ c('match centre '+n+': Win Predictor bar shown',await p.locator('.wc:visible').count()>=1);
+ c('match centre '+n+': heading reads Win Predictor',(await p.locator('.wc:visible .wch').first().innerText()).toLowerCase()==='win predictor');
+ c('match centre '+n+': no team names repeated in the bar',await p.locator('.wc:visible .wcn').count()===0);
+ c('match centre '+n+': how-it-works hidden on a big screen',await p.locator('.wcx:visible').count()===0);
+ const wb=await p.$eval('.wc:visible',e=>{const r=e.getBoundingClientRect(),q=e.closest('.cnx,.hero,.bx').getBoundingClientRect();return r.top>=q.top&&r.bottom<=q.bottom+1&&r.left>=q.left&&r.right<=q.right+1});
+ c('match centre '+n+': bar sits inside its card',wb);
+ c('match centre '+n+': nothing clipped past the screen',await p.evaluate(()=>document.documentElement.scrollHeight<=window.innerHeight+1&&document.documentElement.scrollWidth<=window.innerWidth+1));
+ c('match centre '+n+': a team without a prediction shows no bar and no gap',await p.locator('.wc:visible').count()<await p.locator(n==='modern'?'.cw':'.rw').count());
+ c('match centre '+n+': no page errors',errs.length===0);
+ await p.screenshot({path:__dirname+'/w/wc_mc_'+n+'.png'});await p.close();
+}
+({p,errs}=await open('wc_mc_classic.html',390,844));
+c('match centre phone: bar fits the width',await p.evaluate(()=>{const e=document.querySelector('.wc');if(!e)return false;const r=e.getBoundingClientRect();return r.left>=0&&r.right<=391}));
+c('match centre phone: how-it-works shown',await p.locator('.wcx:visible').count()>=1);
+c('match centre phone: no sideways scroll',await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
+await p.close();
 console.log(bad?'FAILED '+bad:'ALL OK');await b.close();process.exit(bad?1:0)})()

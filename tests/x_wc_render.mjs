@@ -17,6 +17,6 @@ const r0=await w.fetch(new Request('https://x.co.uk/club-unlock',{method:'POST',
 await w.fetch(new Request('https://x.co.uk/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Cookie:ck},body:JSON.stringify({features:{winchance:true}})}),env,ctx);
 const base='season=2026-2027&competition=1699&division=75791&team=11039&teamName=Ivybridge';
 fs.mkdirSync('w',{recursive:true});
-for(const [n,q] of [['wc_tv','/?'+base+'&layout=tv'],['wc_mobile','/?'+base+'&layout=mobile'],['wc_match','/?view=match&'+base]]){
+for(const [n,q] of [['wc_tv','/?'+base+'&layout=tv'],['wc_mobile','/?'+base+'&layout=mobile'],['wc_match','/?view=match&'+base],['wc_mc_next','/?view=stack&ly=next'],['wc_mc_classic','/?view=stack&ly=classic']]){
  const r=await w.fetch(new Request('https://thestatsboard.co.uk'+q,{headers:{'User-Agent':'Mozilla/5.0'}}),env,ctx);fs.writeFileSync('w/'+n+'.html',await r.text());}
 console.log('rendered');

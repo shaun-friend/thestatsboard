@@ -61,13 +61,13 @@ c('check data: games predicted',wc.predicted>20);
 c('check data: better than saying 50/50',wc.brier<0.25&&wc.favouriteWon>0.55);
 c('check data: calibration table present',Array.isArray(wc.buckets)&&wc.buckets.length>0);
 c('check data: season and league named',wc.season==='2026-2027'&&typeof wc.league==='string');
-r=await get('/winchance');const hp=await r.text();c('check page opens with the PIN cookie',r.status===200&&/Win chance check/.test(hp)&&/detail:"wcheck"/.test(hp));
+r=await get('/winchance');const hp=await r.text();c('check page opens with the PIN cookie',r.status===200&&/Win Predictor check/.test(hp)&&/detail:"wcheck"/.test(hp));
 {const sc=[...hp.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);let comp=true;for(const s of sc){try{new Function(s)}catch(e){comp=false;console.log(e.message)}}c('check page script compiles',comp)}
 r=await w.fetch(new Request('https://x.co.uk/winchance',{headers:{'User-Agent':'Mozilla/5.0'}}),env,ctx);c('check page needs the club PIN',r.status!==200||/Enter PIN/.test(await r.text()));
 // 4. Admin
 const ad=await (await get('/admin')).text();
 c('admin has the switch, on',/id="fwc" checked|id="fwc"[^>]* checked/.test(ad));
-c('admin tools list the check page',/href="\/winchance">Win chance check/.test(ad));
+c('admin tools list the check page',/href="\/winchance">Win Predictor check/.test(ad));
 c('admin save sends the switch',/winchance:\$\("fwc"\)\.checked/.test(ad));
 // 5. switch off again
 r=await post({features:{winchance:false}});w=await load();j=await sumM();c('off again: no win',j.next&&!j.next.win);
