@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.10 14-Nov-2026 Match Centre (Modern): the columns now line up whether or not a team has a Win Predictor, a ground line or a "2nd v 3rd" line, and whatever the opponent name length. Content starts at the top, and those lines sit at the bottom in fixed slots.
 //   v3.30.9 14-Nov-2026 A bare group name such as "Group 1" (the Colts) is now shown with its competition name, for example "Devon RFU Colts Group 1", on the Match Centre, team pages and the summary; if the feed gives no competition name the league text saved in Admin is used on the Match Centre.
 //   v3.30.8 14-Nov-2026 The "partial" check also catches a game found only in the team feed with no competition name that is in none of the competitions read (a cup missing from the competition list), the likeliest way a cup game was passed off as a league game.
 //   v3.30.7 14-Nov-2026 Fix: the Match Centre next game flipping between a cup game and the league game for a team in several competitions. When a competition feed is missing the answer is marked partial; partial answers are not stored (not in the 15-minute summary copy, not in the page cache) and the Match Centre shows the last complete answer instead.
@@ -231,7 +232,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.9";
+const VERSION = "v3.30.10";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -279,6 +280,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
 v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
 v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
 v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
@@ -473,6 +475,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.10 - Match Centre columns line up
+- Owner report (14-Nov-2026, photo of the live Match Centre): where a team had no Win Predictor (and no "2nd v 3rd" line) its NEXT GAME heading, crest and text sat lower than the other columns, because the coloured block centred whatever it held.
+- Fix (Modern layout): the block now starts at the top (heading, crest, opponent name, date, Home or Away) so those line up in every column, and the Win Predictor, ground and "2nd v 3rd" lines sit at the bottom in slots that keep their height in every column when any team has one (an empty slot is left blank). A two-line opponent name (15 letters or more) reserves two lines in every column, so the date stays level; a one-line name is centred in that space.
+- Checked in a browser at 1920x1080 and 1366x768: heading, crest, date, Home or Away and ground line within 1 pixel across columns with a bar missing from one, a "2nd v 3rd" line missing from another and a shorter name in a third; nothing cut off at the bottom.
+- A team with no next game is unchanged (its message stays centred). The Classic layout and the phone cards were not affected.
+- Docs: none - layout only
 
 v3.30.9 - Group names with their competition
 - Owner question (14-Nov-2026): the Colts show as "Group 1"; is there a competition name to use instead?
@@ -1885,6 +1894,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.10", "Match Centre: the next game blocks now line up across the teams (heading, crest, name, date and Home or Away) even when one team has no Win Predictor bar, ground or table line."],
       ["v3.30.9", "The Colts now show their competition name with the group (for example \"Devon RFU Colts Group 1\") instead of just \"Group 1\"."],
       ["v3.30.8", "Fix: the Match Centre now also spots a cup game that is missing from the RFU competition list (so it looked like a league game), and keeps the last complete answer instead."],
       ["v3.30.7", "Fix: for a team in more than one competition (for example the Colts) the Match Centre could flip between tomorrow's cup game and next weekend's league game. When the RFU does not answer for one of the competitions, the site now keeps showing the last complete answer instead of a league-only one, and never stores an incomplete page."],
@@ -5336,9 +5346,9 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const pos = s.position ? `<b class="ps2">${ordOf(s.position)}</b>` : "";
         const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
         const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
-        const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="on">${e(N.opp)}</div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div>${N.win ? winBarHtml(N.win, mcWin(N.win, N.mine, t, idx, true)) : ""}${N.venue ? `<div class="og">${e(N.venue)}</div>` : ""}${clashOf(s, s.next) ? `<div class="oq">${clashOf(s, s.next)}</div>` : ""}` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
+        const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="onw"><div class="on">${e(N.opp)}</div></div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div><div class="nb"><div class="nw">${N.win ? winBarHtml(N.win, mcWin(N.win, N.mine, t, idx, true)) : ""}</div><div class="og">${e(N.venue || "")}</div><div class="oq">${clashOf(s, s.next) || ""}</div></div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
         const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
-        return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(leagueOf(t, s))}</div></div></div><div class="cnx">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
+        return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(leagueOf(t, s))}</div></div></div><div class="cnx${N ? "" : " e"}">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
       const rowHtml = ({t, s, error}, idx) => {
         const tsl = `<a class="tsl" href="${e(tableHref(t))}">Table &amp; Stats</a>`;
@@ -5366,7 +5376,9 @@ ${n.win ? winBarHtml(n.win, mcWin(n.win, n.mineHome, t, idx, false)) : ""}${n.ve
       let ly = url.searchParams.get("ly");
       if (!["classic", "next"].includes(ly)) ly = (await siteSettings()).matchCentre.layout;
       if (ly === "next" && results.length > 4) ly = "classic"; // too many columns for a TV: the classic rows
-      const lyHtml = ly === "next" ? `<main class="ly ly-next" data-ly="next" style="--n:${results.length}">${results.map(colHtml).join("")}</main>`
+      // v3.30.10: so the columns line up whether or not a team has a Win Predictor, ground or "2nd v 3rd" line, those slots keep their height in every column, and a two-line opponent name reserves two lines in all of them
+      const lyFlags = [results.some(r => r.s && r.s.next && r.s.next.win) ? "ly-win" : "", results.some(r => r.s && r.s.next && r.s.next.venue) ? "ly-ven" : "", results.some(r => r.s && r.s.next && r.s.next.oppPos) ? "ly-clash" : "", results.some(r => r.s && r.s.next && String(nextOf(r.s.next).opp || "").length >= 15) ? "ly-two" : ""].filter(Boolean).join(" ");
+      const lyHtml = ly === "next" ? `<main class="ly ly-next ${lyFlags}" data-ly="next" style="--n:${results.length}">${results.map(colHtml).join("")}</main>`
         : "";
       const jump = results.map((r, i) => `<a href="#t${i}" ${acStyle(r.t, i)}>${e(shortOf(r.t))}</a>`).join("");
       const refreshScript = `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)(window.rfuSoft?rfuSoft():location.reload())}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
@@ -5417,8 +5429,8 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 @media(max-width:800px){.ly{display:none!important}}
 .cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
 .ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
-.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
+.cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.7rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
+.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx.e{justify-content:center}.cnx .onw{width:100%;display:flex;align-items:center;justify-content:center}.ly-two .cnx .onw{min-height:8.4rem}.cnx .nb{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:.5rem}.cnx .nw{width:100%;display:flex;justify-content:center}.ly-win .cnx .nw{min-height:5.6rem}.ly-ven .cnx .og{min-height:1.9rem}.ly-clash .cnx .oq{min-height:2rem}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
 .clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}

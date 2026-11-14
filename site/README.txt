@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
 v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
 v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
 v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
@@ -236,6 +237,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.10 - Match Centre columns line up
+- Owner report (14-Nov-2026, photo of the live Match Centre): where a team had no Win Predictor (and no "2nd v 3rd" line) its NEXT GAME heading, crest and text sat lower than the other columns, because the coloured block centred whatever it held.
+- Fix (Modern layout): the block now starts at the top (heading, crest, opponent name, date, Home or Away) so those line up in every column, and the Win Predictor, ground and "2nd v 3rd" lines sit at the bottom in slots that keep their height in every column when any team has one (an empty slot is left blank). A two-line opponent name (15 letters or more) reserves two lines in every column, so the date stays level; a one-line name is centred in that space.
+- Checked in a browser at 1920x1080 and 1366x768: heading, crest, date, Home or Away and ground line within 1 pixel across columns with a bar missing from one, a "2nd v 3rd" line missing from another and a shorter name in a third; nothing cut off at the bottom.
+- A team with no next game is unchanged (its message stays centred). The Classic layout and the phone cards were not affected.
+- Docs: none - layout only
 
 v3.30.9 - Group names with their competition
 - Owner question (14-Nov-2026): the Colts show as "Group 1"; is there a competition name to use instead?

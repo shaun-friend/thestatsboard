@@ -48,6 +48,22 @@ for(const [f,n] of [['wc_mc_next.html','modern'],['wc_mc_classic.html','classic'
  c('match centre '+n+': no page errors',errs.length===0);
  await p.screenshot({path:__dirname+'/w/wc_mc_'+n+'.png'});await p.close();
 }
+// Match Centre Modern: the columns line up whether or not a team has a bar, a ground line or a "2nd v 3rd" line, and whatever the name length
+({p,errs}=await open('wc_mc_next.html',1920,1080));
+await p.evaluate(()=>{const cols=[...document.querySelectorAll('.cw')];
+ const w2=cols[1].querySelector('.nw');if(w2)w2.innerHTML='';
+ const q3=cols[2].querySelector('.oq');if(q3)q3.innerHTML='';
+ const n1=cols[0].querySelector('.on');if(n1)n1.textContent='Okehampton';});
+const tops=await p.evaluate(()=>{const cols=[...document.querySelectorAll('.cw')].slice(0,3);const t=s=>cols.map(c=>{const e=c.querySelector(s);return e?Math.round(e.getBoundingClientRect().top):null});return {od:t('.od'),oc:t('.oc'),og:t('.og'),cr:t('.cnx .cr'),k:t('.cnx .k')}});
+const same=a=>a.every(v=>v!==null&&Math.abs(v-a[0])<=1);
+c('modern: NEXT GAME heading lines up',same(tops.k));c('modern: crest lines up',same(tops.cr));
+c('modern: date lines up whatever the name length',same(tops.od));c('modern: Home/Away row lines up',same(tops.oc));
+c('modern: ground line lines up with no bar or no clash line in some columns',same(tops.og));
+await p.screenshot({path:__dirname+'/w/wc_mc_align.png'});await p.close();
+({p,errs}=await open('wc_mc_next.html',1366,768));
+c('modern 1366x768: nothing in the coloured block is cut off at the bottom',await p.evaluate(()=>[...document.querySelectorAll('.cnx')].every(b=>{const r=b.getBoundingClientRect();return [...b.children].every(ch=>ch.getBoundingClientRect().bottom<=r.bottom+1)})));
+c('modern 1366x768: name and date do not overlap',await p.evaluate(()=>[...document.querySelectorAll('.cnx')].every(b=>{const n=b.querySelector('.onw'),d=b.querySelector('.od');return !n||!d||n.getBoundingClientRect().bottom<=d.getBoundingClientRect().top+1})));
+await p.screenshot({path:__dirname+'/w/wc_mc_align768.png'});await p.close();
 ({p,errs}=await open('wc_mc_classic.html',390,844));
 c('match centre phone: bar fits the width',await p.evaluate(()=>{const e=document.querySelector('.wc');if(!e)return false;const r=e.getBoundingClientRect();return r.left>=0&&r.right<=391}));
 c('match centre phone: how-it-works shown',await p.locator('.wcx:visible').count()>=1);
