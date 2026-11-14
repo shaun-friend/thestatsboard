@@ -32,6 +32,7 @@ run node t_v325.mjs "$S/t_worker_exp.mjs"
 run node t_v3251.mjs "$S/t_worker_exp.mjs"
 run node t_v3276.mjs
 run node t_v3283.mjs
+run node t_v329.mjs "$S/t_worker.mjs"
 NODE_PATH=$(npm root -g) node t_v328.mjs || { echo "CROSSFADE TEST FAILED"; exit 1; }
 node x_ms_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_ms_timeline.cjs 1920 1080 1500 300 assert | head -1 | grep -q "^STABLE" || { echo "MATCH STATS SIZE JUMP TEST FAILED"; exit 1; }; echo "match stats size stable"
 node x_usage_chk.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_usage_align.cjs | tail -1 | grep -q "ALL OK" || { echo "USAGE CHART ALIGNMENT TEST FAILED"; exit 1; }; echo "usage chart aligned"

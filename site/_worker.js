@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.29 14-Nov-2026 New Our teams section in Admin: the club picks its teams once and gives each a friendly name, short label and colour, and puts them in order. The name is used everywhere that team appears (Links page, Match Centre, phone team bar, TV banners, page titles). A name typed into a link still wins. Links made from the Links page and the link builder no longer carry a name, so they follow Admin. The team list no longer lives only in the code.
 //   v3.28.4 14-Nov-2026 Usage: the Outside calls chart lines up when a bar has website calls (the gold count no longer wraps onto two lines and lifts its column); hour labels are two digits so they do not run together on a phone.
 //   v3.28.3 14-Nov-2026 Usage: Teams people look up is merged by team number (no more twin rows for one team) and shows the number so two clubs with the same name can be told apart.
 //   v3.28.2 14-Nov-2026 Usage: "Teams that are not in our list" becomes "Teams people look up" and counts every team opened by people or picked in the link builder, ours included (marked), not TV screens.
@@ -206,7 +207,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.28.4";
+const VERSION = "v3.29";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -221,6 +222,8 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
+- Shorter links (idea 14-Nov-2026, follows v3.29 Our teams; nothing built): now that Admin holds each team's number, league and name, a link could be just /?team=11039&view=fixtures&layout=tv, with the competition, division, team name and friendly name looked up from the Our teams list. The long links keep working. A later step could stop honouring friendlyName in a link at all, so names are only ever set in Admin and every link stays short.
+- Club-name addresses for several clubs (idea 14-Nov-2026, the eventual address the owner wants; nothing built): thestatsboard.co.uk/<name> (for example /ivybridge) opens that club's own site, with its own Our teams list, colours, PIN and settings. v3.29 stores the team list inside the club's own settings record, and every page reads it through one lookup, so this can be added without reworking the pages. To settle later: whether the name in the address is the club or a team, how a club signs up, one PIN and settings record per club, and what the bare address shows.
 - Around the league, all of today's games (idea 14-Nov-2026, parked until the current behaviour has been watched for a few weekends; nothing built): today the Fixtures board strip only shows finished results in the same division, once the first one is in the feed. Idea: from a set time on a game day (default 12:00, set in Admin) show all of the division's games that day, with scores filling in as results arrive. Admin choice: Off, Results only (today), All games from [time]. No kick-off times (decided earlier). Nearest to the club in the table first, up to 8 rows then +N more, table positions on each row. The RFU feed has no live scores, so a game in progress looks like one still to come. Needs a layout decision with the TV table review and the rotating screen because the Fixtures board is already tight.
 - Rotating screen, one link for all content (idea 14-Nov-2026, to explore with mock-ups first, nothing built): a single TV link that rotates through pages on a schedule, so a screen needs only one address. A page per team (its table, then its fixtures, as the screens rotate today). The site owner can switch each page of the rotation on or off and put them in order, in Admin, with a time for each page. To explore at the same time: the TV league table view is getting cramped and shows too much (user feedback), so decide what a TV table should show and mock up a simpler layout before it goes into the rotation.
 - TV quick setup (idea 14-Nov-2026, the next one to explore; mock-ups first, nothing built): on a TV, visit thestatsboard.co.uk/setup and get a branded page with a QR code. An admin scans it with a phone camera, picks the screen link on the builder page (/builder) and the link appears on the TV. For TV screens only: on-screen keyboards need a remote control, so the aim is to type as little as possible on the TV. To explore: how the TV and phone pair (short code or QR), how the chosen link reaches the TV (the TV polls for it), the admin sign-in on the phone, how long a code lasts and how pairing is secured, and what the TV shows before and after pairing. Mock up both the TV page and the phone steps.
@@ -237,7 +240,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 - Release safeguard (10-Nov-2026): v3.13 and v3.13.1 went out with BUILD_DATE still reading 09-Nov-2026. check_release.py (in the working folder, not shipped) now fails a release if the version, build date (against today's UK date), header changelog line, What's new entry, README release row (date and zip name) and README entry headed with the version do not all agree, and build_release.sh runs sync, that check, all suites and the zip in one command so no step can be skipped. When GitHub is set up, move the same check into the automatic checks on every push, and consider stamping BUILD_DATE automatically at deploy.
 - Security and hardening, to do in future (agreed 10-Nov-2026, after the v3.14 build): (a) replace the static PIN-hash cookie with a random expiring session token (the club cookie is currently a fixed unsalted SHA-256 of the PIN, so a captured cookie could be cracked offline if the PIN is short) and add a lockout or throttle on wrong PINs (today only a 1.2 s delay); (b) check and limit the values taken from the address before they reach the RFU (team, competition, division, season: random values skip the stored copies and could get the site blocked by the RFU) and cap the number of different lookups per visitor; (c) send the usual browser security headers (anti-framing, content-type checking, a content security policy); (d) owner actions, not code: use a long PIN or passphrase for the club and test PINs, turn on Cloudflare bot protection and a free rate-limiting rule on /club-unlock, set a billing alert if the Workers Paid plan is ever used, keep the API token read-only and rotate it if someone leaves, keep the GitHub repo private with two-step login on GitHub and Cloudflare, and before resale give each club its own PIN and settings and confirm the RFU data terms allow a paid product.
 - Design rule (07-Nov-2026): the service may be resold, so nothing club-specific goes into the code; settings belong to a club (club:<id> in KV). Club name and colour stay per-link (&club=, &colour=) or come from the team itself, never a site-wide default. Before reselling, confirm the RFU feed terms allow a paid product.
-- Ivybridge-specific items to revisit one by one before any resale (audit 07-Nov-2026): (a) several pages fall back to the Ivybridge 1XV (team 11039, competition 1699, division 75791) when a link has no team= (about eight places; another club should get the team picker); (b) the TEAMS list (names, colours, leagues, IDs) is written into the code and drives the Links page and Match Centre; (c) names: the "Ivybridge RFC - Match Centre" heading, the "Ivybridge 2nd XV" to "The Vandals" rule, the default team name "Ivybridge"; (d) the PROD and DEV site addresses and the single CLUB_PIN; (e) the welcome page wording ("a personal project, free of charge") and the calendar file ID suffix @thestatsboard; (f) the TV club-name guess (team name trimmed, RFC added), which suits most clubs but not all (override with &club=).
+- Ivybridge-specific items to revisit one by one before any resale (audit 07-Nov-2026): (a) several pages fall back to the Ivybridge 1XV (team 11039, competition 1699, division 75791) when a link has no team= (about eight places; another club should get the team picker); (b) DONE in v3.29: the team list (names, colours, leagues, IDs) is now edited in Admin under Our teams, and the list in the code is only the starting default; (c) names: the "Ivybridge RFC - Match Centre" heading, the "Ivybridge 2nd XV" to "The Vandals" rule, the default team name "Ivybridge"; (d) the PROD and DEV site addresses and the single CLUB_PIN; (e) the welcome page wording ("a personal project, free of charge") and the calendar file ID suffix @thestatsboard; (f) the TV club-name guess (team name trimmed, RFC added), which suits most clubs but not all (override with &club=).
 - GitHub: look at how a GitHub repository could help this project (version history in place of zips, automatic deploys to DEV and PROD, running the tests automatically, tracking ideas). A view to be prepared for the user; nothing set up.
 - Use the RFU API (spec at https://api.england-rfu.com/openapi.json, server cluster.england-rfu.com) where the probe shows it is better: previousMatch for head-to-head beyond this season, opta/standings in place of the scraped league table, team comparison and team stats, and search in place of the link builder's englandrugby.com proxy. Not covered by the API: venues and squads. Needs the DEV probe results first.
     Probe results (06-Nov-2026): worth using = seasons (isCurrent flag, could replace setting the season by hand), teamComparisonStats (wins, points, tries, penalties, conversions, drop goals, last-4 form for both teams), leagueStats (league-wide records, fortress, travellers, bonus-point %). Check = leagueTables key inside full-matches (may hold the table with bonus points). Not useful = opta/standings (group IDs only, empty for this league), opta/previousNextFollowing (empty), nextmatch (nothing new; kick-off times not set), playersByTeam. previousMatch and the headToHead block were empty for Thurrock and Old Albanian Saints, so head-to-head is unproven.
@@ -251,6 +254,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.29   | 14-Nov-2026 | RFU_Club_Dashboard_v3.29_our_teams.zip                    | v3.28.4
 v3.28.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.4_usage_chart.zip                | v3.28.3
 v3.28.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.3_usage_merge.zip                | v3.28.2
 v3.28.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.2_usage_teams.zip                | v3.28.1
@@ -432,6 +436,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.29 - Our teams: friendly names set once in Admin
+- New Our teams section in Admin (second in the menu). It holds the club's list of teams: friendly name, short label, colour, league and order. Add a team by searching the RFU and choosing its league; Change league moves a team to a new division; Move up, Move down and Remove set the order. It replaces the TEAMS list that was written into the code, which is now only the starting default for a club that has not saved a list.
+- The friendly name is used wherever that team appears: Links page, Match Centre, phone team bar, TV banners, page titles and the Usage page. A name typed into a link (friendlyName) still wins, so TVs and bookmarks set up earlier keep what they show. A link that repeats the RFU's own name as its friendlyName counts as having none.
+- Links made from the Links page and the link builder no longer carry friendlyName for a team on the list, so they are shorter and follow Admin. The phone app and the welcome-page redirect also follow Admin for club teams, so a renamed team does not keep an old name from "Recent".
+- The Match Centre link on the Links page no longer lists team names in its description.
+- A saved list is cleaned on save: duplicates, bad numbers and markup are dropped, colours are checked, and a list with no valid team falls back to the default. The page store is keyed by the list, so a rename shows straight away.
+- Not changed: opposition teams keep the RFU's name; the old "Ivybridge 2nd XV is The Vandals" rule on names in links is still there (Ivybridge-specific, on the audit list).
+- Docs: Team settings, Admin guide, What's new
 
 v3.28.4 - Usage: Outside calls chart lines up
 - In a bar with website calls, the gold count read "4 web" and wrapped onto two lines on a phone, which made that column taller and lifted its bar and hour label above its neighbours. The gold count is now just the number (the gold colour and the note under the heading say what it is), every label row has a fixed height, and none of them wrap.
@@ -1432,7 +1445,7 @@ const DOCS = [
     { v: "competition", values: "RFU id, e.g. 1699", where: "All pages", what: "The league (competition) the team plays in.", ex: [["Table", "?" + DOCS_TEAM]] },
     { v: "division", values: "RFU id, e.g. 75791", where: "All pages", what: "The division within that competition.", ex: [["Table", "?" + DOCS_TEAM]] },
     { v: "teamName", values: "text, e.g. Ivybridge", where: "All pages", what: "The team's name as the RFU spells it. Used to find the team's games in the feed.", ex: [["Table", "?" + DOCS_TEAM]] },
-    { v: "friendlyName", values: "text, e.g. Ivybridge 1XV", where: "All pages", what: "The name shown on screen, which can differ from teamName.", ex: [["Table", "?" + DOCS_TEAM]] },
+    { v: "friendlyName", values: "text, e.g. Ivybridge 1XV", where: "All pages", what: "The name shown on screen, which can differ from teamName. Optional for a team on the Our teams list in Admin: leave it out and the Admin name is used. A name in the link wins over Admin.", ex: [["Table", "?" + DOCS_TEAM]] },
     { v: "season", values: "2026-2027", where: "All pages", what: "Pins the link to one season. Leave it out and the link follows the RFU season dates automatically, including the summer gap notice.", ex: [["Pinned to 2025-2026", "?season=2025-2026&" + DOCS_TEAM], ["Following the season", "?" + DOCS_TEAM]] }
   ] },
   { id: "view", title: "Choosing the page", intro: "view picks which page you get. With no view you get the team's league table page.", items: [
@@ -1552,6 +1565,7 @@ const DOC_SECTIONS = [
     { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, Match day) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
     { dl: [
       ["Overview", "Status cards and any live notices."],
+      ["Our teams", "Your teams: friendly name, short label, colour, league and order, used across the whole site."],
       ["Messages", "The homepage notice and the TV screen notice."],
       ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
       ["Match day", "The Match sheet (team sheets and scorers)."],
@@ -1562,6 +1576,16 @@ const DOC_SECTIONS = [
       ["Tools", "Links to Team links, Usage, Match sheet and Documentation (and Release notes and the Probe page on the test site)."]
     ] },
     { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
+    { h: "Our teams" },
+    { ul: [
+      "The list of the club's teams. Each has a friendly name (up to 40 characters), a short label for the phone team bar, a colour and the league it plays in. The friendly name is used wherever that team appears: the Links page, the Match Centre, the phone team bar, TV banners and page titles.",
+      "Add a team: type a team or club name, press Search, pick the team, then pick its league for this season. It is added with the RFU's own name as its friendly name; change it to what you want.",
+      "Change league: use this on a team at the start of a season, or when it moves division. It searches the RFU for that team's leagues and replaces the old one.",
+      "Move up, Move down and Remove set the order (the Links page and Match Centre follow it). The last team cannot be removed.",
+      "Nothing changes until you press Save changes. Changes show on pages within about a minute.",
+      "A name typed into a link (friendlyName) still wins over the Admin name, so TVs and bookmarks set up earlier keep showing what they showed. A link that repeats the RFU's own name counts as having no name. Links made from the Links page and the link builder no longer carry a name, so they follow the list.",
+      "Teams that are not on the list, such as opponents, keep the name the RFU gives them."
+    ] },
     { h: "Messages" },
     { ul: [
       "Homepage notice: a block at the top of the page where visitors pick a team. Text up to 200 characters.",
@@ -1715,6 +1739,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.29", "New Our teams section in Admin: choose your teams once, give each a friendly name, short label and colour, and put them in order. The name shows everywhere that team appears. A name typed into a link still wins; links from the Links page and link builder now follow Admin."],
       ["v3.28.4", "Usage page: the Outside calls chart now lines up when some hours have website calls, and the hour labels no longer run together on a phone."],
       ["v3.28.3", "Usage page: Teams people look up now shows one row per team and its team number, so the same team is never listed twice."],
       ["v3.28.2", "Usage page: the card for other teams is now Teams people look up. It lists every team that people open or pick, including the club's own (marked as ours)."],
@@ -1902,8 +1927,46 @@ const SETTINGS_DEFAULT = () => ({
   signin: { days: 30 },
   matchCentre: { layout: "next" },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
+  club: { teams: TEAMS_DEFAULT.map(t => ({ ...t })), saved: false },
   savedAt: ""
 });
+// Our teams (v3.29): the club's own team list, kept in the settings record. Each entry: team (RFU number), teamName (the RFU's own name),
+// name (the friendly name shown everywhere), short (phone jump bar label), accent (team colour), league, competition, division.
+const TEAM_PALETTE = ["#2f9e5b", "#d9a21b", "#c0303f", "#3d8fd6", "#8a63d2", "#e07b39", "#2aa5a5", "#c45a9a"];
+function cleanClubTeams(arr) {
+  if (!Array.isArray(arr)) return null;
+  const txt = (x, max) => String(x == null ? "" : x).replace(/[\u0000-\u001f\u007f<>"]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+  const out = [], seen = new Set();
+  for (const r of arr) {
+    if (!r || typeof r !== "object") continue;
+    const team = String(r.team == null ? "" : r.team), comp = String(r.competition == null ? "" : r.competition), div = String(r.division == null ? "" : r.division);
+    if (!/^\d{1,9}$/.test(team) || !/^\d{1,9}$/.test(comp) || !/^\d{1,9}$/.test(div) || seen.has(team) || out.length >= 24) continue;
+    seen.add(team);
+    const teamName = txt(r.teamName, 40) || txt(r.name, 40) || "Team", name = txt(r.name, 40) || teamName;
+    out.push({ name, short: txt(r.short, 14) || name.slice(0, 12), accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
+  }
+  return out.length ? out : null;
+}
+let TEAMS_STAMP = "d";
+function applyClubTeams(list) {
+  const st = JSON.stringify(list); if (st === TEAMS_STAMP.src) return;
+  let h = 5381; for (let i = 0; i < st.length; i++) h = ((h * 33) ^ st.charCodeAt(i)) >>> 0;
+  TEAMS.length = 0; for (const t of list) TEAMS.push({ ...t });
+  TEAMS_STAMP = { src: st, toString() { return h.toString(36); } };
+}
+// A name in the link wins. A link whose friendlyName is empty, or just repeats the RFU name (teamName), carries no name of its
+// own, so for a team on the club's list the Admin name is filled in. Other teams (opponents, searched teams) are left alone.
+function withClubName(request) {
+  if (request.method !== "GET" && request.method !== "HEAD") return request;
+  let u; try { u = new URL(request.url); } catch (_) { return request; }
+  if (u.pathname !== "/") return request;
+  const team = u.searchParams.get("team"); if (!team) return request;
+  const t = TEAMS.find(x => String(x.team) === team); if (!t) return request;
+  const fn = (u.searchParams.get("friendlyName") || "").trim(), tn = (u.searchParams.get("teamName") || "").trim();
+  if (fn && fn !== tn) return request;
+  u.searchParams.set("friendlyName", t.name);
+  return new Request(u.toString(), request);
+}
 function kvOf() { const k = SITE_ENV && SITE_ENV.SETTINGS; return k && typeof k.get === "function" && typeof k.put === "function" ? k : null; }
 function cleanSettings(raw) {
   const d = SETTINGS_DEFAULT(), r = raw && typeof raw === "object" ? raw : {};
@@ -1911,7 +1974,7 @@ function cleanSettings(raw) {
   const txt = (x, max) => String(x == null ? "" : x).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
   const style = x => x === "warning" ? "warning" : "info";
   const until = x => /^\d{4}-\d{2}-\d{2}$/.test(String(x || "")) ? String(x) : "";
-  const h = n.home || {}, t = n.tv || {}, ids = TEAMS.map(x => String(x.team));
+  const h = n.home || {}, t = n.tv || {}, clubT = cleanClubTeams(r.club && r.club.teams), ids = (clubT || TEAMS_DEFAULT).map(x => String(x.team));
   d.notices.home = { on: h.on === true, text: txt(h.text, 200), style: style(h.style), until: until(h.until) };
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
   for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback"]) d.features[k] = f[k] === false ? false : true;
@@ -1924,6 +1987,7 @@ function cleanSettings(raw) {
     if (Array.isArray(m.lines)) { const seen = new Set(), out = []; for (const x of m.lines) { const l = txt(x, 100).replace(/[<>]/g, ""); if (l && !seen.has(l) && out.length < 20) { seen.add(l); out.push(l); } } d.maintenance.lines = out; }
     const pk = typeof m.pun === "string" ? txt(m.pun, 100).replace(/[<>]/g, "") : "random";
     d.maintenance.pun = pk === "random" || pk === "none" || d.maintenance.lines.includes(pk) ? pk : "random"; }
+  if (clubT) d.club = { teams: clubT, saved: true };
   d.savedAt = typeof r.savedAt === "string" ? r.savedAt.slice(0, 40) : "";
   return d;
 }
@@ -1935,7 +1999,7 @@ async function siteSettings() {
   let v = null, failed = false;
   try { v = await kv.get(SETTINGS_KEY, { type: "json", cacheTtl: 60 }); } catch (_) { failed = true; }
   if (failed && SETTINGS_CACHE.v) return SETTINGS_CACHE.v; // KV hiccup: keep the last good copy
-  const s = cleanSettings(v); SETTINGS_CACHE = { at: Date.now(), v: s }; return s;
+  const s = cleanSettings(v); SETTINGS_CACHE = { at: Date.now(), v: s }; applyClubTeams(s.club.teams); return s;
 }
 const UK_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function ukStamp(iso) {
@@ -2013,11 +2077,15 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .tw{margin-top:8px;display:flex;flex-direction:column;gap:6px}.tw label{display:flex;gap:8px;align-items:center;font-size:14px}
 .save{margin:22px 0 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.btn{font:700 15px Arial,Helvetica,sans-serif;background:#7fd19a;color:#0b1110;border:0;border-radius:99px;padding:12px 24px;cursor:pointer}.btn:disabled{opacity:.5;cursor:default}.n{font-size:12.5px;color:#91a49a}
 body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r,body.light .nb{border-color:#e3ebe5}body.light .btn{background:#1b7f3b;color:#fff}body.light .seg{border-color:#cbd8ce}body.light .tg span{background:#c9d4cc}
+.tm{padding:14px 0;border-bottom:1px solid #1f2925}.tm:last-child{border:0}.tmt{display:flex;gap:12px;align-items:flex-end}.tmc{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#0b1110;font-weight:800;font-size:14px;margin-bottom:2px}.tmf{flex:1;min-width:0}.tmr{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.tmr>div{flex:1;min-width:140px}.tmr input[type=color]{padding:3px 6px;height:46px;cursor:pointer}.tmm{margin:8px 0 0!important;line-height:1.5}.tmb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tb{background:#26312d!important;color:#e6efe9!important;padding:8px 14px!important;font-size:13px!important}.tb.rm{color:#f09595!important}
+.tsr{display:flex;flex-direction:column;gap:6px;margin-top:10px}.tsr button{text-align:left;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;border-radius:12px;padding:11px 13px;font:600 14px Arial,Helvetica,sans-serif;cursor:pointer;display:flex;flex-direction:column;gap:2px}.tsr button small{color:#91a49a;font-weight:400;font-size:12.5px}
+@media (max-width:520px){.tmb{display:grid;grid-template-columns:1fr 1fr}.tb{white-space:nowrap}}
+body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}body.light .tm{border-color:#e3ebe5}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap ad">
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2026,6 +2094,13 @@ ${setup}
 <div class="oc"><small>Website back-up</small><b class="${s.features.webfallback === false ? "bad" : "good"}">${s.features.webfallback === false ? "Off" : "On"}</b><span>${s.features.webfallback === false ? "RFU data service only" : "Used if the data service has nothing"}</span></div>
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
+</section>
+<section class="sec" id="s-teams" hidden><h1>Our teams</h1><p class="sub">The names, short labels, colours and order used across the whole site: the Links page, Match Centre, phone team bar, TV banners and page titles. Change a name here and it changes everywhere once you press Save.</p>
+<div class="cd" id="tml"></div>
+<div class="cd" style="margin-top:14px"><div class="nb"><div class="nh"><div><b>Add a team</b><small>Search the RFU list, then choose the league it plays in this season.</small></div></div>
+<div style="display:flex;gap:8px;margin-top:6px"><input class="in" id="tq" maxlength="60" autocomplete="off" placeholder="Team or club name" style="margin:0;flex:1"><button type="button" class="btn" id="tgo">Search</button></div>
+<p class="n" id="tm1" style="margin:8px 0 0"></p><div class="tsr" id="tr"></div><div class="tsr" id="tp"></div></div></div>
+<p class="n" style="margin:10px 2px 0">A name typed into a link (<b>friendlyName=</b>) still wins over the name here, so links you shared earlier keep showing what they showed. Links made from the Links page and the link builder no longer carry a name, so they follow this list. Teams that are not on this list, such as opponents, keep the name the RFU gives them.</p>
 </section>
 <section class="sec" id="s-notices" hidden><h1>Messages</h1><p class="sub">Notices shown to visitors and on the clubhouse TVs.</p>
 <div class="cd">
@@ -2106,7 +2181,21 @@ $("mlb").addEventListener("click",function(){$("mlc").hidden=!$("mlc").hidden});
 $("mad").addEventListener("click",function(){var v=$("mnl").value.replace(/\s+/g," ").trim();if(!v||lines.length>=20||lines.indexOf(v)>=0)return;sync();lines.push(v);$("mnl").value="";rl()});
 $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
-var SECS=["home","notices","screens","match","data","privacy","access","status"];
+var club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
+function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Short label</div><input class="in ts" maxlength="14" value="'+esc(t.short)+'" style="margin-top:4px"></div><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h}
+$("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("ts"))t.short=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
+$("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
+if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
+function lgs(id,nm){$("tp").innerHTML="";$("tm1").textContent="Loading leagues for "+nm+"...";fetch("/api/builder/team?team="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){if(d.error)throw new Error(d.error);var ls=d.leagues||[];$("tm1").textContent=ls.length?"Choose the league for "+d.name+":":"No league found for "+d.name+" this season.";var h="";ls.forEach(function(l,k){h+='<button type="button" class="tlg" data-k="'+k+'">'+esc(l.divisionName)+'<small>'+esc(l.competitionName)+'</small></button>'});$("tp").innerHTML=h;$("tp").onclick=function(ev){var b=ev.target.closest(".tlg");if(!b)return;var l=ls[+b.getAttribute("data-k")],tid=String(d.team);
+if(addAt>=0){var t=club[addAt];t.league=l.divisionName;t.competition=String(l.competition);t.division=String(l.division)}else{var nn=d.name||nm;club.push({name:nn,short:nn.slice(0,12),accent:PAL[club.length%PAL.length],league:l.divisionName,competition:String(l.competition),division:String(l.division),team:tid,teamName:d.name||nm})}
+addAt=-1;$("tp").innerHTML="";$("tr").innerHTML="";$("tm1").textContent="Done. Press Save changes to keep it.";rt();md()};$("tp").scrollIntoView&&$("tp").scrollIntoView({block:"nearest"})}).catch(function(e){$("tm1").textContent="Could not load that team: "+e.message})}
+function tfind(){var n=$("tq").value.trim();$("tp").innerHTML="";$("tr").innerHTML="";if(n.length<2){$("tm1").textContent="Type at least two letters.";return}$("tm1").textContent="Searching...";addAt=-1;fetch("/api/builder/search?name="+encodeURIComponent(n),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){var ts=d.teams||[];$("tm1").textContent=ts.length?ts.length+" found. Pick one:":"No teams match. Check the spelling or try the club name only.";var h="";ts.slice(0,25).forEach(function(t){h+='<button type="button" class="tsb" data-id="'+esc(t.id)+'" data-n="'+esc(t.name)+'">'+esc(t.name)+'<small>no. '+esc(t.id)+'</small></button>'});$("tr").innerHTML=h}).catch(function(){$("tm1").textContent="Search did not work. Try again."})}
+$("tgo").addEventListener("click",tfind);$("tq").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();tfind()}});
+$("tr").addEventListener("click",function(e){var b=e.target.closest(".tsb");if(!b)return;var id=b.getAttribute("data-id");if(club.some(function(t){return t.team===id})){$("tm1").textContent="That team is already on the list. Use Change league on it instead.";return}addAt=-1;lgs(id,b.getAttribute("data-n"))});
+rt();
+var SECS=["home","teams","notices","screens","match","data","privacy","access","status"];
 function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}
 addEventListener("hashchange",route);route();
 var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add("show");$("dirty").hidden=false;$("dis").hidden=false}
@@ -2115,7 +2204,7 @@ addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.retur
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -2255,6 +2344,7 @@ async function adminApi(request, url) {
   let b = null;
   try { const raw = await request.text(); if (raw.length > 20000) return J({ ok: false, error: "Too much data." }, 413); b = JSON.parse(raw); } catch (_) { b = null; }
   if (!b || typeof b !== "object") return J({ ok: false, error: "That did not look right. Reload the page and try again." }, 400);
+  if (!b.club) { try { b.club = (await siteSettings()).club; } catch (_) { /* default list */ } }
   const s = cleanSettings(b); s.savedAt = new Date().toISOString();
   // Switching maintenance mode ON needs the club PIN typed again (it takes the whole site offline).
   { let was = false; try { const old = await kv.get(SETTINGS_KEY, { type: "json" }); was = cleanSettings(old).maintenance.on; } catch (_) { was = SETTINGS_CACHE.v ? SETTINGS_CACHE.v.maintenance.on : false; }
@@ -2269,7 +2359,7 @@ async function adminApi(request, url) {
       await lockClear(request, "club");
     } }
   try { await kv.put(SETTINGS_KEY, JSON.stringify(s)); } catch (_) { return J({ ok: false, error: "Could not save to settings storage. Try again." }, 502); }
-  SETTINGS_CACHE = { at: Date.now(), v: s };
+  SETTINGS_CACHE = { at: Date.now(), v: s }; applyClubTeams(s.club.teams);
   return J({ ok: true, savedAt: s.savedAt, label: ukStamp(s.savedAt) });
 }
 
@@ -2500,12 +2590,15 @@ load()})();</script></body></html>`;
 // Teams shown on the links page (/?view=teams) and the default Now and Next
 // screen. "short" is the label used on the phone jump bar; "accent" is the
 // team colour used to tell rows apart on Now and Next. Add or edit here.
-const TEAMS = [
+const TEAMS_DEFAULT = [
   { name: "Ivybridge 1XV", short: "1XV", accent: "#2f9e5b", league: "Regional 2 Tribute Ale South West", competition: "1699", division: "75791", team: "11039", teamName: "Ivybridge" },
   { name: "The Vandals", short: "Vandals", accent: "#d9a21b", league: "Counties 3 Tribute Ale Devon South & West", competition: "1699", division: "75801", team: "11063", teamName: "Ivybridge" },
   { name: "Ivybridge Women", short: "Women", accent: "#c0303f", league: "Women's Championship South 1", competition: "1782", division: "76176", team: "124080", teamName: "Ivybridge" },
   { name: "Colts", short: "Colts", accent: "#3d8fd6", league: "Devon RFU Colts Group 1", competition: "2388", division: "77306", team: "11057", teamName: "Ivybridge U18s" }
 ];
+// v3.29: the live list. It starts as the default above and is replaced in place by the club's own list from Admin (Our teams)
+// at the start of every request (see applyClubTeams), so every page that reads TEAMS sees the saved names, colours and order.
+const TEAMS = TEAMS_DEFAULT.map(t => ({ ...t }));
 
 // The public address of the live site. Links created on a *.pages.dev address use it. A site counts as DEV when its
 // Pages project has the ENV_LABEL variable. (v3.6: the PROD/DEV switch is gone, and the DEV address is deliberately
@@ -3051,7 +3144,8 @@ var theme="dark";
 try{var st=localStorage.getItem(TK);if(st==="light"||st==="dark")theme=st;else if(q0.get("theme")==="light")theme="light"}catch(e){}
 function setTheme(t){theme=t;H.className=t;d.body&&(d.body.className=t);try{localStorage.setItem(TK,t)}catch(e){}var m=d.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="light"?"#eef2ef":"#080b0d")}
 H.className=theme;
-function nameOf(t){return t.friendlyName||t.teamName||"Team"}
+function cfgName(id){for(var i=0;i<CFG.teams.length;i++)if(CFG.teams[i].team===id)return CFG.teams[i].name;return ""}
+function nameOf(t){var f=t.friendlyName;if(!f||f===t.teamName)f=cfgName(t.team)||f;return f||t.teamName||"Team"}
 function params(t,v,extra){var p=new URLSearchParams();PK.forEach(function(k){if(t[k])p.set(k,t[k])});if(v)p.set("view",v);if(extra)for(var k in extra)p.set(k,extra[k]);return p}
 function shellUrl(t,v){return "/?"+params(t,v,{app:"1",force:force?"1":""}).toString().replace(/&force=(?=&|$)/,"")}
 function frameUrl(t,v){var x={embed:"1",theme:theme};if(!v)x.layout="mobile";return "/?"+params(t,v,x).toString()}
@@ -3065,7 +3159,7 @@ function remember(t){if(!/^\\d+$/.test(t.team)||!/^\\d+$/.test(t.competition)||!
  var r={team:t.team,name:nameOf(t),competition:t.competition,division:t.division,season:t.season,league:leagueOf(t),tn:t.teamName||nameOf(t)};
  recSet([r].concat(recGet().filter(function(x){return !(x.team===r.team&&x.competition===r.competition&&x.division===r.division)})))}
 remember(T);
-function fromRec(r){return {season:r.season,competition:r.competition,division:r.division,team:r.team,teamName:r.tn||r.name,friendlyName:r.name}}
+function fromRec(r){return {season:r.season,competition:r.competition,division:r.division,team:r.team,teamName:r.tn||r.name,friendlyName:cfgName(r.team)||r.name}}
 // ---------- build the page ----------
 var ICON={home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',fixtures:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',next:'<ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-45 12 12)"/><path d="M9 15l6-6"/>',leaders:'<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8"/>'};
 var TABS=[["home","Home",""],["fixtures","Fixtures","fixtures"],["next","Next game","match"],["leaders","Leaders","leaders"]];
@@ -3191,7 +3285,7 @@ function boot(){mount();rotateNote();d.body.appendChild(dim);d.body.appendChild(
 })();
 `;
 const APP_GATE_JS = `<script>(function(){try{var q=new URLSearchParams(location.search);if(q.get("embed")||q.get("app")||window.top!==window.self)return;var lay=(q.get("layout")||"").toLowerCase();if(lay==="tv"||lay==="wide")return;var mm=function(s){try{return matchMedia(s).matches}catch(e){return false}};var ok=lay==="mobile"||mm("(max-width:820px)")||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100);if(!ok)return;if(lay==="mobile")q.set("force","1");q.delete("layout");q.set("app","1");location.replace("/?"+q.toString())}catch(e){}})();</script>`;
-const APP_WELCOME_JS = `<script>(function(){try{var q=new URLSearchParams(location.search);if(q.get("choose"))return;var mm=function(s){try{return matchMedia(s).matches}catch(e){return false}};if(!(mm("(max-width:820px)")||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100)))return;var a=JSON.parse(localStorage.getItem("statsBoardRecent")||"[]"),r=null;if(Array.isArray(a))for(var i=0;i<a.length;i++){var x=a[i];if(x&&/^\\d+$/.test(x.team)&&/^\\d+$/.test(x.competition)&&/^\\d+$/.test(x.division)&&/^\\d{4}-\\d{4}$/.test(x.season)&&typeof x.name==="string"){r=x;break}}if(!r)return;var p=new URLSearchParams({season:r.season,competition:r.competition,division:r.division,team:r.team,teamName:r.tn||r.name,friendlyName:r.name,app:"1"});location.replace("/?"+p.toString())}catch(e){}})();</script>`;
+const appWelcomeJs = () => `<script>(function(){try{var CT=${JSON.stringify(TEAMS.map(t => String(t.team)))};var q=new URLSearchParams(location.search);if(q.get("choose"))return;var mm=function(s){try{return matchMedia(s).matches}catch(e){return false}};if(!(mm("(max-width:820px)")||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100)))return;var a=JSON.parse(localStorage.getItem("statsBoardRecent")||"[]"),r=null;if(Array.isArray(a))for(var i=0;i<a.length;i++){var x=a[i];if(x&&/^\\d+$/.test(x.team)&&/^\\d+$/.test(x.competition)&&/^\\d+$/.test(x.division)&&/^\\d{4}-\\d{4}$/.test(x.season)&&typeof x.name==="string"){r=x;break}}if(!r)return;var p=new URLSearchParams({season:r.season,competition:r.competition,division:r.division,team:r.team,teamName:r.tn||r.name,app:"1"});if(CT.indexOf(r.team)<0)p.set("friendlyName",r.name);location.replace("/?"+p.toString())}catch(e){}})();</script>`;
 const EMBED_CSS = `<style>.mbar,#sbv,.envsw,div[role=note][style*="position:fixed"]{display:none!important}@media(min-width:700px) and (max-width:899px){html.layout-mobile body{max-width:680px;margin-left:auto;margin-right:auto}}@media(min-width:900px){html.layout-mobile body{display:block!important;column-count:2;column-gap:16px;max-width:1100px;margin-left:auto;margin-right:auto}html.layout-mobile body>*{margin-bottom:10px}html.layout-mobile .topline,html.layout-mobile .clubhead,html.layout-mobile .stats,html.layout-mobile .foot{column-span:all}html.layout-mobile .panel,html.layout-mobile .table-panel,html.layout-mobile .main>*{break-inside:avoid}html.layout-mobile .main{display:block!important}html.layout-mobile .main>*{margin-bottom:10px}}</style>`;
 const APP_VIEWS = ["", "fixtures", "leaders", "match", "opposition"];
 function appShellPage(url) {
@@ -3206,7 +3300,7 @@ function appInject(html, url) {
   if (q.get("embed") === "1") return html.replace(/<\/head>/i, EMBED_CSS + "</head>");
   if (q.get("app")) return html;
   const welcome = !["team", "view", "format", "competition", "division"].some(k => q.has(k));
-  if (welcome) return html.replace(/<\/head>/i, APP_WELCOME_JS + "</head>");
+  if (welcome) return html.replace(/<\/head>/i, appWelcomeJs() + "</head>");
   const lay = (q.get("layout") || "").toLowerCase();
   if (!q.has("team") || !APP_VIEWS.includes(v) || lay === "tv" || lay === "wide") return html;
   return html.replace(/<\/head>/i, APP_GATE_JS + "</head>");
@@ -4708,12 +4802,12 @@ ${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: t
       const link = (t, layout) => {
         const q = new URLSearchParams({
           ...sq, competition: t.competition, division: t.division,
-          team: t.team, teamName: t.teamName, friendlyName: t.name, theme
+          team: t.team, teamName: t.teamName, theme
         });
         if (layout) q.set("layout", layout);
         return pubOrigin + "/?" + q.toString();
       };
-      const matchLink = t => pubOrigin + "/?" + new URLSearchParams({view: "match", ...sq, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, theme}).toString();
+      const matchLink = t => pubOrigin + "/?" + new URLSearchParams({view: "match", ...sq, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, theme}).toString();
       const devParam = (url.searchParams.get("device") || "").toLowerCase();
       const deviceCls = devParam === "mobile" ? " dm" : devParam === "desktop" ? " dd" : devParam === "all" ? " all" : "";
       const stackUrl = pubOrigin + "/?" + new URLSearchParams({view: "stack", ...sq, theme}).toString();
@@ -4721,7 +4815,7 @@ ${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: t
       // Add new sections or items here as the dashboard grows. Each link is {label, href, cls}.
       const SECTIONS = [
         { title: "Club screens", note: "Full-screen views for TVs and signage. On a phone the same link scrolls, with Table & Stats links for each team.", items: [
-          { name: "Match Centre", detail: "The club's teams (1XV, The Vandals, Women and the Colts) on one screen: last game and next game",
+          { name: "Match Centre", detail: "All the club's teams on one screen: last game and next game",
             links: [{ label: "Stacked view", href: stackUrl }] }
         ]},
         { title: "Team dashboards", note: "League table, form, results and next fixture for one team.", items: TEAMS.map(t => ({
@@ -4902,8 +4996,8 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       // Row style for telling teams apart: d coloured side tab (default); a solid panel, b title bar, c framed row via &rows=.
       const rowStyle = ["a","b","c","d"].includes(url.searchParams.get("rows")) ? url.searchParams.get("rows") : "d";
       const sOf = t => t.season || (AUTO.auto ? "" : season);
-      const tableHref = t => pubOrigin + "/?" + new URLSearchParams({...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, theme, layout: "mobile"}).toString();
-      const viewHref = (t, v) => pubOrigin + "/?" + new URLSearchParams({view: v, ...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, theme}).toString();
+      const tableHref = t => pubOrigin + "/?" + new URLSearchParams({...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, theme, layout: "mobile"}).toString();
+      const viewHref = (t, v) => pubOrigin + "/?" + new URLSearchParams({view: v, ...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, theme}).toString();
       const menuHref = pubOrigin + "/?" + new URLSearchParams({theme}).toString();
       const crest = (id, name) => `<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="https://images.englandrugby.com/club_images/${encodeURIComponent(id)}.png" alt="" onload="this.parentNode.querySelector('.ini').style.display='none'" onerror="this.remove()">` : ""}</span>`;
       if (AUTO.auto) {
@@ -6575,6 +6669,8 @@ export default {
   async fetch(request, env, ctx) {
     SITE_ENV = env || {}; SITE_CTX = ctx || null;
     const t0 = Date.now();
+    try { await siteSettings(); } catch (_) { /* default team list */ }
+    request = withClubName(request);
     const label = env && typeof env.ENV_LABEL === "string" ? env.ENV_LABEL.trim().slice(0, 30) : "";
     if (label) { const blocked = await devGate(request, env, label); if (blocked) return blocked; }
     { const cb = await clubGate(request, env, label); if (cb) return cb; }
@@ -6591,7 +6687,7 @@ export default {
         if (pageCache) {
           // Match Stats is the busiest and heaviest page and its facts change slowly: keep it 30 minutes Monday to Friday, 5 at weekends.
           pageTtl = pageTtlFor(v0, new Date());
-          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION, { method: "GET" });
+          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP), { method: "GET" });
           try { const hit = await pageCache.match(pageKey); if (hit) { const hh = new Headers(hit.headers); hh.set("X-Page-Cache", "HIT"); return new Response(hit.body, { status: hit.status, headers: hh }); } } catch (_) { /* miss */ }
         }
       }
