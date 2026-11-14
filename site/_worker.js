@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.5 14-Nov-2026 Working-time savings for the free plan (10 ms per request): date formatting reuses formatters (identical output), names with no HTML codes skip decoding, and each team's Match Centre summary is kept in the shared cache for 15 minutes. Pages need roughly half to a third of the working time in the test rig.
 //   v3.30.4 14-Nov-2026 Fix: Error 1102 (the server running out of working time) after Win Predictor was switched on. The sums are about three times quicker, the results are kept in Cloudflare's shared cache for 24 hours (the check page 6 hours) so only one server instance has to do them.
 //   v3.30.3 14-Nov-2026 This season's RFU data is kept for 30 minutes at weekends and 24 hours Monday to Friday (was 10 minutes and 1 hour). Open pages still reload on the old timing.
 //   v3.30.2 14-Nov-2026 Win Predictor is kept for 24 hours (a new result still changes it at once, because the number of results is part of the key), and earlier seasons fetched for it, and for the Match Stats meetings, are kept for 24 hours instead of 10 minutes to an hour.
@@ -214,7 +215,19 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.30.4";
+// v3.30.5: the site formats dates in the London time zone hundreds of times per page, and each toLocale...String call builds a new formatter, which is the biggest single use
+// of working time (the free plan allows 10 ms per request). These three keep and reuse one formatter per set of options. The output is identical; anything unusual falls back to the built-in call.
+(function () {
+  const D = Date.prototype, od = D.toLocaleDateString, ot = D.toLocaleTimeString, os = D.toLocaleString, cache = new Map();
+  const get = (loc, o) => { const k = loc + "|" + JSON.stringify(o); let f = cache.get(k); if (!f) { f = new Intl.DateTimeFormat(loc, o); if (cache.size > 200) cache.clear(); cache.set(k, f); } return f; };
+  const any = (o, ks) => ks.some(k => o[k] !== undefined);
+  const DATE = ["weekday", "year", "month", "day"], TIME = ["dayPeriod", "hour", "minute", "second", "fractionalSecondDigits"], STYLE = ["dateStyle", "timeStyle", "hour12", "hourCycle", "era", "timeZoneName"];
+  const ok = (self, loc, o) => typeof loc === "string" && (o === undefined || (o && typeof o === "object")) && !isNaN(self) && !any(o || {}, STYLE);
+  D.toLocaleDateString = function (loc, o) { if (!ok(this, loc, o) || any(o || {}, TIME)) return od.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric" }).format(this); };
+  D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
+  D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
+})();
+const VERSION = "v3.30.5";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -262,6 +275,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
 v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
 v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
 v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
@@ -451,6 +465,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.5 - Working-time savings (free Cloudflare plan)
+- Confirmed from Cloudflare's Metrics (14-Nov-2026): 16 "Exceeded CPU Time Limits", none for memory. The site is on the free plan (10 ms of working time per request) and the owner prefers not to pay, so the aim is to make pages cheaper.
+- Measured with a profiler (test rig, a 14-team division, which is larger than the real ones): the largest single cost was date formatting, because every toLocaleDateString, toLocaleTimeString and toLocaleString call built a brand new formatter (about 20% of a page). Now one formatter per set of options is kept and reused; the output is identical (checked on 75 combinations including clock changes and invalid dates). Names with no HTML codes skip the decoding loop, and the "Updated" stamp reuses its formatter.
+- Each team's Match Centre summary is kept in Cloudflare's shared cache for 15 minutes (and refreshed on a change of settings, team names or the Win Predictor switch), so one Match Centre load no longer redoes the page work for every team.
+- Result in the rig (warm, per request): team page TV 35 to about 11 ms, phone 26 to about 14 ms, Match Stats 31 to about 16 ms, Match Centre 92 to about 30 ms. Still over 10 ms on a cold server instance, so some risk remains; the page-level cache at the edge is what serves most visits.
+- Next ideas if 1102 still appears: skip building the page HTML when only the summary data is asked for, trim the JSON walks, cache more of the shared pages at the edge.
+- Docs: none - speed only, nothing a visitor sees
 
 v3.30.4 - Fix: Error 1102 with Win Predictor on
 - Seen on DEV (14-Nov-2026) after the Win Predictor was switched on: Cloudflare Error 1102 ("Worker exceeded resource limits"), which then cleared by itself.
@@ -1821,6 +1843,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.5", "Behind the scenes: pages now use much less of the server's working time (roughly a half to a third), which should stop the occasional Error 1102 on the free Cloudflare plan. Nothing looks different."],
       ["v3.30.4", "Fix: some pages showed Error 1102 after Win Predictor was switched on (the server ran out of working time). The Win Predictor sums are about three times quicker and the results are now shared between servers, so they are worked out once rather than over and over."],
       ["v3.30.3", "This season's results and tables are now fetched from the RFU at most every 30 minutes at weekends and once a day Monday to Friday (was every 10 minutes and every hour). A result entered on a weekday can take up to a day to appear."],
       ["v3.30.2", "Win Predictor is kept for a day instead of half an hour, and so are earlier seasons fetched for it, so pages load faster and ask the RFU less often. A new result still updates it."],
@@ -2196,9 +2219,10 @@ async function siteSettings() {
   const s = cleanSettings(v); SETTINGS_CACHE = { at: Date.now(), v: s }; applyClubTeams(s.club.teams); return s;
 }
 const UK_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const UK_STAMP_FMT = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", year: "numeric", month: "numeric", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 function ukStamp(iso) {
   const d = new Date(iso); if (!iso || isNaN(d)) return "";
-  const p = {}; for (const x of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", year: "numeric", month: "numeric", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d)) p[x.type] = x.value;
+  const p = {}; for (const x of UK_STAMP_FMT.formatToParts(d)) p[x.type] = x.value;
   return p.day + "-" + UK_MONTHS[Number(p.month) - 1] + "-" + p.year + ", " + (p.hour === "24" ? "00" : p.hour) + ":" + p.minute;
 }
 function noticeToday(url, isDev) {
@@ -5212,12 +5236,17 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
           return fx.changed ? { ...t, competition: fx.competition, division: fx.division } : t;
         }));
       }
+      const wpOn = (await siteSettings()).features.winchance === true;
       const results = await Promise.all(stackTeams.map(async t => {
         const q = new URLSearchParams({season: t.season || season, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, format: "summary"});
         try {
+          // v3.30.5: each team's summary is kept in the shared cache for 15 minutes, so a Match Centre load does not redo every team's page work (the free plan allows 10 ms per request).
+          const skey = "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, shared = await sharedGet(skey);
+          if (shared && shared.ok) return {t, s: shared.v};
           const r = await worker.fetch(new Request(url.origin + "/?" + q.toString()));
           if (!r.ok) throw new Error("HTTP " + r.status);
-          return {t, s: await r.json()};
+          const sj = await r.json(); await sharedPut(skey, { ok: true, v: sj }, 900);
+          return {t, s: sj};
         } catch (err) { return {t, error: String(err && err.message || err)}; }
       }));
       const cdOf = n => {
@@ -5415,6 +5444,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       // (e.g. "&amp;amp;"), and output is re-escaped by esc() when rendered.
       const decodeEntities = input => {
         let str = String(input ?? "");
+        if (str.indexOf("&") < 0) return str; // v3.30.5: nothing to decode (nearly every name)
         for (let i = 0; i < 4; i++) {
           const next = str
             .replace(/&nbsp;|&#160;/gi, " ")

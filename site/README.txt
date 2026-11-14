@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
 v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
 v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
 v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
@@ -231,6 +232,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.5 - Working-time savings (free Cloudflare plan)
+- Confirmed from Cloudflare's Metrics (14-Nov-2026): 16 "Exceeded CPU Time Limits", none for memory. The site is on the free plan (10 ms of working time per request) and the owner prefers not to pay, so the aim is to make pages cheaper.
+- Measured with a profiler (test rig, a 14-team division, which is larger than the real ones): the largest single cost was date formatting, because every toLocaleDateString, toLocaleTimeString and toLocaleString call built a brand new formatter (about 20% of a page). Now one formatter per set of options is kept and reused; the output is identical (checked on 75 combinations including clock changes and invalid dates). Names with no HTML codes skip the decoding loop, and the "Updated" stamp reuses its formatter.
+- Each team's Match Centre summary is kept in Cloudflare's shared cache for 15 minutes (and refreshed on a change of settings, team names or the Win Predictor switch), so one Match Centre load no longer redoes the page work for every team.
+- Result in the rig (warm, per request): team page TV 35 to about 11 ms, phone 26 to about 14 ms, Match Stats 31 to about 16 ms, Match Centre 92 to about 30 ms. Still over 10 ms on a cold server instance, so some risk remains; the page-level cache at the edge is what serves most visits.
+- Next ideas if 1102 still appears: skip building the page HTML when only the summary data is asked for, trim the JSON walks, cache more of the shared pages at the edge.
+- Docs: none - speed only, nothing a visitor sees
 
 v3.30.4 - Fix: Error 1102 with Win Predictor on
 - Seen on DEV (14-Nov-2026) after the Win Predictor was switched on: Cloudflare Error 1102 ("Worker exceeded resource limits"), which then cleared by itself.
