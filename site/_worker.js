@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.18 14-Nov-2026 Phone app: the Links button's sheet (and the app's own page addresses) no longer carry the Admin friendly name; a name typed into the address is kept.
 //   v3.30.17 14-Nov-2026 DEV: the PIN page's return address no longer picks up the filled-in Admin friendly name (it showed as &friendlyName=... after unlocking).
 //   v3.30.16 14-Nov-2026 Match Centre rows with five or six teams: a more compact Next game box so the tag and the Win Predictor bar are no longer cut off.
 //   v3.30.15 14-Nov-2026 Links made by team pages (Match Stats, Opposition Report, Fixtures, Share, Add to home screen, WhatsApp, calendar) no longer carry the Admin friendly name; they follow Admin by themselves. A different name typed into a link is kept.
@@ -239,7 +240,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.17";
+const VERSION = "v3.30.18";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -287,6 +288,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
 v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
 v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
 v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
@@ -489,6 +491,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.18 - Phone app Links sheet follows Admin names
+- Owner report (14-Nov-2026): on a team's mobile view the Links button (top right) still produces links with friendlyName. My v3.30.15 and v3.30.17 fixes did not touch it, because that sheet is built in the browser by the phone app, not by the server.
+- Cause: the app keeps a team record that includes the Admin name (and a team picked from the recent or club lists always gets it), and one function that builds every link in the app copied it into the address.
+- Fix: that function now leaves friendlyName out when it is just the Admin name or the RFU name; a different name typed into the address is kept. This covers every row of the sheet (This page, Match Stats, Opposition report, Fixtures, Leaders and the clubhouse TV links) and the app's own page and frame addresses.
+- Tested in a browser by pressing every Share button in the sheet: with a plain address, with an address that carries the Admin name, and with recent teams remembered, no link has friendlyName; with &friendlyName=Seniors typed in, every link keeps it. The check fails on v3.30.17 for the address carrying the Admin name.
+- Docs: none - links only
 
 v3.30.17 - friendlyName back after the DEV PIN page
 - Owner report (14-Nov-2026, DEV): a page address still ended with &friendlyName=Ivybridge+1XV after v3.30.15 (competition, division, team, teamName, theme, force, app, then friendlyName).
@@ -1959,6 +1968,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.18", "Phone view: the links from the Links button no longer include the team name setting; they follow the name set in Admin."],
       ["v3.30.17", "Test site only: after typing the test PIN, the page address no longer gains a friendlyName setting."],
       ["v3.30.16", "Match Centre: with five or six teams the rows are less cramped; the Next game box now fits, including the Win Predictor bar."],
       ["v3.30.15", "Links made from a team's pages no longer carry the friendly name; they follow the name set in Admin, so they are shorter and a rename in Admin reaches them. A name typed into a link is still respected."],
@@ -3522,7 +3532,7 @@ function setTheme(t){theme=t;H.className=t;d.body&&(d.body.className=t);try{loca
 H.className=theme;
 function cfgName(id){for(var i=0;i<CFG.teams.length;i++)if(CFG.teams[i].team===id)return CFG.teams[i].name;return ""}
 function nameOf(t){var f=t.friendlyName;if(!f||f===t.teamName)f=cfgName(t.team)||f;return f||t.teamName||"Team"}
-function params(t,v,extra){var p=new URLSearchParams();PK.forEach(function(k){if(t[k])p.set(k,t[k])});if(v)p.set("view",v);if(extra)for(var k in extra)p.set(k,extra[k]);return p}
+function params(t,v,extra){var p=new URLSearchParams();PK.forEach(function(k){if(!t[k])return;if(k==="friendlyName"&&(t[k]===cfgName(t.team)||t[k]===t.teamName))return;p.set(k,t[k])});if(v)p.set("view",v);if(extra)for(var k in extra)p.set(k,extra[k]);return p}
 function shellUrl(t,v){return "/?"+params(t,v,{app:"1",force:force?"1":""}).toString().replace(/&force=(?=&|$)/,"")}
 function frameUrl(t,v){var x={embed:"1",theme:theme};if(!v)x.layout="mobile";return "/?"+params(t,v,x).toString()}
 function shareUrl(t,v,extra){return L.origin+"/?"+params(t,v,extra).toString()}

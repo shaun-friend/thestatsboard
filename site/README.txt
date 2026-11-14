@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
 v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
 v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
 v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
@@ -244,6 +245,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.18 - Phone app Links sheet follows Admin names
+- Owner report (14-Nov-2026): on a team's mobile view the Links button (top right) still produces links with friendlyName. My v3.30.15 and v3.30.17 fixes did not touch it, because that sheet is built in the browser by the phone app, not by the server.
+- Cause: the app keeps a team record that includes the Admin name (and a team picked from the recent or club lists always gets it), and one function that builds every link in the app copied it into the address.
+- Fix: that function now leaves friendlyName out when it is just the Admin name or the RFU name; a different name typed into the address is kept. This covers every row of the sheet (This page, Match Stats, Opposition report, Fixtures, Leaders and the clubhouse TV links) and the app's own page and frame addresses.
+- Tested in a browser by pressing every Share button in the sheet: with a plain address, with an address that carries the Admin name, and with recent teams remembered, no link has friendlyName; with &friendlyName=Seniors typed in, every link keeps it. The check fails on v3.30.17 for the address carrying the Admin name.
+- Docs: none - links only
 
 v3.30.17 - friendlyName back after the DEV PIN page
 - Owner report (14-Nov-2026, DEV): a page address still ended with &friendlyName=Ivybridge+1XV after v3.30.15 (competition, division, team, teamName, theme, force, app, then friendlyName).
