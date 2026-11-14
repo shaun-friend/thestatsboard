@@ -15,7 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
-//   v3.30.20 14-Nov-2026 Each visit now counts its outside requests (free plan allows 50): essential feeds may use 42, extras stop at 24. A cold six-team Match Centre made 83 requests and lost the Colts cup feed; it now makes 31.
+//   v3.30.20 14-Nov-2026 Each visit now counts its outside requests (free plan allows 50): essential feeds may use 40, extras stop at 20 for one team (8 on the Match Centre, where many teams share one visit), and cache lookups are counted too. A cold six-team Match Centre made 83 requests (156 with cache lookups) and lost the Colts cup feed; it now stays within 50.
 //   v3.30.19 14-Nov-2026 A feed that fails quickly (server error, too many requests, dropped connection) is asked once more; the Feed log now says why a feed failed. Found from the first Feed log rows (Colts competition 1608, Brixham team feed).
 //   v3.30.18 14-Nov-2026 Phone app: the Links button's sheet (and the app's own page addresses) no longer carry the Admin friendly name; a name typed into the address is kept.
 //   v3.30.17 14-Nov-2026 DEV: the PIN page's return address no longer picks up the filled-in Admin friendly name (it showed as &friendlyName=... after unlocking).
@@ -499,9 +499,9 @@ Earlier versions are described in the notes below. Zips from v22g and earlier we
 v3.30.20 - Request budget: stop a busy Match Centre running out of outside requests
 - Owner report (14-Nov-2026, DEV, Feed log): Colts 22:04 "Missing: competition 1608 (error: Too many subrequests by single Worker invocation)". The wrong next game came back again.
 - Cause: the free Cloudflare plan allows 50 outside requests per visit. A cold Match Centre with six teams made 83 (6 competition feeds, 36 team feeds, 16 + 12 website lookups, 6 match records, 6 venue pages). Past 50, Cloudflare refused the rest, and the cup competition feed was one of them. The retry added in v3.30.19 could not help.
-- Fix: each visit now keeps a count. Essential feeds (results, fixtures, other competitions) may use 42; extras (venue and match records, website lookups, earlier seasons for the Win Predictor) stop at 24, so they can never starve a feed that decides the next game. Skipped extras fill in on later visits as the cache warms. A cold six-team load now makes 31 requests.
+- Fix: each visit now keeps a count. Essential feeds (results, fixtures, other competitions) may use 40; extras (venue and match records, website lookups, earlier seasons and cached predictions for the Win Predictor) stop at 8, so they can never starve a feed that decides the next game. Skipped extras fill in on later visits as the cache warms. Cache lookups are counted too (Cloudflare counts them against the same 50; the first version of this fix missed that and the Colts failed again at 22:14). A cold six-team load now stays within 50 in total, down from 156.
 - Feed log: a refused-for-budget feed shows as "request limit reached for this visit".
-- Tests: cold six-team Match Centre stays under 45 requests and all six competition feeds are fetched.
+- Tests: cold six-team Match Centre stays within 50 requests plus cache lookups and all six competition feeds are fetched.
 - Docs: none - behind the scenes
 v3.30.19 - Feed log findings: ask a failed feed once more, and say why it failed
 - Owner report (14-Nov-2026, DEV, from the new Feed log): Colts 21:24 "Incomplete answer, nothing earlier to keep: Missing: competition 1608, unlabelled games: 2. Showing: Sat 28 Nov v Kingsbridge Colts" and Brixham 21:29 "Missing: team feed. Showing: Sat 21 Nov v St Austell".
@@ -2343,10 +2343,10 @@ fetch("/?"+q.toString(),{cache:"no-store"}).then(function(r){return r.json()}).t
 }
 // v3.30.4: results are also kept in Cloudflare's shared cache, so one server instance doing the sums serves them all (the memory copy alone was lost every time a fresh instance started).
 async function sharedGet(key) {
-  try { if (typeof caches === "undefined" || !caches.default) return null; const r = await caches.default.match(new Request("https://wp.cache.internal/" + encodeURIComponent(key))); return r ? await r.json() : null; } catch (_) { return null; }
+  try { if (typeof caches === "undefined" || !caches.default) return null; if (SUB.stack && /^wp\|/.test(key) && SUB.n >= SUB_PREDICT) return null; SUB.n++; const r = await caches.default.match(new Request("https://wp.cache.internal/" + encodeURIComponent(key))); return r ? await r.json() : null; } catch (_) { return null; }
 }
 async function sharedPut(key, v, secs) {
-  try { if (typeof caches === "undefined" || !caches.default) return; await caches.default.put(new Request("https://wp.cache.internal/" + encodeURIComponent(key)), new Response(JSON.stringify(v), { headers: { "Cache-Control": "public, max-age=" + secs, "Content-Type": "application/json" } })); } catch (_) { /* memory copy only */ }
+  try { if (typeof caches === "undefined" || !caches.default) return; if (SUB.stack && /^wp\|/.test(key) && SUB.n >= SUB_PREDICT) return; SUB.n++; await caches.default.put(new Request("https://wp.cache.internal/" + encodeURIComponent(key)), new Response(JSON.stringify(v), { headers: { "Cache-Control": "public, max-age=" + secs, "Content-Type": "application/json" } })); } catch (_) { /* memory copy only */ }
 }
 const WC_CACHE = new Map(); // key -> { at, v }, 24 hours (the key holds the number of results, so a new result is a new key)
 let TEAMS_STAMP = "d";
@@ -3949,12 +3949,13 @@ function usageUp(key, ms, outcome, waited) {
 // The real fetch from outside. Returns { kind: "ok" | "blocked" | "http", v } and stores good answers; throws on network failure or timeout.
 // v3.30.20: the free plan allows 50 outside requests per visit. Essential feeds (results, fixtures) may use 42 of them; extras (venue and match
 // records, website lookups, earlier seasons for the Win Predictor) stop at 24 so they can never starve a feed that decides the next game.
-const SUB = { n: 0, skipped: 0 };
-const SUB_ESSENTIAL = 42, SUB_OPTIONAL = 24;
+const SUB = { n: 0, skipped: 0, stack: false };
+const SUB_ESSENTIAL = 40, SUB_OPTIONAL = 20, SUB_STACK = 8, SUB_PREDICT = 8; // a single team may use 20 for extras; the Match Centre (many teams in one visit) only 8
+const subOpt = () => SUB.stack ? SUB_STACK : SUB_OPTIONAL;
 const optionalKey = k => /\/gms\/matches\/|englandrugby\.com/.test(k);
 async function rfuNetwork(key, accept, cache, ttlS, timeoutMs, waited, optional) {
   const t0 = Date.now();
-  if (SUB.n >= ((optional || optionalKey(key)) ? SUB_OPTIONAL : SUB_ESSENTIAL)) { SUB.skipped++; return { kind: "budget", v: { ok: false, status: 0, text: "", fetchedAt: t0, budget: true } }; }
+  if (SUB.n >= ((optional || optionalKey(key)) ? subOpt() : SUB_ESSENTIAL)) { SUB.skipped++; return { kind: "budget", v: { ok: false, status: 0, text: "", fetchedAt: t0, budget: true } }; }
   SUB.n++;
   let r, text;
   try {
@@ -3981,7 +3982,7 @@ async function rfuNetwork(key, accept, cache, ttlS, timeoutMs, waited, optional)
   memCache.set(key, v);
   if (cache) {
     try {
-      await cache.put(key, new Response(text, { headers: {
+      SUB.n++; await cache.put(key, new Response(text, { headers: {
         "Content-Type": "text/plain;charset=utf-8",
         "Cache-Control": "public, max-age=" + Math.max(STALE_SECONDS, ttlS),
         "x-fetched-at": String(now)
@@ -3998,7 +3999,7 @@ async function rememberFailure(cache, key, v) {
   const until = Date.now() + secs * 1000;
   blockedMem.set(key, { until, v: { ok: false, status: v.status || 0, text: "", fetchedAt: Date.now(), blocked: !!v.blocked } });
   if (!cache) return;
-  try { await cache.put(failKeyOf(key), new Response("x", { headers: { "Cache-Control": "public, max-age=" + secs, "x-until": String(until), "x-status": String(v.status || 0), "x-blocked": v.blocked ? "1" : "" } })); } catch (_) { /* in-memory note still used */ }
+  try { SUB.n++; await cache.put(failKeyOf(key), new Response("x", { headers: { "Cache-Control": "public, max-age=" + secs, "x-until": String(until), "x-status": String(v.status || 0), "x-blocked": v.blocked ? "1" : "" } })); } catch (_) { /* in-memory note still used */ }
 }
 async function cachedText(target, accept, optional) {
   const key = String(target);
@@ -4025,11 +4026,13 @@ async function cachedText(target, accept, optional) {
   const mem = memCache.get(key);
   if (mem && now - mem.fetchedAt < ttl) { early(mem.fetchedAt); return mem; }
   if (mem) stale = mem;
+  // v3.30.20: cache lookups count against the same 50 as outside requests, so once the budget is spent an uncached answer is simply not available.
+  if (SUB.n >= ((optional || optionalKey(key)) ? subOpt() : SUB_ESSENTIAL)) { SUB.skipped++; return useStale({ ok: false, status: 0, text: "", fetchedAt: now, budget: true }); }
   const blocked = blockedMem.get(key);
   if (blocked && now < blocked.until) return useStale(blocked.v);
   if (cache && blockSecondsFor(key) > BLOCK_RETRY_SECONDS) {
     try {
-      const f = await cache.match(failKeyOf(key));
+      SUB.n++; const f = await cache.match(failKeyOf(key));
       const until = f ? Number(f.headers.get("x-until")) : 0;
       if (f && until > now) {
         const bv = { ok: false, status: Number(f.headers.get("x-status")) || 0, text: "", fetchedAt: now, blocked: f.headers.get("x-blocked") === "1" };
@@ -4040,7 +4043,7 @@ async function cachedText(target, accept, optional) {
   }
   if (cache) {
     try {
-      const hit = await cache.match(key);
+      SUB.n++; const hit = await cache.match(key);
       if (hit) {
         const fetchedAt = Number(hit.headers.get("x-fetched-at")) || 0;
         if (fetchedAt && now - fetchedAt < ttl) {
@@ -7246,7 +7249,7 @@ function withStamp(html, powered) {
 // the page, so no layout (TV or phone) is moved.
 export default {
   async fetch(request, env, ctx) {
-    SITE_ENV = env || {}; SITE_CTX = ctx || null; SUB.n = 0; SUB.skipped = 0;
+    SITE_ENV = env || {}; SITE_CTX = ctx || null; SUB.n = 0; SUB.skipped = 0; SUB.stack = /[?&]view=stack\b/.test(String(request.url));
     const t0 = Date.now();
     try { await siteSettings(); } catch (_) { /* default team list */ }
     const label = env && typeof env.ENV_LABEL === "string" ? env.ENV_LABEL.trim().slice(0, 30) : "";

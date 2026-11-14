@@ -251,9 +251,9 @@ Earlier versions are described in the notes below. Zips from v22g and earlier we
 v3.30.20 - Request budget: stop a busy Match Centre running out of outside requests
 - Owner report (14-Nov-2026, DEV, Feed log): Colts 22:04 "Missing: competition 1608 (error: Too many subrequests by single Worker invocation)". The wrong next game came back again.
 - Cause: the free Cloudflare plan allows 50 outside requests per visit. A cold Match Centre with six teams made 83 (6 competition feeds, 36 team feeds, 16 + 12 website lookups, 6 match records, 6 venue pages). Past 50, Cloudflare refused the rest, and the cup competition feed was one of them. The retry added in v3.30.19 could not help.
-- Fix: each visit now keeps a count. Essential feeds (results, fixtures, other competitions) may use 42; extras (venue and match records, website lookups, earlier seasons for the Win Predictor) stop at 24, so they can never starve a feed that decides the next game. Skipped extras fill in on later visits as the cache warms. A cold six-team load now makes 31 requests.
+- Fix: each visit now keeps a count. Essential feeds (results, fixtures, other competitions) may use 40; extras (venue and match records, website lookups, earlier seasons and cached predictions for the Win Predictor) stop at 8, so they can never starve a feed that decides the next game. Skipped extras fill in on later visits as the cache warms. Cache lookups are counted too (Cloudflare counts them against the same 50; the first version of this fix missed that and the Colts failed again at 22:14). A cold six-team load now stays within 50 in total, down from 156.
 - Feed log: a refused-for-budget feed shows as "request limit reached for this visit".
-- Tests: cold six-team Match Centre stays under 45 requests and all six competition feeds are fetched.
+- Tests: cold six-team Match Centre stays within 50 requests plus cache lookups and all six competition feeds are fetched.
 - Docs: none - behind the scenes
 v3.30.19 - Feed log findings: ask a failed feed once more, and say why it failed
 - Owner report (14-Nov-2026, DEV, from the new Feed log): Colts 21:24 "Incomplete answer, nothing earlier to keep: Missing: competition 1608, unlabelled games: 2. Showing: Sat 28 Nov v Kingsbridge Colts" and Brixham 21:29 "Missing: team feed. Showing: Sat 21 Nov v St Austell".

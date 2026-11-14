@@ -34,12 +34,13 @@ const env2={};
 const post=b=>w.fetch(new Request('https://x.co.uk/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Cookie:ck},body:JSON.stringify(b)}),env,ctx);
 const names=['Ivybridge 1XV','The Vandals','Ivybridge Women','Colts','Brixham','Ivybridge Vets'];
 await post({features:{winchance:true},club:{teams:names.map((n,i)=>({name:n,teamName:'Ivybridge',competition:String(1699+i*7),division:String(75791+i*11),team:i?String(11040+i):'11039',league:'L'+i,accent:'#2f9e5b'}))}});
-globalThis.caches=undefined;
+let cops=0;const cops2=[];const cm=new Map();globalThis.caches={default:{match:async k=>{cops++;cops2.push('m:'+(typeof k==='string'?k:k.url).replace(/https:\/\/[^/]+\//,'').replace(/[0-9]{3,}/g,'N').slice(0,40));const v=cm.get(typeof k==='string'?k:k.url);return v?v.clone():undefined},put:async(k,v)=>{cops++;cops2.push('p:'+(typeof k==='string'?k:k.url).replace(/https:\/\/[^/]+\//,'').replace(/[0-9]{3,}/g,'N').slice(0,40));cm.set(typeof k==='string'?k:k.url,v.clone())}}};
 const urls=[];const f8=globalThis.fetch;globalThis.fetch=async(u,o)=>{urls.push(String(u));return f8(u,o)};
 sc.clear();w=await load();
 const r=await w.fetch(new Request('https://thestatsboard.co.uk/?view=stack&ly=classic',{headers:{'User-Agent':'Mozilla/5.0'}}),env,ctx2);await r.text();
 
 const rfuN=urls.filter(u=>/cluster\.england-rfu\.com|englandrugby\.com/.test(u)).length;
 c('cold six-team Match Centre stays under 45 outside requests ('+rfuN+')',rfuN<=45);
+c('outside requests plus cache operations stay within the 50 limit ('+(rfuN+cops)+')',rfuN+cops<=50);
 c('all six competition feeds were fetched (none starved)',urls.filter(u=>/competitionId=/.test(u)).length>=6);
-console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);
+const kk={};for(const k of cops2)kk[k]=(kk[k]||0)+1;console.log(JSON.stringify(kk));console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

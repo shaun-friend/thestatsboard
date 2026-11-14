@@ -53,4 +53,4 @@ ok('cup next game on the Match Centre summary has a ground from the RFU match re
 gmsMode='down';seen.length=0;
 j=await asJson(q);
 ok('record down: cup game falls back to the website page',j.next&&/Website Park/.test(j.next.venue||''));
-console.log(pass+' pass, '+fail+' fail');
+console.log('seen',seen.length,seen.map(x=>x.replace(/https:\/\/[^/]+/,'').slice(0,60)).join(' ; '));console.log(pass+' pass, '+fail+' fail');
