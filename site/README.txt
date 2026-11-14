@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
 v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
 v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
 v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
@@ -242,6 +243,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.16 - Match Centre rows with five or six teams
+- Owner report (14-Nov-2026, iPad photo): with more than four teams the row view is cramped; the "Next game" box was cut off at the bottom (the Next Saturday tag and the Win Predictor bar).
+- Reproduced with five and six teams and the Win Predictor on: every Next game box overflowed by 8 to 17 pixels at 1920x1080, 1366x768, 1280x800, 1180x700 and 1149x640 (1024x768 and 1180x820 fitted with five teams).
+- Fix: with five or six teams the rows use a more compact Next game box (smaller day, date and tag, team lines, crests and padding). Rows with four or fewer teams are unchanged, and so are the Modern layout and the phone cards.
+- Checked in a browser: with five and six teams and the bar on, nothing is cut off in any box at seven screen sizes from 1024x768 to 1920x1080 (new test in the build).
+- Docs: none - layout only
 
 v3.30.15 - Links from team pages follow Admin names
 - Owner report (14-Nov-2026): links made from a team's mobile page still carried the friendly name, which is not needed now that names are set in Admin.

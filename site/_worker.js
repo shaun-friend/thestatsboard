@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.16 14-Nov-2026 Match Centre rows with five or six teams: a more compact Next game box so the tag and the Win Predictor bar are no longer cut off.
 //   v3.30.15 14-Nov-2026 Links made by team pages (Match Stats, Opposition Report, Fixtures, Share, Add to home screen, WhatsApp, calendar) no longer carry the Admin friendly name; they follow Admin by themselves. A different name typed into a link is kept.
 //   v3.30.14 14-Nov-2026 Our teams: at most six teams. Adding a team clears the search list once one is picked (only its leagues remain, or it is added straight away if it has just one league).
 //   v3.30.13 14-Nov-2026 Win Predictor on the Opposition Report: first card under "This game", with the how-it-works text open. Same switch and hiding rules as the other screens.
@@ -237,7 +238,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.15";
+const VERSION = "v3.30.16";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -285,6 +286,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
 v3.30.15 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.15_links_follow_admin.zip          | v3.30.14
 v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
 v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
@@ -485,6 +487,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.16 - Match Centre rows with five or six teams
+- Owner report (14-Nov-2026, iPad photo): with more than four teams the row view is cramped; the "Next game" box was cut off at the bottom (the Next Saturday tag and the Win Predictor bar).
+- Reproduced with five and six teams and the Win Predictor on: every Next game box overflowed by 8 to 17 pixels at 1920x1080, 1366x768, 1280x800, 1180x700 and 1149x640 (1024x768 and 1180x820 fitted with five teams).
+- Fix: with five or six teams the rows use a more compact Next game box (smaller day, date and tag, team lines, crests and padding). Rows with four or fewer teams are unchanged, and so are the Modern layout and the phone cards.
+- Checked in a browser: with five and six teams and the bar on, nothing is cut off in any box at seven screen sizes from 1024x768 to 1920x1080 (new test in the build).
+- Docs: none - layout only
 
 v3.30.15 - Links from team pages follow Admin names
 - Owner report (14-Nov-2026): links made from a team's mobile page still carried the friendly name, which is not needed now that names are set in Admin.
@@ -1941,6 +1950,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.16", "Match Centre: with five or six teams the rows are less cramped; the Next game box now fits, including the Win Predictor bar."],
       ["v3.30.15", "Links made from a team's pages no longer carry the friendly name; they follow the name set in Admin, so they are shorter and a rename in Admin reaches them. A name typed into a link is still respected."],
       ["v3.30.14", "Our teams in Admin now holds up to six teams. Picking a team from the search now clears the list, leaving only that team's leagues to choose from (or adding it straight away if it plays in just one league)."],
       ["v3.30.13", "The Win Predictor now also shows on the Opposition Report, at the top of \"This game\", when the Win Predictor switch is on."],
@@ -5512,6 +5522,7 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);co
 .hero .when .k{margin-bottom:.2rem}.ccomp{display:block;font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:none;color:#f0c85a;margin-top:.15rem}body.light .ccomp{color:#8a5a00}.hero .d{font-size:3.6rem;font-weight:800;line-height:1}.hero .d2{font-size:1.5rem;color:var(--mu);font-weight:700;margin-top:.2rem}.hero .cd{display:inline-block;margin-top:.6rem;font-size:1.15rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.25rem 1rem;border-radius:99px;background:var(--ac,var(--wb));color:var(--on,#fff)}
 .vn a.dl{color:inherit;text-decoration:none}.vn a.dl small{opacity:.7;font-size:.8em;display:inline-block}@media (min-width:900px) and (min-height:561px){.vn a.dl small{display:none}.vn a.dl{pointer-events:none;cursor:default}}.hero .vs{display:flex;flex-direction:column;gap:.6rem;min-width:0}.hero .vs .sl{font-size:2.1rem;color:var(--tx)}.hero .vs .sl .nm{font-weight:700;white-space:normal;line-height:1.1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.hero .cr{width:4.2rem;height:4.2rem;flex-basis:4.2rem}.hero .cr .ini{font-size:1.4rem}.hero .vn{font-size:1.1rem;color:var(--mu)}
 .gapl{font-size:1.05rem;color:var(--mu);margin-top:.4rem}
+@media(min-width:801px){.rows-many .rw>.bx.hero{padding:.4rem 1.2rem;gap:1.2rem}.rows-many .hero .d{font-size:2.6rem}.rows-many .hero .d2{font-size:1.15rem;margin-top:.1rem}.rows-many .hero .cd{margin-top:.3rem;font-size:.95rem;padding:.1rem .7rem}.rows-many .hero .when .k{margin-bottom:.1rem}.rows-many .hero .vs{gap:.2rem}.rows-many .hero .vs .sl{font-size:1.6rem}.rows-many .hero .cr{width:2.8rem;height:2.8rem;flex-basis:2.8rem}.rows-many .hero .wc{margin:.15em 0 0}.rows-many .hero .vn{font-size:.95rem}.rows-many .hero .pl.ha{font-size:.95rem;top:.45rem}}
 .hero .pl.ha{position:absolute;right:1.2rem;top:.9rem;font-size:1.1rem}
 .hero>.empty{grid-column:1/-1}
 .mbar,.tsl{display:none}
@@ -5548,7 +5559,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rs-b .tbar{display:block;margin:0;border-radius:0;font-size:1.2rem;padding:.6rem 1.05rem}.rs-b .tbar span{display:block;font-size:.85rem}
 .rs-c .rw{border:.25rem solid var(--ac);padding:0;background:var(--card)}
 .rs-d .stab{display:block;writing-mode:horizontal-tb;transform:none;font-size:1.05rem;padding:.45rem 1.05rem;border-radius:0;text-align:left}}
-</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? "" : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)} &middot; refreshes every hour</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
+</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)} &middot; refreshes every hour</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
       return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=60"}});
     }
 

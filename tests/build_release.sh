@@ -54,6 +54,7 @@ node foot_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g)
 node x_ly_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_ly_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE LAYOUT TEST FAILED"; exit 1; }; echo "match centre layouts ok"
 node x_admin_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_admin_check.cjs | tail -1 | grep -q "ALL OK" || { echo "ADMIN PAGE TEST FAILED"; exit 1; }; echo "admin page ok"
 node x_wc_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_wc_shot.cjs | tail -1 | grep -q "ALL OK" || { echo "WIN CHANCE PAGE TEST FAILED"; exit 1; }; echo "win chance pages ok"
+node x_rows.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_rows_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE ROWS TEST FAILED"; exit 1; }; echo "match centre rows ok"
 node foot_render2.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node foot_check2.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE FOOTER TEST FAILED"; exit 1; }; echo "match centre footer ok"
 NODE_PATH=$(npm root -g) node x_shell.cjs | tail -1 | grep -q "ALL OK" || { echo "APP SHELL BUTTON TEST FAILED"; exit 1; }; echo "app shell buttons ok"
 node t_v310.mjs "$S/t_worker.mjs" | grep -q "0 fail" || { echo "counting tests failed"; exit 1; }
