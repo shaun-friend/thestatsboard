@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.9 14-Nov-2026 A bare group name such as "Group 1" (the Colts) is now shown with its competition name, for example "Devon RFU Colts Group 1", on the Match Centre, team pages and the summary; if the feed gives no competition name the league text saved in Admin is used on the Match Centre.
 //   v3.30.8 14-Nov-2026 The "partial" check also catches a game found only in the team feed with no competition name that is in none of the competitions read (a cup missing from the competition list), the likeliest way a cup game was passed off as a league game.
 //   v3.30.7 14-Nov-2026 Fix: the Match Centre next game flipping between a cup game and the league game for a team in several competitions. When a competition feed is missing the answer is marked partial; partial answers are not stored (not in the 15-minute summary copy, not in the page cache) and the Match Centre shows the last complete answer instead.
 //   v3.30.6 14-Nov-2026 Page cache rebuilt for the free plan: team, Match Centre, fixtures and match pages are kept for the rest of the UK day Monday to Friday and 30 minutes at weekends, with an older same-day copy (up to 6 hours) shown at once while a new one builds in the background. Never shown across midnight. A deploy or an Admin save shows at once. Now used on DEV too.
@@ -230,7 +231,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.8";
+const VERSION = "v3.30.9";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -278,6 +279,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
 v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
 v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
 v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
@@ -471,6 +473,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.9 - Group names with their competition
+- Owner question (14-Nov-2026): the Colts show as "Group 1"; is there a competition name to use instead?
+- The league title was taken from the group name in the RFU feed (the group is the division: "Group 1" for the Colts), with the competition name used only if there was no group. Now, when the group name is only "Group", "Pool" or "Section" plus a number or letter, the competition name (without a trailing season) goes in front: "Devon RFU Colts Group 1" if the feed's competition is "Devon RFU Colts". Names like "Regional 2 South West" are unchanged.
+- The Match Centre (Modern, Classic and phone) also falls back to the league text saved for the team in Admin (Our teams) if the feed gives only "Group 1" with no competition name.
+- Not verified on live data: the exact competition name the RFU sends for the Colts. The summary address shows it ("league").
+- Docs: none - wording on screen only
 
 v3.30.8 - Fix: next game flipping, second cause
 - Owner check (14-Nov-2026, Colts, DEV): the plain summary showed the cup game (Sun 15 Nov at Paignton) with no "partial" flag, yet the Match Centre had just shown the wrong game again. So an incomplete answer can pass the v3.30.7 check.
@@ -1876,6 +1885,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.9", "The Colts now show their competition name with the group (for example \"Devon RFU Colts Group 1\") instead of just \"Group 1\"."],
       ["v3.30.8", "Fix: the Match Centre now also spots a cup game that is missing from the RFU competition list (so it looked like a league game), and keeps the last complete answer instead."],
       ["v3.30.7", "Fix: for a team in more than one competition (for example the Colts) the Match Centre could flip between tomorrow's cup game and next weekend's league game. When the RFU does not answer for one of the competitions, the site now keeps showing the last complete answer instead of a league-only one, and never stores an incomplete page."],
       ["v3.30.6", "Behind the scenes: pages are now kept ready for the whole day Monday to Friday (no games) and for 30 minutes at weekends, and an older copy is shown at once while a new one is built, so screens and phones are quicker and the server is far less likely to run out of working time. Admin changes still show straight away."],
@@ -5318,6 +5328,8 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const meL = mineHome !== false;
         return { compact: true, left: meL ? mine.c : opp.c, right: meL ? opp.c : mine.c, leftFg: meL ? mine.f : opp.f, rightFg: meL ? opp.f : mine.f, fs: onColour_ ? "1.25rem" : "1.1rem" };
       };
+      // v3.30.9: if the feed's league name is still only "Group 1" (no competition name came with it), use the league text saved for the team in Admin
+      const leagueOf = (t, s) => /^(group|pool|section)\s*[0-9a-z]{1,3}$/i.test(String(s.league || "").trim()) && t.league ? t.league : s.league;
       const colHtml = ({t, s, error}, idx) => {
         if (error || !s) return `<section class="cw" ${acStyle(t, idx)}><div class="ch"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="cnx"><div class="empty" style="color:var(--on)">Couldn't load this team. It will retry on the next refresh.</div></div></section>`;
         const L = lastOf(s.last), N = nextOf(s.next);
@@ -5326,11 +5338,11 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
         const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="on">${e(N.opp)}</div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div>${N.win ? winBarHtml(N.win, mcWin(N.win, N.mine, t, idx, true)) : ""}${N.venue ? `<div class="og">${e(N.venue)}</div>` : ""}${clashOf(s, s.next) ? `<div class="oq">${clashOf(s, s.next)}</div>` : ""}` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
         const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
-        return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(s.league)}</div></div></div><div class="cnx">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
+        return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(leagueOf(t, s))}</div></div></div><div class="cnx">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
       const rowHtml = ({t, s, error}, idx) => {
         const tsl = `<a class="tsl" href="${e(tableHref(t))}">Table &amp; Stats</a>`;
-        const extra = `<div class="stab">${e(shortOf(t))}</div><div class="tbar">${e((s && s.team) || t.name)}<span>${e((s && s.league) || t.league)}</span></div>`;
+        const extra = `<div class="stab">${e(shortOf(t))}</div><div class="tbar">${e((s && s.team) || t.name)}<span>${e(s ? leagueOf(t, s) : t.league)}</span></div>`;
         if (error || !s) return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="tn">${e(t.name)}</div><div class="sm">${e(t.league)}</div>${tsl}</div><div class="bx wide"><div class="empty">Couldn't load this team. It will retry on the next refresh.</div></div></div>`;
         const stats = [s.position ? `<span class="pl h">${s.position}${[,"st","nd","rd"][s.position % 10] && ![11,12,13].includes(s.position % 100) ? [,"st","nd","rd"][s.position % 10] : "th"}</span>` : "", s.points !== null && s.points !== undefined ? `<span class="pl h">${s.points} pts</span>` : "", s.played ? `<span class="pl h">Played ${s.played}</span>` : ""].join("");
         const l = s.last, n = s.next;
@@ -5349,7 +5361,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
 <div class="sl ${n.mineHome ? "" : "lead"}">${crest(n.awayId, n.awayName)}<span class="nm">${e(n.awayName)}</span></div>
 ${n.win ? winBarHtml(n.win, mcWin(n.win, n.mineHome, t, idx, false)) : ""}${n.venue ? `<div class="vn"><a class="dl" target="_blank" rel="noopener" href="${e(mapsLink(n.venue, n.homeName, n.venueElite).href)}">${e(n.venue)}<small> &middot; Tap for directions</small></a></div>` : ""}<div class="nlk"><a href="${e(viewHref(t, "match"))}">Match Stats</a><a href="${e(viewHref(t, "opposition"))}">Opposition Report</a></div></div></div>`
           : `<div class="bx hero"><div class="when"><div class="k"><b>Next game</b></div></div><div class="empty">No upcoming fixture found in this competition</div></div>`;
-        return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="th">${crest(s.teamId, s.team)}<div class="tx"><div class="tn">${e(s.team)}</div><div class="sm">${e(s.league)}</div></div></div><div class="ps">${stats}</div>${s.gap ? `<div class="gapl">${e(s.gap)}</div>` : ""}${tsl}</div>${lastBox}${nextBox}</div>`;
+        return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="th">${crest(s.teamId, s.team)}<div class="tx"><div class="tn">${e(s.team)}</div><div class="sm">${e(leagueOf(t, s))}</div></div></div><div class="ps">${stats}</div>${s.gap ? `<div class="gapl">${e(s.gap)}</div>` : ""}${tsl}</div>${lastBox}${nextBox}</div>`;
       };
       let ly = url.searchParams.get("ly");
       if (!["classic", "next"].includes(ly)) ly = (await siteSettings()).matchCentre.layout;
@@ -5553,9 +5565,16 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         }
       }
       const unique = arr => [...new Set(arr.filter(Boolean))];
-      const leagueTitle = titleOverride ||
+      // v3.30.9: a bare group name such as "Group 1" says nothing on its own (the Colts), so it is shown with its competition name ("Devon RFU Colts Group 1")
+      const GENERIC_GROUP = /^(group|pool|section)\s*[0-9a-z]{1,3}$/i;
+      const withComp = n => {
+        if (!GENERIC_GROUP.test(String(n || "").trim())) return n;
+        const cn = unique(competitionNames).map(x => String(x).replace(/\s+20\d\d[-\/]\d{2,4}$/, "").trim()).find(x => x && !GENERIC_GROUP.test(x));
+        return cn && !String(cn).toLowerCase().includes(String(n).toLowerCase()) ? cn + " " + n : n;
+      };
+      const leagueTitle = titleOverride || withComp(
         unique(groupNames).find(n => /regional|league|division|tribute|championship|prem/i.test(n)) ||
-        unique(groupNames)[0] ||
+        unique(groupNames)[0]) ||
         unique(competitionNames).find(n => /regional|league|division|tribute|championship|prem/i.test(n)) ||
         unique(competitionNames)[0] ||
         `RFU League Table – ${season}`;

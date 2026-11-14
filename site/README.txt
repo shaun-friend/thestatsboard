@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
 v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
 v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
 v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
@@ -235,6 +236,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.9 - Group names with their competition
+- Owner question (14-Nov-2026): the Colts show as "Group 1"; is there a competition name to use instead?
+- The league title was taken from the group name in the RFU feed (the group is the division: "Group 1" for the Colts), with the competition name used only if there was no group. Now, when the group name is only "Group", "Pool" or "Section" plus a number or letter, the competition name (without a trailing season) goes in front: "Devon RFU Colts Group 1" if the feed's competition is "Devon RFU Colts". Names like "Regional 2 South West" are unchanged.
+- The Match Centre (Modern, Classic and phone) also falls back to the league text saved for the team in Admin (Our teams) if the feed gives only "Group 1" with no competition name.
+- Not verified on live data: the exact competition name the RFU sends for the Colts. The summary address shows it ("league").
+- Docs: none - wording on screen only
 
 v3.30.8 - Fix: next game flipping, second cause
 - Owner check (14-Nov-2026, Colts, DEV): the plain summary showed the cup game (Sun 15 Nov at Paignton) with no "partial" flag, yet the Match Centre had just shown the wrong game again. So an incomplete answer can pass the v3.30.7 check.
