@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.6 14-Nov-2026 Page cache rebuilt for the free plan: team, Match Centre, fixtures and match pages are kept for the rest of the UK day Monday to Friday and 30 minutes at weekends, with an older same-day copy (up to 6 hours) shown at once while a new one builds in the background. Never shown across midnight. A deploy or an Admin save shows at once. Now used on DEV too.
 //   v3.30.5 14-Nov-2026 Working-time savings for the free plan (10 ms per request): date formatting reuses formatters (identical output), names with no HTML codes skip decoding, and each team's Match Centre summary is kept in the shared cache for 15 minutes. Pages need roughly half to a third of the working time in the test rig.
 //   v3.30.4 14-Nov-2026 Fix: Error 1102 (the server running out of working time) after Win Predictor was switched on. The sums are about three times quicker, the results are kept in Cloudflare's shared cache for 24 hours (the check page 6 hours) so only one server instance has to do them.
 //   v3.30.3 14-Nov-2026 This season's RFU data is kept for 30 minutes at weekends and 24 hours Monday to Friday (was 10 minutes and 1 hour). Open pages still reload on the old timing.
@@ -227,7 +228,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.5";
+const VERSION = "v3.30.6";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -275,6 +276,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
 v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
 v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
 v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
@@ -465,6 +467,18 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.6 - Page cache rebuilt (stored pages kept longer, old copy shown while a new one builds)
+- Owner decision (14-Nov-2026): there are no games Monday to Friday, so nothing changes; the aim is fewer page rebuilds on the free plan (10 ms per request). Applies to the team page, Match Centre, Fixtures board and Match Stats (the pages that were already stored for 2 minutes, or Match Stats for 5 minutes / 2 hours).
+- Monday to Friday: a stored page is fresh for the rest of the UK day. Saturday and Sunday: fresh for 30 minutes; after that the older copy (up to 6 hours old, same UK day only) is shown at once and a new one is built in the background, so nobody waits for a rebuild.
+- A copy from an earlier UK day is never shown (Today, Tomorrow and This Saturday would be wrong), so the first visit after midnight rebuilds the page.
+- The stored copy's key now includes the time Admin was last saved (as well as the version and team list), so any Admin change, and any deploy, shows at once.
+- The browser is told to keep a page for 60 seconds only, as before the change, so a TV or phone reload picks up a rebuilt page quickly.
+- Now used on DEV as well as PROD (it was PROD only). A deploy shows at once because the version is in the key; data changes on DEV follow the same timing as PROD.
+- If a background rebuild fails (for example over the working-time limit) nothing is shown to the visitor and the next visit tries again; the older copy is not shown past its limits.
+- Match Stats no longer has its own timings (it was 5 minutes at weekends, 2 hours Monday to Friday); it follows the rules above. The old timing function is left in the code unused.
+- Not done (owner decision): an uptime pinger to warm pages after midnight.
+- Docs: none - speed only, nothing a visitor sees
 
 v3.30.5 - Working-time savings (free Cloudflare plan)
 - Confirmed from Cloudflare's Metrics (14-Nov-2026): 16 "Exceeded CPU Time Limits", none for memory. The site is on the free plan (10 ms of working time per request) and the owner prefers not to pay, so the aim is to make pages cheaper.
@@ -1843,6 +1857,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.6", "Behind the scenes: pages are now kept ready for the whole day Monday to Friday (no games) and for 30 minutes at weekends, and an older copy is shown at once while a new one is built, so screens and phones are quicker and the server is far less likely to run out of working time. Admin changes still show straight away."],
       ["v3.30.5", "Behind the scenes: pages now use much less of the server's working time (roughly a half to a third), which should stop the occasional Error 1102 on the free Cloudflare plan. Nothing looks different."],
       ["v3.30.4", "Fix: some pages showed Error 1102 after Win Predictor was switched on (the server ran out of working time). The Win Predictor sums are about three times quicker and the results are now shared between servers, so they are worked out once rather than over and over."],
       ["v3.30.3", "This season's results and tables are now fetched from the RFU at most every 30 minutes at weekends and once a day Monday to Friday (was every 10 minutes and every hour). A result entered on a weekday can take up to a day to appear."],
@@ -6805,13 +6820,25 @@ function pageKeySearch(sp) {
   return out.length ? "?" + out.join("&") : "";
 }
 
-// How long the live site keeps a finished page at the edge (seconds). Match Stats is the busiest and heaviest page and its
+// (No longer used from v3.30.6: see pageState.) How long the live site keeps a finished page at the edge (seconds). Match Stats is the busiest and heaviest page and its
 // facts change slowly: 2 hours Monday to Friday (no games), 5 minutes at weekends (UK days). Everything else stays at 2 minutes.
 function pageTtlFor(view, now) {
   if (view !== "match") return 120;
   const wd = now.toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" });
   return wd === "Sat" || wd === "Sun" ? 300 : 7200;
 }
+// v3.30.6: how a stored page is treated. A page is fresh for the rest of the London day Monday to Friday (no games, nothing changes) and for 30 minutes
+// at weekends; at weekends an older copy from the same day (up to 6 hours old) is shown at once while a new one is built in the background.
+// A copy from an earlier London day is never shown, because words such as Today, Tomorrow and This Saturday would be wrong.
+function londonDay(ms) { return new Date(ms).toLocaleDateString("en-CA", { timeZone: "Europe/London" }); }
+function pageState(builtAt, now) {
+  if (!Number.isFinite(builtAt) || londonDay(builtAt) !== londonDay(now)) return "old";
+  const wd = new Date(now).toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" });
+  if (wd !== "Sat" && wd !== "Sun") return "fresh";
+  const age = now - builtAt;
+  return age < 1800000 ? "fresh" : age < 21600000 ? "stale" : "old";
+}
+const PAGE_REBUILDING = new Map(); // key -> start time, so one instance does not start the same rebuild many times at once
 // ---- Team search and a team's competition list from the RFU data service (cluster.england-rfu.com) ----
 // The data service answers in tens of milliseconds and is rarely refused, unlike the englandrugby.com website. Its
 // upcoming-games call carries the competition and group (with ids) of every game still to be played, which gives the
@@ -6968,21 +6995,26 @@ export default {
     { const mg = await maintenanceGate(request); if (mg) return mg; }
     { const ag = await addressGate(request); if (ag) return ag; }
     const serve = async () => {
-    // PROD only: finished team, Match Centre, fixtures and match pages are kept at the edge for 2 minutes, so a burst
-    // of screens and phones shares one build. Never used on DEV (changes show at once), the links page or any PIN page.
-    let pageKey = null, pageCache = null, pageTtl = 120;
-    if (!label && request.method === "GET") {
+    // v3.30.6: finished team, Match Centre, fixtures and match pages are kept at the edge (see pageState: the rest of the UK day Monday to Friday, 30 minutes at weekends
+    // with an older same-day copy shown at once while a new one builds). The key holds the version, the team list and the time Admin was last saved, so a deploy or an Admin change shows at once.
+    // Used on DEV too. Never used for the links page or any PIN page.
+    let pageKey = null, pageCache = null;
+    if (request.method === "GET") {
       const u0 = new URL(request.url), v0 = u0.searchParams.get("view") || "";
       if (u0.pathname === "/" && (["stack", "fixtures", "match"].includes(v0) || (!v0 && u0.searchParams.has("team")))) {
         try { pageCache = typeof caches !== "undefined" && caches.default ? caches.default : null; } catch (_) { pageCache = null; }
         if (pageCache) {
-          // Match Stats is the busiest and heaviest page and its facts change slowly: keep it 30 minutes Monday to Friday, 5 at weekends.
-          pageTtl = pageTtlFor(v0, new Date());
-          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP), { method: "GET" });
-          try { const hit = await pageCache.match(pageKey); if (hit) { const hh = new Headers(hit.headers); hh.set("X-Page-Cache", "HIT"); return new Response(hit.body, { status: hit.status, headers: hh }); } } catch (_) { /* miss */ }
+          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP) + "&_sv=" + encodeURIComponent(String((await siteSettings()).savedAt || "")), { method: "GET" });
         }
       }
     }
+    const storePage = (html, status, hdrs) => {
+      if (!(pageKey && pageCache && status === 200 && !/RFU table error|Couldn.t load the match data|not available right now/.test(html))) return;
+      const ch = new Headers(hdrs); ch.set("Cache-Control", "public, max-age=172800"); ch.set("X-Built-At", String(Date.now()));
+      const store = pageCache.put(pageKey, new Response(html, { status: 200, headers: ch })).catch(() => {});
+      if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(store);
+    };
+    const buildPage = async () => {
     const response = await worker.fetch(request, !!label);
     if (!(response.headers.get("Content-Type") || "").includes("text/html")) return response;
     let page = await response.text();
@@ -6993,11 +7025,7 @@ export default {
     const powered = (await siteSettings()).features.powered;
     if (!label) { page = withStamp(page, powered); const ph = new Headers(response.headers); ph.set("X-Stats-Board-Version", VERSION);
       const out = new Response(page, { status: response.status, statusText: response.statusText, headers: ph });
-      if (pageKey && pageCache && response.status === 200 && !/RFU table error|Couldn.t load the match data|not available right now/.test(page)) {
-        const ch = new Headers(ph); ch.set("Cache-Control", "public, max-age=" + pageTtl);
-        const store = pageCache.put(pageKey, new Response(page, { status: 200, headers: ch })).catch(() => {});
-        if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(store);
-      }
+      storePage(page, response.status, ph);
       return out; }
     const safe = label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const banner = `<div role="note" style="position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:2147483647;pointer-events:none;background:#f0a020;color:#1a1200;font:700 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,.35)">${safe} environment</div>`;
@@ -7006,7 +7034,26 @@ export default {
     const headers = new Headers(response.headers);
     headers.set("X-Robots-Tag", "noindex");
     headers.set("X-Stats-Board-Version", VERSION);
+    storePage(html, response.status, headers);
     return new Response(html, { status: response.status, statusText: response.statusText, headers });
+    };
+    if (pageKey && pageCache) {
+      try {
+        const hit = await pageCache.match(pageKey);
+        if (hit) {
+          const st = pageState(Number(hit.headers.get("X-Built-At")), Date.now());
+          if (st === "fresh" || st === "stale") {
+            const hh = new Headers(hit.headers); hh.set("X-Page-Cache", "HIT"); hh.set("X-Page-State", st); hh.set("Cache-Control", "public, max-age=60");
+            if (st === "stale" && ctx && typeof ctx.waitUntil === "function") {
+              const k = pageKey.url, started = PAGE_REBUILDING.get(k);
+              if (!started || Date.now() - started > 30000) { PAGE_REBUILDING.set(k, Date.now()); ctx.waitUntil(buildPage().catch(() => {}).finally(() => PAGE_REBUILDING.delete(k))); }
+            }
+            return new Response(hit.body, { status: hit.status, headers: hh });
+          }
+        }
+      } catch (_) { /* miss */ }
+    }
+    return await buildPage();
     };
     const resp = await serve();
     const ms = Date.now() - t0;

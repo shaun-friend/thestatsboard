@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
 v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
 v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
 v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
@@ -232,6 +233,18 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.6 - Page cache rebuilt (stored pages kept longer, old copy shown while a new one builds)
+- Owner decision (14-Nov-2026): there are no games Monday to Friday, so nothing changes; the aim is fewer page rebuilds on the free plan (10 ms per request). Applies to the team page, Match Centre, Fixtures board and Match Stats (the pages that were already stored for 2 minutes, or Match Stats for 5 minutes / 2 hours).
+- Monday to Friday: a stored page is fresh for the rest of the UK day. Saturday and Sunday: fresh for 30 minutes; after that the older copy (up to 6 hours old, same UK day only) is shown at once and a new one is built in the background, so nobody waits for a rebuild.
+- A copy from an earlier UK day is never shown (Today, Tomorrow and This Saturday would be wrong), so the first visit after midnight rebuilds the page.
+- The stored copy's key now includes the time Admin was last saved (as well as the version and team list), so any Admin change, and any deploy, shows at once.
+- The browser is told to keep a page for 60 seconds only, as before the change, so a TV or phone reload picks up a rebuilt page quickly.
+- Now used on DEV as well as PROD (it was PROD only). A deploy shows at once because the version is in the key; data changes on DEV follow the same timing as PROD.
+- If a background rebuild fails (for example over the working-time limit) nothing is shown to the visitor and the next visit tries again; the older copy is not shown past its limits.
+- Match Stats no longer has its own timings (it was 5 minutes at weekends, 2 hours Monday to Friday); it follows the rules above. The old timing function is left in the code unused.
+- Not done (owner decision): an uptime pinger to warm pages after midnight.
+- Docs: none - speed only, nothing a visitor sees
 
 v3.30.5 - Working-time savings (free Cloudflare plan)
 - Confirmed from Cloudflare's Metrics (14-Nov-2026): 16 "Exceeded CPU Time Limits", none for memory. The site is on the free plan (10 ms of working time per request) and the owner prefers not to pay, so the aim is to make pages cheaper.
