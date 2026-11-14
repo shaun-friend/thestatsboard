@@ -38,6 +38,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
 v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
 v3.27.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.7_stats_settle.zip             | v3.27.6
 v3.27.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.6_stats_flicker.zip            | v3.27.5
@@ -215,6 +216,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.1 - Match Stats size jump fixed (real cause found)
+- Two scripts were fitting the Match Stats page: its own, and the shared TV one added to every page that has a form strip. The shared one reset the text size 0.4 and 2.5 seconds after load, so the page jumped larger and back about a tenth of a second later. That is the "readjusts after a few seconds" you saw. The page now carries a marker so only its own script runs.
+- The page also waits for crests to finish loading (up to 6 seconds) as well as being still for 0.7 seconds before it fades in.
+- Found by recording the page's text size every 50 ms in a real browser with slow crests. A test now guards it.
+- Docs: none - cosmetic fix, no change to how anything works
 
 v3.28 - Crossfade refresh on big screens
 - Every TV and tablet page that reloads itself (Match Stats, Match Centre, Fixtures board, the TV layouts and the stacked views) now refreshes by crossfade. The new page loads in a hidden frame the size of the screen, fits itself, and when it has stopped changing it fades in over the old page for about a second. The old page is removed once the fade ends.

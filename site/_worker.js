@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.28.1 14-Nov-2026 Match Stats on a big screen: two fitting scripts were fighting (the shared one reset the text size every few seconds); the page now uses only its own, and waits for crests to load before fading in.
 //   v3.28 14-Nov-2026 TV and tablet pages refresh by crossfade: the new page loads in a hidden frame, fits itself, then fades in over the old one (no blank, no resize). Phones and small windows still reload as before. If the new page is slow or fails the old one stays on screen.
 //   v3.27.7 14-Nov-2026 Match Stats on a big screen: waits until the page has been still for 0.7 s (crests, fonts, colours) before fading in, so it no longer resizes after it appears.
 //   v3.27.6 14-Nov-2026 Match Stats page on a big screen: hidden while its text is being fitted, then faded in once (no resize flicker), same as the Match Centre.
@@ -202,7 +203,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.28";
+const VERSION = "v3.28.1";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -246,6 +247,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.28.1_stats_fit_fix.zip            | v3.28
 v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
 v3.27.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.7_stats_settle.zip             | v3.27.6
 v3.27.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.6_stats_flicker.zip            | v3.27.5
@@ -423,6 +425,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28.1 - Match Stats size jump fixed (real cause found)
+- Two scripts were fitting the Match Stats page: its own, and the shared TV one added to every page that has a form strip. The shared one reset the text size 0.4 and 2.5 seconds after load, so the page jumped larger and back about a tenth of a second later. That is the "readjusts after a few seconds" you saw. The page now carries a marker so only its own script runs.
+- The page also waits for crests to finish loading (up to 6 seconds) as well as being still for 0.7 seconds before it fades in.
+- Found by recording the page's text size every 50 ms in a real browser with slow crests. A test now guards it.
+- Docs: none - cosmetic fix, no change to how anything works
 
 v3.28 - Crossfade refresh on big screens
 - Every TV and tablet page that reloads itself (Match Stats, Match Centre, Fixtures board, the TV layouts and the stacked views) now refreshes by crossfade. The new page loads in a hidden frame the size of the screen, fits itself, and when it has stopped changing it fades in over the old page for about a second. The old page is removed once the fade ends.
@@ -1686,6 +1694,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.28.1", "Match Stats on a big screen no longer jumps in size a second or two after appearing."],
       ["v3.28", "Big screens now refresh smoothly: the new version of a page loads out of sight and fades in over the old one, with no blank moment and no resizing. If a refresh fails the old page simply stays up."],
       ["v3.27.7", "The Match Stats page now waits until it has stopped changing before it fades in, so it no longer resizes after appearing."],
       ["v3.27.6", "The Match Stats page on a big screen no longer flickers while it sizes itself to the screen: it appears once, fully fitted."],
@@ -4225,7 +4234,7 @@ body{height:auto;overflow:visible;gap:.9rem;padding:max(.8rem,env(safe-area-inse
 .hsn{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:.7rem 0 .2rem;font-weight:700}.hrw{text-align:left;display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;padding:.3rem 0 .3rem .6rem;margin:.2rem 0;font-size:.95rem;border-left:.3rem solid #7a6a2a}.hrw.wa{border-color:var(--ca)}.hrw.wb{border-color:var(--cb)}.hrw small{display:block;color:var(--mu);font-size:.75rem}}
 @media (max-height:560px) and (orientation:landscape){html{font-size:14px}.top .dt{font-size:1.6rem}.big{width:3.8rem;height:3.8rem}.big .ini{font-size:1.3rem}.nm{font-size:1.1rem}.hd{gap:.4rem}.tag{margin-top:.3rem}.t{height:1.8rem}.b{font-size:.95rem}}`;
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>Match Stats</title>
-<style>${css}@media (min-width:801px) and (min-height:561px){body.fitwait{opacity:0}body.fitshow{transition:opacity .25s}}</style></head><body class="${theme}${m && Array.isArray(m.h2hAll) && m.h2hAll.length ? " hx" : ""} fitwait">${themeBoot('window.matchMedia("(max-width:800px),(max-height:560px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>
+<!--rfu-fit: this page sizes itself, so the shared fitting script is not added--><style>${css}@media (min-width:801px) and (min-height:561px){body.fitwait{opacity:0}body.fitshow{transition:opacity .25s}}</style></head><body class="${theme}${m && Array.isArray(m.h2hAll) && m.h2hAll.length ? " hx" : ""} fitwait">${themeBoot('window.matchMedia("(max-width:800px),(max-height:560px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>
 ${inner}
 ${themeToggleScript}${colourScript}${refresh}<script>(function(){var H=document.documentElement,B=document.body,MQ="(min-width:801px) and (min-height:561px)";
 // TV / big screen: if everything does not fit the screen height (short browser window, long venue name, extra head-to-head text, weather or crests that arrive a moment after the page), shrink the text a step at a time until it does, with a gap kept between the bar rows. It re-checks whenever the page changes size or content, so it cannot slip back to bunched-up bars.
@@ -4236,8 +4245,9 @@ var settled=false;function settle(){if(settled)return;settled=true;B.classList.a
 var busy=false;function fit(){if(busy)return;busy=true;try{H.style.fontSize="";if(matchMedia(MQ).matches){var fs=fsz(),n=0;while(over()&&fs>7&&n++<80){fs-=.25;H.style.fontSize=fs+"px"}}}catch(e){}busy=false}
 function check(){try{if(matchMedia(MQ).matches&&over())fit()}catch(e){}}
 var tm,last=Date.now();function later(){last=Date.now();clearTimeout(tm);tm=setTimeout(check,120)}
-function quiet(){var t0=Date.now();(function p(){if(settled)return;if(Date.now()-last>=700||Date.now()-t0>3500){fit();settle()}else setTimeout(p,100)})()}
-fit();addEventListener("load",function(){fit();last=Date.now();quiet()});setTimeout(function(){fit();settle()},4500);addEventListener("resize",function(){clearTimeout(tm);tm=setTimeout(fit,150)});
+function pics(){return [].every.call(document.images,function(i){return i.complete})}
+function quiet(){var t0=Date.now();(function p(){if(settled)return;var T=Date.now()-t0;if((Date.now()-last>=700&&pics())||T>6000){fit();settle()}else setTimeout(p,100)})()}
+fit();addEventListener("load",function(){fit();last=Date.now();quiet()});setTimeout(function(){fit();settle()},7500);addEventListener("resize",function(){clearTimeout(tm);tm=setTimeout(fit,150)});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){last=Date.now();fit()});
 document.addEventListener("load",later,true);
 try{new MutationObserver(later).observe(B,{childList:true,subtree:true,characterData:true})}catch(e){}
