@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.27.1 14-Nov-2026 Documentation brought up to date for v3.22 to v3.27 (Admin sections, Modern/Classic, screen names, website back-up switch, Match sheet, cup games). Release check now requires every release to say which Documentation sections it updated.
 //   v3.27 14-Nov-2026 Admin: sections with a left menu (Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access, Site status), a Tools group, one sticky Save bar with an unsaved-changes marker; phones get a menu list then the section.
 //   v3.26.1 14-Nov-2026 The Screen name box is on the /builder page only (it had wrongly gone on the find-your-team welcome page).
 //   v3.26 14-Nov-2026 Match Centre layouts are called Modern and Classic; the link builder has a Screen name box that adds &screen= to every link.
@@ -194,7 +195,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27";
+const VERSION = "v3.27.1";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -209,6 +210,7 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
+- TV quick setup (idea 14-Nov-2026, the next one to explore; mock-ups first, nothing built): on a TV, visit thestatsboard.co.uk/setup and get a branded page with a QR code. An admin scans it with a phone camera, picks the screen link on the builder page (/builder) and the link appears on the TV. For TV screens only: on-screen keyboards need a remote control, so the aim is to type as little as possible on the TV. To explore: how the TV and phone pair (short code or QR), how the chosen link reaches the TV (the TV polls for it), the admin sign-in on the phone, how long a code lasts and how pairing is secured, and what the TV shows before and after pairing. Mock up both the TV page and the phone steps.
 - Request logging and a Status page: record view, team, status, cache hit and stale-data flag (country and device type, no IP addresses) in Workers Analytics Engine, with a PIN-protected page showing whether each TV is still checking in. Needs a Pages binding set up in Cloudflare first.
 - More statistics: close games (decided by 7 points or fewer), points per game against the league average, season pace (labelled as a rough guide), home/away split of points scored.
 - Standard dashboard in portrait on an iPad: it fits the screen but the stat boxes and results list are tight.
@@ -236,6 +238,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
 v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
 v3.26.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.26.1_builder_screen.zip       | v3.26
 v3.26   | 14-Nov-2026 | RFU_Club_Dashboard_v3.26_modern_classic.zip         | v3.25.1
@@ -405,6 +408,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.1 - Documentation brought up to date, and a release check for it
+- Admin guide rewritten around the new Admin sections (menu, Overview, Save bar, phone layout, deep links).
+- Added to the Documentation: Modern and Classic Match Centre layouts (ly), screen names (screen) and the Screen name box on the Link builder, the England Rugby website back-up switch, the Match sheet, Powered by line, maintenance mode steps, and cup games with no name.
+- New release rule: every release's README entry must carry a line "- Docs: <sections updated>" naming existing Documentation sections, or "- Docs: none - <reason>" for changes nobody sees. check_release.py stops the build otherwise.
+- Docs: Which page is which, Setting up a clubhouse screen, Admin guide, How the data works, What's new
 
 v3.27 - Admin organised into sections
 - Admin now has a menu: Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access and Site status. Every setting moved into one of them; nothing was removed. The Overview shows site status, visitors and screens today, the website back-up state and any live notices.
@@ -785,6 +794,7 @@ v3.6 - Documentation page, and the PROD/DEV switch removed
 - /docs (still behind the club PIN, locked on PROD until CLUB_PIN is set, never cached, noindex) is now called Documentation. The old Link variables page is one section of it. The Links page footer link now reads "Documentation".
 - Layout: a contents list down the left on a wide screen (jump buttons across the top on a phone), then one block per section, each marked for who it is for (Everyone, Club admins, Site owner). Sections: Start here; Which page is which; Setting up a clubhouse screen; Link variables (with the "how a link is built" picture and a Try it button for each variable); Admin guide; How the data works; Definitions; Troubleshooting; Setup and deployment; Releases and versions; What's new; Privacy and security.
 - To change it: everything is in one list in _worker.js (DOC_SECTIONS for the sections, DOCS for the link variables, both just above notesPage). Add or edit an entry and the page, its contents list and its Try it buttons follow. Keep it free of the DEV site's address.
+- Documentation rule (from v3.27.1): every release updates the Documentation or says why not. The README entry for the version needs a line "- Docs: <section titles, comma separated>" (each must be a real Documentation section) or "- Docs: none - <reason>". check_release.py fails the build without it.
 - When a feature is added that changes what the site collects or how it behaves (visit counts, the Message form, the QR code), update the Privacy, Admin guide and What's new sections in the same release.
 - The PROD/DEV switch is gone from the Links page ("You are on PROD / Switch to DEV"). The DEV site's address is no longer written anywhere in the code (the SITES list holds only the public address), so no page can point visitors at it. Moving between the two sites is now done by hand. A test checks that no PROD page mentions the DEV address or a switch. Side effect: on the DEV site, links created or shown on screen use the address the page was opened on.
 - Old entries below still mention the switch and the DEV address; they are history and are only served on the DEV site.
@@ -1423,7 +1433,9 @@ const DOC_SECTIONS = [
       ["Match Stats", "A head-to-head comparison for the next game: the two teams side by side, recent form and earlier meetings."],
       ["Opposition report", "A phone page about the next opponent: this game, their form, you against them, and their season."],
       ["League leaders", "Who leads the league in the main statistics, with where your team sits."],
-      ["Match Centre", "All of a club's teams on one screen: last game and next game for each. Made for a clubhouse TV (view=stack)."],
+      ["Match Centre", "All of a club's teams on one screen: last game and next game for each. Made for a clubhouse TV (view=stack), in a Modern or Classic layout chosen in Admin."],
+      ["Match sheet", "Team sheets and scorers for each team's next and last game. Admin only (club PIN); under-18 names are never shown."],
+      ["Admin", "Notices, screen switches, data sources, counting, sign-in length and maintenance mode, in sections. Club PIN."],
       ["Links page", "Every link for the club's teams, ready to copy or share. Club PIN."],
       ["Link builder", "Builds the same links for any team listed on englandrugby.com. Open to anyone."],
       ["Calendar file", "The team's fixtures as a calendar file that phones and calendar apps can import (/calendar.ics)."],
@@ -1443,6 +1455,8 @@ const DOC_SECTIONS = [
     { ul: [
       "colour=1b7f3b sets the accent colour (otherwise it comes from the team crest). club=Your%20Club sets the club name top right.",
       "theme=light switches to light colours. embed=1 hides the page chrome for signage players that frame a web page.",
+      "screen=Clubhouse%20Bar gives a TV a name (letters, numbers, spaces, dots, dashes, up to 24 characters). The Usage page then lists each named screen with its loads and when it was last seen. The Link builder (/builder) has a Screen name box that adds it for you. Links without it work as before.",
+      "ly=next or ly=classic picks the Match Centre layout for that link (Modern or Classic); with no ly the Admin setting is used.",
       "A notice for the screens (for example Bar closed on Saturday) is set on the Admin page, with no change to any link."
     ] },
     { h: "Another club's team" },
@@ -1454,20 +1468,42 @@ const DOC_SECTIONS = [
   ] },
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It asks for the club PIN, like the Links page. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
-    { h: "Notices" },
+    { h: "How the Admin page is laid out" },
+    { p: "A menu runs down the left (on a phone it is a list; tap a section to open it and use the Admin link at the top to come back). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
+    { dl: [
+      ["Overview", "Status cards and a shortcut to each section."],
+      ["Messages", "The homepage notice and the TV screen notice."],
+      ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
+      ["Match day", "The Match sheet (team sheets and scorers)."],
+      ["Data sources", "The England Rugby website back-up switch."],
+      ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
+      ["Access", "How long a PIN sign-in lasts."],
+      ["Site status", "Maintenance mode and its pun lines."],
+      ["Tools", "Links to Usage, Documentation, Release notes, Match sheet and Team links (and the Probe page on the test site)."]
+    ] },
+    { note: "One Save bar stays at the bottom of every section. It shows Unsaved changes when you have edited something, with a Discard button to go back to what is saved. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
+    { h: "Messages" },
     { ul: [
       "Homepage notice: a block at the top of the page where visitors pick a team. Text up to 200 characters.",
       "TV screen notice: a one-line strip on TV screens (the Fixtures board, the Match Centre and other layout=tv pages). Text up to 120 characters; keep it short. The normal phone pages do not show it (the Match Centre does, because it is a screen).",
       "Style: Information (blue) or Warning (amber). Hide automatically after: an optional date (UK time) after which the notice stops showing.",
       "Applies to (TV notice): Club teams only (the default), All screens, or Chosen teams. Club teams only means the teams on the club's Links page, so another club's screen never shows it."
     ] },
-    { h: "Switches" },
+    { h: "Screens" },
     { dl: [
       ["Around the league today strip", "Other results in the same division on match days (Fixtures board)."],
       ["Weather on the TV banner", "The forecast for the next game, home or away (Fixtures board)."],
       ["Last checked feed time", "The small line at the bottom of the Fixtures board."],
+      ["Powered by The Stats Board line", "The small credit line at the bottom of team pages and TV screens. Off shows only the version."],
+      ["Match Centre layout", "Modern (the default) shows the next game first with club and opponent crests, the ground and a table line such as 2nd v 3rd. Classic shows one row per team. Phones always get the stacked cards. With more than four teams Modern switches to Classic by itself. Preview links for both are on the Admin page, or add ly=next or ly=classic to a Match Centre link."],
       ["Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip. Off means the winner is simply bold."]
     ] },
+    { h: "Match day" },
+    { p: "The Match sheet (/matchsheet, club PIN) shows, for each team, the next game and the last game with both team sheets (shirt number, position, captain and vice captain) and, for the last game, the scoring with the minute and player. If no sheet has been entered it says so. Under-18 teams are always shown without names, whatever the feed holds." },
+    { h: "Data sources" },
+    { p: "England Rugby website as a back-up (on by default): when the RFU data service has no league table, ground or team list, the site asks the englandrugby.com website instead. Turn it off to use the data service only; anything it cannot supply is then left blank and nothing is fetched from the website. Before turning it off check the RFU web page row on the Usage page, which shows how often the back-up was used." },
+    { h: "Site status and maintenance mode" },
+    { p: "Maintenance mode shows a Back soon page in place of every page, TV screen, calendar and data call. Only the Admin page and the PIN pages stay open. Switching it on asks you to type the club PIN again. Choose a pun line (or none) and an optional extra line such as a return time; Preview shows it before you save. Remember to switch it off and save again when you finish, because clubhouse screens show it until you do." },
     { h: "Access and signing out" },
     { ul: [
       "How long a PIN sign-in lasts: 1, 7, 14 or 30 days (default 30). It applies the next time a PIN is entered; devices already signed in keep the length they were given. The time is counted from the moment the PIN was entered and is not extended by using the pages.",
@@ -1525,6 +1561,8 @@ const DOC_SECTIONS = [
       ["Last checked", "The small line on the Fixtures board is when the Stats Board last read the feed. It is not a time supplied by the RFU, which is why it says checked and not updated."],
       ["If the feed is down", "The last good copy is kept for up to 7 days and shown meanwhile, so a screen carries on instead of going blank."],
       ["Seasons", "A link with no season follows the RFU season dates and moves on by itself each year. Between seasons a notice says the new fixtures are not published yet. A link with season=2025-2026 stays on that season."],
+      ["Cup games with no name", "Some cup games entered by a club arrive from the RFU with no competition name. The site looks the game up in the RFU match record and shows its real name (for example Prem Rugby Cup). If the record has none it shows Cup, and Match Stats and the Opposition report say there are no cup figures for that game yet."],
+      ["England Rugby website back-up", "The RFU data service is the main source. The englandrugby.com website is only a back-up for a league table, ground or team list the data service lacks, and the Admin page (Data sources) can switch it off."],
       ["Cups", "The Fixtures page and board, and the calendar file, include every game the team plays this season (league, cups, plates, friendlies), and the Fixtures views tag each cup. Every screen that shows a next game or last result (Fixtures, the Next fixture panel, Match Stats, the Opposition Report and the Match Centre) and the calendar use the team's games in every competition. On a cup game, Match Stats shows the cup's name and compares the two teams using their games in that cup only, including recent form (position and points when the cup has a group table), with a note when neither team has played in the cup yet. League games show league figures, and the Match Centre form strip is league only."],
       ["Walkovers and void games", "A walkover counts as a played game with a win or a loss, shown as W/O, and is left out of score figures (points, averages, margins). A void game is shown as Void and not counted."],
       ["Weather", "Shown for a game up to 15 days ahead, for the afternoon of the game. The venue is found from its postcode or place name. No forecast is shown when the game is further away, when the venue cannot be found or when the forecast service does not answer."],
@@ -1589,6 +1627,7 @@ const DOC_SECTIONS = [
       "Raise VERSION and BUILD_DATE in _worker.js and add a line to the changelog in its header.",
       "Add a row to the release table in README.txt and write the entry, then run the notes sync so the in-code copy matches.",
       "Run the tests.",
+      "Update this Documentation for anything people will notice, and record it in the release entry (a Docs line naming the sections, or Docs: none with a reason). The release check stops the build without it.",
       "Make the zip, named RFU_Club_Dashboard_<version>_<topic>.zip, and keep the previous one.",
       "Test on the test site, then upload the same zip to the live site."
     ] },
@@ -1596,6 +1635,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.27.1", "The Documentation is brought up to date: the Admin guide now follows the new Admin sections, and it covers Modern and Classic, screen names, the website back-up switch, the Match sheet and cup games with no name."],
       ["v3.27", "The Admin page is now organised into sections with a menu: Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access and Site status. Usage, Documentation, Release notes, Match sheet and Team links sit under Tools. One Save bar stays at the bottom and shows when something is unsaved."],
       ["v3.26.1", "The Screen name box is on the Link builder page (/builder) only; it is no longer on the find-your-team page."],
       ["v3.26", "The Match Centre layouts are now called Modern and Classic. The Link builder (/builder) has a Screen name box, so you can name a TV when you copy its link."],

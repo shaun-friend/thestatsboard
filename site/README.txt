@@ -37,6 +37,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.1_docs_update.zip             | v3.27
 v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
 v3.26.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.26.1_builder_screen.zip       | v3.26
 v3.26   | 14-Nov-2026 | RFU_Club_Dashboard_v3.26_modern_classic.zip         | v3.25.1
@@ -206,6 +207,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27.1 - Documentation brought up to date, and a release check for it
+- Admin guide rewritten around the new Admin sections (menu, Overview, Save bar, phone layout, deep links).
+- Added to the Documentation: Modern and Classic Match Centre layouts (ly), screen names (screen) and the Screen name box on the Link builder, the England Rugby website back-up switch, the Match sheet, Powered by line, maintenance mode steps, and cup games with no name.
+- New release rule: every release's README entry must carry a line "- Docs: <sections updated>" naming existing Documentation sections, or "- Docs: none - <reason>" for changes nobody sees. check_release.py stops the build otherwise.
+- Docs: Which page is which, Setting up a clubhouse screen, Admin guide, How the data works, What's new
 
 v3.27 - Admin organised into sections
 - Admin now has a menu: Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access and Site status. Every setting moved into one of them; nothing was removed. The Overview shows site status, visitors and screens today, the website back-up state and any live notices.
@@ -586,6 +593,7 @@ v3.6 - Documentation page, and the PROD/DEV switch removed
 - /docs (still behind the club PIN, locked on PROD until CLUB_PIN is set, never cached, noindex) is now called Documentation. The old Link variables page is one section of it. The Links page footer link now reads "Documentation".
 - Layout: a contents list down the left on a wide screen (jump buttons across the top on a phone), then one block per section, each marked for who it is for (Everyone, Club admins, Site owner). Sections: Start here; Which page is which; Setting up a clubhouse screen; Link variables (with the "how a link is built" picture and a Try it button for each variable); Admin guide; How the data works; Definitions; Troubleshooting; Setup and deployment; Releases and versions; What's new; Privacy and security.
 - To change it: everything is in one list in _worker.js (DOC_SECTIONS for the sections, DOCS for the link variables, both just above notesPage). Add or edit an entry and the page, its contents list and its Try it buttons follow. Keep it free of the DEV site's address.
+- Documentation rule (from v3.27.1): every release updates the Documentation or says why not. The README entry for the version needs a line "- Docs: <section titles, comma separated>" (each must be a real Documentation section) or "- Docs: none - <reason>". check_release.py fails the build without it.
 - When a feature is added that changes what the site collects or how it behaves (visit counts, the Message form, the QR code), update the Privacy, Admin guide and What's new sections in the same release.
 - The PROD/DEV switch is gone from the Links page ("You are on PROD / Switch to DEV"). The DEV site's address is no longer written anywhere in the code (the SITES list holds only the public address), so no page can point visitors at it. Moving between the two sites is now done by hand. A test checks that no PROD page mentions the DEV address or a switch. Side effect: on the DEV site, links created or shown on screen use the address the page was opened on.
 - Old entries below still mention the switch and the DEV address; they are history and are only served on the DEV site.

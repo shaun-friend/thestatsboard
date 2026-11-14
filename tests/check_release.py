@@ -23,6 +23,17 @@ else:
     if zipname and row.group(2) != zipname: errs.append(f"README zip name is {row.group(2)}, building {zipname}")
 if not re.search(r'^' + re.escape(v) + r' - ', r, re.M): errs.append(f"README has no entry headed '{v} - ...'")
 if re.search(r'^\s*[-*]?\s*[A-Za-z]*\s*$', "") : pass
+# documentation rule (v3.27.1): the README entry must say which Documentation sections it updated, or why none
+ent = re.search(r'^' + re.escape(v) + r' - .*\n((?:(?!^v\d).*\n)*)', r, re.M)
+if ent:
+    dl = re.search(r'^- Docs:\s*(.+)$', ent.group(1), re.M)
+    if not dl: errs.append(f"README entry for {v} has no '- Docs:' line (name the Documentation sections updated, or '- Docs: none - <reason>')")
+    elif re.match(r'none\b', dl.group(1), re.I):
+        if not re.match(r'none\s*[-:\u2013]\s*\S{8,}', dl.group(1), re.I): errs.append("'Docs: none' needs a reason, e.g. '- Docs: none - behind-the-scenes fix'")
+    else:
+        titles = [m.group(1).lower() for m in re.finditer(r'\{ id: "[a-z]+", title: "([^"]+)"', w)]
+        for n in [q.strip().lower() for q in dl.group(1).split(",") if q.strip()]:
+            if n not in titles: errs.append(f"Docs line names '{n}', which is not a Documentation section")
 top = re.findall(r'^(v\d+(?:\.\d+)+)\s*\|', r, re.M)
 if top and top[0] != v: errs.append(f"newest README release row is {top[0]} but code is {v}")
 # the release table must run newest first: dates never go up as you read down
