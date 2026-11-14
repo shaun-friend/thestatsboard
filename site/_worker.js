@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.12 14-Nov-2026 New Feed log page (/feedlog, club PIN, Admin > Tools): records when a game goes missing from the RFU feed, an answer is incomplete or a team will not load, so a wrong next game can be traced afterwards.
 //   v3.30.11 14-Nov-2026 Match Centre (Modern): the next game block no longer overflows at TV and iPad sizes (names slightly smaller when one wraps). The Match Centre also holds the game shown last time for one 15-minute round when it goes missing from an otherwise complete feed, so a cup game does not flip to the league game.
 //   v3.30.10 14-Nov-2026 Match Centre (Modern): the columns now line up whether or not a team has a Win Predictor, a ground line or a "2nd v 3rd" line, and whatever the opponent name length. Content starts at the top, and those lines sit at the bottom in fixed slots.
 //   v3.30.9 14-Nov-2026 A bare group name such as "Group 1" (the Colts) is now shown with its competition name, for example "Devon RFU Colts Group 1", on the Match Centre, team pages and the summary; if the feed gives no competition name the league text saved in Admin is used on the Match Centre.
@@ -233,7 +234,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.11";
+const VERSION = "v3.30.12";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -281,6 +282,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
 v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
 v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
 v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
@@ -477,6 +479,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.12 - Feed log
+- Owner request (14-Nov-2026): a wrong next game corrects itself on refresh, so it cannot be caught with the debug address; asked for automatic logging.
+- New page /feedlog (club PIN, under Tools in Admin as "Feed log"). Whenever the Match Centre finds a game missing from the feed (earlier game kept for a round, or new next game accepted after 15 minutes), an incomplete answer (what was missing; what was kept and what the incomplete answer would have shown) or a team that would not load, it adds a row with the time, team and details. Newest first, last 80 kept; the same event repeated within 10 minutes is one row.
+- Stored in the settings store (one small key, "feedlog"), written only when something goes wrong, so a normal day writes nothing. Public pages never show it.
+- To use: when a team shows the wrong game, note the time and read /feedlog; the row around that time says what the feed left out.
+- Docs: none - admin tool
 
 v3.30.11 - Match Centre fit fix, and a missing game is held
 - Owner report (14-Nov-2026, iPad, DEV): alignment was worse after v3.30.10 (the ground line cut off at the bottom of the coloured blocks), and the wrong next game for the Colts came back once, then corrected itself on refresh.
@@ -1904,6 +1913,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.12", "New Feed log page under Admin > Tools: records when the RFU feed leaves out a game or answers incompletely, to help trace a wrong next game."],
       ["v3.30.11", "Match Centre: fixed the bottom of the next game blocks being cut off, and a game that briefly drops out of the RFU feed (a cup game flipping to the league game) is now held for one refresh before it is replaced."],
       ["v3.30.10", "Match Centre: the next game blocks now line up across the teams (heading, crest, name, date and Home or Away) even when one team has no Win Predictor bar, ground or table line."],
       ["v3.30.9", "The Colts now show their competition name with the group (for example \"Devon RFU Colts Group 1\") instead of just \"Group 1\"."],
@@ -2200,6 +2210,31 @@ function winBarHtml(win, o) {
   return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
 }
 // Check page (club PIN): predicts every finished game this season from the games before it, for each club team's division.
+// v3.30.12: a short log of feed problems (a game missing from the feed, an incomplete answer, a team that would not load) so the cause of a wrong "next game" can be read afterwards on /feedlog.
+async function feedLogAdd(kind, team, detail) {
+  try {
+    const kv = kvOf(); if (!kv) return;
+    const job = (async () => {
+      let log = []; try { const r = await kv.get("feedlog", { type: "json" }); if (Array.isArray(r)) log = r; } catch (_) {}
+      const now = Date.now(), top = log[0];
+      if (top && top.kind === kind && top.team === team && top.detail === detail && now - Date.parse(top.t) < 10 * 60e3) return; // same thing again within 10 minutes
+      log.unshift({ t: new Date(now).toISOString(), kind, team: String(team || ""), detail: String(detail || "").slice(0, 400) });
+      await kv.put("feedlog", JSON.stringify(log.slice(0, 80)));
+    })();
+    if (SITE_CTX && typeof SITE_CTX.waitUntil === "function") SITE_CTX.waitUntil(job); else await job;
+  } catch (_) {}
+}
+function feedLogPage(theme, isDev, log, hasKv) {
+  const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
+  const KIND = { held: "Game missing, earlier game kept", accepted: "Game still missing, new next game accepted", partial: "Incomplete answer", partialNone: "Incomplete answer, nothing earlier to keep", error: "Team would not load" };
+  const when = iso => { try { return new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" }); } catch (_) { return iso; } };
+  const rows = (log || []).map(x => `<tr><td class="nw">${ea(when(x.t))}</td><td>${ea(x.team)}</td><td><b>${ea(KIND[x.kind] || x.kind)}</b><br><small>${ea(x.detail)}</small></td></tr>`).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Feed log</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:980px}.cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:14px 18px;margin:14px 0}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:8px;border-top:1px solid #26312d;vertical-align:top}th{font-size:12px;color:#91a49a;border-top:0}small{color:#91a49a}.nw{white-space:nowrap}body.light .cd{background:#fff;border-color:#cbd8ce}body.light th,body.light td{border-color:#e0e7e1}.tw{overflow-x:auto}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Feed log</h1><p class="sub">Times the RFU feed left out a game or answered incompletely while the Match Centre was loading. If a team showed the wrong next game, look for its row around that time. Newest first, last 80 kept.</p>
+<div class="cd">${!hasKv ? "<p>This site has no settings store attached, so nothing is recorded.</p>" : rows ? `<div class="tw"><table><tr><th>When (UK)</th><th>Team</th><th>What happened</th></tr>${rows}</table></div>` : "<p>Nothing recorded yet. That is good news: no problems have been seen since this version went live.</p>"}</div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}</body></html>`;
+}
 function winCheckPage(theme, teams, isDev) {
   const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
   const list = JSON.stringify(teams.map(x => ({ name: x.name, team: x.team, competition: x.competition, division: x.division, teamName: x.teamName, league: x.league }))).replace(/</g, "\\u003c");
@@ -2370,7 +2405,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2664,7 +2699,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -4340,6 +4375,11 @@ const worker = {
       return new Response(usagePage(th, isDev === true, (await siteSettings()).reporting.days), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     }
     // Admin match sheet (v3.22): team sheets and scorers for a team's next and last game. Club PIN protected, never cached, not indexed.
+    if (url.pathname.replace(/\/+$/, "") === "/feedlog") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark", kv = kvOf();
+      let log = []; try { if (kv) { const r = await kv.get("feedlog", { type: "json" }); if (Array.isArray(r)) log = r; } } catch (_) {}
+      return new Response(feedLogPage(th, isDev === true, log, !!kv), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/winchance") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(winCheckPage(th, TEAMS, isDev === true), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -5315,8 +5355,9 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
           const sj = await r.json();
           if (sj.partial) {
             // v3.30.7: a competition feed was missing, so the next game may be wrong (the league game instead of tomorrow's cup game). Show the last complete answer instead, if there is one.
-            const good = await sharedGet(gkey);
-            if (good && good.ok && !(good.v && good.v.next && good.v.next.iso && Date.parse(good.v.next.iso) < Date.now())) { PARTIAL_COUNT--; return {t, s: good.v}; }
+            const good = await sharedGet(gkey), why = (sj.partialWhy || []).join(", "), nx = x => x && x.iso ? new Date(x.iso).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short" }) + " v " + (x.mineHome ? x.awayName : x.homeName) : "none";
+            if (good && good.ok && !(good.v && good.v.next && good.v.next.iso && Date.parse(good.v.next.iso) < Date.now())) { PARTIAL_COUNT--; await feedLogAdd("partial", t.name, "Missing: " + why + ". Kept the last complete answer: " + nx(good.v.next) + ". The incomplete one would have shown: " + nx(sj.next)); return {t, s: good.v}; }
+            await feedLogAdd("partialNone", t.name, "Missing: " + why + ". Showing: " + nx(sj.next));
             return {t, s: sj};
           }
           { // v3.30.11: a complete-looking answer can still lack a game (tomorrow's cup game missing, so next week's league game shows). If the game we showed before has gone from the list while it is still to be played, keep showing it for one 15-minute round; if the next build agrees it has gone (postponed, removed), accept that.
@@ -5326,15 +5367,17 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
               if (!(seen && seen.ok && Date.now() - seen.t > 13 * 60e3)) {
                 if (!(seen && seen.ok)) await sharedPut(vkey, { ok: true, t: Date.now() }, 21600);
                 const held = { ...prev.v, held: "game missing from the latest feed" };
+                { const nx = x => x && x.iso ? new Date(x.iso).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short" }) + " v " + (x.mineHome ? x.awayName : x.homeName) : "none"; await feedLogAdd("held", t.name, "Showing " + nx(prev.v.next) + ". The feed's next game was " + nx(sj.next) + ", so the earlier game is missing from it. Held for one round."); }
                 await sharedPut(skey, { ok: true, v: held }, 900);
                 return {t, s: held};
               }
             }
+            if (pn && Date.parse(pn) > Date.now() && (!nn || Date.parse(nn) > Date.parse(pn))) { const nx = x => x && x.iso ? new Date(x.iso).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short" }) + " v " + (x.mineHome ? x.awayName : x.homeName) : "none"; await feedLogAdd("accepted", t.name, "Earlier game " + nx(prev.v.next) + " was still missing 15 minutes on. New next game: " + nx(sj.next) + "."); }
             await sharedPut("vanish|" + q.toString(), { ok: false }, 1);
           }
           await sharedPut(skey, { ok: true, v: sj }, 900); await sharedPut(gkey, { ok: true, v: sj }, 604800);
           return {t, s: sj};
-        } catch (err) { return {t, error: String(err && err.message || err)}; }
+        } catch (err) { await feedLogAdd("error", t.name, String(err && err.message || err)); return {t, error: String(err && err.message || err)}; }
       }));
       const cdOf = n => {
         if (!(n && n.iso)) return "";
@@ -6853,7 +6896,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -7010,7 +7053,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/usage") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;

@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
 v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
 v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
 v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
@@ -238,6 +239,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.12 - Feed log
+- Owner request (14-Nov-2026): a wrong next game corrects itself on refresh, so it cannot be caught with the debug address; asked for automatic logging.
+- New page /feedlog (club PIN, under Tools in Admin as "Feed log"). Whenever the Match Centre finds a game missing from the feed (earlier game kept for a round, or new next game accepted after 15 minutes), an incomplete answer (what was missing; what was kept and what the incomplete answer would have shown) or a team that would not load, it adds a row with the time, team and details. Newest first, last 80 kept; the same event repeated within 10 minutes is one row.
+- Stored in the settings store (one small key, "feedlog"), written only when something goes wrong, so a normal day writes nothing. Public pages never show it.
+- To use: when a team shows the wrong game, note the time and read /feedlog; the row around that time says what the feed left out.
+- Docs: none - admin tool
 
 v3.30.11 - Match Centre fit fix, and a missing game is held
 - Owner report (14-Nov-2026, iPad, DEV): alignment was worse after v3.30.10 (the ground line cut off at the bottom of the coloured blocks), and the wrong next game for the Colts came back once, then corrected itself on refresh.

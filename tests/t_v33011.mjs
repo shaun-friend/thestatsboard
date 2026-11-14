@@ -52,4 +52,17 @@ a=await page(stack);const later=nextDate(a.t);c('postponed game: next round acce
 clock=Date.UTC(2026,10,11,12,0,0);sc.clear();nextFx=fut(15342,'Okehampton',true,1);w=await load();a=await page(stack);await flush();
 clock+=3*DAY;wipe();nextFx=fut(15342,'Okehampton',true,8);w=await load();a=await page(stack);
 c('after the game date has passed the newer game shows',nextDate(a.t)!==good);
+// v3.30.12: the feed log records it, and the page needs the club PIN
+store={};sc.clear();clock=Date.UTC(2026,10,11,12,0,0);nextFx=fut(15342,'Okehampton',true,1);w=await load();
+a=await page(stack);await flush();
+clock+=20*60e3;wipe();nextFx=fut(15342,'Okehampton',true,8);w=await load();a=await page(stack);await flush();
+const lg=JSON.parse(store.feedlog||'[]');c('the held game is logged',lg.length>=1&&lg.every(x=>x.kind==='held')&&/missing/.test(lg[0].detail));
+clock+=20*60e3;wipe();w=await load();a=await page(stack);await flush();
+const lg2=JSON.parse(store.feedlog||'[]');c('the accepted change is logged',lg2[0]&&lg2[0].kind==='accepted');
+const r1=await w.fetch(new Request('https://x.co.uk/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1'})}),env,ctx2);const ck2=(r1.headers.get('Set-Cookie')||'').split(';')[0];const fl=await w.fetch(new Request('https://x.co.uk/feedlog',{headers:{'User-Agent':'Mozilla/5.0',Cookie:ck2}}),env,ctx2);const ft=await fl.text();if(!/Feed log/.test(ft))console.log('DBG',fl.status,ft.slice(0,300));
+c('feed log page shows the entries',fl.status===200&&/Feed log/.test(ft)&&/Game missing, earlier game kept/.test(ft)&&/Game still missing/.test(ft));
+const fl2=await w.fetch(new Request('https://x.co.uk/feedlog',{headers:{'User-Agent':'Mozilla/5.0'}}),env,ctx2);const ft2=await fl2.text();
+c('feed log page needs the club PIN',!/Game missing, earlier game kept/.test(ft2));
+// the same event twice in ten minutes is one row
+await (async()=>{const n0=JSON.parse(store.feedlog).length;clock+=60e3;wipe();nextFx=fut(15342,'Okehampton',true,1);w=await load();await page(stack);await flush();c('log does not grow when nothing went wrong',JSON.parse(store.feedlog).length===n0)})();
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);
