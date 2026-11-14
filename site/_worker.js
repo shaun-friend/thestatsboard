@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.19 14-Nov-2026 A feed that fails quickly (server error, too many requests, dropped connection) is asked once more; the Feed log now says why a feed failed. Found from the first Feed log rows (Colts competition 1608, Brixham team feed).
 //   v3.30.18 14-Nov-2026 Phone app: the Links button's sheet (and the app's own page addresses) no longer carry the Admin friendly name; a name typed into the address is kept.
 //   v3.30.17 14-Nov-2026 DEV: the PIN page's return address no longer picks up the filled-in Admin friendly name (it showed as &friendlyName=... after unlocking).
 //   v3.30.16 14-Nov-2026 Match Centre rows with five or six teams: a more compact Next game box so the tag and the Win Predictor bar are no longer cut off.
@@ -240,7 +241,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.18";
+const VERSION = "v3.30.19";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -288,6 +289,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
 v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
 v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
 v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
@@ -491,6 +493,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.19 - Feed log findings: ask a failed feed once more, and say why it failed
+- Owner report (14-Nov-2026, DEV, from the new Feed log): Colts 21:24 "Incomplete answer, nothing earlier to keep: Missing: competition 1608, unlabelled games: 2. Showing: Sat 28 Nov v Kingsbridge Colts" and Brixham 21:29 "Missing: team feed. Showing: Sat 21 Nov v St Austell".
+- What it shows: the Colts' cup games come from competition 1608; its feed failed once, so the two cup games had no competition name and the next game came out as the league game. There was nothing earlier to keep because it was the first Match Centre load after the deploy (the last complete answer is only kept from then on). Only one Colts row, not a run of them, so the failure was occasional, not constant. Brixham's own team feed failed once the same way.
+- Fix 1: a feed that fails for a quick reason (server error, too many requests, dropped connection) is now asked once more after a short pause, for the team feed and for each other competition a team is entered in. A timeout is not retried (it would double the wait), and a refusal or missing page is not either.
+- Fix 2: the reason is now kept and shown in the Feed log, for example "competition 1608 (HTTP 503, asked twice)", "team feed (error: ...)" or "refused (robot check)". In the summary address it is "partialDetail".
+- Not known yet: why 1608 failed (it could be the RFU server, or many feeds asked at the same moment right after a deploy). The reason in the log will say.
+- Tests: one error is retried and the answer is complete; two in a row are partial with the reason; a timeout is not retried.
+- Docs: none - behind the scenes
 
 v3.30.18 - Phone app Links sheet follows Admin names
 - Owner report (14-Nov-2026): on a team's mobile view the Links button (top right) still produces links with friendlyName. My v3.30.15 and v3.30.17 fixes did not touch it, because that sheet is built in the browser by the phone app, not by the server.
@@ -1968,6 +1979,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.19", "A feed from the RFU that fails for a quick reason is now asked again once, which should stop the Colts next game flipping; the Feed log also says why a feed failed."],
       ["v3.30.18", "Phone view: the links from the Links button no longer include the team name setting; they follow the name set in Admin."],
       ["v3.30.17", "Test site only: after typing the test PIN, the page address no longer gains a friendlyName setting."],
       ["v3.30.16", "Match Centre: with five or six teams the rows are less cramped; the Next game box now fits, including the Win Predictor bar."],
@@ -4041,6 +4053,15 @@ async function cachedText(target, accept) {
   if (res.kind === "http" && stale) return useStale(res.v);
   return res.v;
 }
+// v3.30.19: a feed that fails for a quick reason (server error, too many requests, a dropped connection) is asked once more after a short pause. A timeout is not retried (it would double the wait), and neither is a refusal or a missing page.
+async function cachedTextTry(target, accept) {
+  let r = null, err = null;
+  try { r = await cachedText(target, accept); } catch (e) { err = e; }
+  const quick = err ? !/timeout|abort/i.test(String(err && (err.name || err.message))) : (!r.ok && !r.blocked && (r.status === 0 || r.status === 429 || r.status >= 500));
+  if (quick) { await new Promise(res => setTimeout(res, 400)); try { const r2 = await cachedText(target, accept); if (r2.ok || !err) { r2.retried = true; return r2; } } catch (e2) { if (err) throw e2; } }
+  if (err) throw err;
+  return r;
+}
 const londonTime = ms => new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 
 // Light/dark choice on phones is saved in the browser and shared by every page.
@@ -5421,7 +5442,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
           const sj = await r.json();
           if (sj.partial) {
             // v3.30.7: a competition feed was missing, so the next game may be wrong (the league game instead of tomorrow's cup game). Show the last complete answer instead, if there is one.
-            const good = await sharedGet(gkey), why = (sj.partialWhy || []).join(", "), nx = x => x && x.iso ? new Date(x.iso).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short" }) + " v " + (x.mineHome ? x.awayName : x.homeName) : "none";
+            const good = await sharedGet(gkey), why = (sj.partialDetail && sj.partialDetail.length ? sj.partialDetail : (sj.partialWhy || [])).join(", "), nx = x => x && x.iso ? new Date(x.iso).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short" }) + " v " + (x.mineHome ? x.awayName : x.homeName) : "none";
             if (good && good.ok && !(good.v && good.v.next && good.v.next.iso && Date.parse(good.v.next.iso) < Date.now())) { PARTIAL_COUNT--; await feedLogAdd("partial", t.name, "Missing: " + why + ". Kept the last complete answer: " + nx(good.v.next) + ". The incomplete one would have shown: " + nx(sj.next)); return {t, s: good.v}; }
             await feedLogAdd("partialNone", t.name, "Missing: " + why + ". Showing: " + nx(sj.next));
             return {t, s: sj};
@@ -6259,7 +6280,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
             const fr = await worker.fetch(new Request(url.origin + "/?" + qf.toString()));
             if (!fr.ok) { summary.partial = true; summary.partialWhy = ["fixtures list"]; PARTIAL_COUNT++; }
             if (fr.ok) {
-              const fj = await fr.json(); if (fj.partial) { summary.partial = true; summary.partialWhy = fj.partialWhy || []; }
+              const fj = await fr.json(); if (fj.partial) { summary.partial = true; summary.partialWhy = fj.partialWhy || []; summary.partialDetail = fj.partialDetail || []; }
               const gs = fj.games || [];
               const sideOf = g => ({ mineHome: g.home, homeName: g.home ? displayTeamName : g.oppName, awayName: g.home ? g.oppName : displayTeamName, homeId: g.home ? String(teamId) : String(g.oppId), awayId: g.home ? String(g.oppId) : String(teamId) });
               const ng = gs.find(g => g.status === "upcoming");
@@ -6314,7 +6335,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           try {
             const ut = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches");
             ut.searchParams.set("season", season); ut.searchParams.set("teamId", String(teamId));
-            const fr = await cachedText(ut, "application/json, text/plain, */*");
+            const fr = await cachedTextTry(ut, "application/json, text/plain, */*");
             if (fr.ok) {
               const dd = JSON.parse(fr.text);
               const known = new Set([...doneKeys, ...extra.map(dayKey)]);
@@ -6358,8 +6379,8 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
               try {
                 const ud = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches");
                 ud.searchParams.set("season", season); ud.searchParams.set("competitionId", l.competition); ud.searchParams.set("groupId", l.division);
-                const fd = await cachedText(ud, "application/json, text/plain, */*");
-                const row = { competition: l.competition, division: l.division, ok: !!fd.ok, mine: 0, added: 0 };
+                const fd = await cachedTextTry(ud, "application/json, text/plain, */*");
+                const row = { competition: l.competition, division: l.division, ok: !!fd.ok, status: fd.status, blocked: !!fd.blocked, retried: !!fd.retried, mine: 0, added: 0 };
                 if (fd.ok) {
                   const dj = JSON.parse(fd.text);
                   for (const mm of [...findMatches(dj.results), ...findMatches(dj.fixtures)]) {
@@ -6448,15 +6469,18 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           }
           const compNames = [...new Set(dedup.map(g => g.comp))];
           // v3.30.7: say so when a feed was missing, because the list may then lack a cup game (the next game would then show the league game instead)
-          const partialWhy = []; if (!teamFeedOk) partialWhy.push("team feed"); if (fxDbg.leaguesError) partialWhy.push("competition list");
-          for (const rw of (fxDbg.otherDivisions || [])) if (!rw.ok) partialWhy.push("competition " + rw.competition);
+          const partialWhy = [], partialDetail = [];
+          const reasonOf = o => o ? (o.error ? "error: " + o.error : o.blocked ? "refused (robot check)" : o.status ? "HTTP " + o.status : "no answer") : "";
+          if (!teamFeedOk) { partialWhy.push("team feed"); partialDetail.push("team feed (" + reasonOf(fxDbg.teamFeed) + ")"); }
+          if (fxDbg.leaguesError) { partialWhy.push("competition list"); partialDetail.push("competition list (" + fxDbg.leaguesError + ")"); }
+          for (const rw of (fxDbg.otherDivisions || [])) if (!rw.ok) { partialWhy.push("competition " + rw.competition); partialDetail.push("competition " + rw.competition + " (" + reasonOf(rw) + (rw.retried ? ", asked twice" : "") + ")"); }
           { // a game found only in the team feed, with no competition or group name and in none of the competitions we read, cannot be told from a league game: its competition is missing from the list
             const nm = x => String(x == null ? "" : x).trim();
             const unl = extraT.filter(mm => !keyLabel.has(dayKey(mm)) && !nm(mm.group && mm.group.name) && !nm(mm.competition && mm.competition.name) && !gmsCupName.has(String(mm.id))).length;
-            if (unl) { partialWhy.push("unlabelled games: " + unl); fxDbg.unlabelled = unl; }
+            if (unl) { partialWhy.push("unlabelled games: " + unl); partialDetail.push("unlabelled games: " + unl + " (no competition name to tell cup from league)"); fxDbg.unlabelled = unl; }
           }
           if (partialWhy.length) PARTIAL_COUNT++;
-          return new Response(JSON.stringify({ team: displayTeamName, clubName: ownClubName, league: leagueTitle, updatedAt: dataTime, games: dedup, banner, around, comps: compNames, multi: compNames.length > 1 || dedup.some(g => g.cup), teamFeedOk, partial: partialWhy.length > 0, partialWhy, ...(url.searchParams.get("debug") === "fixtures" ? { debug: { ...fxDbg, gamesByCompetition: dedup.reduce((o, g) => (o[g.comp] = (o[g.comp] || 0) + 1, o), {}), statuses: dedup.reduce((o, g) => (o[g.status] = (o[g.status] || 0) + 1, o), {}) } } : {}) }), {headers: {"Content-Type":"application/json;charset=utf-8"}});
+          return new Response(JSON.stringify({ team: displayTeamName, clubName: ownClubName, league: leagueTitle, updatedAt: dataTime, games: dedup, banner, around, comps: compNames, multi: compNames.length > 1 || dedup.some(g => g.cup), teamFeedOk, partial: partialWhy.length > 0, partialWhy, partialDetail, ...(url.searchParams.get("debug") === "fixtures" ? { debug: { ...fxDbg, gamesByCompetition: dedup.reduce((o, g) => (o[g.comp] = (o[g.comp] || 0) + 1, o), {}), statuses: dedup.reduce((o, g) => (o[g.status] = (o[g.status] || 0) + 1, o), {}) } } : {}) }), {headers: {"Content-Type":"application/json;charset=utf-8"}});
         }
         // v30r/v30s: every league meeting between two sides: this season plus the previous five (league games only). Used by Match Stats and the Opposition report.
         const h2hFor = async (idMe, idOpp, meLabel, oppLabel, nextFx) => {

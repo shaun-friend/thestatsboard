@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
 v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
 v3.30.17 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.17_dev_pin_return.zip              | v3.30.16
 v3.30.16 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.16_rows_five_six.zip               | v3.30.15
@@ -245,6 +246,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.19 - Feed log findings: ask a failed feed once more, and say why it failed
+- Owner report (14-Nov-2026, DEV, from the new Feed log): Colts 21:24 "Incomplete answer, nothing earlier to keep: Missing: competition 1608, unlabelled games: 2. Showing: Sat 28 Nov v Kingsbridge Colts" and Brixham 21:29 "Missing: team feed. Showing: Sat 21 Nov v St Austell".
+- What it shows: the Colts' cup games come from competition 1608; its feed failed once, so the two cup games had no competition name and the next game came out as the league game. There was nothing earlier to keep because it was the first Match Centre load after the deploy (the last complete answer is only kept from then on). Only one Colts row, not a run of them, so the failure was occasional, not constant. Brixham's own team feed failed once the same way.
+- Fix 1: a feed that fails for a quick reason (server error, too many requests, dropped connection) is now asked once more after a short pause, for the team feed and for each other competition a team is entered in. A timeout is not retried (it would double the wait), and a refusal or missing page is not either.
+- Fix 2: the reason is now kept and shown in the Feed log, for example "competition 1608 (HTTP 503, asked twice)", "team feed (error: ...)" or "refused (robot check)". In the summary address it is "partialDetail".
+- Not known yet: why 1608 failed (it could be the RFU server, or many feeds asked at the same moment right after a deploy). The reason in the log will say.
+- Tests: one error is retried and the answer is complete; two in a row are partial with the reason; a timeout is not retried.
+- Docs: none - behind the scenes
 
 v3.30.18 - Phone app Links sheet follows Admin names
 - Owner report (14-Nov-2026): on a team's mobile view the Links button (top right) still produces links with friendlyName. My v3.30.15 and v3.30.17 fixes did not touch it, because that sheet is built in the browser by the phone app, not by the server.
