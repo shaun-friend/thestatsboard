@@ -38,6 +38,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
 v3.27.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.7_stats_settle.zip             | v3.27.6
 v3.27.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.6_stats_flicker.zip            | v3.27.5
 v3.27.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.5_club_access.zip              | v3.27.4
@@ -214,6 +215,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28 - Crossfade refresh on big screens
+- Every TV and tablet page that reloads itself (Match Stats, Match Centre, Fixtures board, the TV layouts and the stacked views) now refreshes by crossfade. The new page loads in a hidden frame the size of the screen, fits itself, and when it has stopped changing it fades in over the old page for about a second. The old page is removed once the fade ends.
+- If the new page fails or takes more than 20 seconds, the old page stays up and the next refresh tries again. A refresh never blanks the screen.
+- Phones and small windows (800 wide or less) keep the ordinary reload. The first load of a page is unchanged.
+- Refresh timing is unchanged (hourly on weekdays, every 10 minutes at weekends where it was). The hidden copy is a normal page load, so it counts as a screen load on the Usage page, as the reload did.
+- Docs: Setting up a clubhouse screen, What's new
 
 v3.27.7 - Match Stats waits until the page is still
 - v3.27.6 faded the page in after a fixed half second, but crests and fonts arriving later made it resize again, once while fading in and once about a second after. The page now stays hidden until nothing has changed for 0.7 seconds (up to 3.5 seconds at most, 4.5 as a last-resort timer), so it appears once, fitted.

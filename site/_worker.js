@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.28 14-Nov-2026 TV and tablet pages refresh by crossfade: the new page loads in a hidden frame, fits itself, then fades in over the old one (no blank, no resize). Phones and small windows still reload as before. If the new page is slow or fails the old one stays on screen.
 //   v3.27.7 14-Nov-2026 Match Stats on a big screen: waits until the page has been still for 0.7 s (crests, fonts, colours) before fading in, so it no longer resizes after it appears.
 //   v3.27.6 14-Nov-2026 Match Stats page on a big screen: hidden while its text is being fitted, then faded in once (no resize flicker), same as the Match Centre.
 //   v3.27.5 14-Nov-2026 Club access: the welcome-page footer now has one Club access link that opens Admin (Release notes and Documentation links removed from the public footer). Links, Usage, Match sheet, Documentation and Release notes have an Admin link at the top. Admin Tools lists Team links first and shows Release notes on the test site only.
@@ -201,7 +202,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.27.7";
+const VERSION = "v3.28";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -245,6 +246,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.28   | 14-Nov-2026 | RFU_Club_Dashboard_v3.28_crossfade_refresh.zip          | v3.27.7
 v3.27.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.7_stats_settle.zip             | v3.27.6
 v3.27.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.6_stats_flicker.zip            | v3.27.5
 v3.27.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.27.5_club_access.zip              | v3.27.4
@@ -421,6 +423,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.28 - Crossfade refresh on big screens
+- Every TV and tablet page that reloads itself (Match Stats, Match Centre, Fixtures board, the TV layouts and the stacked views) now refreshes by crossfade. The new page loads in a hidden frame the size of the screen, fits itself, and when it has stopped changing it fades in over the old page for about a second. The old page is removed once the fade ends.
+- If the new page fails or takes more than 20 seconds, the old page stays up and the next refresh tries again. A refresh never blanks the screen.
+- Phones and small windows (800 wide or less) keep the ordinary reload. The first load of a page is unchanged.
+- Refresh timing is unchanged (hourly on weekdays, every 10 minutes at weekends where it was). The hidden copy is a normal page load, so it counts as a screen load on the Usage page, as the reload did.
+- Docs: Setting up a clubhouse screen, What's new
 
 v3.27.7 - Match Stats waits until the page is still
 - v3.27.6 faded the page in after a fixed half second, but crests and fonts arriving later made it resize again, once while fading in and once about a second after. The page now stays hidden until nothing has changed for 0.7 seconds (up to 3.5 seconds at most, 4.5 as a last-resort timer), so it appears once, fitted.
@@ -1490,6 +1499,7 @@ const DOC_SECTIONS = [
       "Find the team. For a season board choose Fixtures and Results (TV View). For all teams at once choose Match Centre (Stacked view).",
       "Copy the link. Screen links do not need a PIN, so they work on any TV browser or signage player.",
       "Open it full screen on the TV. It refreshes by itself: the Fixtures board every 10 minutes on Saturdays and Sundays and hourly otherwise, other screens hourly.",
+      "A refresh never blanks the screen. The new page loads out of sight, fits itself to the screen and then fades in over the old one for about a second. If it fails to load, the old page stays up and it tries again at the next refresh. Phones and small windows simply reload.",
       "Leave season out of the link. The screen then moves to the new season on its own when the RFU season changes."
     ] },
     { h: "Making it your own" },
@@ -1676,6 +1686,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.28", "Big screens now refresh smoothly: the new version of a page loads out of sight and fades in over the old one, with no blank moment and no resizing. If a refresh fails the old page simply stays up."],
       ["v3.27.7", "The Match Stats page now waits until it has stopped changing before it fades in, so it no longer resizes after appearing."],
       ["v3.27.6", "The Match Stats page on a big screen no longer flickers while it sizes itself to the screen: it appears once, fully fitted."],
       ["v3.27.5", "The welcome page footer has a single Club access link, which now opens Admin. Links, Usage, Match sheet and Documentation each have an Admin link at the top, and Admin Tools lists Team links first."],
@@ -4158,7 +4169,7 @@ Promise.all([imgs.a?ready(imgs.a):null,imgs.b?ready(imgs.b):null]).then(function
 if(ca&&cb&&dist(ca,cb)<110){cb=null;for(var i=1;i<pb.length;i++){var c=fix(pb[i]);if(dist(c,ca)>=110){cb=c;break}}if(!cb)cb=[240,160,32]}
 if(ca){root.style.setProperty("--ca",hex(ca));root.style.setProperty("--ka",ink(ca[0],ca[1],ca[2]))}
 if(cb){root.style.setProperty("--cb",hex(cb));root.style.setProperty("--kb",ink(cb[0],cb[1],cb[2]))}})})();</script>`;
-      const refresh = `<script>(function(){var MAX=${REFRESH_SECONDS * 1000},t0=Date.now(),phone=window.matchMedia("(max-width:800px),(max-height:560px)").matches;function tick(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible"&&(!phone||window.scrollY<40))location.reload()}setInterval(tick,60000);document.addEventListener("visibilitychange",tick)})();</script>`;
+      const refresh = `<script>(function(){var MAX=${REFRESH_SECONDS * 1000},t0=Date.now(),phone=window.matchMedia("(max-width:800px),(max-height:560px)").matches;function tick(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible"&&(!phone||window.scrollY<40))(window.rfuSoft?rfuSoft():location.reload())}setInterval(tick,60000);document.addEventListener("visibilitychange",tick)})();</script>`;
       const css = `:root{--bg:#080b0d;--card:#111719;--bd:#26312d;--tx:#f2f6f4;--mu:#93a59b;--tr:#1a2420;--ca:${colA};--ka:${onColour(colA)};--cb:${colB};--kb:${onColour(colB)}}
 body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--tr:#e3ebe5}
 *{box-sizing:border-box}html{font-size:min(1.05vw,1.9vh)}
@@ -4333,7 +4344,7 @@ ${tvBody}
 ${aroundHtml}
 ${S.features.checked === false ? "" : `<div class="ftl">Data from the RFU fixtures feed &middot; last checked ${e(londonTime(Number(d && d.updatedAt) || Date.now()))}</div>`}
 ${TV_BRAND_SCRIPT.replace("__OV__", hexParam(url.searchParams.get("colour"))).replace("__ID__", encodeURIComponent(String(team || "")))}
-<script>(function(){var MAX=${liveDataSeconds() * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")location.reload()},60000)})();</script>
+<script>(function(){var MAX=${liveDataSeconds() * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
 </body></html>`;
         return new Response(tv, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });
       }
@@ -4410,7 +4421,7 @@ html,body{height:100%}body{overflow:hidden;padding:2.2vh 2.2vw 3.6vh;display:fle
 ${CARD_CSS.split("}").filter(x => /body\.light/.test(x)).map(x => x + "}").join("")}
 </style></head><body class="${theme}"><div class="hd"><div class="hl">${trophy}<div class="tt"><h1>League Leaders</h1><span class="tn">${e(leagueName)}</span></div></div><p>${note ? e(note) : ""}</p></div>
 ${L ? `<div class="lg">${cards}</div>` : none}
-<script>(function(){var MAX=${REFRESH_SECONDS * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")location.reload()},60000)})();</script>
+<script>(function(){var MAX=${REFRESH_SECONDS * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
 </body></html>`;
         return new Response(tv, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });
       }
@@ -4919,7 +4930,7 @@ ${n.venue ? `<div class="vn"><a class="dl" target="_blank" rel="noopener" href="
       const lyHtml = ly === "next" ? `<main class="ly ly-next" data-ly="next" style="--n:${results.length}">${results.map(colHtml).join("")}</main>`
         : "";
       const jump = results.map((r, i) => `<a href="#t${i}" ${acStyle(r.t, i)}>${e(shortOf(r.t))}</a>`).join("");
-      const refreshScript = `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){location.reload()},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)location.reload()}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
+      const refreshScript = `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)(window.rfuSoft?rfuSoft():location.reload())}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
       // "Updated" is when the RFU data was last pulled (oldest across the teams), not when the page loaded.
       const dataTimes = results.map(r => r.s && Number(r.s.updatedAt)).filter(Boolean);
       const stamp = londonTime(dataTimes.length ? Math.min(...dataTimes) : Date.now());
@@ -5568,11 +5579,11 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
 `;
       const mobileCss = layout === "mobile" ? mobileRules("layout-mobile")
         : layout === "auto" ? `@media(max-width:700px){${mobileRules("layout-auto")}}` : "";
-      const refreshMeta = layout === "tv" ? `<meta http-equiv="refresh" content="${REFRESH_SECONDS}">` : "";
+      const refreshMeta = layout === "tv" ? `<noscript><meta http-equiv="refresh" content="${REFRESH_SECONDS}"></noscript><script>setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},${REFRESH_SECONDS * 1000})</script>` : "";
       const appleMeta = layout === "tv" ? "" : `<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="${theme === "light" ? "default" : "black-translucent"}"><meta name="apple-mobile-web-app-title" content="${esc(displayTeamName)}"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}">`;
       // On phones, reload only when the page is visible and scrolled to the top,
       // so a refresh never throws the reader back to the top mid-scroll.
-      const refreshScript = layout === "tv" ? "" : `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};var phone=${layout === "mobile" ? "true" : 'window.matchMedia("(max-width:700px)").matches'};if(!phone){setTimeout(function(){location.reload()},MAX);return}function due(){return Date.now()-loaded>=MAX}function tryReload(){if(due()&&document.visibilityState==="visible"&&window.scrollY<40)location.reload()}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
+      const refreshScript = layout === "tv" ? "" : `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};var phone=${layout === "mobile" ? "true" : 'window.matchMedia("(max-width:700px)").matches'};if(!phone){setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},MAX);return}function due(){return Date.now()-loaded>=MAX}function tryReload(){if(due()&&document.visibilityState==="visible"&&window.scrollY<40)(window.rfuSoft?rfuSoft():location.reload())}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
       const timeOf = m => {
         const d = dateOf(m);
         if (!d) return "";
@@ -6484,9 +6495,24 @@ function show(){if(!hid)return;hid=false;b.style.transition="opacity .2s";b.styl
 if(hid){b.style.opacity="0"}
 go();addEventListener("resize",go);addEventListener("orientationchange",function(){setTimeout(go,200)});addEventListener("load",function(){go();setTimeout(function(){go();show()},400)});setTimeout(function(){go();show()},2500);
 })();</script>`;
+const SOFT_SCRIPT = `<script>/*rfu-soft*/(function(){var T0=Date.now(),LAST=0,GAP=0,busy=false,old=null,sr=/[?&]_sr=1(&|$)/.test(location.search);
+if(sr&&top!==self){var n=0;function chk(){var b=document.body;if(document.readyState==="complete"&&b&&!b.classList.contains("fitwait")&&getComputedStyle(b).opacity!=="0"){setTimeout(function(){try{parent.postMessage("rfu-sr-ready","*")}catch(e){}},500)}else if(n++<80)setTimeout(chk,250)}addEventListener("load",function(){setTimeout(chk,300)})}
+window.rfuSoft=function(){if(sr)return;var now=Date.now();
+if(!matchMedia("(min-width:801px) and (min-height:561px)").matches||!window.postMessage){location.reload();return}
+if(busy)return;if(LAST&&now-LAST<GAP*0.9)return;if(!GAP)GAP=now-T0;
+busy=true;var u=location.href.replace(/#.*$/,""),f=document.createElement("iframe"),done=false,bg="";
+try{bg=getComputedStyle(document.body).backgroundColor}catch(e){}
+f.src=u+(u.indexOf("?")<0?"?":"&")+"_sr=1";f.setAttribute("aria-hidden","true");f.tabIndex=-1;
+f.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;border:0;margin:0;opacity:0;z-index:2147483000;transition:opacity 1.2s ease;background:"+(bg||"#000");
+function stop(){removeEventListener("message",on);clearTimeout(tm)}
+function fail(){if(done)return;done=true;stop();busy=false;try{f.remove()}catch(e){}}
+function on(e){if(done||e.source!==f.contentWindow||e.data!=="rfu-sr-ready")return;done=true;stop();LAST=Date.now();f.style.opacity="1";var prev=old;old=f;setTimeout(function(){try{if(prev)prev.remove()}catch(e){}busy=false},1500)}
+addEventListener("message",on);var tm=setTimeout(fail,20000);document.body.appendChild(f)};
+})();</script>`;
 function withStamp(html, powered) {
   const stampHtml = powered === false ? VERSION_STAMP : VERSION_STAMP.replace(`>${VERSION_LABEL}</div>`, `>${sbLogo(11).replace('style="', 'style="margin-right:4px;vertical-align:-2px;')}Powered by ${VERSION_LABEL}</div>`);
-  const stamped = html.includes('class="ver"') ? html : html.replace(/<\/body>/i, stampHtml + "</body>");
+  const stamped0 = html.includes('class="ver"') ? html : html.replace(/<\/body>/i, stampHtml + "</body>");
+  const stamped = stamped0.includes("rfu-soft") ? stamped0 : stamped0.replace(/<\/body>/i, SOFT_SCRIPT + "</body>");
   return /class="clubhead"|class="rw|class="fx|class="lc/.test(stamped) && !stamped.includes("rfu-fit") ? stamped.replace(/<\/body>/i, FIT_SCRIPT.replace("<script>", "<script>/*rfu-fit*/") + "</body>") : stamped;
 }
 
