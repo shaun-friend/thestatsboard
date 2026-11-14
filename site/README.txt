@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
 v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
 v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
 v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
@@ -237,6 +238,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.11 - Match Centre fit fix, and a missing game is held
+- Owner report (14-Nov-2026, iPad, DEV): alignment was worse after v3.30.10 (the ground line cut off at the bottom of the coloured blocks), and the wrong next game for the Colts came back once, then corrected itself on refresh.
+- Fit: the gap reserved for two-line names pushed the lower lines out of the block on 16:9 and wide screens (my earlier check missed it). When any name in the row wraps to two lines, all names in that row are a little smaller (2.5 instead of 2.9) and reserve 7.25 lines of text instead of 8.4; the block gaps and padding are slightly smaller. (Tighter line spacing was tried first and clipped descenders, which the existing layout test caught.) A new test checks that nothing overflows the block at nine screen sizes (1024x600 up to 2560x1440); it overflowed by 5 to 12 pixels at six of them before and by none now.
+- Wrong game, third cause (from the code, not seen live): the feed can answer without error yet leave out a game (tomorrow's cup game), and that looks complete, so v3.30.7 and v3.30.8 cannot catch it. Now, if the game shown last time is still to be played and has gone from the latest answer (the next game is later), the Match Centre keeps showing the earlier game for one 15-minute round. If the next build agrees it has gone (postponed or removed) the new next game is accepted. A game that has been played is never held.
+- The held answer carries "held" in the summary address, so it can be seen in &format=summary.
+- Not verified on live data: whether the RFU feed really drops the game; this protects against it either way.
+- Docs: none - behind the scenes and layout
 
 v3.30.10 - Match Centre columns line up
 - Owner report (14-Nov-2026, photo of the live Match Centre): where a team had no Win Predictor (and no "2nd v 3rd" line) its NEXT GAME heading, crest and text sat lower than the other columns, because the coloured block centred whatever it held.

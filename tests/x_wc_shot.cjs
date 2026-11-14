@@ -63,6 +63,10 @@ await p.screenshot({path:__dirname+'/w/wc_mc_align.png'});await p.close();
 ({p,errs}=await open('wc_mc_next.html',1366,768));
 c('modern 1366x768: nothing in the coloured block is cut off at the bottom',await p.evaluate(()=>[...document.querySelectorAll('.cnx')].every(b=>{const r=b.getBoundingClientRect();return [...b.children].every(ch=>ch.getBoundingClientRect().bottom<=r.bottom+1)})));
 c('modern 1366x768: name and date do not overlap',await p.evaluate(()=>[...document.querySelectorAll('.cnx')].every(b=>{const n=b.querySelector('.onw'),d=b.querySelector('.od');return !n||!d||n.getBoundingClientRect().bottom<=d.getBoundingClientRect().top+1})));
+// Match Centre Modern: nothing overflows the coloured block at any common screen size
+for(const [w,h] of [[1920,1080],[1366,768],[1280,800],[1180,820],[1180,700],[1149,640],[1024,768],[1024,600],[2560,1440]]){
+ await p.setViewportSize({width:w,height:h});
+ c('modern '+w+'x'+h+': nothing overflows the coloured block',await p.evaluate(()=>[...document.querySelectorAll('.cnx')].every(b=>b.scrollHeight<=b.clientHeight)))}
 await p.screenshot({path:__dirname+'/w/wc_mc_align768.png'});await p.close();
 ({p,errs}=await open('wc_mc_classic.html',390,844));
 c('match centre phone: bar fits the width',await p.evaluate(()=>{const e=document.querySelector('.wc');if(!e)return false;const r=e.getBoundingClientRect();return r.left>=0&&r.right<=391}));

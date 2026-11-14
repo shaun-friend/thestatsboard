@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.11 14-Nov-2026 Match Centre (Modern): the next game block no longer overflows at TV and iPad sizes (names slightly smaller when one wraps). The Match Centre also holds the game shown last time for one 15-minute round when it goes missing from an otherwise complete feed, so a cup game does not flip to the league game.
 //   v3.30.10 14-Nov-2026 Match Centre (Modern): the columns now line up whether or not a team has a Win Predictor, a ground line or a "2nd v 3rd" line, and whatever the opponent name length. Content starts at the top, and those lines sit at the bottom in fixed slots.
 //   v3.30.9 14-Nov-2026 A bare group name such as "Group 1" (the Colts) is now shown with its competition name, for example "Devon RFU Colts Group 1", on the Match Centre, team pages and the summary; if the feed gives no competition name the league text saved in Admin is used on the Match Centre.
 //   v3.30.8 14-Nov-2026 The "partial" check also catches a game found only in the team feed with no competition name that is in none of the competitions read (a cup missing from the competition list), the likeliest way a cup game was passed off as a league game.
@@ -232,7 +233,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.10";
+const VERSION = "v3.30.11";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -280,6 +281,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
 v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
 v3.30.9 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.9_group_names.zip                  | v3.30.8
 v3.30.8 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.8_unlabelled_games.zip              | v3.30.7
@@ -475,6 +477,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.11 - Match Centre fit fix, and a missing game is held
+- Owner report (14-Nov-2026, iPad, DEV): alignment was worse after v3.30.10 (the ground line cut off at the bottom of the coloured blocks), and the wrong next game for the Colts came back once, then corrected itself on refresh.
+- Fit: the gap reserved for two-line names pushed the lower lines out of the block on 16:9 and wide screens (my earlier check missed it). When any name in the row wraps to two lines, all names in that row are a little smaller (2.5 instead of 2.9) and reserve 7.25 lines of text instead of 8.4; the block gaps and padding are slightly smaller. (Tighter line spacing was tried first and clipped descenders, which the existing layout test caught.) A new test checks that nothing overflows the block at nine screen sizes (1024x600 up to 2560x1440); it overflowed by 5 to 12 pixels at six of them before and by none now.
+- Wrong game, third cause (from the code, not seen live): the feed can answer without error yet leave out a game (tomorrow's cup game), and that looks complete, so v3.30.7 and v3.30.8 cannot catch it. Now, if the game shown last time is still to be played and has gone from the latest answer (the next game is later), the Match Centre keeps showing the earlier game for one 15-minute round. If the next build agrees it has gone (postponed or removed) the new next game is accepted. A game that has been played is never held.
+- The held answer carries "held" in the summary address, so it can be seen in &format=summary.
+- Not verified on live data: whether the RFU feed really drops the game; this protects against it either way.
+- Docs: none - behind the scenes and layout
 
 v3.30.10 - Match Centre columns line up
 - Owner report (14-Nov-2026, photo of the live Match Centre): where a team had no Win Predictor (and no "2nd v 3rd" line) its NEXT GAME heading, crest and text sat lower than the other columns, because the coloured block centred whatever it held.
@@ -1894,6 +1904,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.11", "Match Centre: fixed the bottom of the next game blocks being cut off, and a game that briefly drops out of the RFU feed (a cup game flipping to the league game) is now held for one refresh before it is replaced."],
       ["v3.30.10", "Match Centre: the next game blocks now line up across the teams (heading, crest, name, date and Home or Away) even when one team has no Win Predictor bar, ground or table line."],
       ["v3.30.9", "The Colts now show their competition name with the group (for example \"Devon RFU Colts Group 1\") instead of just \"Group 1\"."],
       ["v3.30.8", "Fix: the Match Centre now also spots a cup game that is missing from the RFU competition list (so it looked like a league game), and keeps the last complete answer instead."],
@@ -5308,6 +5319,19 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
             if (good && good.ok && !(good.v && good.v.next && good.v.next.iso && Date.parse(good.v.next.iso) < Date.now())) { PARTIAL_COUNT--; return {t, s: good.v}; }
             return {t, s: sj};
           }
+          { // v3.30.11: a complete-looking answer can still lack a game (tomorrow's cup game missing, so next week's league game shows). If the game we showed before has gone from the list while it is still to be played, keep showing it for one 15-minute round; if the next build agrees it has gone (postponed, removed), accept that.
+            const prev = await sharedGet(gkey), pn = prev && prev.ok && prev.v && prev.v.next && prev.v.next.iso, nn = sj.next && sj.next.iso;
+            if (pn && Date.parse(pn) > Date.now() && (!nn || Date.parse(nn) > Date.parse(pn))) {
+              const vkey = "vanish|" + q.toString(), seen = await sharedGet(vkey);
+              if (!(seen && seen.ok && Date.now() - seen.t > 13 * 60e3)) {
+                if (!(seen && seen.ok)) await sharedPut(vkey, { ok: true, t: Date.now() }, 21600);
+                const held = { ...prev.v, held: "game missing from the latest feed" };
+                await sharedPut(skey, { ok: true, v: held }, 900);
+                return {t, s: held};
+              }
+            }
+            await sharedPut("vanish|" + q.toString(), { ok: false }, 1);
+          }
           await sharedPut(skey, { ok: true, v: sj }, 900); await sharedPut(gkey, { ok: true, v: sj }, 604800);
           return {t, s: sj};
         } catch (err) { return {t, error: String(err && err.message || err)}; }
@@ -5429,8 +5453,8 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 @media(max-width:800px){.ly{display:none!important}}
 .cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
 .ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.7rem;text-align:center;padding:1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
-.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx.e{justify-content:center}.cnx .onw{width:100%;display:flex;align-items:center;justify-content:center}.ly-two .cnx .onw{min-height:8.4rem}.cnx .nb{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:.5rem}.cnx .nw{width:100%;display:flex;justify-content:center}.ly-win .cnx .nw{min-height:5.6rem}.ly-ven .cnx .og{min-height:1.9rem}.ly-clash .cnx .oq{min-height:2rem}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
+.cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.5rem;text-align:center;padding:.9rem 1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
+.cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx.e{justify-content:center}.cnx .onw{width:100%;display:flex;align-items:center;justify-content:center}.ly-two .cnx .on{font-size:2.5rem}.ly-two .cnx .onw{min-height:7.25rem}.cnx .nb{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:.5rem}.cnx .nw{width:100%;display:flex;justify-content:center}.ly-win .cnx .nw{min-height:5.6rem}.ly-ven .cnx .og{min-height:1.9rem}.ly-clash .cnx .oq{min-height:2rem}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
 .clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
