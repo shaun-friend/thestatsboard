@@ -36,6 +36,7 @@ node brand/shot.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) 
 node dir_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node gap_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH STATS FOOTER GAP TEST FAILED"; exit 1; }; echo "match stats footer gap ok"
 node foot_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node foot_check.cjs | tail -1 | grep -q "ALL OK" || { echo "FOOTER OVERLAP TEST FAILED"; exit 1; }; echo "footer overlap ok"
 node x_ly_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_ly_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE LAYOUT TEST FAILED"; exit 1; }; echo "match centre layouts ok"
+node x_admin_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_admin_check.cjs | tail -1 | grep -q "ALL OK" || { echo "ADMIN PAGE TEST FAILED"; exit 1; }; echo "admin page ok"
 node foot_render2.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node foot_check2.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE FOOTER TEST FAILED"; exit 1; }; echo "match centre footer ok"
 NODE_PATH=$(npm root -g) node x_shell.cjs | tail -1 | grep -q "ALL OK" || { echo "APP SHELL BUTTON TEST FAILED"; exit 1; }; echo "app shell buttons ok"
 node t_v310.mjs "$S/t_worker.mjs" | grep -q "0 fail" || { echo "counting tests failed"; exit 1; }

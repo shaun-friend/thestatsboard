@@ -90,7 +90,7 @@ ok('screens off: TV load not counted',written.length===n3);
 await w.fetch(req('/?team=11039'),env,ctx);await flush();
 ok('screens off: people still counted',written.length===n3+1);
 r=await w.fetch(req('/admin',{Cookie:ck}),env,ctx);h=await r.text();
-ok('admin has Reporting section, screens switch off, 30 days ticked',/<h2>Reporting<\/h2>/.test(h)&&/id="fs"(?! checked)/.test(h)&&/name="rd" value="30" checked/.test(h));
+ok('admin has Privacy and counts section, screens switch off, 30 days ticked',/<h1>Privacy and counts<\/h1>/.test(h)&&/id="fs"(?! checked)/.test(h)&&/name="rd" value="30" checked/.test(h));
 r=await w.fetch(req('/usage',{Cookie:ck}),env,ctx);h=await r.text();
 ok('usage page opens on default 30 days',/days=30;/.test(h));
 calls.length=0;r=await w.fetch(req('/api/usage',{Cookie:ck}),env,ctx);const j4=await r.json();

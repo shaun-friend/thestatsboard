@@ -36,6 +36,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.27   | 14-Nov-2026 | RFU_Club_Dashboard_v3.27_admin_sections.zip         | v3.26.1
 v3.26.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.26.1_builder_screen.zip       | v3.26
 v3.26   | 14-Nov-2026 | RFU_Club_Dashboard_v3.26_modern_classic.zip         | v3.25.1
 v3.25.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.25.1_switch_fix.zip           | v3.25
@@ -204,6 +205,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.27 - Admin organised into sections
+- Admin now has a menu: Overview, Messages, Screens, Match day, Data sources, Privacy and counts, Access and Site status. Every setting moved into one of them; nothing was removed. The Overview shows site status, visitors and screens today, the website back-up state and any live notices.
+- Tools (Usage, Documentation, Release notes, Match sheet, Team links, and Probe on DEV) are in the same menu.
+- One Save bar stays at the bottom. It shows "Unsaved changes" with a Discard button until you save, and the browser warns before you leave with unsaved changes.
+- On a phone the menu is a list; each section opens with a Back link. Addresses like /admin#screens open a section directly.
 
 v3.26.1 - Screen name on the Link builder page only
 - The Screen name box is on the Link builder page (/builder), as intended. I had put it on the find-your-team page by mistake; it is removed from there.
