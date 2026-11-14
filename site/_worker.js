@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.2 14-Nov-2026 Win Predictor is kept for 24 hours (a new result still changes it at once, because the number of results is part of the key), and earlier seasons fetched for it, and for the Match Stats meetings, are kept for 24 hours instead of 10 minutes to an hour.
 //   v3.30.1 14-Nov-2026 Win chance is now called Win Predictor everywhere, with a small-capitals heading on every bar, and it appears on the Match Centre (Modern and Classic on a TV, and the phone cards) as a compact bar with the percentages and the team name inside each side (the name is left out of a side under 28%). Not on the Fixtures board (owner decision).
 //   v3.30 14-Nov-2026 Win chance on the next game: a percentage chance for each side, adding to 100, shown as a split bar on Match Stats and the team page, worked out from this and the last two seasons of results. Off until switched on in Admin (Screens). New Win chance check page (club PIN) tests it against every finished game this season.
 //   v3.29.2 14-Nov-2026 Our teams: the Short label box is gone. The label on the phone jump bar and Match sheet tabs is now worked out from the friendly name, so renaming a team updates it.
@@ -211,7 +212,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.30.1";
+const VERSION = "v3.30.2";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -259,6 +260,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
 v3.30.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.1_win_predictor.zip              | v3.30
 v3.30   | 14-Nov-2026 | RFU_Club_Dashboard_v3.30_win_chance.zip                   | v3.29.2
 v3.29.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.2_no_short_label.zip             | v3.29.1
@@ -445,6 +447,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.2 - Win Predictor kept for a day
+- Owner decision (14-Nov-2026): the numbers are for after a game, not during it, so there is no need to recalculate often. The Win Predictor result is now kept for 24 hours (was 30 minutes). The key includes the number of results in the division, so a new result gives a new key and the figures change as soon as the RFU data does; a changed fixture (different opponent) is also a new key.
+- Earlier seasons' matches for a team (used by the Win Predictor and by the Match Stats league meetings) are kept for 24 hours (was 10 minutes on weekends, 1 hour otherwise), because a finished season does not change. The current season's data is unchanged (10 minutes on weekends, 1 hour otherwise) as the rest of the site uses it.
+- The memory kept for predictions is emptied if it ever holds more than 300 entries.
+- Docs: Win Predictor, What's new
 
 v3.30.1 - Win Predictor on the Match Centre
 - Renamed: the win chance is now called Win Predictor in Admin (Screens switch and Tools link), the check page, the Documentation and on every bar, which carries a small-capitals "WIN PREDICTOR" heading.
@@ -1795,6 +1803,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.2", "Win Predictor is kept for a day instead of half an hour, and so are earlier seasons fetched for it, so pages load faster and ask the RFU less often. A new result still updates it."],
       ["v3.30.1", "The win chance is now called Win Predictor, and it now shows on the Match Centre (both TV layouts and the phone cards) as a slim bar with the percentages inside it. It is still off until switched on in Admin under Screens."],
       ["v3.30", "New win chance on the next game: a percentage for each side (adding to 100) as a split bar on Match Stats and the team page. It is off until switched on in Admin under Screens, and a new Win chance check page tests it against this season's finished games first."],
       ["v3.29.2", "Our teams no longer has a Short label box: the short name on the phone jump bar is worked out from the friendly name, so a rename updates it."],
@@ -2103,7 +2112,7 @@ T.forEach(function(t){var q=new URLSearchParams({format:"summary",detail:"wcheck
 fetch("/?"+q.toString(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){add(t,d);fin()}).catch(function(){add(t,{error:1});fin()})});
 })();</script></body></html>`;
 }
-const WC_CACHE = new Map(); // key -> { at, v }, 30 minutes
+const WC_CACHE = new Map(); // key -> { at, v }, 24 hours (the key holds the number of results, so a new result is a new key)
 let TEAMS_STAMP = "d";
 function applyClubTeams(list) {
   const st = JSON.stringify(list); if (st === TEAMS_STAMP.src) return;
@@ -3671,6 +3680,10 @@ function ttlFor(key) {
   if (/postcodes\.io|geocoding-api\.open-meteo/.test(key)) return 30 * 86400;
   if (/api\.open-meteo\.com/.test(key)) return 3 * 3600;
   if (/fixtures-and-results\/seasons/.test(key)) return 86400;
+  { // v3.30.2: a finished season's matches for a team never change, so they are kept for a day (Win Predictor history, Match Stats meetings)
+    const ps = /full-matches\?(?=[^#]*\bseason=(\d{4})-\d{4})(?=[^#]*\bteamId=\d)/.exec(key);
+    if (ps) { const d = new Date(), y = +d.toLocaleDateString("en-GB", { year: "numeric", timeZone: "Europe/London" }), m = +d.toLocaleDateString("en-GB", { month: "numeric", timeZone: "Europe/London" }), cur = m >= 8 ? y : y - 1; if (+ps[1] < cur) return 86400; }
+  }
   if (VENUE_PAGE_RE.test(key)) return 24 * 3600;
   if (/cluster\.england-rfu\.com\/gms\/matches\/\d+$/.test(key)) return 24 * 3600;
   if (/cluster\.england-rfu\.com\/fixtures-and-results\/nextmatch\?.*count=60/.test(key)) return 3 * 3600;
@@ -5798,7 +5811,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         const divIds = new Set(table.map(t => String(t.id)));
         if (!divIds.has(idHome) || !divIds.has(idAway)) return null;
         const key = [season, competition, division, idHome, idAway, resultObjects.length].join("|");
-        const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 1800000) return hit.v;
+        const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 86400000) return hit.v;
         const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm) }; };
         const seen = new Set(), games = []; let priorOk = 0;
         for (const mm of resultObjects) { const g = toGame(mm, 1); if (g && !seen.has(g.k)) { seen.add(g.k); games.push(g); } }
@@ -5819,7 +5832,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         const m = winModel(games, idHome, idAway);
         let v = null;
         if (m) { const pc = winPercents(m.pHome); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk }; }
-        WC_CACHE.set(key, { at: Date.now(), v }); return v;
+        if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); return v;
       };
       let nextWin = null;
       if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match"))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }

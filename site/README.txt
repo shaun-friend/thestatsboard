@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
 v3.30.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.1_win_predictor.zip              | v3.30
 v3.30   | 14-Nov-2026 | RFU_Club_Dashboard_v3.30_win_chance.zip                   | v3.29.2
 v3.29.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.29.2_no_short_label.zip             | v3.29.1
@@ -228,6 +229,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.2 - Win Predictor kept for a day
+- Owner decision (14-Nov-2026): the numbers are for after a game, not during it, so there is no need to recalculate often. The Win Predictor result is now kept for 24 hours (was 30 minutes). The key includes the number of results in the division, so a new result gives a new key and the figures change as soon as the RFU data does; a changed fixture (different opponent) is also a new key.
+- Earlier seasons' matches for a team (used by the Win Predictor and by the Match Stats league meetings) are kept for 24 hours (was 10 minutes on weekends, 1 hour otherwise), because a finished season does not change. The current season's data is unchanged (10 minutes on weekends, 1 hour otherwise) as the rest of the site uses it.
+- The memory kept for predictions is emptied if it ever holds more than 300 entries.
+- Docs: Win Predictor, What's new
 
 v3.30.1 - Win Predictor on the Match Centre
 - Renamed: the win chance is now called Win Predictor in Admin (Screens switch and Tools link), the check page, the Documentation and on every bar, which carries a small-capitals "WIN PREDICTOR" heading.
