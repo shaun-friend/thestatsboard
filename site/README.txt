@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
 v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
 v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
 v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
@@ -233,6 +234,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.7 - Fix: next game flipping between competitions
+- Owner report (14-Nov-2026): the Colts, who play in more than one competition, sometimes show a game tomorrow and sometimes one next weekend on the Match Centre.
+- Likely cause (from the code; not reproduced on live data): the next game across every competition is built from several RFU requests (the team's season feed, the team's competition list and each other competition). If one of them is refused or slow, the answer silently falls back to the league alone, so a cup game tomorrow disappears and next weekend's league game shows. The 15-minute summary copy (v3.30.5) and the stored page (v3.30.6) could then keep the wrong answer for a while.
+- Fix: the fixtures answer now says "partial" (and which feed: team feed, competition list, or the competition number) when any request fails. A partial summary is not stored, a page built while a feed was missing is not stored, and the Match Centre shows the last complete answer for that team (kept up to 7 days, ignored if its game has already passed) instead of the league-only one.
+- To see it happen: open the summary address for the team with &format=summary&detail=fixtures (the answer now carries "partial" and "partialWhy"), or the plain summary ("partial" appears when a feed was missing).
+- Not changed: when a feed is down and there is no earlier complete answer, the league-only answer is still shown.
+- Docs: none - behind the scenes
 
 v3.30.6 - Page cache rebuilt (stored pages kept longer, old copy shown while a new one builds)
 - Owner decision (14-Nov-2026): there are no games Monday to Friday, so nothing changes; the aim is fewer page rebuilds on the free plan (10 ms per request). Applies to the team page, Match Centre, Fixtures board and Match Stats (the pages that were already stored for 2 minutes, or Match Stats for 5 minutes / 2 hours).

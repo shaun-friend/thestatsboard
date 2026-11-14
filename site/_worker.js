@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.7 14-Nov-2026 Fix: the Match Centre next game flipping between a cup game and the league game for a team in several competitions. When a competition feed is missing the answer is marked partial; partial answers are not stored (not in the 15-minute summary copy, not in the page cache) and the Match Centre shows the last complete answer instead.
 //   v3.30.6 14-Nov-2026 Page cache rebuilt for the free plan: team, Match Centre, fixtures and match pages are kept for the rest of the UK day Monday to Friday and 30 minutes at weekends, with an older same-day copy (up to 6 hours) shown at once while a new one builds in the background. Never shown across midnight. A deploy or an Admin save shows at once. Now used on DEV too.
 //   v3.30.5 14-Nov-2026 Working-time savings for the free plan (10 ms per request): date formatting reuses formatters (identical output), names with no HTML codes skip decoding, and each team's Match Centre summary is kept in the shared cache for 15 minutes. Pages need roughly half to a third of the working time in the test rig.
 //   v3.30.4 14-Nov-2026 Fix: Error 1102 (the server running out of working time) after Win Predictor was switched on. The sums are about three times quicker, the results are kept in Cloudflare's shared cache for 24 hours (the check page 6 hours) so only one server instance has to do them.
@@ -228,7 +229,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.6";
+const VERSION = "v3.30.7";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -276,6 +277,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.7 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.7_partial_fix.zip                 | v3.30.6
 v3.30.6 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.6_page_cache.zip                  | v3.30.5
 v3.30.5 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.5_cpu_savings.zip                 | v3.30.4
 v3.30.4 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.4_win_predictor_speed.zip         | v3.30.3
@@ -467,6 +469,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.7 - Fix: next game flipping between competitions
+- Owner report (14-Nov-2026): the Colts, who play in more than one competition, sometimes show a game tomorrow and sometimes one next weekend on the Match Centre.
+- Likely cause (from the code; not reproduced on live data): the next game across every competition is built from several RFU requests (the team's season feed, the team's competition list and each other competition). If one of them is refused or slow, the answer silently falls back to the league alone, so a cup game tomorrow disappears and next weekend's league game shows. The 15-minute summary copy (v3.30.5) and the stored page (v3.30.6) could then keep the wrong answer for a while.
+- Fix: the fixtures answer now says "partial" (and which feed: team feed, competition list, or the competition number) when any request fails. A partial summary is not stored, a page built while a feed was missing is not stored, and the Match Centre shows the last complete answer for that team (kept up to 7 days, ignored if its game has already passed) instead of the league-only one.
+- To see it happen: open the summary address for the team with &format=summary&detail=fixtures (the answer now carries "partial" and "partialWhy"), or the plain summary ("partial" appears when a feed was missing).
+- Not changed: when a feed is down and there is no earlier complete answer, the league-only answer is still shown.
+- Docs: none - behind the scenes
 
 v3.30.6 - Page cache rebuilt (stored pages kept longer, old copy shown while a new one builds)
 - Owner decision (14-Nov-2026): there are no games Monday to Friday, so nothing changes; the aim is fewer page rebuilds on the free plan (10 ms per request). Applies to the team page, Match Centre, Fixtures board and Match Stats (the pages that were already stored for 2 minutes, or Match Stats for 5 minutes / 2 hours).
@@ -1857,6 +1867,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.7", "Fix: for a team in more than one competition (for example the Colts) the Match Centre could flip between tomorrow's cup game and next weekend's league game. When the RFU does not answer for one of the competitions, the site now keeps showing the last complete answer instead of a league-only one, and never stores an incomplete page."],
       ["v3.30.6", "Behind the scenes: pages are now kept ready for the whole day Monday to Friday (no games) and for 30 minutes at weekends, and an older copy is shown at once while a new one is built, so screens and phones are quicker and the server is far less likely to run out of working time. Admin changes still show straight away."],
       ["v3.30.5", "Behind the scenes: pages now use much less of the server's working time (roughly a half to a third), which should stop the occasional Error 1102 on the free Cloudflare plan. Nothing looks different."],
       ["v3.30.4", "Fix: some pages showed Error 1102 after Win Predictor was switched on (the server ran out of working time). The Win Predictor sums are about three times quicker and the results are now shared between servers, so they are worked out once rather than over and over."],
@@ -5256,11 +5267,18 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const q = new URLSearchParams({season: t.season || season, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, format: "summary"});
         try {
           // v3.30.5: each team's summary is kept in the shared cache for 15 minutes, so a Match Centre load does not redo every team's page work (the free plan allows 10 ms per request).
-          const skey = "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, shared = await sharedGet(skey);
+          const skey = "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, gkey = "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0), shared = await sharedGet(skey);
           if (shared && shared.ok) return {t, s: shared.v};
           const r = await worker.fetch(new Request(url.origin + "/?" + q.toString()));
           if (!r.ok) throw new Error("HTTP " + r.status);
-          const sj = await r.json(); await sharedPut(skey, { ok: true, v: sj }, 900);
+          const sj = await r.json();
+          if (sj.partial) {
+            // v3.30.7: a competition feed was missing, so the next game may be wrong (the league game instead of tomorrow's cup game). Show the last complete answer instead, if there is one.
+            const good = await sharedGet(gkey);
+            if (good && good.ok && !(good.v && good.v.next && good.v.next.iso && Date.parse(good.v.next.iso) < Date.now())) { PARTIAL_COUNT--; return {t, s: good.v}; }
+            return {t, s: sj};
+          }
+          await sharedPut(skey, { ok: true, v: sj }, 900); await sharedPut(gkey, { ok: true, v: sj }, 604800);
           return {t, s: sj};
         } catch (err) { return {t, error: String(err && err.message || err)}; }
       }));
@@ -6064,8 +6082,10 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           try {
             const qf = new URLSearchParams({season, competition, division, team: String(teamId), teamName, friendlyName: friendlyName || "", format: "summary", detail: "fixtures"});
             const fr = await worker.fetch(new Request(url.origin + "/?" + qf.toString()));
+            if (!fr.ok) { summary.partial = true; summary.partialWhy = ["fixtures list"]; PARTIAL_COUNT++; }
             if (fr.ok) {
-              const gs = (await fr.json()).games || [];
+              const fj = await fr.json(); if (fj.partial) { summary.partial = true; summary.partialWhy = fj.partialWhy || []; }
+              const gs = fj.games || [];
               const sideOf = g => ({ mineHome: g.home, homeName: g.home ? displayTeamName : g.oppName, awayName: g.home ? g.oppName : displayTeamName, homeId: g.home ? String(teamId) : String(g.oppId), awayId: g.home ? String(g.oppId) : String(teamId) });
               const ng = gs.find(g => g.status === "upcoming");
               if (ng && ng.cup) {
@@ -6080,7 +6100,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
               const dn = gs.filter(g => g.status === "done" && !g.wo).pop();
               if (dn && dn.cup) summary.last = { dateLabel: dn.dateLabel, outcome: dn.outcome, ...sideOf(dn), homeScore: dn.home ? dn.mineScore : dn.oppScore, awayScore: dn.home ? dn.oppScore : dn.mineScore, comp: dn.comp };
             }
-          } catch (_) { /* league only */ }
+          } catch (_) { summary.partial = true; summary.partialWhy = ["fixtures list"]; PARTIAL_COUNT++; /* league only */ }
         }
         if (url.searchParams.get("detail") === "wcheck") {
           const wckey = "wc|" + [season, competition, division, resultObjects.length].join("|"), wchit = await sharedGet(wckey);
@@ -6252,7 +6272,11 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
             delete banner.date; delete banner.venue;
           }
           const compNames = [...new Set(dedup.map(g => g.comp))];
-          return new Response(JSON.stringify({ team: displayTeamName, clubName: ownClubName, league: leagueTitle, updatedAt: dataTime, games: dedup, banner, around, comps: compNames, multi: compNames.length > 1 || dedup.some(g => g.cup), teamFeedOk, ...(url.searchParams.get("debug") === "fixtures" ? { debug: { ...fxDbg, gamesByCompetition: dedup.reduce((o, g) => (o[g.comp] = (o[g.comp] || 0) + 1, o), {}), statuses: dedup.reduce((o, g) => (o[g.status] = (o[g.status] || 0) + 1, o), {}) } } : {}) }), {headers: {"Content-Type":"application/json;charset=utf-8"}});
+          // v3.30.7: say so when a feed was missing, because the list may then lack a cup game (the next game would then show the league game instead)
+          const partialWhy = []; if (!teamFeedOk) partialWhy.push("team feed"); if (fxDbg.leaguesError) partialWhy.push("competition list");
+          for (const rw of (fxDbg.otherDivisions || [])) if (!rw.ok) partialWhy.push("competition " + rw.competition);
+          if (partialWhy.length) PARTIAL_COUNT++;
+          return new Response(JSON.stringify({ team: displayTeamName, clubName: ownClubName, league: leagueTitle, updatedAt: dataTime, games: dedup, banner, around, comps: compNames, multi: compNames.length > 1 || dedup.some(g => g.cup), teamFeedOk, partial: partialWhy.length > 0, partialWhy, ...(url.searchParams.get("debug") === "fixtures" ? { debug: { ...fxDbg, gamesByCompetition: dedup.reduce((o, g) => (o[g.comp] = (o[g.comp] || 0) + 1, o), {}), statuses: dedup.reduce((o, g) => (o[g.status] = (o[g.status] || 0) + 1, o), {}) } } : {}) }), {headers: {"Content-Type":"application/json;charset=utf-8"}});
         }
         // v30r/v30s: every league meeting between two sides: this season plus the previous five (league games only). Used by Match Stats and the Opposition report.
         const h2hFor = async (idMe, idOpp, meLabel, oppLabel, nextFx) => {
@@ -6838,6 +6862,7 @@ function pageState(builtAt, now) {
   const age = now - builtAt;
   return age < 1800000 ? "fresh" : age < 21600000 ? "stale" : "old";
 }
+let PARTIAL_COUNT = 0; // v3.30.7: goes up each time a build found a competition feed missing; a page built while it moved is not stored
 const PAGE_REBUILDING = new Map(); // key -> start time, so one instance does not start the same rebuild many times at once
 // ---- Team search and a team's competition list from the RFU data service (cluster.england-rfu.com) ----
 // The data service answers in tens of milliseconds and is rarely refused, unlike the englandrugby.com website. Its
@@ -7008,13 +7033,16 @@ export default {
         }
       }
     }
+    let pc0 = PARTIAL_COUNT;
     const storePage = (html, status, hdrs) => {
+      if (PARTIAL_COUNT !== pc0) return; // a competition feed was missing while this page was built: do not keep it
       if (!(pageKey && pageCache && status === 200 && !/RFU table error|Couldn.t load the match data|not available right now/.test(html))) return;
       const ch = new Headers(hdrs); ch.set("Cache-Control", "public, max-age=172800"); ch.set("X-Built-At", String(Date.now()));
       const store = pageCache.put(pageKey, new Response(html, { status: 200, headers: ch })).catch(() => {});
       if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(store);
     };
     const buildPage = async () => {
+      pc0 = PARTIAL_COUNT;
     const response = await worker.fetch(request, !!label);
     if (!(response.headers.get("Content-Type") || "").includes("text/html")) return response;
     let page = await response.text();
