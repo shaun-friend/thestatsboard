@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.3 14-Nov-2026 This season's RFU data is kept for 30 minutes at weekends and 24 hours Monday to Friday (was 10 minutes and 1 hour). Open pages still reload on the old timing.
 //   v3.30.2 14-Nov-2026 Win Predictor is kept for 24 hours (a new result still changes it at once, because the number of results is part of the key), and earlier seasons fetched for it, and for the Match Stats meetings, are kept for 24 hours instead of 10 minutes to an hour.
 //   v3.30.1 14-Nov-2026 Win chance is now called Win Predictor everywhere, with a small-capitals heading on every bar, and it appears on the Match Centre (Modern and Classic on a TV, and the phone cards) as a compact bar with the percentages and the team name inside each side (the name is left out of a side under 28%). Not on the Fixtures board (owner decision).
 //   v3.30 14-Nov-2026 Win chance on the next game: a percentage chance for each side, adding to 100, shown as a split bar on Match Stats and the team page, worked out from this and the last two seasons of results. Off until switched on in Admin (Screens). New Win chance check page (club PIN) tests it against every finished game this season.
@@ -212,7 +213,7 @@
 //   v13-v14           Phone layout (?layout=mobile|auto).
 //   v8-v12            League points fix (official RFU table), entity decoding, debug output.
 // =============================================================================
-const VERSION = "v3.30.2";
+const VERSION = "v3.30.3";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -260,6 +261,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
 v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
 v3.30.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.1_win_predictor.zip              | v3.30
 v3.30   | 14-Nov-2026 | RFU_Club_Dashboard_v3.30_win_chance.zip                   | v3.29.2
@@ -447,6 +449,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.3 - This season's data kept longer
+- Owner decision (14-Nov-2026): the site is for looking at stats after a game, not during it. This season's results, fixtures and tables from the RFU are now kept for 30 minutes on Saturdays and Sundays and 24 hours Monday to Friday (was 10 minutes and 1 hour). This is the setting behind the "Updated" time on every screen.
+- Effect: a result the RFU enters on a weekday can take up to a day to appear; at weekends, up to 30 minutes. If a copy is older than its time, the first visit still shows it at once and refreshes it in the background, as before.
+- Open pages still reload themselves every 10 minutes at weekends and every hour otherwise, so dates and countdowns stay right; they simply find the same stored data.
+- The Match Stats page kept at the edge for 30 minutes on weekdays (v3.14.2) is unchanged.
+- Docs: none - cache timing only, nothing a visitor sees
 
 v3.30.2 - Win Predictor kept for a day
 - Owner decision (14-Nov-2026): the numbers are for after a game, not during it, so there is no need to recalculate often. The Win Predictor result is now kept for 24 hours (was 30 minutes). The key includes the number of results in the division, so a new result gives a new key and the figures change as soon as the RFU data does; a changed fixture (different opponent) is also a new key.
@@ -1803,6 +1812,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.3", "This season's results and tables are now fetched from the RFU at most every 30 minutes at weekends and once a day Monday to Friday (was every 10 minutes and every hour). A result entered on a weekday can take up to a day to appear."],
       ["v3.30.2", "Win Predictor is kept for a day instead of half an hour, and so are earlier seasons fetched for it, so pages load faster and ask the RFU less often. A new result still updates it."],
       ["v3.30.1", "The win chance is now called Win Predictor, and it now shows on the Match Centre (both TV layouts and the phone cards) as a slim bar with the percentages inside it. It is still off until switched on in Admin under Screens."],
       ["v3.30", "New win chance on the next game: a percentage for each side (adding to 100) as a split bar on Match Stats and the team page. It is off until switched on in Admin under Screens, and a new Win chance check page tests it against this season's finished games first."],
@@ -2778,7 +2788,10 @@ const SITES = {
 // Data refresh: RFU data is cached for one hour and pages reload hourly.
 const REFRESH_SECONDS = 3600;
 // v31f: on Saturdays and Sundays (match days) RFU data is kept for 10 minutes instead of an hour, and the Fixtures TV board reloads at the same rate.
-function liveDataSeconds() { const wd = new Date().toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" }); return wd === "Sat" || wd === "Sun" ? 600 : REFRESH_SECONDS; }
+// v3.30.3: how long this season's RFU data is kept: 30 minutes at weekends (games and results), 24 hours Monday to Friday.
+function liveDataSeconds() { const wd = new Date().toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" }); return wd === "Sat" || wd === "Sun" ? 1800 : 86400; }
+// How often an open page reloads itself (unchanged: 10 minutes at weekends, an hour otherwise), so dates and countdowns stay right.
+function pageReloadSeconds() { const wd = new Date().toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" }); return wd === "Sat" || wd === "Sun" ? 600 : REFRESH_SECONDS; }
 
 // Brand (v3.18): the ball-and-bars logo, wordmark, tagline and a small footer. Nothing here is club-specific.
 const BRAND_TAGLINE = "Your club’s rugby fixtures, results and tables at a glance.";
@@ -4664,7 +4677,7 @@ ${tvBody}
 ${aroundHtml}
 ${S.features.checked === false ? "" : `<div class="ftl">Data from the RFU fixtures feed &middot; last checked ${e(londonTime(Number(d && d.updatedAt) || Date.now()))}</div>`}
 ${TV_BRAND_SCRIPT.replace("__OV__", hexParam(url.searchParams.get("colour"))).replace("__ID__", encodeURIComponent(String(team || "")))}
-<script>(function(){var MAX=${liveDataSeconds() * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
+<script>(function(){var MAX=${pageReloadSeconds() * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
 </body></html>`;
         return new Response(tv, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });
       }

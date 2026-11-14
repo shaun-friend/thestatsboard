@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.3 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.3_data_cache.zip                  | v3.30.2
 v3.30.2 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.2_win_predictor_cache.zip        | v3.30.1
 v3.30.1 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.1_win_predictor.zip              | v3.30
 v3.30   | 14-Nov-2026 | RFU_Club_Dashboard_v3.30_win_chance.zip                   | v3.29.2
@@ -229,6 +230,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.3 - This season's data kept longer
+- Owner decision (14-Nov-2026): the site is for looking at stats after a game, not during it. This season's results, fixtures and tables from the RFU are now kept for 30 minutes on Saturdays and Sundays and 24 hours Monday to Friday (was 10 minutes and 1 hour). This is the setting behind the "Updated" time on every screen.
+- Effect: a result the RFU enters on a weekday can take up to a day to appear; at weekends, up to 30 minutes. If a copy is older than its time, the first visit still shows it at once and refreshes it in the background, as before.
+- Open pages still reload themselves every 10 minutes at weekends and every hour otherwise, so dates and countdowns stay right; they simply find the same stored data.
+- The Match Stats page kept at the edge for 30 minutes on weekdays (v3.14.2) is unchanged.
+- Docs: none - cache timing only, nothing a visitor sees
 
 v3.30.2 - Win Predictor kept for a day
 - Owner decision (14-Nov-2026): the numbers are for after a game, not during it, so there is no need to recalculate often. The Win Predictor result is now kept for 24 hours (was 30 minutes). The key includes the number of results in the division, so a new result gives a new key and the figures change as soon as the RFU data does; a changed fixture (different opponent) is also a new key.
