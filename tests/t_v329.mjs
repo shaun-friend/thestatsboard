@@ -22,7 +22,7 @@ t=await (await get(w,'/admin')).text();
 c('admin has Our teams nav second',/data-s="home">Overview<\/a><a href="#teams" data-s="teams">Our teams<\/a><a href="#notices"/.test(t));
 c('admin has Our teams section',/id="s-teams"/.test(t)&&/id="tml"/.test(t)&&/id="tgo"/.test(t));
 {const sc=[...t.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);let comp=true;for(const s of sc){try{new Function(s)}catch(e){comp=false;console.log(e.message)}}c('admin script compiles',comp);}
-c('admin carries the list',/var club=\[\{"name":"Ivybridge 1XV"/.test(t));
+c('admin carries the list',/club=\[\{"name":"Ivybridge 1XV"/.test(t));
 // 2. save a new list
 const mine=[{team:'11039',teamName:'Ivybridge',name:'First XV',short:'1st',accent:'#112233',league:'Regional 2',competition:'1699',division:'75791'},
  {team:'11063',teamName:'Ivybridge',name:'Vandals <b>',short:'V',accent:'bad',league:'Counties 3',competition:'1699',division:'75801'},

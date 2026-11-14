@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
 v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
 v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
 v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
@@ -240,6 +241,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.14 - Our teams: six at most, and a tidier add
+- Owner request (14-Nov-2026): limit the club to six teams for now (checked first: a Match Centre of 10 or more rows is cut off on a 1080p TV, 8 fits at 1080p but not at 1366x768, 5 and 6 fit at both).
+- Admin > Our teams now holds up to six teams (it was 24). Search is switched off at six with a note to remove one first, and the server also keeps only the first six if a longer list is ever saved. A Match Centre link built with &teams= was already limited to six.
+- Fix: when adding a team, the list of search results stayed on screen after you picked one, with the leagues added underneath. Picking a team now clears the results, so only that team's leagues are shown. If the team plays in just one league it is added straight away without asking; with more than one you choose. Change league behaves as before.
+- A club that already saved more than six teams would be cut to six the next time it saves; none of the club's own lists are that long.
+- Docs: none - admin wording only
 
 v3.30.13 - Win Predictor on the Opposition Report
 - Owner request (14-Nov-2026): put the Win Predictor on the Opposition Report.

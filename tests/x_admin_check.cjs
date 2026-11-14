@@ -39,8 +39,8 @@ c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible(
 // Our teams (v3.29): rename, reorder, add (search then league), change league, remove, and Save sends the list
 {
  const {p,errs}=await open(1280,900);let posted=null;
- await p.route('https://thestatsboard.co.uk/api/builder/search**',r=>r.fulfill({json:{teams:[{id:'555',name:'Plymouth Albion'},{id:'11039',name:'Ivybridge'}]}}));
- await p.route('https://thestatsboard.co.uk/api/builder/team**',r=>r.fulfill({json:{team:'555',name:'Plymouth Albion',leagues:[{competition:'1700',competitionName:'Regional 1',division:'80',divisionName:'Regional 1 South West'},{competition:'1800',competitionName:'Cup',division:'81',divisionName:'Cup Pool A'}]}}));
+ await p.route('https://thestatsboard.co.uk/api/builder/search**',r=>r.fulfill({json:{teams:[{id:'555',name:'Plymouth Albion'},{id:'11039',name:'Ivybridge'},{id:'777',name:'Solo 777'},{id:'778',name:'Solo 778'}]}}));
+ await p.route('https://thestatsboard.co.uk/api/builder/team**',r=>{if(/team=777|team=778/.test(r.request().url())){const id=/team=778/.test(r.request().url())?'778':'777';return r.fulfill({json:{team:id,name:'Solo '+id,leagues:[{competition:'1900',competitionName:'Only League',division:'90',divisionName:'Only Division'}]}})}return r.fulfill({json:{team:'555',name:'Plymouth Albion',leagues:[{competition:'1700',competitionName:'Regional 1',division:'80',divisionName:'Regional 1 South West'},{competition:'1800',competitionName:'Cup',division:'81',divisionName:'Cup Pool A'}]}})});
  await p.route('https://thestatsboard.co.uk/api/admin',r=>{posted=JSON.parse(r.request().postData());return r.fulfill({json:{ok:true,label:'now'}})});
  await p.click('.adn a[data-s="teams"]');await p.waitForTimeout(200);
  c('teams: section opens',await p.isVisible('#s-teams')&&!(await p.isVisible('#s-home')));
@@ -52,10 +52,11 @@ c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible(
  c('teams: move up swaps order',(await p.$$eval('#tml .tn',a=>a.map(x=>x.value))).slice(0,2).join()==='The Vandals,First XV');
  c('teams: first card cannot move up',await p.$eval('#tml .tm:nth-child(1) .up',e=>e.disabled));
  await p.fill('#tq','alb');await p.click('#tgo');await p.waitForTimeout(200);
- c('teams: search results listed',(await p.$$('#tr .tsb')).length===2);
+ c('teams: search results listed',(await p.$$('#tr .tsb')).length===4);
  await p.click('#tr .tsb[data-id="11039"]');await p.waitForTimeout(100);
  c('teams: a team already listed is refused',/already on the list/.test(await p.textContent('#tm1'))&&(await p.$$('#tp .tlg')).length===0);
  await p.click('#tr .tsb[data-id="555"]');await p.waitForTimeout(200);
+ c('teams: the team list disappears once a team is chosen',(await p.$$('#tr .tsb')).length===0);
  c('teams: leagues offered',(await p.$$('#tp .tlg')).length===2);
  await p.click('#tp .tlg[data-k="0"]');await p.waitForTimeout(100);
  c('teams: no short label box',(await p.$$('#tml .ts')).length===0);
@@ -63,6 +64,13 @@ c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible(
  await p.click('#tml .tm:nth-child(5) .ch');await p.waitForTimeout(200);
  await p.click('#tp .tlg[data-k="1"]');await p.waitForTimeout(100);
  c('teams: change league keeps the name, swaps the league',(await p.$$('#tml .tm')).length===5&&(await p.$eval('#tml .tm:nth-child(5) .tn',e=>e.value))==='Plymouth Albion'&&/Cup Pool A/.test(await p.textContent('#tml .tm:nth-child(5)')));
+ // a team with a single league is added straight away; six is the most
+ await p.fill('#tq','solo');await p.click('#tgo');await p.waitForTimeout(200);
+ await p.click('#tr .tsb[data-id="777"]');await p.waitForTimeout(300);
+ c('teams: a team with only one league is added without asking',(await p.$$('#tml .tm')).length===6&&/Only Division/.test(await p.textContent('#tml .tm:nth-child(6)'))&&(await p.$$('#tp .tlg')).length===0&&(await p.$$('#tr .tsb')).length===0);
+ c('teams: at six the search is switched off and says so',await p.$eval('#tgo',e=>e.disabled)&&await p.$eval('#tq',e=>e.disabled)&&/six teams at most/.test(await p.textContent('#tm1')));
+ await p.click('#tml .tm:nth-child(6) .rm');await p.waitForTimeout(100);
+ c('teams: removing one switches the search back on',!(await p.$eval('#tgo',e=>e.disabled)));
  await p.click('#tml .tm:nth-child(4) .rm');await p.waitForTimeout(100);
  c('teams: remove drops a card',(await p.$$('#tml .tm')).length===4);
  await p.click('#as');await p.waitForTimeout(300);

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.14 14-Nov-2026 Our teams: at most six teams. Adding a team clears the search list once one is picked (only its leagues remain, or it is added straight away if it has just one league).
 //   v3.30.13 14-Nov-2026 Win Predictor on the Opposition Report: first card under "This game", with the how-it-works text open. Same switch and hiding rules as the other screens.
 //   v3.30.12 14-Nov-2026 New Feed log page (/feedlog, club PIN, Admin > Tools): records when a game goes missing from the RFU feed, an answer is incomplete or a team will not load, so a wrong next game can be traced afterwards.
 //   v3.30.11 14-Nov-2026 Match Centre (Modern): the next game block no longer overflows at TV and iPad sizes (names slightly smaller when one wraps). The Match Centre also holds the game shown last time for one 15-minute round when it goes missing from an otherwise complete feed, so a cup game does not flip to the league game.
@@ -235,7 +236,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.13";
+const VERSION = "v3.30.14";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -283,6 +284,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.14 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.14_teams_max_six.zip              | v3.30.13
 v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
 v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
 v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
@@ -481,6 +483,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.14 - Our teams: six at most, and a tidier add
+- Owner request (14-Nov-2026): limit the club to six teams for now (checked first: a Match Centre of 10 or more rows is cut off on a 1080p TV, 8 fits at 1080p but not at 1366x768, 5 and 6 fit at both).
+- Admin > Our teams now holds up to six teams (it was 24). Search is switched off at six with a note to remove one first, and the server also keeps only the first six if a longer list is ever saved. A Match Centre link built with &teams= was already limited to six.
+- Fix: when adding a team, the list of search results stayed on screen after you picked one, with the leagues added underneath. Picking a team now clears the results, so only that team's leagues are shown. If the team plays in just one league it is added straight away without asking; with more than one you choose. Change league behaves as before.
+- A club that already saved more than six teams would be cut to six the next time it saves; none of the club's own lists are that long.
+- Docs: none - admin wording only
 
 v3.30.13 - Win Predictor on the Opposition Report
 - Owner request (14-Nov-2026): put the Win Predictor on the Opposition Report.
@@ -1922,6 +1931,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.14", "Our teams in Admin now holds up to six teams. Picking a team from the search now clears the list, leaving only that team's leagues to choose from (or adding it straight away if it plays in just one league)."],
       ["v3.30.13", "The Win Predictor now also shows on the Opposition Report, at the top of \"This game\", when the Win Predictor switch is on."],
       ["v3.30.12", "New Feed log page under Admin > Tools: records when the RFU feed leaves out a game or answers incompletely, to help trace a wrong next game."],
       ["v3.30.11", "Match Centre: fixed the bottom of the next game blocks being cut off, and a game that briefly drops out of the RFU feed (a cup game flipping to the league game) is now held for one refresh before it is replaced."],
@@ -2132,6 +2142,7 @@ const SETTINGS_DEFAULT = () => ({
 // Our teams (v3.29): the club's own team list, kept in the settings record. Each entry: team (RFU number), teamName (the RFU's own name),
 // name (the friendly name shown everywhere), short (phone jump bar label), accent (team colour), league, competition, division.
 const TEAM_PALETTE = ["#2f9e5b", "#d9a21b", "#c0303f", "#3d8fd6", "#8a63d2", "#e07b39", "#2aa5a5", "#c45a9a"];
+const MAX_CLUB_TEAMS = 6; // v3.30.14: the Match Centre and the screens are laid out for up to six teams
 function cleanClubTeams(arr) {
   if (!Array.isArray(arr)) return null;
   const txt = (x, max) => String(x == null ? "" : x).replace(/[\u0000-\u001f\u007f<>"]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -2139,7 +2150,7 @@ function cleanClubTeams(arr) {
   for (const r of arr) {
     if (!r || typeof r !== "object") continue;
     const team = String(r.team == null ? "" : r.team), comp = String(r.competition == null ? "" : r.competition), div = String(r.division == null ? "" : r.division);
-    if (!/^\d{1,9}$/.test(team) || !/^\d{1,9}$/.test(comp) || !/^\d{1,9}$/.test(div) || seen.has(team) || out.length >= 24) continue;
+    if (!/^\d{1,9}$/.test(team) || !/^\d{1,9}$/.test(comp) || !/^\d{1,9}$/.test(div) || seen.has(team) || out.length >= MAX_CLUB_TEAMS) continue;
     seen.add(team);
     const teamName = txt(r.teamName, 40) || txt(r.name, 40) || "Team", name = txt(r.name, 40) || teamName;
     out.push({ name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
@@ -2425,7 +2436,7 @@ ${setup}
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
 </section>
-<section class="sec" id="s-teams" hidden><h1>Our teams</h1><p class="sub">The names, colours and order used across the whole site: the Links page, Match Centre, phone team bar, TV banners and page titles. Change a name here and it changes everywhere once you press Save.</p>
+<section class="sec" id="s-teams" hidden><h1>Our teams</h1><p class="sub">The names, colours and order used across the whole site: the Links page, Match Centre, phone team bar, TV banners and page titles. Change a name here and it changes everywhere once you press Save. Up to six teams.</p>
 <div class="cd" id="tml"></div>
 <div class="cd" style="margin-top:14px"><div class="nb"><div class="nh"><div><b>Add a team</b><small>Search the RFU list, then choose the league it plays in this season.</small></div></div>
 <div style="display:flex;gap:8px;margin-top:6px"><input class="in" id="tq" maxlength="60" autocomplete="off" placeholder="Team or club name" style="margin:0;flex:1"><button type="button" class="btn" id="tgo">Search</button></div>
@@ -2512,19 +2523,19 @@ $("mlb").addEventListener("click",function(){$("mlc").hidden=!$("mlc").hidden});
 $("mad").addEventListener("click",function(){var v=$("mnl").value.replace(/\s+/g," ").trim();if(!v||lines.length>=20||lines.indexOf(v)>=0)return;sync();lines.push(v);$("mnl").value="";rl()});
 $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
-var club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
+var MAXT=${MAX_CLUB_TEAMS},club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
 function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
-function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h}
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=club.length>=MAXT;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" The list is full (six teams at most). Remove a team to add another.").trim()}
 $("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
 $("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
 if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
 function lgs(id,nm){$("tp").innerHTML="";$("tm1").textContent="Loading leagues for "+nm+"...";fetch("/api/builder/team?team="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){if(d.error)throw new Error(d.error);var ls=d.leagues||[];$("tm1").textContent=ls.length?"Choose the league for "+d.name+":":"No league found for "+d.name+" this season.";var h="";ls.forEach(function(l,k){h+='<button type="button" class="tlg" data-k="'+k+'">'+esc(l.divisionName)+'<small>'+esc(l.competitionName)+'</small></button>'});$("tp").innerHTML=h;$("tp").onclick=function(ev){var b=ev.target.closest(".tlg");if(!b)return;var l=ls[+b.getAttribute("data-k")],tid=String(d.team);
 if(addAt>=0){var t=club[addAt];t.league=l.divisionName;t.competition=String(l.competition);t.division=String(l.division)}else{var nn=d.name||nm;club.push({name:nn,accent:PAL[club.length%PAL.length],league:l.divisionName,competition:String(l.competition),division:String(l.division),team:tid,teamName:d.name||nm})}
-addAt=-1;$("tp").innerHTML="";$("tr").innerHTML="";$("tm1").textContent="Done. Press Save changes to keep it.";rt();md()};$("tp").scrollIntoView&&$("tp").scrollIntoView({block:"nearest"})}).catch(function(e){$("tm1").textContent="Could not load that team: "+e.message})}
+addAt=-1;$("tp").innerHTML="";$("tr").innerHTML="";$("tm1").textContent="Done. Press Save changes to keep it.";rt();md()};$("tp").scrollIntoView&&$("tp").scrollIntoView({block:"nearest"});if(ls.length===1&&addAt<0){var only=$("tp").querySelector(".tlg");if(only)only.click()}}).catch(function(e){$("tm1").textContent="Could not load that team: "+e.message})}
 function tfind(){var n=$("tq").value.trim();$("tp").innerHTML="";$("tr").innerHTML="";if(n.length<2){$("tm1").textContent="Type at least two letters.";return}$("tm1").textContent="Searching...";addAt=-1;fetch("/api/builder/search?name="+encodeURIComponent(n),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){var ts=d.teams||[];$("tm1").textContent=ts.length?ts.length+" found. Pick one:":"No teams match. Check the spelling or try the club name only.";var h="";ts.slice(0,25).forEach(function(t){h+='<button type="button" class="tsb" data-id="'+esc(t.id)+'" data-n="'+esc(t.name)+'">'+esc(t.name)+'<small>no. '+esc(t.id)+'</small></button>'});$("tr").innerHTML=h}).catch(function(){$("tm1").textContent="Search did not work. Try again."})}
 $("tgo").addEventListener("click",tfind);$("tq").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();tfind()}});
-$("tr").addEventListener("click",function(e){var b=e.target.closest(".tsb");if(!b)return;var id=b.getAttribute("data-id");if(club.some(function(t){return t.team===id})){$("tm1").textContent="That team is already on the list. Use Change league on it instead.";return}addAt=-1;lgs(id,b.getAttribute("data-n"))});
+$("tr").addEventListener("click",function(e){var b=e.target.closest(".tsb");if(!b)return;var id=b.getAttribute("data-id");if(club.some(function(t){return t.team===id})){$("tm1").textContent="That team is already on the list. Use Change league on it instead.";return}if(club.length>=MAXT){$("tm1").textContent="The list is full (six teams at most). Remove a team first.";return}addAt=-1;$("tr").innerHTML="";lgs(id,b.getAttribute("data-n"))});
 rt();
 var SECS=["home","teams","notices","screens","match","data","privacy","access","status"];
 function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}

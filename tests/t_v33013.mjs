@@ -41,4 +41,9 @@ c('on: both team names on the bar',/Ivybridge 1XV/.test(t)&&/Okehampton/.test(t)
 let g=await (await get('/?'+base+'&format=summary&detail=opposition&frag=gd&nowx=1')).text();c('team page block is unchanged (no bar)',!/Win Predictor/.test(g));
 // a cup game: no bar
 nextFx={...fut(15342,'Okehampton',true,3),competition:{name:'Devon Cup'},group:{name:''}};w=await load();t=await opp();c('cup game: no Win Predictor',!/Win Predictor/.test(t));
+// v3.30.14: at most six club teams are kept
+const eight=Array.from({length:8},(_,i)=>({name:'Team '+i,teamName:'Team '+i,competition:'1699',division:'75791',team:String(5000+i),league:'L',accent:'#2f9e5b'}));
+r=await post({club:{teams:eight}});c('saving eight teams is accepted',(await r.json()).ok===true);
+const stored=Object.values(store).map(v=>{try{return JSON.parse(v)}catch(_){return null}}).find(o=>o&&o.club)||{};
+const kept=(stored.club&&stored.club.teams||[]).length;c('only six are kept',kept===6);
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);
