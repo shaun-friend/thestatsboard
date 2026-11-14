@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.30.13 14-Nov-2026 Win Predictor on the Opposition Report: first card under "This game", with the how-it-works text open. Same switch and hiding rules as the other screens.
 //   v3.30.12 14-Nov-2026 New Feed log page (/feedlog, club PIN, Admin > Tools): records when a game goes missing from the RFU feed, an answer is incomplete or a team will not load, so a wrong next game can be traced afterwards.
 //   v3.30.11 14-Nov-2026 Match Centre (Modern): the next game block no longer overflows at TV and iPad sizes (names slightly smaller when one wraps). The Match Centre also holds the game shown last time for one 15-minute round when it goes missing from an otherwise complete feed, so a cup game does not flip to the league game.
 //   v3.30.10 14-Nov-2026 Match Centre (Modern): the columns now line up whether or not a team has a Win Predictor, a ground line or a "2nd v 3rd" line, and whatever the opponent name length. Content starts at the top, and those lines sit at the bottom in fixed slots.
@@ -234,7 +235,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.12";
+const VERSION = "v3.30.13";
 const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -282,6 +283,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.30.13 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.13_opposition_win_predictor.zip   | v3.30.12
 v3.30.12 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.12_feed_log.zip                   | v3.30.11
 v3.30.11 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.11_hold_missing_game.zip          | v3.30.10
 v3.30.10 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.10_match_centre_align.zip         | v3.30.9
@@ -479,6 +481,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.30.13 - Win Predictor on the Opposition Report
+- Owner request (14-Nov-2026): put the Win Predictor on the Opposition Report.
+- It is the first card in "1. This game": the same bar as elsewhere (home side on the left, your team in its accent colour) with the "How is this worked out?" text shown open, because coaches will want to see the ratings gap (for example "Ivybridge 1XV are rated about 18 points better than Okehampton on results; playing at home adds about 5 points").
+- Follows the existing Admin > Screens switch (off by default) and the same hiding rules: not for cup games, not when the two sides are in different divisions or have fewer than four league games. Only shown when the opponent in the report is the one the chance was worked out for.
+- The report's data (&format=summary&detail=opposition) now carries "win" when on. The team page's lazy "This game" block is unchanged.
+- Docs: none - follows the existing Win Predictor switch
 
 v3.30.12 - Feed log
 - Owner request (14-Nov-2026): a wrong next game corrects itself on refresh, so it cannot be caught with the debug address; asked for automatic logging.
@@ -1913,6 +1922,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.30.13", "The Win Predictor now also shows on the Opposition Report, at the top of \"This game\", when the Win Predictor switch is on."],
       ["v3.30.12", "New Feed log page under Admin > Tools: records when the RFU feed leaves out a game or answers incompletely, to help trace a wrong next game."],
       ["v3.30.11", "Match Centre: fixed the bottom of the next game blocks being cut off, and a game that briefly drops out of the RFU feed (a cup game flipping to the league game) is now held for one refresh before it is replaced."],
       ["v3.30.10", "Match Centre: the next game blocks now line up across the teams (heading, crest, name, date and Home or Away) even when one team has no Win Predictor bar, ground or table line."],
@@ -2205,7 +2215,7 @@ function winBarHtml(win, o) {
   const e = noticeEsc, op = o || {};
   const label = "Win Predictor: " + win.home.name + " " + win.home.pct + " percent, " + win.away.name + " " + win.away.pct + " percent";
   const st = `--wcl:${e(op.left || "#2f9e5b")};--wcr:${e(op.right || "#7f93a3")};--wcfs:${e(op.fs || "16px")}${op.leftFg ? ";--wclt:" + e(op.leftFg) : ""}${op.rightFg ? ";--wcrt:" + e(op.rightFg) : ""}`;
-  const how = `<details class="wcx"><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
+  const how = `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
   if (op.compact) return WIN_CSS + `<div class="wc wcm" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcb"><i class="wl" style="flex:${win.home.pct}"><b>${win.home.pct}%</b>${win.home.pct >= 28 ? `<em>${e(win.home.name)}</em>` : ""}</i><i class="wr" style="flex:${win.away.pct}">${win.away.pct >= 28 ? `<em>${e(win.away.name)}</em>` : ""}<b>${win.away.pct}%</b></i></div>${how}</div>`;
   return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
 }
@@ -5044,7 +5054,11 @@ ${themeToggleScript}
         }
         // v30s: group the cards (this game / their form / you v them / their season, folded)
         const grp = (n, title, inner) => inner ? `<section class="gb"><h2 class="gh">${n}. ${title}</h2><div class="gbox">${inner}</div></section>` : "";
-        const g1 = grp(1, "This game", (C.diff || "") + (C.rest || "") + (C.wx || ""));
+        if (d.win && d.win.home && d.win.away) { // v3.30.13: Win Predictor first in "This game" (only when the switch is on in Admin; hidden for cup games and different divisions)
+          const mine = String(d.win.home.id) === String((d.h2hIds || {}).me), myAcc = (TEAMS.find(t => String(t.team) === String(team)) || {}).accent || "#2f9e5b";
+          C.win = `<div class="card">${winBarHtml(d.win, { left: mine ? myAcc : "#7f93a3", right: mine ? "#7f93a3" : myAcc, fs: "1.05rem", open: true })}</div>`;
+        }
+        const g1 = grp(1, "This game", (C.win || "") + (C.diff || "") + (C.rest || "") + (C.wx || ""));
         const g2 = grp(2, "Their form", (C.last || "") + (C.trend || "") + (C.venue || ""));
         const g3 = grp(3, "You v them", (C.h2h || "") + (C.common || "") + (C.hist || ""));
         const sumBits = [];
@@ -6037,7 +6051,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); await sharedPut("wp|" + key, { ok: true, v }, 86400); return v;
       };
       let nextWin = null;
-      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match"))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
+      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
       const winHex = v => { const t = String(v || "").trim().replace(/^#/, ""); return /^[0-9a-f]{6}$/i.test(t) ? "#" + t.toLowerCase() : ""; };
       const winOpp = "#7f93a3", winMe = winHex(url.searchParams.get("colour")) || (TEAMS.find(t => String(t.team) === String(teamId)) || {}).accent || "#2f9e5b";
       const nextTeamCrest = (id, name) => {
@@ -6579,7 +6593,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           const hh = await h2hFor(myId, oppId, displayTeamName, oppName, nx);
           return jsonOut({ ...base, status: "ok", h2hAll: hh.h2hAll, h2hSum: hh.h2hSum, h2hMeta: hh.h2hMeta, h2hIds: { me: String(myId), opp: String(oppId) },
             ownClub, venueTag: sx.home ? "Home at " + ownClub : "Away at " + oppName, ground: { venue: venueStr, clubName: groundClub, maps: mapsLink(venueStr, groundClub, !!(venueStr && next && next.elite)), theirs: !sx.home },
-            difficulty, luck, wx, wxDebug: url.searchParams.get("debug") === "weather" ? { venue: venueStr, trace: wxTrace } : undefined, around, history, myPos: posOf(myId), tableSize: table.length,
+            difficulty, luck, wx, win: nextWin && nextWin.home && nextWin.away && (String(nextWin.home.id) === oppId || String(nextWin.away.id) === oppId) ? nextWin : undefined, wxDebug: url.searchParams.get("debug") === "weather" ? { venue: venueStr, trace: wxTrace } : undefined, around, history, myPos: posOf(myId), tableSize: table.length,
             opp: { id: oppId, name: oppName, position: oppRow ? table.indexOf(oppRow) + 1 : null, played: oppRow ? oppRow.p : og.length, points: oppRow ? oppRow.pts : null },
             fixture: { dateLabel: dateLabel(nx), time: timeOf(nx), weHome: sx.home },
             games: og.length, early: og.length < 3, comps: Object.entries(compCount).map(([name, n]) => ({ name, n })), multi: Object.keys(compCount).length > 1, leagueGames: ogLeague.length,
