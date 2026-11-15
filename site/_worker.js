@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.34.1 15-Nov-2026 Underdog line: the eight lines reworded in a drier, British club-rugby voice (no American sports-speak).
 //   v3.34.0 15-Nov-2026 Win Predictor: never more lopsided than 80/20 until both sides have eight league games (85/15 after), an "Early season" note, a Win Predictor switch on each team in Admin, and a rallying line when the club's own side is the underdog (35% or less; Underdog line switch under Screens).
 //   v3.33.1 15-Nov-2026 Opposition report: the W/L form chips now say whose results they are and show a green/red key (green good for your team, red bad).
 //   v3.33.0 15-Nov-2026 Opposition report redesign: At a glance card, jump links, one colour rule (green good for your team), numbered sections with takeaways, aligned two-by-two wide grid, and a fuller WhatsApp message that always includes directions.
@@ -251,7 +252,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.34.0";
+const VERSION = "v3.34.1";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -299,6 +300,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.34.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.1_underdog_lines.zip               | v3.34.0
 v3.34.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.0_win_predictor_early.zip          | v3.33.1
 v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
 v3.33.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.0_opposition_redesign.zip         | v3.32.2
@@ -514,12 +516,17 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.34.1 - Underdog lines reworded
+- Owner feedback (15-Nov-2026): the underdog lines sounded too American.
+- The eight lines now have a drier club-rugby voice, for example "Odds are for bookmakers. Get stuck in." and "Nobody has told the ball who is favourite." Nothing else changes: same 35% rule, same switch under Screens, still no team names in the lines.
+- Tests: the same checks (short, plain, no names, picked from the fixture) run on the new lines.
+- Docs: What's new
 v3.34.0 - Win Predictor: gentler early season, and a switch per team
 - Owner request (15-Nov-2026): the Women have moved up a league and are playing teams they have not met, so early percentages are rough, and a very low chance could demotivate the team.
 - The most lopsided chance shown used to be 97% to 3%. It is now 80% to 20% while the thinner side has played fewer than eight league games, and 85% to 15% from eight (the model itself is unchanged; the same limits are used by the check page). The ordering and the size of the gap are unchanged.
 - An "Early season: based on N games each" note sits under the bar until both sides have eight league games, and the How is this worked out? text says so.
 - Admin, Our teams: each team has a new Win Predictor switch. Off stops the win chance showing for that team only (Match Stats, team page, Match Centre, Opposition report and its WhatsApp message). It only matters while Win Predictor is on under Screens.
-- Owner request (15-Nov-2026): when your own team is the underdog (35% or less) a short rallying line shows under the bar, such as "Underdogs bite. Make them earn every metre." Eight lines, picked from the fixture so it is the same on every screen and reload. It also shows in the Opposition report and its WhatsApp message. New Underdog line switch under Screens (on by default).
+- Owner request (15-Nov-2026): when your own team is the underdog (35% or less) a short rallying line shows under the bar, such as "Odds are for bookmakers. Get stuck in." Eight lines, picked from the fixture so it is the same on every screen and reload. It also shows in the Opposition report and its WhatsApp message. New Underdog line switch under Screens (on by default).
 - Cached win chances from before the release are ignored (new cache key), so the new limits show straight away.
 - Tests: limits at 4, 7, 8 and 20 games, the old 97/3 limit for callers without a game count, early flag and note, how-it-works text, per-team switch saved, kept and honoured, Admin shows the switch.
 - Docs: Win Predictor, Admin guide
@@ -1883,7 +1890,7 @@ const DOC_SECTIONS = [
       "Walkovers and games with no score are left out."
     ] },
     { h: "Underdog line" },
-    { p: "When your own team has a 35% chance or less, a short rallying line appears under the bar, for example \"Underdogs bite. Make them earn every metre.\" The line is picked from the fixture, so it is the same on every screen and every reload. It also appears in the Opposition report and its WhatsApp message. The Underdog line switch under Screens turns it off." },
+    { p: "When your own team has a 35% chance or less, a short rallying line appears under the bar, for example \"Odds are for bookmakers. Get stuck in.\" The line is picked from the fixture, so it is the same on every screen and every reload. It also appears in the Opposition report and its WhatsApp message. The Underdog line switch under Screens turns it off." },
     { h: "When it is not shown" },
     { ul: [
       "Either side has played fewer than four league games this season.",
@@ -2086,6 +2093,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.34.1", "The underdog lines under the Win Predictor now have a drier, more British club-rugby tone."],
       ["v3.34.0", "Win Predictor: early in the season it is never more lopsided than 80% to 20% (85% to 15% once both sides have eight league games), with an Early season note under the bar. The club can also switch the Win Predictor off for a single team in Admin. When your own team is the underdog (35% or less) a short rallying line shows under the bar, which can be switched off under Screens."],
       ["v3.33.1", "Opposition report: the W / L chips now say they are the opponent's results, with a short key under them (green is good for your team, red is bad)."],
       ["v3.33.0", "Opposition report: a new At a glance card at the top, jump links, one colour rule (green is good for your team, so their losses show green), tidier sections and an even grid on a wide screen. The WhatsApp share is now a full, well-organised message with emoji headings, scores from your side and directions to the ground."],
@@ -2401,7 +2409,7 @@ function winHow(win) {
   return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter." + early;
 }
 // v3.34.0: a short rallying line under the Win Predictor bar when the club's own side is the underdog (35% or less). Neutral wording, no names; the line is picked from the fixture so it stays the same on every screen and reload.
-const UNDERDOG_LINES = ["Nobody expects it. That is when rugby gets interesting.", "Underdogs bite. Make them earn every metre.", "The bar says one thing. The 80 minutes say another.", "Form is a guess. Fire is a fact. Go and get it.", "Everyone loves an upset. Let's give them one.", "A percentage never won a ruck. Heart does.", "Back them loudly. The touchline is worth points.", "Written off? Good. Prove it wrong."];
+const UNDERDOG_LINES = ["Nobody has told the ball who is favourite.", "Odds are for bookmakers. Get stuck in.", "Right, the form book is sorted. Now go and ignore it.", "Eighty minutes is a long time. Plenty of room for a surprise.", "A bit of mud, a bit of grit and a loud touchline will do.", "Not the favourites? Never stopped a good game of rugby.", "Give them something to talk about in the bar afterwards.", "Back them loudly. Every voice on the touchline helps."];
 function underdogLine(win, mineHome, key) { if (!win || !win.home || !win.away) return ""; const mine = mineHome ? win.home.pct : win.away.pct; if (mine > 35) return ""; let h = 0; for (const ch of String(key)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return UNDERDOG_LINES[h % UNDERDOG_LINES.length]; }
 function winBarHtml(win, o) {
   if (!win || !win.home || !win.away) return "";
@@ -2651,7 +2659,7 @@ ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The smal
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
-${sw("fu", s.features.underdog, "Underdog line", "A short rallying line under the Win Predictor bar when your own team has a 35% chance or less, for example &ldquo;Underdogs bite. Make them earn every metre.&rdquo; Only shows while Win Predictor is on.")}
+${sw("fu", s.features.underdog, "Underdog line", "A short rallying line under the Win Predictor bar when your own team has a 35% chance or less, for example &ldquo;Odds are for bookmakers. Get stuck in.&rdquo; Only shows while Win Predictor is on.")}
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
