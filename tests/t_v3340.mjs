@@ -30,7 +30,7 @@ const post=b=>w.fetch(new Request('https://x.co.uk/api/admin',{method:'POST',hea
 const rr=R=>{const out=[];let ids=TEAMSL.slice();for(let r=0;r<R;r++){for(let i=0;i<4;i++){let h=ids[i],a=ids[7-i];if(r%2)[h,a]=[a,h];if(h[0]===15342&&a[0]===11039)[h,a]=[a,h];out.push(mk(h,a,-60+r*7+i,4))}ids=[ids[0],ids[7],...ids.slice(1,7)]}return out};
 const fullRes=res.slice();
 // 1. unit: the limits
-const { __w } = await import(src.replace('t_worker.mjs','t_worker_exp.mjs'));const {winPercents,underdogLine,winBarHtml,UNDERDOG_LINES}=__w;
+const { __w } = await import(src.replace('t_worker.mjs','t_worker_exp.mjs'));const {winPercents,winBarHtml}=__w;
 c('limit: 4 games gives 80/20 at most',winPercents(0.9999,4).home===80&&winPercents(0.9999,4).away===20);
 c('limit: 7 games still 80/20',winPercents(0.9999,7).home===80);
 c('limit: 8 games gives 85/15',winPercents(0.9999,8).home===85&&winPercents(0.0001,8).home===15);
@@ -48,7 +48,7 @@ c('early: flagged early with the game count',!!win&&win.early===true&&win.n===5)
 c('early: never more lopsided than 80/20',!!win&&win.home.pct<=80&&win.home.pct>=20);
 let h=await (await get('/?'+base)).text();
 c('early: note under the bar',/class="wce">Early season: based on 5 games each</.test(h));
-c('early: note is TV-only (hidden by default, shown from 900px)',/\.wcq,\.wce\{display:none\}/.test(h)&&/@media\(min-width:900px\)\{\.wcq\{display:block/.test(h)&&/\.wce\{display:block/.test(h));
+c('early: note is TV-only (hidden by default, shown from 900px)',/\.wce\{display:none\}/.test(h)&&/@media\(min-width:900px\)\{\.wce\{display:block/.test(h));
 c('early: phone how-it-works text does not mention it',!/It is early in the season/.test(h));
 // 3. later in the season: whole round robin (7 games each plus)
 res=fullRes;w=await load();
@@ -75,20 +75,15 @@ let wt=await (await get('/?view=opposition&'+base)).text();c('whatsapp: no under
 // 5. opposition report follows the same limits and the switch
 let t=await (await get('/?view=opposition&'+base)).text();
 c('opposition: early-season note appears only when early',!/class="wce"/.test(t));
-// 6. underdog line
+// 6. underdog lines are gone; the note keeps its place so bars line up
 const W=(h,a)=>({home:{id:'1',name:'Ivybridge 1XV',pct:h},away:{id:'2',name:'Okehampton',pct:a}});
-const ul1=underdogLine(W(20,80),true,'k1');
-c('underdog: our home side at 20% gets a line from the list',UNDERDOG_LINES.includes(ul1));
-c('underdog: our away side at 25% gets a line',UNDERDOG_LINES.includes(underdogLine(W(75,25),false,'k2')));
-c('underdog: exactly 35% still gets one, 36% does not',!!underdogLine(W(65,35),false,'k3')&&underdogLine(W(64,36),false,'k3')==='');
-c('underdog: favourite or even game gets none',underdogLine(W(80,20),true,'k4')===''&&underdogLine(W(50,50),true,'k4')==='');
-c('underdog: same fixture, same line every time',underdogLine(W(20,80),true,'same')===underdogLine(W(20,80),true,'same'));
-c('underdog: lines vary by fixture',new Set(['a','b','c','d','e','f','g','h','i','j','k','l'].map(k=>underdogLine(W(20,80),true,k))).size>=3);
-c('underdog: lines are short, plain and have no names',UNDERDOG_LINES.every(l=>l.length<70&&!/Ivybridge|Okehampton/.test(l)));
-const bar=winBarHtml({...W(20,80),line:ul1,early:true,n:5,gap:-10,ha:4},{});const bar2=winBarHtml({...W(20,80),line:ul1,early:true,n:5,gap:-10,ha:4},{compact:true});
-c('underdog: line shows under the bar (full and compact)',bar.includes('class="wcq"')&&bar2.includes('class="wcq"')&&bar.indexOf('class="wcq"')>bar.indexOf('class="wcb"'));
-c('underdog: no line, no element',!winBarHtml(W(20,80),{}).includes('class="wcq"'));
-adm=await (await get('/admin')).text();
-c('Admin: Underdog line switch is on by default',/id="fu" checked/.test(adm)&&/Underdog line/.test(adm));
-c('favourite page has no line',!/class="wcq"/.test(await (await get('/?'+base)).text()));
+const earlyBar=winBarHtml({...W(20,80),early:true,n:5,gap:-10,ha:4},{compact:true}),laterBar=winBarHtml({...W(20,80),early:false,n:9,gap:-10,ha:4},{compact:true}),fullBar=winBarHtml({...W(20,80),early:false,n:9,gap:-10,ha:4},{});
+c('compact bar: early note shows its text',earlyBar.includes('class="wce">Early season: based on 5 games each'));
+c('compact bar: no note still keeps an invisible row (so bars line up)',laterBar.includes('class="wce wcp" aria-hidden="true"'));
+c('non-compact bar: no placeholder row',!fullBar.includes('wcp"'));
+c('placeholder is hidden but takes space, and only on TV widths',/@media\(min-width:900px\)\{\.wce\{display:block[^}]*\}\.wcp\{visibility:hidden\}/.test(earlyBar));
+c('no underdog code left in the bar',!/wcq/.test(earlyBar)&&!/underdog/i.test(earlyBar));
+const adm2=await (await get('/admin')).text();
+c('Admin: no underdog switch or list',!/Underdog/i.test(adm2)&&!/id="fu"/.test(adm2)&&!/id="ull"/.test(adm2));
+c('Admin: Win Predictor switch and per-team switch still there',/id="fwc"/.test(adm2)&&/class="twp"/.test(adm2));
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

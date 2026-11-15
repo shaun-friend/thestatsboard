@@ -9,7 +9,7 @@ python3 sync_notes.py | tail -1
 python3 check_release.py ../site "$Z"
 cp ../site/_worker.js t_worker.mjs; node --check t_worker.mjs
 cp t_worker.mjs t_worker_exp.mjs; echo 'export const __t = { shortComp, weatherFor, pageTtlFor, pageKeySearch, KNOWN_PARAMS, cachedText, memCache, blockedMem, refreshing, ttlFor, setCtx(c){SITE_CTX=c}, setEnv(e){SITE_ENV=e} };' >> t_worker_exp.mjs
-echo 'export const __w = { winModel, winPercents, winBacktest, normCdf, underdogLine, winBarHtml, UNDERDOG_LINES };' >> t_worker_exp.mjs
+echo 'export const __w = { winModel, winPercents, winBacktest, normCdf, winBarHtml };' >> t_worker_exp.mjs
 run(){ o=$("$@" | tail -1); echo "$o"; if echo "$o" | grep -qE '[1-9][0-9]* fail'; then echo "TESTS FAILED"; exit 1; fi; }
 for t in t_v310.mjs t_v36.mjs t_v35.mjs; do run node $t "$S/t_worker.mjs"; done
 run node t_v313.mjs "$S/t_worker_exp.mjs"
@@ -49,7 +49,6 @@ run node t_v3311.mjs "$S/t_worker.mjs"
 run node t_v3320.mjs "$S/t_worker.mjs"
 run node t_v3330.mjs "$S/t_worker.mjs"
 run node t_v3340.mjs "$S/t_worker.mjs"
-run node t_v3350.mjs "$S/t_worker.mjs"
 NODE_PATH=$(npm root -g) node x_opp_v3330.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "OPPOSITION LAYOUT TEST FAILED"; exit 1; }; echo "opposition layout ok"
 run node t_v3309.mjs "$S/t_worker.mjs"
 NODE_PATH=$(npm root -g) node t_v328.mjs || { echo "CROSSFADE TEST FAILED"; exit 1; }

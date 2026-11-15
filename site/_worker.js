@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.35.1 15-Nov-2026 Win Predictor: the underdog lines are removed everywhere, including Admin. The Match Centre bars now line up across panels (the Early season note keeps its row on every panel).
 //   v3.35.0 15-Nov-2026 Admin, Screens: the underdog lines can be seen, edited, added to, deleted and restored (up to 20, 100 characters each); Match Centre summaries pick up edits straight away.
 //   v3.34.2 15-Nov-2026 Win Predictor: the Early season note and the underdog line show on TV screens only (900px and up) and are larger there; gone from phones and the WhatsApp message. Match Centre fit test now includes a Win Predictor bar with both.
 //   v3.34.1 15-Nov-2026 Underdog line: the eight lines reworded in a drier, British club-rugby voice (no American sports-speak).
@@ -254,7 +255,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.35.0";
+const VERSION = "v3.35.1";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -302,6 +303,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.35.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.1_win_predictor_align.zip          | v3.35.0
 v3.35.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.0_underdog_lines_admin.zip         | v3.34.2
 v3.34.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.2_tv_only_notes.zip                | v3.34.1
 v3.34.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.1_underdog_lines.zip               | v3.34.0
@@ -520,6 +522,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.35.1 - Underdog lines removed, Win Predictor bars line up
+- Owner request (15-Nov-2026): remove the motivational messages everywhere and from Admin, because with text below the bar the Win Predictor did not line up across the Match Centre panels.
+- Removed: the underdog lines, the Underdog line switch and the Underdog lines list in Admin (Screens). Anything saved for them is ignored. The Opposition report and WhatsApp message are unchanged (they never carried them from v3.34.2).
+- Kept: the Win Predictor switch under Screens (whole site) and the per-team Win Predictor switch under Our teams. Kept: the 80/20 and 85/15 limits and the Early season note on TV screens.
+- Alignment fix: the Early season note now keeps its row on every Match Centre panel (empty when a team has eight or more games), so the bars sit at the same height on every panel whether or not a note shows.
+- Kept from v3.35.0: the fix for Admin, Site status, Manage lines, where adding a new pun line replaced every letter "s" with a space.
+- Tests: no underdog code or settings left, Admin has no underdog switch or list, the note slot is present on every compact bar, the Match Centre fit check now mixes panels with and without the note, and the switches still work.
+- Docs: What's new
 v3.35.0 - Underdog lines editable in Admin
 - Owner request (15-Nov-2026): see and amend the Win Predictor motivational messages.
 - Admin, Screens: a new Underdog lines list under the Underdog line switch. Edit any line, delete it, add new ones (up to 20, 100 characters each) or restore the default eight. Press Save changes to keep edits. With no lines left, nothing is shown. Duplicates and angle brackets are dropped.
@@ -1903,11 +1913,9 @@ const DOC_SECTIONS = [
       "Every team gets a strength in points from the results in its division this season. Each game says: the home side's strength, minus the away side's strength, plus a home advantage, should equal the margin. All the teams are solved together, so beating a strong side counts for more than beating a weak one. A team with only a few games is pulled towards the middle until it has played more.",
       "Home advantage is measured from this league's own results (it is shrunk towards 4 points while there are few games).",
       "Last season's results count about half as much, and the season before about a quarter. Only games between teams in this season's division are used. A team that is new to the division starts at the middle and earns its rating this season.",
-      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 85% to 15%, and while a side has played fewer than eight league games it is held to 80% to 20% (an Early season note under the bar says so, on TV screens only).",
+      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 85% to 15%, and while a side has played fewer than eight league games it is held to 80% to 20% (an Early season note under the bar says so, on TV screens only; it keeps its place on every Match Centre panel so the bars line up).",
       "Walkovers and games with no score are left out."
     ] },
-    { h: "Underdog line" },
-    { p: "When your own team has a 35% chance or less, a short rallying line appears under the bar, for example \"Odds are for bookmakers. Get stuck in.\" The line is picked from the fixture, so it is the same on every screen and every reload. The line and the Early season note show on TV screens only (900 pixels wide and up); phones and the WhatsApp message do not carry them. The lines can be seen, edited, added to and restored under Screens, Underdog lines (up to 20, 100 characters each); with none left, nothing is shown. The Underdog line switch under Screens turns the line off." },
     { h: "When it is not shown" },
     { ul: [
       "Either side has played fewer than four league games this season.",
@@ -2110,6 +2118,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.35.1", "The underdog lines under the Win Predictor are gone, including from Admin. The Win Predictor bars now line up across the Match Centre panels. The Win Predictor can still be switched off for the whole site or for one team."],
       ["v3.35.0", "Admin, Screens: you can now see, change, add and delete the underdog lines, or restore the defaults."],
       ["v3.34.2", "The Early season note and the underdog line under the Win Predictor now show on TV screens only, a little larger so they can be read across the room."],
       ["v3.34.1", "The underdog lines under the Win Predictor now have a drier, more British club-rugby tone."],
@@ -2328,12 +2337,11 @@ const SETTINGS_KEY = "club:" + CLUB_ID;
 const MAINT_LINES_DEFAULT = ["We're just lining up the conversion - Try again soon!", "Back after the break.", "We've gone into touch.", "Currently in the scrum.", "Awaiting the TMO.", "Held up over the line."];
 const SETTINGS_DEFAULT = () => ({
   notices: { home: { on: false, text: "", style: "info", until: "" }, tv: { on: false, text: "", style: "info", applies: "club", teams: [], until: "" } },
-  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false, underdog: true, contact: true },
+  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false, contact: true },
   reporting: { days: 14 },
   signin: { days: 30 },
   matchCentre: { layout: "next" },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
-  underdogLines: UNDERDOG_LINES.slice(), // v3.35.0: the rallying lines, editable in Admin under Screens
   club: { teams: TEAMS_DEFAULT.map(t => ({ ...t })), saved: false },
   savedAt: ""
 });
@@ -2419,7 +2427,7 @@ function winBacktest(games) {
   return { predicted: n, finished: all.length, favouriteWon: favN ? r2(fav / favN) : null, favouriteGames: favN, brier: n ? r2(brier / n) : null, brierAlways5050: 0.25, homeWinRate: n ? r2(homeW / homeN) : null, avgMarginError: n ? Math.round(mae / n * 10) / 10 : null,
     buckets: ["50-59", "60-69", "70-79", "80-89", "90+"].filter(k => bk[k]).map(k => ({ band: k, games: bk[k].n, said: r2(bk[k].p / bk[k].n), happened: r2(bk[k].w / bk[k].n) })) };
 }
-const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wcq,.wce{display:none}.wcm .wcq,.wcm .wce{text-align:center}@media(min-width:900px){.wcq{display:block;font-size:.88em;font-weight:700;font-style:italic;margin-top:.55em;line-height:1.3}.wce{display:block;font-size:.78em;font-weight:700;opacity:.85;margin-top:.5em;letter-spacing:.02em}}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
+const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wce{display:none}.wcm .wce{text-align:center}@media(min-width:900px){.wce{display:block;font-size:.78em;font-weight:700;opacity:.85;margin-top:.5em;letter-spacing:.02em}.wcp{visibility:hidden}.hero .wcp{display:none}}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
 // Win chance bar (v3.30). win = { home: {name, pct}, away: {name, pct}, gap, ha }; home is on the left, as everywhere else on the site.
 // o.left / o.right are the two colours (CSS values); o.fs the font size the bar is scaled from.
 function winHow(win) {
@@ -2427,15 +2435,12 @@ function winHow(win) {
   const lead = g < 1 ? hn + " and " + an + " are rated level on results" : win.gap > 0 ? hn + " are rated about " + g + " points better than " + an + " on results" : an + " are rated about " + g + " points better than " + hn + " on results";
   return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter.";
 }
-// v3.34.0: a short rallying line under the Win Predictor bar when the club's own side is the underdog (35% or less). Neutral wording, no names; the line is picked from the fixture so it stays the same on every screen and reload.
-const UNDERDOG_LINES = ["Nobody has told the ball who is favourite.", "Odds are for bookmakers. Get stuck in.", "Right, the form book is sorted. Now go and ignore it.", "Eighty minutes is a long time. Plenty of room for a surprise.", "A bit of mud, a bit of grit and a loud touchline will do.", "Not the favourites? Never stopped a good game of rugby.", "Give them something to talk about in the bar afterwards.", "Back them loudly. Every voice on the touchline helps."];
-function underdogLine(win, mineHome, key, lines) { if (!win || !win.home || !win.away) return ""; const L = Array.isArray(lines) ? lines : UNDERDOG_LINES; if (!L.length) return ""; const mine = mineHome ? win.home.pct : win.away.pct; if (mine > 35) return ""; let h = 0; for (const ch of String(key)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return L[h % L.length]; }
 function winBarHtml(win, o) {
   if (!win || !win.home || !win.away) return "";
   const e = noticeEsc, op = o || {};
   const label = "Win Predictor: " + win.home.name + " " + win.home.pct + " percent, " + win.away.name + " " + win.away.pct + " percent";
   const st = `--wcl:${e(op.left || "#2f9e5b")};--wcr:${e(op.right || "#7f93a3")};--wcfs:${e(op.fs || "16px")}${op.leftFg ? ";--wclt:" + e(op.leftFg) : ""}${op.rightFg ? ";--wcrt:" + e(op.rightFg) : ""}`;
-  const how = (win.line ? `<div class="wcq">${e(win.line)}</div>` : "") + (win.early ? `<div class="wce">Early season: based on ${e(String(win.n))} games each</div>` : "") + `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
+  const how = (win.early ? `<div class="wce">Early season: based on ${e(String(win.n))} games each</div>` : op.compact ? `<div class="wce wcp" aria-hidden="true">&nbsp;</div>` : "") + `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
   if (op.compact) return WIN_CSS + `<div class="wc wcm" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcb"><i class="wl" style="flex:${win.home.pct}"><b>${win.home.pct}%</b>${win.home.pct >= 28 ? `<em>${e(win.home.name)}</em>` : ""}</i><i class="wr" style="flex:${win.away.pct}">${win.away.pct >= 28 ? `<em>${e(win.away.name)}</em>` : ""}<b>${win.away.pct}%</b></i></div>${how}</div>`;
   return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
 }
@@ -2527,7 +2532,6 @@ function cleanSettings(raw) {
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
   for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback", "contact"]) d.features[k] = f[k] === false ? false : true;
   d.features.winchance = f.winchance === true;
-  d.features.underdog = f.underdog !== false;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
   { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
@@ -2537,7 +2541,6 @@ function cleanSettings(raw) {
     if (Array.isArray(m.lines)) { const seen = new Set(), out = []; for (const x of m.lines) { const l = txt(x, 100).replace(/[<>]/g, ""); if (l && !seen.has(l) && out.length < 20) { seen.add(l); out.push(l); } } d.maintenance.lines = out; }
     const pk = typeof m.pun === "string" ? txt(m.pun, 100).replace(/[<>]/g, "") : "random";
     d.maintenance.pun = pk === "random" || pk === "none" || d.maintenance.lines.includes(pk) ? pk : "random"; }
-  if (Array.isArray(r.underdogLines)) { const seen = new Set(), out = []; for (const x of r.underdogLines) { const l = txt(x, 100).replace(/[<>]/g, ""); if (l && !seen.has(l) && out.length < 20) { seen.add(l); out.push(l); } } d.underdogLines = out; }
   if (clubT) d.club = { teams: clubT, saved: true };
   d.savedAt = typeof r.savedAt === "string" ? r.savedAt.slice(0, 40) : "";
   return d;
@@ -2679,10 +2682,6 @@ ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The smal
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
-${sw("fu", s.features.underdog, "Underdog line", "On TV screens, a short rallying line under the Win Predictor bar when your own team has a 35% chance or less, for example &ldquo;Odds are for bookmakers. Get stuck in.&rdquo; Only shows while Win Predictor is on.")}
-<div class="nb"><div class="nh"><div><b>Underdog lines</b><small>The lines to choose from. Each fixture always gets the same one. Up to 20 lines, 100 characters each. Press Save changes to keep your edits.</small></div></div><div id="ull"></div>
-<div style="display:flex;gap:8px;margin-top:10px"><input class="in" id="unl" maxlength="100" autocomplete="off" placeholder="Add a new line" style="margin:0;flex:1"><button type="button" class="btn" id="uad">Add</button></div>
-<div class="cnt" id="ucn"></div><div class="save" style="margin-top:8px"><button type="button" class="btn" id="urs" style="background:#26312d;color:#e6efe9">Restore the default lines</button></div></div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
@@ -2732,13 +2731,6 @@ function radio(n){var e=document.querySelector('input[name="'+n+'"]:checked');re
 function vis(){$("tw").hidden=radio("ta")!=="chosen"}
 [].forEach.call(document.querySelectorAll('input[name="ta"]'),function(e){e.addEventListener("change",vis)});vis();
 function cnt(i,o,n){var e=$(i);function u(){$(o).textContent=e.value.length+" / "+n}e.addEventListener("input",u);u()}cnt("ht","hc",200);cnt("tt","tc2",120);
-var UDEF=${JSON.stringify(UNDERDOG_LINES).replace(/</g, "\\u003c")},ulines=${JSON.stringify(s.underdogLines).replace(/</g, "\\u003c")};
-function rul(){var h="";ulines.forEach(function(x,i){h+='<div style="display:flex;gap:8px;margin-top:6px"><input class="in ul" data-i="'+i+'" maxlength="100" style="margin:0;flex:1" value="'+x.replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'"><button type="button" class="btn ud" data-i="'+i+'" style="background:#26312d;color:#e6efe9;padding:8px 14px">Delete</button></div>'});$("ull").innerHTML=h;$("ucn").textContent=ulines.length+" of 20 lines used"+(ulines.length?"":". With no lines, nothing is shown.")}
-function usync(){[].forEach.call(document.querySelectorAll(".ul"),function(e){ulines[+e.getAttribute("data-i")]=e.value})}
-$("ull").addEventListener("click",function(e){var b=e.target.closest(".ud");if(!b)return;usync();ulines.splice(+b.getAttribute("data-i"),1);rul();md()});
-$("uad").addEventListener("click",function(){var v=$("unl").value.replace(/\\s+/g," ").trim();if(!v||ulines.length>=20||ulines.indexOf(v)>=0)return;usync();ulines.push(v);$("unl").value="";rul();md()});
-$("urs").addEventListener("click",function(){ulines=UDEF.slice();rul();md()});
-rul();
 var DEFL=${JSON.stringify(MAINT_LINES_DEFAULT).replace(/</g, "\\u003c")};var lines=${JSON.stringify(m.lines).replace(/</g, "\\u003c")};
 function rl(){var h="";lines.forEach(function(x,i){h+='<div style="display:flex;gap:8px;margin-top:6px"><input class="in ml" data-i="'+i+'" maxlength="100" style="margin:0;flex:1" value="'+x.replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'"><button type="button" class="btn md" data-i="'+i+'" style="background:#26312d;color:#e6efe9;padding:8px 14px">Delete</button></div>'});$("mll").innerHTML=h;$("mcn").textContent=lines.length+" of 20 lines used";var sel=$("mpun"),cur=sel.value,o='<option value="random">Random each visit</option>';lines.forEach(function(x){o+='<option></option>'});sel.innerHTML=o;[].forEach.call(sel.options,function(op,i){if(i>0){op.value=lines[i-1];op.textContent=lines[i-1]}});var n=document.createElement("option");n.value="none";n.textContent="None (leave the line out)";sel.appendChild(n);sel.value=cur;if(sel.value!==cur)sel.value="random"}
 function sync(){[].forEach.call(document.querySelectorAll(".ml"),function(e){lines[+e.getAttribute("data-i")]=e.value})}
@@ -2774,7 +2766,7 @@ addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.retur
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-usync();var body={underdogLines:ulines,notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,underdog:$("fu").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -5851,8 +5843,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       const wpOn = (await siteSettings()).features.winchance === true;
       // v3.31.0: one team's summary, worked out (or read from the 15-minute shared copy) by its own request, so every team gets its own 50-request budget.
       const qOf = t => new URLSearchParams({season: t.season || season, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, format: "summary"});
-      const stS = await siteSettings(), ulH = (() => { const z = JSON.stringify([stS.features.underdog !== false, stS.underdogLines]); let h = 5381; for (let i = 0; i < z.length; i++) h = ((h * 33) ^ z.charCodeAt(i)) >>> 0; return h.toString(36); })();
-      const keysOf = t => { const q = qOf(t); return { q, skey: "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP + "|" + ulH, gkey: "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0) }; };
+      const keysOf = t => { const q = qOf(t); return { q, skey: "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, gkey: "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0) }; };
       const compute = async t => {
         const { q, skey, gkey } = keysOf(t);
         try {
@@ -6569,7 +6560,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); await sharedPut("wp|" + key, { ok: true, v }, 86400); return v;
       };
       let nextWin = null;
-      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } if (nextWin && (await siteSettings()).features.underdog !== false) { const ul = underdogLine(nextWin, nextSide.home, [season, nextHomeId, nextAwayId, next.date || ""].join("|"), (await siteSettings()).underdogLines); if (ul) nextWin = { ...nextWin, line: ul }; } }
+      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
       const winHex = v => { const t = String(v || "").trim().replace(/^#/, ""); return /^[0-9a-f]{6}$/i.test(t) ? "#" + t.toLowerCase() : ""; };
       const winOpp = "#7f93a3", winMe = winHex(url.searchParams.get("colour")) || (TEAMS.find(t => String(t.team) === String(teamId)) || {}).accent || "#2f9e5b";
       const nextTeamCrest = (id, name) => {

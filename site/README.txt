@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.35.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.1_win_predictor_align.zip          | v3.35.0
 v3.35.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.0_underdog_lines_admin.zip         | v3.34.2
 v3.34.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.2_tv_only_notes.zip                | v3.34.1
 v3.34.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.1_underdog_lines.zip               | v3.34.0
@@ -260,6 +261,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.35.1 - Underdog lines removed, Win Predictor bars line up
+- Owner request (15-Nov-2026): remove the motivational messages everywhere and from Admin, because with text below the bar the Win Predictor did not line up across the Match Centre panels.
+- Removed: the underdog lines, the Underdog line switch and the Underdog lines list in Admin (Screens). Anything saved for them is ignored. The Opposition report and WhatsApp message are unchanged (they never carried them from v3.34.2).
+- Kept: the Win Predictor switch under Screens (whole site) and the per-team Win Predictor switch under Our teams. Kept: the 80/20 and 85/15 limits and the Early season note on TV screens.
+- Alignment fix: the Early season note now keeps its row on every Match Centre panel (empty when a team has eight or more games), so the bars sit at the same height on every panel whether or not a note shows.
+- Kept from v3.35.0: the fix for Admin, Site status, Manage lines, where adding a new pun line replaced every letter "s" with a space.
+- Tests: no underdog code or settings left, Admin has no underdog switch or list, the note slot is present on every compact bar, the Match Centre fit check now mixes panels with and without the note, and the switches still work.
+- Docs: What's new
 v3.35.0 - Underdog lines editable in Admin
 - Owner request (15-Nov-2026): see and amend the Win Predictor motivational messages.
 - Admin, Screens: a new Underdog lines list under the Underdog line switch. Edit any line, delete it, add new ones (up to 20, 100 characters each) or restore the default eight. Press Save changes to keep edits. With no lines left, nothing is shown. Duplicates and angle brackets are dropped.
