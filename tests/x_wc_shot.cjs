@@ -38,7 +38,7 @@ await p.locator('.wc:visible').first().scrollIntoViewIfNeeded();await p.screensh
 for(const [f,n] of [['wc_mc_next.html','modern'],['wc_mc_classic.html','classic']]){
  ({p,errs}=await open(f,1920,1080));
  c('match centre '+n+': Win Predictor bar shown',await p.locator('.wc:visible').count()>=1);
- c('match centre '+n+': heading reads Win Predictor',(await p.locator('.wc:visible .wch').first().innerText()).toLowerCase()==='win predictor');
+ c('match centre '+n+': heading reads Win Predictor',(await p.locator('.wc:visible .wch').first().innerText()).toLowerCase()==='win predictor / game difficulty');
  c('match centre '+n+': each side of the bar says whose it is',(await p.locator('.wc:visible .wcb i em').count())>=1);
  c('match centre '+n+': how-it-works hidden on a big screen',await p.locator('.wcx:visible').count()===0);
  const wb=await p.$eval('.wc:visible',e=>{const r=e.getBoundingClientRect(),q=e.closest('.cnx,.hero,.bx').getBoundingClientRect();return r.top>=q.top&&r.bottom<=q.bottom+1&&r.left>=q.left&&r.right<=q.right+1});

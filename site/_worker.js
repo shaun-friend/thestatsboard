@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.35.2 15-Nov-2026 Win Predictor heading now reads Win Predictor / Game Difficulty on every bar.
 //   v3.35.1 15-Nov-2026 Win Predictor: the underdog lines are removed everywhere, including Admin. The Match Centre bars now line up across panels (the Early season note keeps its row on every panel).
 //   v3.35.0 15-Nov-2026 Admin, Screens: the underdog lines can be seen, edited, added to, deleted and restored (up to 20, 100 characters each); Match Centre summaries pick up edits straight away.
 //   v3.34.2 15-Nov-2026 Win Predictor: the Early season note and the underdog line show on TV screens only (900px and up) and are larger there; gone from phones and the WhatsApp message. Match Centre fit test now includes a Win Predictor bar with both.
@@ -255,7 +256,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.35.1";
+const VERSION = "v3.35.2";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -303,6 +304,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.35.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.2_win_predictor_heading.zip         | v3.35.1
 v3.35.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.1_win_predictor_align.zip          | v3.35.0
 v3.35.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.0_underdog_lines_admin.zip         | v3.34.2
 v3.34.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.2_tv_only_notes.zip                | v3.34.1
@@ -522,6 +524,11 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.35.2 - Win Predictor heading now reads Win Predictor / Game Difficulty
+- Owner request (15-Nov-2026): soften how blunt the bar can look when a team is clearly the underdog.
+- Changed: the small heading above every Win Predictor bar (Match Centre and Competition table) now reads WIN PREDICTOR / GAME DIFFICULTY. The switches (whole site and per team) are unchanged and still cover the bar.
+- Tests: the heading text is checked on Modern and Classic, and the fit and alignment checks still pass with the longer heading.
+- Docs: What's new
 v3.35.1 - Underdog lines removed, Win Predictor bars line up
 - Owner request (15-Nov-2026): remove the motivational messages everywhere and from Admin, because with text below the bar the Win Predictor did not line up across the Match Centre panels.
 - Removed: the underdog lines, the Underdog line switch and the Underdog lines list in Admin (Screens). Anything saved for them is ignored. The Opposition report and WhatsApp message are unchanged (they never carried them from v3.34.2).
@@ -2118,6 +2125,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.35.2", "The heading above the Win Predictor bar now reads Win Predictor / Game Difficulty."],
       ["v3.35.1", "The underdog lines under the Win Predictor are gone, including from Admin. The Win Predictor bars now line up across the Match Centre panels. The Win Predictor can still be switched off for the whole site or for one team."],
       ["v3.35.0", "Admin, Screens: you can now see, change, add and delete the underdog lines, or restore the defaults."],
       ["v3.34.2", "The Early season note and the underdog line under the Win Predictor now show on TV screens only, a little larger so they can be read across the room."],
@@ -2441,8 +2449,8 @@ function winBarHtml(win, o) {
   const label = "Win Predictor: " + win.home.name + " " + win.home.pct + " percent, " + win.away.name + " " + win.away.pct + " percent";
   const st = `--wcl:${e(op.left || "#2f9e5b")};--wcr:${e(op.right || "#7f93a3")};--wcfs:${e(op.fs || "16px")}${op.leftFg ? ";--wclt:" + e(op.leftFg) : ""}${op.rightFg ? ";--wcrt:" + e(op.rightFg) : ""}`;
   const how = (win.early ? `<div class="wce">Early season: based on ${e(String(win.n))} games each</div>` : op.compact ? `<div class="wce wcp" aria-hidden="true">&nbsp;</div>` : "") + `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
-  if (op.compact) return WIN_CSS + `<div class="wc wcm" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcb"><i class="wl" style="flex:${win.home.pct}"><b>${win.home.pct}%</b>${win.home.pct >= 28 ? `<em>${e(win.home.name)}</em>` : ""}</i><i class="wr" style="flex:${win.away.pct}">${win.away.pct >= 28 ? `<em>${e(win.away.name)}</em>` : ""}<b>${win.away.pct}%</b></i></div>${how}</div>`;
-  return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
+  if (op.compact) return WIN_CSS + `<div class="wc wcm" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor / Game Difficulty</div><div class="wcb"><i class="wl" style="flex:${win.home.pct}"><b>${win.home.pct}%</b>${win.home.pct >= 28 ? `<em>${e(win.home.name)}</em>` : ""}</i><i class="wr" style="flex:${win.away.pct}">${win.away.pct >= 28 ? `<em>${e(win.away.name)}</em>` : ""}<b>${win.away.pct}%</b></i></div>${how}</div>`;
+  return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor / Game Difficulty</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
 }
 // Check page (club PIN): predicts every finished game this season from the games before it, for each club team's division.
 // v3.30.12: a short log of feed problems (a game missing from the feed, an incomplete answer, a team that would not load) so the cause of a wrong "next game" can be read afterwards on /feedlog.
