@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.33.0 15-Nov-2026 Opposition report redesign: At a glance card, jump links, one colour rule (green good for your team), numbered sections with takeaways, aligned two-by-two wide grid, and a fuller WhatsApp message that always includes directions.
 //   v3.32.2 15-Nov-2026 Inbox list: always shows reason, date and time, device and the start of each message, newest first (reads the message itself if the list has no details for it).
 //   v3.32.1 15-Nov-2026 Messages polish: welcome page branding and a fuller thank-you on the form, Inbox with Refresh and automatic refresh, date/time and device type on each message, an email-style reading view with a reason tag, and filters by reason.
 //   v3.32.0 15-Nov-2026 Message the Stats Board: a visitor form (welcome page and phone team pages), an Inbox behind the club PIN with an envelope and count at the top of Admin, 90-day automatic clearing with Keep, spam guard, and an Admin switch.
@@ -248,7 +249,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.32.2";
+const VERSION = "v3.33.0";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -296,6 +297,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.33.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.0_opposition_redesign.zip         | v3.32.2
 v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
 v3.32.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.1_messages_polish.zip              | v3.32.0
 v3.32.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.0_messages.zip                     | v3.31.2
@@ -508,6 +510,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.33.0 - Opposition report redesign and a fuller WhatsApp message
+- Owner request (15-Nov-2026): the report needed to be clearer, better organised and aligned, and the WhatsApp share needed to read properly offline. Presentation only: the data behind the report is unchanged.
+- New "At a glance" card at the top: win chance, difficulty, their form, head to head and their rest, each with a coloured dot (green good for your team, amber neutral, red bad) and a key. Tap a row to jump to that section. Jump links sit under it (This game, Their form, You v them, Season).
+- One colour rule throughout: green is good for your team. Their losses now show green and are labelled "Their loss" / "Their win"; the common opponents table and the form chips follow the same rule.
+- Each of the four sections has a numbered badge and a one-line takeaway at the bottom of its box. On a wide screen (&layout=wide) the four sections sit in an even two-by-two grid with equal-height rows, and the season section is open. On a phone it stays folded.
+- WhatsApp message rewritten: a title block (opponent, table position, date and time, venue and ground), then Verdict, Their form, Head to head, Common opponents and Match day, each with its own emoji heading. Scores are shown from your team's side. Directions to the ground where the game is played are always included (the exact ground when known, a map search when not, or "ground to be confirmed"), with the ground name written out so it still reads with no signal. Lines with no data are left out.
+- Tests: glance card rows and dots, jump links, colour rule, takeaways, wide grid markup, and the WhatsApp text (headings, scores from your side, directions in every case).
+- Docs: What's new
 v3.32.2 - Inbox list shows details and newest first
 - Owner report (15-Nov-2026, DEV): every message in the Inbox list just said Other, with no text, date or time, and the order was not newest first.
 - The list is normally filled from details stored with each message. It now checks each entry has them and, if one does not, reads the message itself (up to 30 per refresh, inside the 50-request limit) and fills in the reason, date and time, device and the start of the text. The list is then sorted newest first, on the server and again in the page.
@@ -2056,6 +2066,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.33.0", "Opposition report: a new At a glance card at the top, jump links, one colour rule (green is good for your team, so their losses show green), tidier sections and an even grid on a wide screen. The WhatsApp share is now a full, well-organised message with emoji headings, scores from your side and directions to the ground."],
       ["v3.32.2", "Inbox: the message list always shows the reason, date and time, device and the start of the message, with the newest at the top."],
       ["v3.32.1", "Messages: the form now has the welcome page branding and a fuller thank-you message. The Inbox has a Refresh button (and refreshes itself every few minutes), shows the date and time and device type of each message, reads like an email with a coloured tag for the reason, and can be filtered by reason."],
       ["v3.32.0", "Visitors can now message the Stats Board from a link on the welcome page and phone team pages. New messages show as an envelope with a count at the top of Admin and are read in a new Inbox. Messages are deleted after 90 days unless kept, and the form is protected against spam."],
@@ -5332,7 +5343,7 @@ ${themeToggleScript}
       const f1 = x => x === null || x === undefined ? "—" : String(x);
       const wdl = r0 => r0.w + "–" + r0.d + "–" + r0.l;
       const arrow = (a, b) => a === null || b === null ? "" : a - b >= 1 ? "&#9650; " : b - a >= 1 ? "&#9660; " : "";
-      let cards = "", waHref = "", groundBtn = "", groundLine = ""; const C = {};
+      let cards = "", waHref = "", groundBtn = "", groundLine = "", glanceH = "", jumpH = ""; const C = {};
       if (ok) {
         const on = e(d.opp.name), me = e(d.team);
         const v = d.venue, hv = v.oppHome ? "home" : "away";
@@ -5345,8 +5356,8 @@ ${themeToggleScript}
         }
         const c = d.close;
         C.close = `<div class="card"><h2>${on}: close and heavy games</h2><div class="row"><span>Their games decided by 7 or fewer</span><b>${c.close} of ${d.games}</b></div><div class="row"><span>Their biggest win</span><b>${e(c.bigWin || "—")}</b></div><div class="row"><span>Their heaviest defeat</span><b>${e(c.worstDefeat || "—")}</b></div><div class="row"><span>They scored 30+ / conceded 30+</span><b>${c.scored30} of ${d.games} &middot; ${c.conceded30} of ${d.games}</b></div></div>`;
-        if (d.last.length) C.last = `<div class="card"><h2>${on}: last ${d.last.length === 1 ? "result" : d.last.length + " results"}</h2>${d.last.map(g => `<div class="bar"><span class="d">${e(g.dateLabel)}</span><span class="o">v ${e(g.vs)} (${g.home ? "H" : "A"})</span><span class="chip ${g.out === "W" ? "w" : g.out === "L" ? "l" : "d2"}">${g.out} ${e(g.score)}</span></div>${d.multi ? `<div class="cpl">${e(g.comp)}</div>` : ""}`).join("")}<p class="note">W / D / L and the score are from ${on}'s point of view (their score first). H = ${on} at home, A = away.</p></div>`;
-        if (d.common.length) C.common = `<div class="card"><h2>Common opponents</h2><table><tr><th>Opponent</th><th>${on}</th><th>${me}</th></tr>${d.common.map(z => { const fm = m => (m > 0 ? "W +" + m : m < 0 ? "L −" + (-m) : "D 0"); const cl = m => m > 0 ? "up" : m < 0 ? "dn" : "am"; return `<tr><td>${e(z.name)}</td><td class="${cl(z.opp)}">${fm(z.opp)}</td><td class="${cl(z.you)}">${fm(z.you)}</td></tr>`; }).join("")}</table><p class="note">Each club's result against the same opponent: W + is won by that many points, L \u2212 is lost by that many. A loose guide only.</p></div>`;
+        if (d.last.length) C.last = `<div class="card"><h2>${on}: last ${d.last.length === 1 ? "result" : d.last.length + " results"}</h2>${d.last.map(g => `<div class="bar"><span class="d">${e(g.dateLabel)}</span><span class="o">v ${e(g.vs)} (${g.home ? "H" : "A"})</span><span class="chip ${g.out === "W" ? "l" : g.out === "L" ? "w" : "d2"}">${g.out === "W" ? "Their win" : g.out === "L" ? "Their loss" : "Draw"} ${e(g.score)}</span></div>${d.multi ? `<div class="cpl">${e(g.comp)}</div>` : ""}`).join("")}<p class="note">The score is ${on}'s first. Green is good for ${me}, so a loss for ${on} shows green. H = ${on} at home, A = away.</p></div>`;
+        if (d.common.length) C.common = `<div class="card"><h2>Common opponents</h2><table><tr><th>Opponent</th><th>${on}</th><th>${me}</th></tr>${d.common.map(z => { const fm = m => (m > 0 ? "W +" + m : m < 0 ? "L −" + (-m) : "D 0"); const cl = m => m > 0 ? "up" : m < 0 ? "dn" : "am"; return `<tr><td>${e(z.name)}</td><td class="${cl(-z.opp)}">${fm(z.opp)}</td><td class="${cl(z.you)}">${fm(z.you)}</td></tr>`; }).join("")}</table><p class="note">Each club's result against the same opponent: W + is won by that many points, L \u2212 is lost by that many. Green is good for ${me}. A loose guide only.</p></div>`;
         if (d.rest) C.rest = `<div class="card"><h2>${on}: rest and workload</h2><div class="row"><span>They last played</span><b>${e(d.rest.lastLabel)}</b></div><div class="row"><span>Days between that game and yours</span><b>${d.rest.days} day${d.rest.days === 1 ? "" : "s"}</b></div><div class="row"><span>Their games in the 14 days before yours</span><b>${d.rest.in14}</b></div>${d.rest.nextAfter ? `<div class="row"><span>Their next game after yours</span><b>${e(d.rest.nextAfter)}</b></div>` : ""}</div>`;
         const h = d.halves;
         if (h.topN || h.botN) C.halves = `<div class="card"><h2>${on} v stronger and weaker sides</h2><table class="wdl"><tr><th></th><th>W</th><th>D</th><th>L</th></tr><tr><td>${on} v top half</td>${h.topN ? `<td>${h.top.w}</td><td>${h.top.d}</td><td>${h.top.l}</td>` : `<td colspan="3">—</td>`}</tr><tr><td>${on} v bottom half</td>${h.botN ? `<td>${h.bottom.w}</td><td>${h.bottom.d}</td><td>${h.bottom.l}</td>` : `<td colspan="3">—</td>`}</tr></table><p class="note">Positions as they stand today, not when each game was played.</p></div>`;
@@ -5357,7 +5368,7 @@ ${themeToggleScript}
         const df = d.difficulty;
         if (df && df.status === "ok") {
           const vr = d.venue.record, vtxt = d.venue.n ? "Won " + vr.w + (vr.d ? ", drawn " + vr.d : "") + ", lost " + vr.l : "No games there yet";
-          const chips = df.chips.map(x => `<span class="ch ${x === "W" ? "cw" : x === "L" ? "cl" : "cd"}">${x}</span>`).join("");
+          const chips = df.chips.map(x => `<span class="ch ${x === "W" ? "cb" : x === "L" ? "cg" : "cd"}">${x}</span>`).join("");
           C.diff = `<div class="card"><h2>Game Difficulty: this game only</h2><div class="verdict v-${df.level}">${df.label}</div><div class="dbar d-${df.level}"><i></i><i></i><i></i></div><div class="dlab"><span>Easy</span><span>Medium</span><span>Hard</span></div><div class="row"><span>Table position</span><b>${e(ord(d.opp.position))} of ${d.tableSize}</b></div><div class="row"><span>Recent form (oldest to latest)</span><b class="chips">${chips}</b></div><div class="row"><span>Playing them at ${v.oppHome ? "their" : "your"} ground</span><b>${e(vtxt)}</b></div><p class="note">A guide from ${on}'s table position, last 3 results and record at this venue.</p></div>`;
         } else if (df) {
           C.diff = `<div class="card"><h2>Game Difficulty: this game only</h2><p class="note" style="margin:0">Too early to say. ${on} ${df.games === 1 ? "has" : "have"} played ${df.games} game${df.games === 1 ? "" : "s"}, and the rating needs at least 3.</p></div>`;
@@ -5377,7 +5388,7 @@ ${themeToggleScript}
         if (lk && lk.status === "ok") {
           const pct = r0 => Math.round((r0 - 1) / Math.max(1, lk.N - 1) * 100);
           const sentence = luckText(lk, on, ord);
-          const cch = lk.chips.map(x => `<span class="ch ${x === "W" ? "cw" : x === "L" ? "cl" : "cd"}">${x}</span>`).join("");
+          const cch = lk.chips.map(x => `<span class="ch ${x === "W" ? "cb" : x === "L" ? "cg" : "cd"}">${x}</span>`).join("");
           C.luck = `<div class="card"><h2>Luck check: ${on}</h2><div class="lk lk-${lk.verdict}"><b>${lk.label}</b></div><p class="note" style="margin:6px 0 10px">${sentence}</p><div class="dumb"><span class="dm-line"></span><i class="dm-dot" style="left:${pct(lk.tableRank)}%"></i><i class="dm-ring" style="left:${pct(lk.pdRank)}%"></i></div><div class="dmk"><span><i class="dm-dot s"></i> League table position (${ord(lk.tableRank)})</span><span><i class="dm-ring s"></i> By points difference (${ord(lk.pdRank)})</span></div><div class="big" style="grid-template-columns:1fr 1fr;margin-top:10px"><div><b>${lk.pdPerGame > 0 ? "+" : lk.pdPerGame < 0 ? "−" : ""}${Math.abs(lk.pdPerGame)}</b><span>Points difference per game (${ord(lk.pdRank)} best)</span></div><div><b>${lk.closeN} of ${lk.gamesN}</b><span>Games decided by 7 or fewer</span></div></div>${cch ? `<div class="row"><span>Close games (oldest to latest)</span><b class="chips">${cch}</b></div>` : ""}<p class="note">Worked out from league scores only: it cannot see injuries, cards or conditions.</p></div>`;
         } else if (lk && lk.status === "early") {
           C.luck = `<div class="card"><h2>Luck check: ${on}</h2><p class="note" style="margin:0">Too early to say. ${on} ${lk.played === 1 ? "has" : "have"} played ${lk.played} game${lk.played === 1 ? "" : "s"}, and the check needs at least 5.</p></div>`;
@@ -5415,43 +5426,83 @@ ${themeToggleScript}
         } else if (d.h2hMeta && d.h2hMeta.seasonsOk > 0) {
           C.h2h = `<div class="card"><h2>Head to head</h2><p class="note" style="margin:0">${voidOpp ? "No played league meetings between you and " + on + " in this season or the last five (" + e(voidOpp) + ")." : "No league meetings between you and " + on + " in this season or the last five."}</p></div>`;
         }
-        // v30s: group the cards (this game / their form / you v them / their season, folded)
-        const grp = (n, title, inner) => inner ? `<section class="gb"><h2 class="gh">${n}. ${title}</h2><div class="gbox">${inner}</div></section>` : "";
+        // v3.33.0: group the cards (this game / their form / you v them / their season), each with a numbered badge and a one-line takeaway pinned to the bottom
+        const tk = t => t ? `<div class="tkw"><p class="tk">${e(t)}</p></div>` : "";
+        const grp = (n, title, inner, take) => inner ? `<section class="gb" id="g${n}"><h2 class="gh"><span class="nb">${n}</span>${title}</h2><div class="gbox">${inner}${tk(take)}</div></section>` : "";
         if (d.win && d.win.home && d.win.away) { // v3.30.13: Win Predictor first in "This game" (only when the switch is on in Admin; hidden for cup games and different divisions)
           const mine = String(d.win.home.id) === String((d.h2hIds || {}).me), myAcc = (TEAMS.find(t => String(t.team) === String(team)) || {}).accent || "#2f9e5b";
           C.win = `<div class="card">${winBarHtml(d.win, { left: mine ? myAcc : "#7f93a3", right: mine ? "#7f93a3" : myAcc, fs: "1.05rem", open: true })}</div>`;
         }
-        const g1 = grp(1, "This game", (C.win || "") + (C.diff || "") + (C.rest || "") + (C.wx || ""));
-        const g2 = grp(2, "Their form", (C.last || "") + (C.trend || "") + (C.venue || ""));
-        const g3 = grp(3, "You v them", (C.h2h || "") + (C.common || "") + (C.hist || ""));
+        // facts used by the glance card, the takeaways and the WhatsApp message (all from the user's team's point of view)
+        const myName = d.team, oppName = d.opp.name;
+        const nL = d.last.length, wN = d.last.filter(g => g.out === "W").length, lN = d.last.filter(g => g.out === "L").length;
+        const formTxt = !nL ? "" : lN === nL ? (nL === 1 ? "Lost their last game" : "Lost their last " + nL) : wN === nL ? (nL === 1 ? "Won their last game" : "Won their last " + nL) : "Won " + wN + " of their last " + nL;
+        const formDot = !nL ? "a" : wN / nL >= 2 / 3 ? "r" : lN / nL >= 2 / 3 ? "g" : "a";
+        const idM2 = d.h2hIds ? String(d.h2hIds.me) : "";
+        const hsum = d.h2hSum && Array.isArray(d.h2hAll) && d.h2hAll.length ? d.h2hSum : null;
+        const h2hTxt = hsum ? (hsum.me === hsum.n ? myName + " won all " + (hsum.n === 1 ? "of the only meeting" : "of the last " + hsum.n + " meetings") : hsum.opp === hsum.n ? oppName + " won all " + (hsum.n === 1 ? "of the only meeting" : "of the last " + hsum.n + " meetings") : myName + " won " + hsum.me + ", lost " + hsum.opp + (hsum.draw ? ", drew " + hsum.draw : "") + " of the last " + hsum.n) : "";
+        const commonBetter = d.common.filter(z => z.you > z.opp).length, commonTxt = d.common.length ? myName + " did better than " + oppName + " against " + commonBetter + " of the " + d.common.length + " clubs both have played" : "";
+        let winPct = null, winOpp = null;
+        if (d.win && d.win.home && d.win.away) { const mineH = String(d.win.home.id) === idM2; winPct = mineH ? d.win.home.pct : d.win.away.pct; winOpp = mineH ? d.win.away.pct : d.win.home.pct; }
+        const t1 = df && df.status === "ok" ? "Game difficulty: " + df.label + ". " + oppName + " are " + ord(d.opp.position) + " of " + d.tableSize + "." : "";
+        const tr = d.trend;
+        const t2 = nL ? formTxt + (tr ? ", scoring " + f1(tr.scored) + " and conceding " + f1(tr.conceded) + " a game." : ".") : "";
+        const t3 = commonTxt || h2hTxt ? (h2hTxt ? h2hTxt + "." : commonTxt + ".") : "";
+        const g1 = grp(1, "This game", (C.win || "") + (C.diff || "") + (C.rest || "") + (C.wx || ""), t1);
+        const g2 = grp(2, "Their form", (C.last || "") + (C.trend || "") + (C.venue || ""), t2);
+        const g3 = grp(3, "You v them", (C.h2h || "") + (C.common || "") + (C.hist || ""), t3);
         const sumBits = [];
         if (d.games) sumBits.push(c.close + " of " + d.games + " games close");
         if (h.topN) sumBits.push("v top half " + wdl(h.top));
         if (lk && lk.status === "ok") sumBits.push("Luck: " + String(lk.label).toLowerCase());
         if (d.bonus) sumBits.push(d.bonus.bp + " bonus point" + (d.bonus.bp === 1 ? "" : "s"));
-        const g4 = (C.close || C.halves || C.bonus || C.luck) ? `<section class="gb"><details class="gfold"><summary><span class="gh">4. Their season in numbers</span><small>${e(sumBits.join(" · "))}</small></summary><div class="gbox">${(C.close || "") + (C.halves || "") + (C.bonus || "") + (C.luck || "")}</div></details></section>` : "";
+        const g4in = (C.close || "") + (C.halves || "") + (C.bonus || "") + (C.luck || "");
+        // wide screens have room: the season card is open and sits in the grid like the others; phones fold it away
+        const g4 = !g4in ? "" : wide ? `<section class="gb" id="g4"><h2 class="gh"><span class="nb">4</span>Their season in numbers</h2><div class="gbox">${g4in}${tk(sumBits.join(" · "))}</div></section>` : `<section class="gb" id="g4"><details class="gfold"><summary><span class="gh"><span class="nb">4</span>Their season in numbers</span><small>${e(sumBits.join(" · "))}</small></summary><div class="gbox">${g4in}</div></details></section>`;
         cards = `<div class="gc">${g1}${g2}</div><div class="gc">${g3}${g4}</div>`;
-        // WhatsApp share text: only lines that have data.
+        // v3.33.0: "At a glance" card with one coloured dot per row (green good for your team, amber neutral, red bad) and jump links
+        const rows = [];
+        const gRow = (dot, label, text, href) => text ? rows.push(`<a class="gr" href="#${href}"><i class="dot ${dot}"></i><span><small>${label}</small><b>${e(text)}</b></span><em>&rsaquo;</em></a>`) : 0;
+        if (winPct !== null) gRow(winPct >= 60 ? "g" : winPct <= 40 ? "r" : "a", "Win chance", winPct + "% for " + myName, "g1");
+        if (df && df.status === "ok") gRow(df.level === "easy" ? "g" : df.level === "hard" ? "r" : "a", "Difficulty", df.label, "g1"); else if (df) gRow("a", "Difficulty", "Too early to say", "g1");
+        gRow(formDot, "Their form", formTxt, "g2");
+        if (hsum) gRow(hsum.me > hsum.opp ? "g" : hsum.opp > hsum.me ? "r" : "a", "Head to head", h2hTxt, "g3");
+        if (d.rest) gRow(d.rest.days <= 4 ? "g" : "a", "Their rest", d.rest.days + " day" + (d.rest.days === 1 ? "" : "s") + " since they played", "g1");
+        if (rows.length) glanceH = `<section class="glc" id="glance"><h2 class="gh sm">At a glance</h2><div class="glr">${rows.join("")}</div><div class="key"><span><i class="dot g"></i>Good for ${me}</span><span><i class="dot a"></i>Neutral</span><span><i class="dot r"></i>Bad for ${me}</span></div></section>`;
+        jumpH = `<nav class="jmp" aria-label="Jump to a section">${[[1, "This game", g1], [2, "Their form", g2], [3, "You v them", g3], [4, "Season", g4]].filter(x => x[2]).map(x => `<a href="#g${x[0]}">${x[1]}</a>`).join("")}</nav>`;
+        // v3.33.0 WhatsApp share text: everything a coach needs is in the message itself, so it reads with no signal; only the two links need one.
         const bits = [];
-        bits.push("Opposition report: " + d.opp.name);
-        bits.push(d.venueTag + " · " + d.fixture.dateLabel);
-        if (df && df.status === "ok") bits.push("Game Difficulty: " + df.label + " (" + ord(d.opp.position) + ", " + (df.wins === 3 ? "won their last 3" : df.wins === 0 ? "no wins in their last 3" : "won " + df.wins + " of their last 3") + ")");
+        const sec = (emoji, title, lines) => { const ls = lines.filter(Boolean); if (ls.length) bits.push(emoji + " *" + title + "*", ...ls, ""); };
+        bits.push("\u{1F3C9} *OPPOSITION REPORT*");
+        bits.push("*" + oppName + "*" + (d.opp.position ? " (" + ord(d.opp.position) + (d.tableSize ? " of " + d.tableSize : "") + ")" : ""));
+        bits.push("\u{1F4C5} " + d.fixture.dateLabel + (d.fixture.time ? ", " + d.fixture.time : ""));
+        bits.push((d.fixture.weHome ? "\u{1F3E0} " : "\u{1F68C} ") + (d.venueTag || (d.fixture.weHome ? "Home" : "Away")) + (gr && gr.venue ? " · " + gr.venue : ""));
         bits.push("");
-        if (d.venue.n && d.venue.scored !== null) bits.push("• " + d.opp.name + (v.oppHome ? " at home" : " away") + ": scoring " + d.venue.scored + ", conceding " + d.venue.conceded + " per game");
-        if (d.last.length) bits.push("• Last " + d.last.length + ": " + d.last.slice().reverse().map(g => g.out).join(" "));
-        if (d.close && d.games) bits.push("• Close games (7 or fewer): " + d.close.close + " of " + d.games);
-        if (d.rest) bits.push("• Rest: " + d.rest.days + " day" + (d.rest.days === 1 ? "" : "s") + " since their last game");
-        if (wx && wx.status === "ok") bits.push("• Forecast: " + wx.headline.toLowerCase() + ", " + wx.temp + "°C");
-        if (gr && gr.maps) bits.push((gr.maps.kind === "directions" ? "Directions: " : "Map search: ") + gr.maps.href);
+        sec("\u{1F3AF}", "VERDICT", [
+          winPct !== null ? "Win chance: *" + winPct + "%* " + myName + " (" + winOpp + "% " + oppName + ")" : "",
+          df && df.status === "ok" ? "Difficulty: *" + df.label + "* " + (df.level === "easy" ? "\u{1F7E2}" : df.level === "hard" ? "\u{1F534}" : "\u{1F7E0}") : ""]);
+        sec("\u{1F4C8}", "THEIR FORM", [
+          nL ? formTxt + " (" + d.last.slice().reverse().map(g => g.out).join(" ") + ")" : "",
+          tr ? "Scoring " + f1(tr.scored) + ", conceding " + f1(tr.conceded) + " a game" : "",
+          d.venue.n ? (v.oppHome ? "At home" : "Away from home") + ": won " + d.venue.record.w + (d.venue.record.d ? ", drew " + d.venue.record.d : "") + ", lost " + d.venue.record.l : "",
+          d.close && d.games ? "Close games (7 or fewer): " + d.close.close + " of " + d.games : "",
+          d.rest ? "Rest: " + d.rest.days + " day" + (d.rest.days === 1 ? "" : "s") + " since they played" : ""]);
+        if (hsum) {
+          const mineScore = g => g.wo ? "W/O" : (String(g.homeId) === idM2 ? g.homeScore : g.awayScore) + "–" + (String(g.homeId) === idM2 ? g.awayScore : g.homeScore);
+          sec("\u{1F91D}", "HEAD TO HEAD", [h2hTxt, d.h2hAll.slice(0, 3).map(mineScore).join(" · "), hsum.avgMe !== null ? "Average score: " + f1(hsum.avgMe) + " – " + f1(hsum.avgOpp) : ""]);
+        }
+        sec("\u{1F504}", "COMMON OPPONENTS", [commonTxt]);
+        const dirLine = gr && gr.maps ? "\u{1F9ED} " + (gr.maps.kind === "directions" ? "Directions" : "Map search (ground not confirmed)") + (gr.venue ? " to " + gr.venue : "") + ":\n" + gr.maps.href : "\u{1F9ED} Directions: ground to be confirmed";
+        sec("\u{1F326}", "MATCH DAY", [wx && wx.status === "ok" ? wx.headline + ", " + wx.temp + "°C" + (wx.rain !== undefined ? ", rain " + wx.rain + "%" : "") : "", dirLine]);
         const shareLink = pubOrigin + "/?" + new URLSearchParams({ view: "opposition", season, competition, division, team, teamName, friendlyName: friendly, theme }).toString();
-        bits.push("", shareLink);
+        bits.push("\u{1F517} Full report (needs signal):", shareLink);
         waHref = "https://wa.me/?text=" + encodeURIComponent(bits.join("\n"));
       }
       const title = friendly || (d && d.team) || "Opposition report";
       const oppTitle = ok ? d.opp.name : "";
       const crestH = ok ? `<span class="crest hdc"><span class="ini">${e(initialsOf(oppTitle))}</span>${d.opp.id ? `<img src="/api/crest?id=${encodeURIComponent(d.opp.id)}" alt="" onerror="this.remove()">` : ""}</span>` : "";
       const head = ok ? `<div class="ph"><div>${crestH}</div><div><h1>Opposition report: ${e(oppTitle)}</h1><p class="sub">${d.opp.position ? `<span class="tag">${e(ordinalOf(d.opp.position))}</span>` : ""}<span class="tag">${e(d.venueTag || (d.fixture.weHome ? "Home fixture" : "Away fixture"))}</span>${d.cupName ? `<span class="tag">${e(d.cupName)}</span>` : ""}<span class="dt">${e(d.fixture.dateLabel)}${d.fixture.time ? " &middot; " + e(d.fixture.time) : ""}</span>${groundLine}</p></div></div>` : `<h1>Opposition report</h1>`;
-      const bodyHtml = ok ? `<div class="grid">${cards}</div><p class="foot">${d.multi ? "Form cards (home/away, trend, close games, last results, rest) include " + e(oppTitle) + "'s games in all their competitions: " + d.comps.map(c => e(c.name) + " (" + c.n + ")").join(", ") + ". " + (d.commonAll ? "Common opponents count both teams' games in all competitions; " : "Common opponents, ") + "top/bottom half and bonus points use the league only. " : ""}${d.early ? "Early in the season: only " + d.games + " game" + (d.games === 1 ? "" : "s") + " played by " + e(oppTitle) + ", so read these figures with care. " : ""}Worked out from league scores and the table only. The RFU feed has no tries, penalties, set piece, cards, half-time scores or players, so these are tendencies, not reasons. Use alongside your own video and scouting.</p>`
+      const bodyHtml = ok ? `${glanceH}${jumpH}<div class="grid">${cards}</div><p class="foot">${d.multi ? "Form cards (home/away, trend, close games, last results, rest) include " + e(oppTitle) + "'s games in all their competitions: " + d.comps.map(c => e(c.name) + " (" + c.n + ")").join(", ") + ". " + (d.commonAll ? "Common opponents count both teams' games in all competitions; " : "Common opponents, ") + "top/bottom half and bonus points use the league only. " : ""}${d.early ? "Early in the season: only " + d.games + " game" + (d.games === 1 ? "" : "s") + " played by " + e(oppTitle) + ", so read these figures with care. " : ""}Worked out from league scores and the table only. The RFU feed has no tries, penalties, set piece, cards, half-time scores or players, so these are tendencies, not reasons. Use alongside your own video and scouting.</p>`
         : `<div class="none">${d && d.status === "cup" ? "The next game is a " + e(d.cupComp) + " game against " + e(d.cupOpp) + ". The RFU does not publish a table or results for it, so there is no opposition report for this game yet." : d && d.status === "none" ? "No upcoming fixture found for " + e(title) + "." : "The opposition report is not available right now. Please try again in a few minutes."}</div>`;
       const matchHref = "/?" + new URLSearchParams({view: "match", season, competition, division, team, teamName, friendlyName: friendly, theme}).toString();
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>Opposition report${oppTitle ? " - " + e(oppTitle) : ""}</title>
@@ -5469,7 +5520,7 @@ ${MENU_CSS}
 .hall summary{cursor:pointer;color:#9ccaf0;font-weight:700;text-align:center;padding:9px;border:1px solid #26312d;border-radius:99px;list-style:none;margin-top:8px;font-size:13px}.hall summary::-webkit-details-marker{display:none}
 .hsn{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#93a59b;margin:12px 0 3px;font-weight:700}.hrw{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:4px 0 4px 8px;margin:3px 0;font-size:13px;border-left:4px solid #7a6a2a}.hrw.wm{border-color:#3ddc84}.hrw.wo{border-color:#7db4ff}.hrw small{display:block;color:#93a59b;font-size:11px}
 body.light .gh{color:#18221c}body.light .gbox,body.light .gfold summary{background:#fff;border-color:#cbd8ce}body.light .gbox .card{border-top-color:#e0e7e1}body.light .gfold summary small,body.light .hrw small,body.light .hsn{color:#53665a}body.light .hall summary{color:#1d5a85;border-color:#cbd8ce}
-${wide ? `.grid{grid-template-columns:1fr 1fr;align-items:start}` : ""}
+${wide ? `.grid{grid-template-columns:1fr 1fr;align-items:stretch}` : ""}
 .card{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px 16px}.card h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#b8c8bf;margin:0 0 10px}
 .big{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}.big div{background:#19221e;border-radius:10px;padding:10px 4px}.big b{display:block;font-size:22px}.big span{font-size:11px;color:#a9b8af;text-transform:uppercase;letter-spacing:.05em}
 .note{font-size:13px;color:#b4c4bb;margin:10px 0 0;line-height:1.4}.up{color:#7fd89a}.dn{color:#f09595}.am{color:#e0b44e}
@@ -5491,7 +5542,14 @@ ${AROUND_CSS}
 .dumb{position:relative;height:26px;margin:6px 8px 4px}.dm-line{position:absolute;left:0;right:0;top:12px;height:2px;background:#26312d}.dm-dot,.dm-ring{position:absolute;top:5px;width:16px;height:16px;border-radius:50%;margin-left:-8px;box-sizing:border-box}.dm-dot{background:#4aa3df}.dm-ring{border:3px solid #e0b44e;background:#111719}.dm-dot.s,.dm-ring.s{position:static;display:inline-block;width:10px;height:10px;margin:0 6px 0 0;vertical-align:middle;border-width:2px}.dmk{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#a9b8af;flex-wrap:wrap}
 .pch{width:100%;height:auto;display:block;margin-top:8px}.gl{stroke:#26312d;stroke-width:1}.ax{fill:#7d8c84;font-size:10px}.ln{font-size:11px;font-weight:700;fill:#f5f7f6}.l1,.l1f{stroke:var(--c1,#2f9e5b)}.l1f{fill:var(--c1,#2f9e5b)}.l2,.l2f{stroke:var(--c2,#4aa3df)}.l2f{fill:var(--c2,#4aa3df)}.lg{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}.lg1{background:var(--c1,#2f9e5b)}.lg2{background:var(--c2,#4aa3df)}.pt b{font-size:20px}
 body.light .l1,body.light .l1f{stroke:var(--c1d,#1b7f3b)}body.light .l1f{fill:var(--c1d,#1b7f3b)}body.light .l2,body.light .l2f{stroke:var(--c2d,#1d6aa0)}body.light .l2f{fill:var(--c2d,#1d6aa0)}body.light .lg1{background:var(--c1d,#1b7f3b)}body.light .lg2{background:var(--c2d,#1d6aa0)}body.light .gl{stroke:#d5dfd8}body.light .ln{fill:#18221c}body.light .dlab,body.light .ax{fill:#53665a;color:#53665a}body.light .wxt div{background:#edf2ee}body.light .wxt span,body.light .gnd label,body.light .dmk{color:#53665a}body.light .dm-line{background:#d5dfd8}body.light .dm-ring{background:#fff;border-color:#b07a00}body.light .v-easy{color:#1b7f3b}body.light .v-medium{color:#8a5a00}body.light .v-hard{color:#a32d2d}body.light .lk-lucky b{color:#8a5a00}body.light .lk-unlucky b{color:#1d5a85}body.light .dbar i{background:#d5dfd8}body.light .d-easy i:nth-child(1){background:#3fb865}body.light .d-medium i:nth-child(-n+2){background:#e2a93b}body.light .d-hard i{background:#e05a5a}
-${wide ? `.wrap{max-width:1100px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}` : ""}
+${wide ? `.wrap{max-width:1100px}.grid{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:16px}.gc{display:contents}.gb{display:flex;flex-direction:column}.gb>.gbox{flex:1}.glr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 18px}@media(max-width:760px){.grid{grid-template-columns:1fr}}` : ""}
+.gh{display:flex;align-items:center;min-height:28px}.gfold summary .gh{display:flex}.nb{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#16301f;color:#7fe0a6;font-size:13px;font-weight:800;margin-right:9px;flex:none}
+.gbox{display:flex;flex-direction:column}.tkw{margin-top:auto;padding-top:14px}.tk{margin:0;padding:10px 12px;background:#0b1013;border-radius:10px;font-size:13px;line-height:1.45;color:#d6e4dc}
+.glc{background:#10161a;border:1px solid #232d31;border-radius:18px;padding:16px 18px;margin:0 0 12px}.gh.sm{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#9eafa5;margin:0 0 4px}.gr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #1f292d;text-decoration:none;color:inherit}.gr small{display:block;font-size:12px;color:#9eafa5}.gr b{display:block;font-size:15px;line-height:1.3}.gr em{margin-left:auto;font-style:normal;color:#7f948a;font-size:18px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}.dot.g{background:#4fc27d}.dot.a{background:#e6b84a}.dot.r{background:#e8736f}.key{display:flex;gap:14px;flex-wrap:wrap;padding-top:10px;border-top:1px solid #1f292d;font-size:12px;color:#9eafa5}.key span{display:flex;align-items:center;gap:6px}
+.jmp{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;scrollbar-width:none}.jmp a{flex:none;padding:8px 14px;border-radius:99px;background:#111719;border:1px solid #2c3a34;color:#cfd8d3;font-size:13px;font-weight:700;text-decoration:none}html{scroll-behavior:smooth}.gb{scroll-margin-top:12px}
+.cg{background:#1d6539}.cb{background:#762e31}
+body.light .glc{background:#fff;border-color:#cbd8ce}body.light .gr,body.light .key{border-top-color:#e0e7e1}body.light .gr small,body.light .key,body.light .gh.sm{color:#53665a}body.light .jmp a{background:#fff;border-color:#cbd8ce;color:#26382d}body.light .tk{background:#edf2ee;color:#26382d}body.light .nb{background:#dcf1e3;color:#1b7f3b}
 body.light .card{background:#fff;border-color:#cbd8ce}body.light .card h2{color:#40564a}body.light .big div,body.light .trend div{background:#edf2ee}body.light .big span,body.light .trend label,body.light .row span,body.light .trend small,body.light th,body.light .bar .d{color:#53665a}body.light .note,body.light .sub,body.light .foot{color:#53665a}body.light td,body.light .row{border-top-color:#e0e7e1}body.light .tag{background:#dcebf6;color:#1d5a85}body.light .up{color:#1b7f3b}body.light .dn{color:#a32d2d}body.light .am{color:#8a5a00}
 </style></head><body class="${theme}">${themeBoot("true")}<div class="wrap">
 <nav class="mbar"><span class="pl"><a class="pill" href="/?theme=${theme}">&lsaquo; Home</a><a class="pill" href="${e(matchHref)}">Next Match Stats</a></span><button type="button" class="pill tgl">Light mode</button></nav>
