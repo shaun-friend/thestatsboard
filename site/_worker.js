@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.31.2 15-Nov-2026 Match Centre: the Next game panel no longer clips on wide, short screens (it gets more of the column and the text is fitted until nothing is cut off).
 //   v3.31.1 15-Nov-2026 Our teams: a Show on screens switch on each team hides it everywhere without deleting it (up to six showing, twelve in the list, at least one on).
 //   v3.31.0 15-Nov-2026 The Match Centre prepares each team in its own request (&warm=N from the page), so every team gets a fresh 50-request budget on the free plan. A team not ready shows its last complete answer or "Updating this team" and the page refreshes when the requests finish.
 //   v3.30.20 14-Nov-2026 Each visit now counts its outside requests (free plan allows 50): essential feeds may use 40, extras stop at 20 for one team (8 on the Match Centre, where many teams share one visit), and cache lookups are counted too. A cold six-team Match Centre made 83 requests (156 with cache lookups) and lost the Colts cup feed; it now stays within 50.
@@ -244,7 +245,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.31.1";
+const VERSION = "v3.31.2";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -292,6 +293,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
 v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
 v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
 v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
@@ -500,6 +502,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.31.2 - Match Centre: the Next game panel no longer clips
+- Owner report (15-Nov-2026, two screenshots): on a wide, short screen the coloured Next game panel was cut off at the bottom (the Home/Away tag, the Win Predictor bar, the "1st v 4th" line, and on the four-team screen the Table row too).
+- Cause: the panel was given a fixed 60% of each column and the last result 40%, but the last result needs far less than that, so the panel ran out of room first.
+- Fix: the panel now gets 72% and the last result 28%, and a fit step shrinks the whole screen's text a little at a time until nothing in a column is cut off (it only runs on the TV Match Centre columns, not phones or other screens).
+- Unchanged: phones, the classic rows, and every other screen.
+- Tests: a four-column page with a Win Predictor, ground and clash line is checked at 2576x858, 2576x923, 1920x1080, 1366x768, 1280x720 and 1024x600 for any cut-off panel or hidden table row (x_clip_check).
+- Docs: none - behind the scenes
 v3.31.1 - Our teams: hide a team without deleting it
 - Owner request (15-Nov-2026): a slider on the Our teams page to hide a team without deleting it.
 - Each team has a "Show on screens" switch. Off hides the team everywhere (Links page, Match Centre, phone team bar, TV banners, calendar and page titles, because the site's team list leaves it out). Its friendly name, colour, league and RFU numbers stay saved, so switching it on restores it as it was. A hidden team is dimmed in the list.
@@ -2008,6 +2017,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.31.2", "Match Centre on a wide TV: the Next game panel is no longer cut off at the bottom (the Home or Away tag, the Win Predictor bar, the position line and the table row are all shown)."],
       ["v3.31.1", "Our teams has a Show on screens switch on each team: switch it off to hide the team everywhere without deleting it, and on again to bring it back as it was."],
       ["v3.31.0", "The Match Centre now prepares each team separately in the background, so a cold start no longer runs out of requests and the Colts cup game is not lost. A team being prepared shows Updating this team for a moment."],
       ["v3.30.20", "The Match Centre no longer runs out of outside requests with six teams (the cause of the Colts showing the wrong next game): extras like venue pages now wait their turn so the results feeds always get through."],
@@ -5658,9 +5668,9 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 @media(max-width:800px){.ly{display:none!important}}
 .cw{display:flex;flex-direction:column;min-height:0;border-radius:1.1rem;overflow:hidden;background:var(--card);border:1px solid var(--bd)}
 .ch{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.1rem;border-bottom:.4rem solid var(--ac)}.ch .cr{width:3.6rem;height:3.6rem;flex-basis:3.6rem}.ch .cr .ini{font-size:1.2rem}.cx{min-width:0}.cn{font-size:2.1rem;font-weight:800;line-height:1.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cl{font-size:.95rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cnx{flex:60 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.5rem;text-align:center;padding:.9rem 1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
+.cnx{flex:72 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.5rem;text-align:center;padding:.9rem 1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
 .cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx.e{justify-content:center}.cnx .onw{width:100%;display:flex;align-items:center;justify-content:center}.ly-two .cnx .on{font-size:2.5rem}.ly-two .cnx .onw{min-height:7.25rem}.cnx .nb{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:.5rem}.cnx .nw{width:100%;display:flex;justify-content:center}.ly-win .cnx .nw{min-height:5.6rem}.ly-ven .cnx .og{min-height:1.9rem}.ly-clash .cnx .oq{min-height:2rem}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
-.clw{flex:40 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clw{flex:28 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
 .rs-a .rw>.bx,.rs-b .rw>.bx,.rs-c .rw>.bx,.rs-d .rw>.bx{border-color:var(--bd)}
@@ -7254,7 +7264,11 @@ function bad(){var fxp=!!b.querySelector(".fx,.lc");return els.some(function(e){
 var fx=!!b.querySelector(".fx,.lc"),bs=fx?els.map(function(e){e.style.fontSize="";return parseFloat(getComputedStyle(e).fontSize)}):[];
 if(fx){els.forEach(function(e,i){var f=1;while(e.scrollWidth>e.clientWidth+1&&f>0.65){f-=0.03;e.style.fontSize=(bs[i]*f)+"px"}});return true}
 var f=1;while(bad()&&f>0.6){f-=0.04;h.style.fontSize=(base*f)+"px"}return true}
-function go(){try{std()||txt()}catch(e){}}
+function col(){var cw=b.querySelectorAll(".cw");if(!cw.length||!b.classList.contains("ly-on")||innerWidth<=800)return false;
+h.style.fontSize="";var base=parseFloat(getComputedStyle(h).fontSize),f=1;
+function bad(){var x=false;[].forEach.call(b.querySelectorAll(".cnx,.cls"),function(e){if(e.scrollHeight>e.clientHeight+1)x=true});[].forEach.call(cw,function(c){var t=c.querySelector(".ctb");if(t&&t.getBoundingClientRect().bottom>c.getBoundingClientRect().bottom+1)x=true});return x||b.scrollHeight>innerHeight+2}
+while(bad()&&f>0.45){f=Math.round((f-0.03)*100)/100;h.style.fontSize=(base*f)+"px"}return true}
+function go(){try{col()||std()||txt()}catch(e){}}
 var hid=false;try{hid=getComputedStyle(b).overflowY==="hidden"&&innerWidth>800}catch(e){}
 function show(){if(!hid)return;hid=false;b.style.transition="opacity .2s";b.style.opacity="1"}
 if(hid){b.style.opacity="0"}

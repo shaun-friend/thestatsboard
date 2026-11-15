@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
 v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
 v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
 v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
@@ -250,6 +251,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.31.2 - Match Centre: the Next game panel no longer clips
+- Owner report (15-Nov-2026, two screenshots): on a wide, short screen the coloured Next game panel was cut off at the bottom (the Home/Away tag, the Win Predictor bar, the "1st v 4th" line, and on the four-team screen the Table row too).
+- Cause: the panel was given a fixed 60% of each column and the last result 40%, but the last result needs far less than that, so the panel ran out of room first.
+- Fix: the panel now gets 72% and the last result 28%, and a fit step shrinks the whole screen's text a little at a time until nothing in a column is cut off (it only runs on the TV Match Centre columns, not phones or other screens).
+- Unchanged: phones, the classic rows, and every other screen.
+- Tests: a four-column page with a Win Predictor, ground and clash line is checked at 2576x858, 2576x923, 1920x1080, 1366x768, 1280x720 and 1024x600 for any cut-off panel or hidden table row (x_clip_check).
+- Docs: none - behind the scenes
 v3.31.1 - Our teams: hide a team without deleting it
 - Owner request (15-Nov-2026): a slider on the Our teams page to hide a team without deleting it.
 - Each team has a "Show on screens" switch. Off hides the team everywhere (Links page, Match Centre, phone team bar, TV banners, calendar and page titles, because the site's team list leaves it out). Its friendly name, colour, league and RFU numbers stay saved, so switching it on restores it as it was. A hidden team is dimmed in the list.

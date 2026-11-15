@@ -56,6 +56,7 @@ node brand/shot.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) 
 node dir_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node gap_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH STATS FOOTER GAP TEST FAILED"; exit 1; }; echo "match stats footer gap ok"
 node foot_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node foot_check.cjs | tail -1 | grep -q "ALL OK" || { echo "FOOTER OVERLAP TEST FAILED"; exit 1; }; echo "footer overlap ok"
 node x_ly_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_ly_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE LAYOUT TEST FAILED"; exit 1; }; echo "match centre layouts ok"
+sed -i "s/ly-two\"/ly-two ly-win\"/" w/ly_next.html; NODE_PATH=$(npm root -g) node x_clip_check.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE CLIPPING TEST FAILED"; exit 1; }; echo "match centre clipping ok"
 node x_admin_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_admin_check.cjs | tail -1 | grep -q "ALL OK" || { echo "ADMIN PAGE TEST FAILED"; exit 1; }; echo "admin page ok"
 node x_wc_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_wc_shot.cjs | tail -1 | grep -q "ALL OK" || { echo "WIN CHANCE PAGE TEST FAILED"; exit 1; }; echo "win chance pages ok"
 node x_rows.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_rows_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE ROWS TEST FAILED"; exit 1; }; echo "match centre rows ok"
