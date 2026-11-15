@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.32.0 15-Nov-2026 Message the Stats Board: a visitor form (welcome page and phone team pages), an Inbox behind the club PIN with an envelope and count at the top of Admin, 90-day automatic clearing with Keep, spam guard, and an Admin switch.
 //   v3.31.2 15-Nov-2026 Match Centre: the Next game panel no longer clips on wide, short screens (it gets more of the column and the text is fitted until nothing is cut off).
 //   v3.31.1 15-Nov-2026 Our teams: a Show on screens switch on each team hides it everywhere without deleting it (up to six showing, twelve in the list, at least one on).
 //   v3.31.0 15-Nov-2026 The Match Centre prepares each team in its own request (&warm=N from the page), so every team gets a fresh 50-request budget on the free plan. A team not ready shows its last complete answer or "Updating this team" and the page refreshes when the requests finish.
@@ -245,7 +246,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.31.2";
+const VERSION = "v3.32.0";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -293,6 +294,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.32.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.0_messages.zip                     | v3.31.2
 v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
 v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
 v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
@@ -502,6 +504,15 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.32.0 - Message the Stats Board (visitor messages and an Inbox)
+- Owner request (15-Nov-2026; mock-up Stats Board Messages canvas): a contact form for visitors, readable only by the owner for now, with a discreet envelope in Admin when a new message is waiting.
+- Decisions (15-Nov-2026): the page the visitor came from is attached; the visitor's email is optional; old messages clear out automatically but a message can be kept; spam protection yes; no email notification yet (to add later as an Admin option); reading messages should later become a role permission for a signed-in user.
+- Visitor side: /contact (public) with four reasons, a message of up to 1,000 characters and an optional email. Linked from the welcome page and as a small Message us link on phone team pages (not TV screens, Match Centre, Links or Admin pages). Admin switch "Message form for visitors" (on by default) turns the form and the links off.
+- Storage: one KV record per message (key msg:...) with a 90-day expiry, so clearing out needs no job. Keep removes the expiry; Stop keeping restores 90 days. The list is read from key metadata in one KV read.
+- Spam: a hidden field (robots are told it worked, nothing is stored), a three-second minimum fill time, five messages an hour per visitor (hashed, never stored) and ten an hour in total. Counters live in KV with an hour expiry.
+- Admin side: an envelope with a count at the top of Admin and an Inbox link under Tools; /inbox and /api/inbox sit behind the club PIN. Messages can be marked done, kept, deleted (press twice) and the page opened. The existing Admin section called Messages (the homepage and TV notices) is unchanged; the new one is called Inbox.
+- Request limits: a visit to the form costs at most five KV operations; the Inbox list is one KV read plus two for opening or changing a message; the envelope count is one KV read on opening Admin. No RFU or external requests are involved.
+- Docs: Admin guide, What's new
 v3.31.2 - Match Centre: the Next game panel no longer clips
 - Owner report (15-Nov-2026, two screenshots): on a wide, short screen the coloured Next game panel was cut off at the bottom (the Home/Away tag, the Win Predictor bar, the "1st v 4th" line, and on the four-team screen the Table row too).
 - Cause: the panel was given a fixed 60% of each column and the last result 40%, but the last result needs far less than that, so the panel ran out of room first.
@@ -1744,6 +1755,8 @@ const DOCS = [
     { v: "/release-notes", values: "none", where: "DEV only", what: "The release notes (README).", ex: [["Release notes", "/release-notes", "dev"]] },
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
     { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
+    { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
+    { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
     { v: "/admin", values: "none", where: "Club PIN", what: "The admin page: homepage and TV notices, and switches for screen features. Settings are stored per club in Cloudflare KV (the SETTINGS binding).", ex: [["Admin", "/admin"]] },
     { v: "/unlock, /club-unlock", values: "pin, next", where: "PIN pages", what: "The DEV PIN page and the club PIN page. Redirects here automatically.", ex: [] }
   ] }
@@ -1869,6 +1882,14 @@ const DOC_SECTIONS = [
       "TV screen notice: a one-line strip on TV screens (the Fixtures board, the Match Centre and other layout=tv pages). Text up to 120 characters; keep it short. The normal phone pages do not show it (the Match Centre does, because it is a screen).",
       "Style: Information (blue) or Warning (amber). Hide automatically after: an optional date (UK time) after which the notice stops showing.",
       "Applies to (TV notice): Club teams only (the default), All screens, or Chosen teams. Club teams only means the teams on the club's Links page, so another club's screen never shows it."
+    ] },
+    { h: "Inbox" },
+    { ul: [
+      "Visitors can write to you from the Message the Stats Board link at the bottom of the welcome page, or the small Message us link on phone team pages. They pick what it is about (something looks wrong, my team is not showing, an idea, something else), write a message of up to 1,000 characters and can add an email address if they want a reply. The page they came from is noted automatically.",
+      "When a new message is waiting, a small envelope with a count shows at the top of Admin. Pressing it opens the Inbox (also under Tools). Pick a message to read it; opening it marks it read.",
+      "On a message: Mark done, Keep for good, Open that page, and Delete (press twice). Messages are deleted automatically after 90 days unless you press Keep.",
+      "Spam: a hidden field and a minimum fill time catch robots, and a visitor can send up to five messages an hour (ten an hour across the whole site). No IP address is stored.",
+      "The Message form for visitors switch (Admin, Messages) turns the form and its links off. Email notification and letting other signed-in people read messages are planned for later."
     ] },
     { h: "Screens" },
     { dl: [
@@ -2017,6 +2038,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.32.0", "Visitors can now message the Stats Board from a link on the welcome page and phone team pages. New messages show as an envelope with a count at the top of Admin and are read in a new Inbox. Messages are deleted after 90 days unless kept, and the form is protected against spam."],
       ["v3.31.2", "Match Centre on a wide TV: the Next game panel is no longer cut off at the bottom (the Home or Away tag, the Win Predictor bar, the position line and the table row are all shown)."],
       ["v3.31.1", "Our teams has a Show on screens switch on each team: switch it off to hide the team everywhere without deleting it, and on again to bring it back as it was."],
       ["v3.31.0", "The Match Centre now prepares each team separately in the background, so a cold start no longer runs out of requests and the Colts cup game is not lost. A team being prepared shows Updating this team for a moment."],
@@ -2226,7 +2248,7 @@ const SETTINGS_KEY = "club:" + CLUB_ID;
 const MAINT_LINES_DEFAULT = ["We're just lining up the conversion - Try again soon!", "Back after the break.", "We've gone into touch.", "Currently in the scrum.", "Awaiting the TMO.", "Held up over the line."];
 const SETTINGS_DEFAULT = () => ({
   notices: { home: { on: false, text: "", style: "info", until: "" }, tv: { on: false, text: "", style: "info", applies: "club", teams: [], until: "" } },
-  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false },
+  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false, contact: true },
   reporting: { days: 14 },
   signin: { days: 30 },
   matchCentre: { layout: "next" },
@@ -2416,7 +2438,7 @@ function cleanSettings(raw) {
   const h = n.home || {}, t = n.tv || {}, clubT = cleanClubTeams(r.club && r.club.teams), ids = (clubT || TEAMS_DEFAULT).map(x => String(x.team));
   d.notices.home = { on: h.on === true, text: txt(h.text, 200), style: style(h.style), until: until(h.until) };
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
-  for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback"]) d.features[k] = f[k] === false ? false : true;
+  for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback", "contact"]) d.features[k] = f[k] === false ? false : true;
   d.features.winchance = f.winchance === true;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
   { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
@@ -2513,7 +2535,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .nb{padding:14px 0;border-bottom:1px solid #1f2925}.nb:last-child{border:0}.nh{display:flex;justify-content:space-between;align-items:center;gap:14px}.nh b{font-size:15px;display:block}.nh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
 .ad .in{margin-top:9px}.ad input.in[type=date]{display:block;-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;height:46px;text-align:left}.ad input.in[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}.ad input.in[type=date]::-webkit-calendar-picker-indicator{margin:0}.two{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.two>div{flex:1;min-width:200px}.l{font-size:12px;color:#9eafa5;font-weight:700;margin-top:10px}.l span{font-weight:400}
 .cnt{font-size:12px;color:#91a49a;text-align:right;margin-top:3px}
-.tg{position:relative;flex:0 0 auto;width:46px;height:27px}.tg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}.tg span{position:absolute;inset:0;border-radius:99px;background:#2c3a34;transition:.15s}.tg span::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#cfd8d3;transition:.15s}.tg input:checked+span{background:#2f9d57}.tg input:checked+span::after{left:22px;background:#fff}.tg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}
+.env{position:relative;display:inline-flex;align-items:center;justify-content:center}.bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#2f9d57;color:#06150d;font:700 11px/14px Arial,Helvetica,sans-serif;text-align:center;border:2px solid #080b0d;box-sizing:border-box;display:block}.bdg[hidden]{display:none}body.light .bdg{border-color:#eef2ef;color:#fff}.tg{position:relative;flex:0 0 auto;width:46px;height:27px}.tg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}.tg span{position:absolute;inset:0;border-radius:99px;background:#2c3a34;transition:.15s}.tg span::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#cfd8d3;transition:.15s}.tg input:checked+span{background:#2f9d57}.tg input:checked+span::after{left:22px;background:#fff}.tg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}
 .seg{display:inline-flex;flex-wrap:wrap;border:1px solid #2c3a34;border-radius:18px;overflow:hidden;font-size:13px;font-weight:700;margin-top:6px}.seg label{position:relative}.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}.seg span{display:block;padding:7px 12px;color:#91a49a}.seg input:checked+span{background:#2f9d57;color:#fff}.seg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:-3px}
 .tw{margin-top:8px;display:flex;flex-direction:column;gap:6px}.tw label{display:flex;gap:8px;align-items:center;font-size:14px}
 .save{margin:22px 0 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.btn{font:700 15px Arial,Helvetica,sans-serif;background:#7fd19a;color:#0b1110;border:0;border-radius:99px;padding:12px 24px;cursor:pointer}.btn:disabled{opacity:.5;cursor:default}.n{font-size:12.5px;color:#91a49a}
@@ -2523,10 +2545,11 @@ body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r
 @media (max-width:520px){.tmb{display:grid;grid-template-columns:1fr 1fr}.tb{white-space:nowrap}}
 body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}body.light .tm{border-color:#e3ebe5}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap ad">
-<nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><button type="button" class="pill tgl">Light mode</button></nav>
+<nav class="mbar"><a class="pill" href="/?view=teams">&lsaquo; Menu</a><span style="display:flex;gap:8px;align-items:center"><a class="pill env" id="env" href="/inbox" aria-label="Inbox, no new messages" title="Inbox" ${kvOk ? "" : "hidden"}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6.5L20.5 7"/></svg><b class="bdg" id="envn" hidden></b></a><button type="button" class="pill tgl">Light mode</button></span></nav>
+<script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2554,6 +2577,9 @@ ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: 
 <div class="tw" id="tw" hidden>${TEAMS.map(x => `<label><input type="checkbox" class="tc" value="${ea(x.team)}"${v.teams.includes(String(x.team)) ? " checked" : ""}> ${ea(x.name)}</label>`).join("")}</div>
 <p class="n" style="margin:6px 0 0">Club teams only means the teams on this club's Links page. Another club's screen never shows this notice.</p>
 <div class="two"><div><div class="l">Style</div>${seg("ts", v.style, styleOpts)}</div><div><div class="l">Hide automatically after <span>(optional)</span></div><input class="in" type="date" id="tu" value="${ea(v.until)}" style="margin-top:6px"></div></div></div>
+</div>
+<div class="cd" style="margin-top:14px">
+${sw("fm", s.features.contact, "Message form for visitors", "Adds a Message the Stats Board link on the welcome page and a small Message us link on phone team pages. Visitors write to you, and you read the messages in the <a href=\"/inbox\" style=\"color:#7fd89a\">Inbox</a>. Messages are deleted after 90 days unless you press Keep. Turn this off to stop taking messages.")}
 </div>
 </section>
 <section class="sec" id="s-screens" hidden><h1>Screens</h1><p class="sub">What appears on the clubhouse TVs and the Match Centre. Phones are not affected.</p>
@@ -2648,7 +2674,7 @@ addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.retur
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -2685,7 +2711,7 @@ async function maintenanceGate(request) {
     }
     return maintenancePage(m, true);
   }
-  if (["/admin", "/api/admin", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
+  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
   const st = await siteSettings();
   if (!st.maintenance.on) return null;
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
@@ -2807,6 +2833,147 @@ async function adminApi(request, url) {
   return J({ ok: true, savedAt: s.savedAt, label: ukStamp(s.savedAt) });
 }
 
+// Visitor messages (v3.32). A public form at /contact writes one KV record per message (key msg:<reversed time>-<rand>) that
+// expires by itself after 90 days unless the owner presses Keep. The list metadata carries what the Inbox list needs, so listing
+// the inbox is one KV read. Spam guard: hidden field, minimum fill time, 5 per visitor and 10 in total per hour. The /inbox page
+// and /api/inbox sit behind the club PIN like the rest of Admin.
+const MSG_PREFIX = "msg:", MSG_DAYS = 90, MSG_MAX = 1000, MSG_RATE_IP = 5, MSG_RATE_ALL = 10;
+const MSG_REASONS = { data: "Something looks wrong", team: "My team isn't showing", idea: "An idea", other: "Something else" };
+const MSG_ID_RE = /^msg:\d{13}-[a-z0-9]{4}$/;
+function msgFrom(v, host) {
+  if (typeof v !== "string" || !v) return "";
+  try { const u = new URL(v, "https://" + host); if (u.host !== host) return ""; return (u.pathname + u.search).slice(0, 200); } catch (_) { return ""; }
+}
+function msgMeta(m) { return { r: m.r, at: m.at, s: m.s, k: m.k ? 1 : 0, sn: m.text.slice(0, 80) }; }
+async function msgSave(kv, m) {
+  const o = { metadata: msgMeta(m) };
+  if (!m.k) o.expiration = m.exp;
+  await kv.put(m.id, JSON.stringify(m), o);
+}
+async function msgIpHash(request) {
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("msg|" + (request.headers.get("CF-Connecting-IP") || "")));
+  return Array.from(new Uint8Array(h)).slice(0, 8).map(x => x.toString(16).padStart(2, "0")).join("");
+}
+async function contactApi(request, url) {
+  const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: H });
+  if (request.method !== "POST") return J({ ok: false, error: "Use the message form." }, 405);
+  const kv = kvOf();
+  if (!kv || typeof kv.list !== "function") return J({ ok: false, error: "Messages are not available right now." }, 503);
+  if ((await siteSettings()).features.contact === false) return J({ ok: false, error: "Messages are switched off." }, 403);
+  const origin = request.headers.get("Origin");
+  if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
+  let b = null;
+  try { const raw = await request.text(); if (raw.length > 6000) return J({ ok: false, error: "That message is too long." }, 413); b = JSON.parse(raw); } catch (_) { b = null; }
+  if (!b || typeof b !== "object") return J({ ok: false, error: "That did not look right. Reload the page and try again." }, 400);
+  if (b.website) return J({ ok: true }); // hidden field filled in: a robot. Pretend it worked, store nothing.
+  if (!(Date.now() - Number(b.t0) >= 3000)) return J({ ok: false, error: "Please wait a moment and press Send again." }, 429);
+  const text = typeof b.text === "string" ? b.text.trim() : "";
+  if (text.length < 3) return J({ ok: false, error: "Please write a message first." }, 400);
+  if (text.length > MSG_MAX) return J({ ok: false, error: "Please keep it under " + MSG_MAX + " characters." }, 400);
+  const email = typeof b.email === "string" ? b.email.trim().slice(0, 120) : "";
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return J({ ok: false, error: "That email address does not look right. Fix it or leave it blank." }, 400);
+  const r = Object.prototype.hasOwnProperty.call(MSG_REASONS, b.reason) ? b.reason : "other";
+  const now = Date.now(), hour = Math.floor(now / 3600000);
+  const ik = "mrl:" + (await msgIpHash(request)) + ":" + hour, ak = "mrl:all:" + hour;
+  let ic = 0, ac = 0;
+  try { ic = parseInt(await kv.get(ik), 10) || 0; ac = parseInt(await kv.get(ak), 10) || 0; } catch (_) { /* counts unavailable: carry on */ }
+  if (ac >= MSG_RATE_ALL || ic >= MSG_RATE_IP) return J({ ok: false, error: "A lot of messages have arrived just now. Please try again in an hour." }, 429);
+  const id = MSG_PREFIX + String(9999999999999 - now).padStart(13, "0") + "-" + Math.random().toString(36).slice(2, 6).padEnd(4, "0");
+  const m = { id, at: new Date(now).toISOString(), r, text, email, from: msgFrom(b.from, url.host), s: "new", k: 0, exp: Math.floor(now / 1000) + MSG_DAYS * 86400 };
+  try {
+    await msgSave(kv, m);
+    await kv.put(ik, String(ic + 1), { expirationTtl: 3700 });
+    await kv.put(ak, String(ac + 1), { expirationTtl: 3700 });
+  } catch (_) { return J({ ok: false, error: "Sorry, that did not send. Please try again." }, 502); }
+  return J({ ok: true });
+}
+async function inboxApi(request, url) {
+  const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: H });
+  const kv = kvOf();
+  if (!kv || typeof kv.list !== "function") return J({ ok: false, error: "Settings storage is not connected (no SETTINGS binding)." }, 503);
+  if (request.method === "GET") {
+    const id = url.searchParams.get("msg");
+    if (id) {
+      if (!MSG_ID_RE.test(id)) return J({ ok: false, error: "Not found." }, 404);
+      let m = null; try { m = await kv.get(id, { type: "json" }); } catch (_) { m = null; }
+      if (!m || m.id !== id) return J({ ok: false, error: "That message has gone." }, 404);
+      if (m.s === "new") { m.s = "read"; try { await msgSave(kv, m); } catch (_) { /* still shown */ } }
+      return J({ ok: true, m });
+    }
+    let l = null; try { l = await kv.list({ prefix: MSG_PREFIX, limit: 100 }); } catch (_) { return J({ ok: false, error: "Could not read the messages. Try again." }, 502); }
+    const items = (l.keys || []).map(k => { const x = k.metadata || {}; return { id: k.name, r: x.r || "other", at: x.at || "", s: x.s || "new", k: x.k ? 1 : 0, sn: x.sn || "" }; });
+    return J({ ok: true, items, news: items.filter(x => x.s === "new").length, more: l.list_complete === false });
+  }
+  if (request.method !== "POST") return J({ ok: false, error: "Use the Inbox page." }, 405);
+  const origin = request.headers.get("Origin");
+  if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
+  let b = null; try { b = JSON.parse(await request.text()); } catch (_) { b = null; }
+  if (!b || typeof b.id !== "string" || !MSG_ID_RE.test(b.id)) return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+  const act = b.act;
+  if (act === "delete") { try { await kv.delete(b.id); } catch (_) { return J({ ok: false, error: "Could not delete. Try again." }, 502); } return J({ ok: true }); }
+  let m = null; try { m = await kv.get(b.id, { type: "json" }); } catch (_) { m = null; }
+  if (!m || m.id !== b.id) return J({ ok: false, error: "That message has gone." }, 404);
+  if (act === "done") m.s = "done"; else if (act === "undone") m.s = "read";
+  else if (act === "keep") m.k = 1;
+  else if (act === "unkeep") { m.k = 0; m.exp = Math.floor(Date.now() / 1000) + MSG_DAYS * 86400; }
+  else return J({ ok: false, error: "Unknown action." }, 400);
+  try { await msgSave(kv, m); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
+  return J({ ok: true, m });
+}
+function contactPage(theme, isDev, from, on, hasKv) {
+  const t = theme === "light" ? "light" : "dark", ea = noticeEsc, fr = ea(msgFrom(from, "x.invalid"));
+  const chips = Object.entries(MSG_REASONS).map(([k, v], i) => `<label class="ch"><input type="radio" name="r" value="${k}"${i === 0 ? " checked" : ""}><span>${ea(v)}</span></label>`).join("");
+  const body = !on || !hasKv ? `<p class="sub">Messages are not being taken at the moment.</p><p><a class="btn" href="/">Back to The Stats Board</a></p>` : `
+<form id="mf" onsubmit="return false" novalidate>
+<div class="l">What is it about?</div><div class="chs">${chips}</div>
+<p class="hint" id="hint"></p>
+<label class="l" for="mt">Your message</label><textarea id="mt" rows="6" maxlength="${MSG_MAX}" placeholder="Tell us what you saw or what you would like"></textarea>
+<label class="l" for="me">Your email <span>(optional, only if you want a reply)</span></label><input id="me" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="you@example.com">
+<div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" aria-hidden="true"><label>Leave this empty<input id="mw" tabindex="-1" autocomplete="off"></label></div>
+<p class="n">${from ? "We will note the page you came from, so you do not need to say which team or game. " : ""}Your email is only used to reply. Messages are deleted after ${MSG_DAYS} days.</p>
+<p id="mm" class="msg" role="alert"></p>
+<button type="submit" class="btn" id="mg">Send message</button>
+</form>
+<div id="ok" hidden><h2>Thanks, message sent</h2><p class="sub">We read every message. If you left an email address we may reply, otherwise you may see the fix on the site.</p><p><a class="btn" href="/">Back to The Stats Board</a></p></div>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Message the Stats Board</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:560px}.l{display:block;font-size:13px;color:#9eafa5;font-weight:700;margin:16px 0 6px}.l span{font-weight:400}.chs{display:flex;flex-wrap:wrap;gap:8px}.ch{position:relative}.ch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}.ch span{display:block;padding:11px 14px;border-radius:99px;border:1px solid #2c3a34;background:#111719;font-size:15px;font-weight:700;color:#e6efe9}.ch input:checked+span{background:#2f9d57;border-color:#2f9d57;color:#fff}.ch input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}.hint{font-size:14px;line-height:1.45;color:#cfe0d6;background:#111719;border:1px solid #26312d;border-radius:12px;padding:11px 13px;margin:12px 0 0}textarea,#me{width:100%;background:#111719;color:#f5f7f6;border:1px solid #2c3a34;border-radius:12px;padding:12px 14px;font:16px/1.4 Arial,Helvetica,sans-serif}#me{min-height:48px}textarea{resize:vertical}.n{font-size:13px;line-height:1.5;color:#91a49a;margin:14px 0}.msg{min-height:20px;font-size:14px;color:#f09595;margin:0 0 8px}.btn{display:inline-block;text-decoration:none;font:700 17px Arial,Helvetica,sans-serif;background:#7fd19a;color:#0b1110;border:0;border-radius:12px;padding:14px 24px;cursor:pointer;width:100%;text-align:center}.btn:disabled{opacity:.5}body.light .ch span,body.light .hint,body.light textarea,body.light #me{background:#fff;border-color:#cbd8ce;color:#14201a}body.light .btn{background:#1b7f3b;color:#fff}body.light .ch input:checked+span{color:#fff}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="${from ? fr : "/"}">&lsaquo; Back</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Message the Stats Board</h1><p class="sub">Spotted something wrong, cannot find your team, or have an idea? Tell us.</p>${body}
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var f=document.getElementById("mf");if(!f)return;var T0=Date.now(),H={data:"Tell us what looks wrong. We will note the page you came from.",team:"Tell us the team name and the league it plays in, as the RFU shows it.",idea:"What would make The Stats Board more useful to you or your club?",other:"Anything else you would like us to know."},FROM=${JSON.stringify(from ? msgFrom(from, "x.invalid") : "")};
+function reason(){var c=f.querySelector("input[name=r]:checked");return c?c.value:"other"}function hint(){document.getElementById("hint").textContent=H[reason()]}f.addEventListener("change",hint);hint();
+f.addEventListener("submit",function(){var m=document.getElementById("mm"),b=document.getElementById("mg");m.textContent="";var t=document.getElementById("mt").value.trim();if(t.length<3){m.textContent="Please write a message first.";return}
+b.disabled=true;fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason:reason(),text:t,email:document.getElementById("me").value,website:document.getElementById("mw").value,t0:T0,from:FROM||document.referrer})}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;if(j&&j.ok){f.hidden=true;document.getElementById("ok").hidden=false;window.scrollTo(0,0)}else{m.textContent=(j&&j.error)||"Sorry, that did not send. Please try again."}}).catch(function(){b.disabled=false;m.textContent="Sorry, that did not send. Check your connection."})})})();</script></body></html>`;
+}
+function inboxPage(theme, isDev, hasKv) {
+  const t = theme === "light" ? "light" : "dark";
+  const reasons = JSON.stringify(MSG_REASONS);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Inbox</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:1000px}.ib{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px;align-items:start}.lst{display:flex;flex-direction:column;gap:8px}.it{text-align:left;display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-radius:12px;border:1px solid #26312d;background:#111719;color:#e6efe9;cursor:pointer;font:inherit}.it.on{border-color:#2f9d57;background:#15201b}.it.dn{opacity:.6}.it .a{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#91a49a}.it .a b{letter-spacing:.06em;text-transform:uppercase;color:#7fd89a;font-size:12px}.it .s{font-size:15px;line-height:1.4}.it.nw .s{font-weight:700}.it.rd .s{color:#a9bbb1}.dt{background:#111719;border:1px solid #26312d;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}.dt .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7fd89a;font-weight:700}.dt .w{font-size:13px;color:#91a49a}.dt .tx{font-size:17px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.dt .pg{font-size:14px;color:#a9bbb1;background:#0c1113;border:1px solid #26312d;border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}.dt .pg span{color:#cfe0d6}.ac{display:flex;gap:8px;flex-wrap:wrap}.ac button,.ac a{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:11px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9;text-decoration:none;display:inline-flex;align-items:center}.ac .pr{background:#7fd19a;color:#0b1110;border-color:#7fd19a}.ac .dg{color:#f09595;border-color:#5a2f2f}.em{color:#91a49a;padding:20px 4px;font-size:15px}.msg{color:#f09595;font-size:14px;min-height:18px}.bk{display:none}@media (max-width:760px){.ib{grid-template-columns:1fr}.ib.sel .lst{display:none}.ib:not(.sel) .dt{display:none}.bk{display:inline-flex}}body.light .it,body.light .dt{background:#fff;border-color:#cbd8ce;color:#14201a}body.light .it.on{background:#eef6f0}body.light .ac button,body.light .ac a{background:#f4f8f5;color:#14201a;border-color:#cbd8ce}body.light .ac .pr{background:#1b7f3b;color:#fff}body.light .dt .pg{background:#f4f8f5;border-color:#cbd8ce}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Inbox</h1><p class="sub" id="sub">${hasKv ? "Messages from visitors, newest first." : "No settings storage is connected, so there are no messages."}</p>
+<div class="ib" id="ib"><div class="lst" id="ls"></div><div class="dt" id="dt"><div class="em">Choose a message to read it.</div></div></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var R=${reasons},ls=document.getElementById("ls"),dt=document.getElementById("dt"),ib=document.getElementById("ib"),sub=document.getElementById("sub"),items=[],cur="",armed="";
+function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function when(iso){var d=new Date(iso);if(isNaN(d))return"";return d.toLocaleString("en-GB",{timeZone:"Europe/London",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function api(o,cb){fetch("/api/inbox",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(cb).catch(function(){cb({ok:false,error:"Check your connection."})})}
+function list(){var n=items.filter(function(x){return x.s==="new"}).length;sub.textContent=items.length?(n?n+" new. ":"")+"Messages from visitors, newest first.":"No messages yet. When someone writes, an envelope with a count shows at the top of Admin.";
+ls.innerHTML=items.map(function(x){return'<button type="button" class="it '+(x.id===cur?"on ":"")+(x.s==="new"?"nw":x.s==="done"?"dn rd":"rd")+'" data-id="'+e(x.id)+'"><span class="a"><b>'+e(R[x.r]||"Message")+'</b><span>'+e(when(x.at))+(x.k?" &middot; kept":"")+'</span></span><span class="s">'+e(x.sn)+'</span></button>'}).join("")}
+function show(m,msg){var del=armed===m.id;var exp=m.k?"Kept until you delete it":"Deleted automatically on "+new Date(m.exp*1000).toLocaleDateString("en-GB",{timeZone:"Europe/London",day:"numeric",month:"short",year:"numeric"});
+dt.innerHTML='<div><button type="button" class="bk ac" id="bk" style="border:0;background:none;color:#7fd89a;padding:0;min-height:36px;font:700 14px Arial">&lsaquo; All messages</button><div class="k">'+e(R[m.r]||"Message")+'</div><div class="w">'+e(when(m.at))+" &middot; "+(m.s==="done"?"Done":"Read")+" &middot; "+exp+'</div></div><div class="tx">'+e(m.text)+'</div><div class="pg">Page: <span>'+(m.from?e(m.from):"not recorded")+'</span><br>Reply to: <span>'+(m.email?e(m.email):"no email left")+'</span></div><div class="msg" id="er">'+e(msg||"")+'</div><div class="ac"><button type="button" class="pr" data-a="'+(m.s==="done"?"undone":"done")+'">'+(m.s==="done"?"Mark as not done":"Mark done")+'</button><button type="button" data-a="'+(m.k?"unkeep":"keep")+'">'+(m.k?"Stop keeping":"Keep for good")+'</button>'+(m.from?'<a href="'+e(m.from)+'" target="_blank" rel="noopener">Open that page</a>':"")+'<button type="button" class="dg" data-a="delete">'+(del?"Press again to delete":"Delete")+'</button></div>';
+document.getElementById("bk").onclick=function(){ib.classList.remove("sel");cur="";list()};dt.onclick=function(ev){var b=ev.target.closest("button[data-a]");if(!b)return;var a=b.getAttribute("data-a");if(a==="delete"&&armed!==m.id){armed=m.id;show(m);return}armed="";api({id:m.id,act:a},function(j){if(!j.ok){show(m,j.error||"That did not work.");return}if(a==="delete"){items=items.filter(function(x){return x.id!==m.id});cur="";ib.classList.remove("sel");dt.innerHTML='<div class="em">Deleted.</div>';list();return}var x=items.filter(function(y){return y.id===m.id})[0];if(x){x.s=j.m.s;x.k=j.m.k}show(j.m);list()})}}
+ls.onclick=function(ev){var b=ev.target.closest(".it");if(!b)return;cur=b.getAttribute("data-id");armed="";ib.classList.add("sel");list();fetch("/api/inbox?msg="+encodeURIComponent(cur)).then(function(r){return r.json()}).then(function(j){if(!j.ok){dt.innerHTML='<div class="em">'+e(j.error||"That message has gone.")+"</div>";return}var x=items.filter(function(y){return y.id===cur})[0];if(x&&x.s==="new")x.s="read";show(j.m);list()}).catch(function(){dt.innerHTML='<div class="em">Could not open that message.</div>'})};
+if(${hasKv ? "true" : "false"})fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j.ok){sub.textContent=j.error||"Could not read the messages.";return}items=j.items||[];list();if(j.more)sub.textContent+=" (Showing the newest 100.)"}).catch(function(){sub.textContent="Could not read the messages."});else list()})();</script></body></html>`;
+}
+function contactInject(html, url) {
+  const q = url.searchParams;
+  if (url.pathname !== "/" || q.get("view") === "teams" || !(q.has("team") || q.has("view")) || ["layout", "ly", "screen", "embed", "frag", "format", "app", "s"].some(k => q.has(k)) || (q.get("device") || "").toLowerCase() === "tv") return html;
+  if (/class="clubhead"|layout=tv/.test(html) || html.includes('id="sbmsg"')) return html;
+  const a = `<a id="sbmsg" href="/contact?from=${encodeURIComponent((url.pathname + url.search).slice(0, 200))}" style="position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(2px,env(safe-area-inset-bottom));z-index:2147483644;font:11px/1 Arial,Helvetica,sans-serif;color:rgba(128,140,134,.95);text-decoration:underline;padding:6px 4px">Message us</a>`;
+  return html.replace(/<\/body>/i, a + "</body>");
+}
+
 // Visit counting and the Usage page (v3.10). Each counted request writes one data point to a Cloudflare Workers Analytics
 // Engine dataset (binding USAGE). No cookies, no IP addresses and no typed search text are stored. A person is counted once a
 // day by a one-way code made from IP + browser + date + a secret, which cannot be reversed or linked from one day to the next.
@@ -2822,7 +2989,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -4200,7 +4367,7 @@ body.light .wl .res,body.light .wl .chip{background:#fff;border-color:#cbd8ce}bo
 body.light .wl .hit:hover{background:#edf2ee}body.light .wl .hit[aria-current="true"]{background:#18512f;color:#fff}
 body.light .wl .lgp{background:#f4f7f5;border-color:#cbd8ce}body.light .wl .lgb{background:#fff;color:#18221c;border-color:#cbd8ce}
 `;
-function welcomePage(theme, base) {
+function welcomePage(theme, base, showContact) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${t === "light" ? "#eef2ef" : "#080b0d"}"><meta name="generator" content="${VERSION_LABEL}"><meta name="description" content="The Stats Board transforms England Rugby’s fixtures and results feeds into clear, easy-to-read pages for English rugby clubs."><title>The Stats Board</title>
 <style>
@@ -4221,7 +4388,7 @@ ${WELCOME_CSS}
 <div id="res" class="res" hidden></div>
 <div id="out" hidden></div>
 <p class="ver">${VERSION_LABEL}</p>
-<p class="ver" style="margin-top:6px"><a href="/admin" style="color:inherit">Club access</a></p>
+<p class="ver" style="margin-top:6px">${showContact ? '<a href="/contact" style="color:inherit">Message the Stats Board</a> &middot; ' : ""}<a href="/admin" style="color:inherit">Club access</a></p>
 </div>
 ${themeToggleScript}
 <script>
@@ -4512,6 +4679,16 @@ const worker = {
     // Admin page and its save endpoint (club PIN protected by clubGate, never cached, not indexed).
     if (url.pathname === "/api/admin") return adminApi(request, url);
     if (url.pathname === "/api/usage") return usageApi(url);
+    if (url.pathname === "/api/contact") return contactApi(request, url);
+    if (url.pathname === "/api/inbox") return inboxApi(request, url);
+    if (url.pathname.replace(/\/+$/, "") === "/contact") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(contactPage(th, isDev === true, url.searchParams.get("from") || "", (await siteSettings()).features.contact !== false, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
+    if (url.pathname.replace(/\/+$/, "") === "/inbox") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(inboxPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/usage") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(usagePage(th, isDev === true, (await siteSettings()).reporting.days), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -4627,7 +4804,7 @@ const worker = {
     // Welcome screen: the bare address with no team or view in the link.
     if ((url.pathname === "/" || url.pathname === "") && !["team", "view", "format", "competition", "division"].some(k => url.searchParams.has(k))) {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
-      return new Response(welcomePage(th, pubOrigin), { headers: { "Content-Type": "text/html;charset=utf-8" } });
+      return new Response(welcomePage(th, pubOrigin, (await siteSettings()).features.contact !== false && !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8" } });
     }
 
     // App shell (phones and iPads): tabs, team chip and Share around the normal views, which load in a frame.
@@ -7071,7 +7248,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/inbox" || path === "/api/inbox";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -7125,7 +7302,7 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg"];
 function pageKeySearch(sp) {
   const out = [];
   for (const k of KNOWN_PARAMS) if (k !== "screen") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
@@ -7228,7 +7405,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;
@@ -7359,7 +7536,8 @@ export default {
     page = pwaInject(page, new URL(request.url));
     page = appInject(page, new URL(request.url));
     page = brandInject(page, new URL(request.url));
-    const powered = (await siteSettings()).features.powered;
+    const siteSt = await siteSettings(), powered = siteSt.features.powered;
+    if (response.status === 200 && siteSt.features.contact !== false && kvOf()) page = contactInject(page, new URL(request.url));
     if (!label) { page = withStamp(page, powered); const ph = new Headers(response.headers); ph.set("X-Stats-Board-Version", VERSION);
       const out = new Response(page, { status: response.status, statusText: response.statusText, headers: ph });
       storePage(page, response.status, ph);

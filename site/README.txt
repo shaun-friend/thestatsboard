@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.32.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.0_messages.zip                     | v3.31.2
 v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
 v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
 v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
@@ -251,6 +252,15 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.32.0 - Message the Stats Board (visitor messages and an Inbox)
+- Owner request (15-Nov-2026; mock-up Stats Board Messages canvas): a contact form for visitors, readable only by the owner for now, with a discreet envelope in Admin when a new message is waiting.
+- Decisions (15-Nov-2026): the page the visitor came from is attached; the visitor's email is optional; old messages clear out automatically but a message can be kept; spam protection yes; no email notification yet (to add later as an Admin option); reading messages should later become a role permission for a signed-in user.
+- Visitor side: /contact (public) with four reasons, a message of up to 1,000 characters and an optional email. Linked from the welcome page and as a small Message us link on phone team pages (not TV screens, Match Centre, Links or Admin pages). Admin switch "Message form for visitors" (on by default) turns the form and the links off.
+- Storage: one KV record per message (key msg:...) with a 90-day expiry, so clearing out needs no job. Keep removes the expiry; Stop keeping restores 90 days. The list is read from key metadata in one KV read.
+- Spam: a hidden field (robots are told it worked, nothing is stored), a three-second minimum fill time, five messages an hour per visitor (hashed, never stored) and ten an hour in total. Counters live in KV with an hour expiry.
+- Admin side: an envelope with a count at the top of Admin and an Inbox link under Tools; /inbox and /api/inbox sit behind the club PIN. Messages can be marked done, kept, deleted (press twice) and the page opened. The existing Admin section called Messages (the homepage and TV notices) is unchanged; the new one is called Inbox.
+- Request limits: a visit to the form costs at most five KV operations; the Inbox list is one KV read plus two for opening or changing a message; the envelope count is one KV read on opening Admin. No RFU or external requests are involved.
+- Docs: Admin guide, What's new
 v3.31.2 - Match Centre: the Next game panel no longer clips
 - Owner report (15-Nov-2026, two screenshots): on a wide, short screen the coloured Next game panel was cut off at the bottom (the Home/Away tag, the Win Predictor bar, the "1st v 4th" line, and on the four-team screen the Table row too).
 - Cause: the panel was given a fixed 60% of each column and the last result 40%, but the last result needs far less than that, so the panel ran out of room first.

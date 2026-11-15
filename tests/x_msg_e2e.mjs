@@ -1,0 +1,32 @@
+import http from 'http';import {createRequire} from 'module';const require=createRequire(import.meta.url);const {chromium}=require('playwright');
+let store={},meta={};
+const kv={get:async(k,o)=>{const v=store[k];if(v==null)return null;return o&&o.type==='json'?JSON.parse(v):v},put:async(k,v,o)=>{store[k]=v;meta[k]=o&&o.metadata},delete:async k=>{delete store[k];delete meta[k]},list:async o=>({keys:Object.keys(store).filter(k=>k.startsWith(o.prefix||'')).sort().map(k=>({name:k,metadata:meta[k]})),list_complete:true})};
+globalThis.fetch=async()=>({ok:false,status:404,text:async()=>''});
+const w=(await import(process.argv[2])).default;const env={CLUB_PIN:'1',SETTINGS:kv};const ctx={waitUntil(){}};
+let ck='';{const r0=await w.fetch(new Request('http://localhost:8799/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1'})}),env,ctx);ck=(r0.headers.get('Set-Cookie')||'').split(';')[0]}
+const srv=http.createServer(async(q,s)=>{let b=[];for await(const x of q)b.push(x);const body=Buffer.concat(b);
+ const r=await w.fetch(new Request('https://x.co.uk'+q.url,{method:q.method,headers:{'Content-Type':q.headers['content-type']||'','User-Agent':'Mozilla/5.0',Cookie:ck,'CF-Connecting-IP':'9.9.9.9'},body:q.method==='POST'?body:undefined}),env,ctx);
+ const h={};r.headers.forEach((v,k)=>{if(k!=='set-cookie')h[k]=v});s.writeHead(r.status,h);s.end(Buffer.from(await r.arrayBuffer()))}).listen(8799);
+const b=await chromium.launch();let bad=0;const c=(n,x)=>{if(!x){bad++;console.log('FAIL',n)}};
+const p=await b.newPage({viewport:{width:390,height:844}});const errs=[];p.on('pageerror',e=>errs.push(String(e)));
+await p.goto('http://localhost:8799/contact?from=%2F%3Fteam%3D11039%26view%3Dfixtures');
+await p.click('.ch:nth-child(3) input',{force:true});const hh=await p.textContent('#hint');c('hint changes with the reason '+hh,/more useful/.test(hh));
+await p.fill('#mt','Sponsor logos on the TV at half time please');
+await p.waitForTimeout(3100);await p.click('#mg');await p.waitForSelector('#ok:not([hidden])',{timeout:3000});c('thank you shown after sending',true);
+await p.screenshot({path:'w/msg_form_phone.png'});
+c('one message stored with its page',Object.keys(store).filter(k=>k.startsWith('msg:')).length===1&&/team=11039/.test(Object.values(store).find(v=>/Sponsor/.test(v))));
+const d=await b.newPage({viewport:{width:1100,height:700}});d.on('pageerror',e=>errs.push(String(e)));
+await d.goto('http://localhost:8799/admin');await d.waitForSelector('#envn:not([hidden])',{timeout:3000});c('the envelope shows a count of 1',(await d.textContent('#envn'))==='1');
+await d.screenshot({path:'w/msg_admin.png'});
+await d.click('#env');await d.waitForSelector('.it');c('inbox lists the message as new',await d.$('.it.nw')!==null);
+await d.click('.it');await d.waitForSelector('.dt .tx');c('message opens',/Sponsor logos/.test(await d.textContent('.dt .tx')));
+c('it is now read',await d.$('.it.nw')===null);
+await d.screenshot({path:'w/msg_inbox.png'});
+await d.click('text=Mark done');await d.waitForSelector('text=Mark as not done');c('mark done works',true);
+await d.click('text=Keep for good');await d.waitForSelector('text=Stop keeping');c('keep works',/kept/.test(await d.textContent('.lst')));
+await d.click('.dg');c('delete needs a second press',/Press again/.test(await d.textContent('.dg')));await d.click('.dg');await d.waitForSelector('text=Deleted.');c('delete works',Object.keys(store).filter(k=>k.startsWith('msg:')).length===0);
+const m=await b.newPage({viewport:{width:390,height:844}});m.on('pageerror',e=>errs.push(String(e)));
+await (await b.newPage()).close();
+await m.goto('http://localhost:8799/inbox');await m.waitForTimeout(500);await m.screenshot({path:'w/msg_inbox_phone.png'});
+c('no page errors',errs.length===0);if(errs.length)console.log(errs);
+await b.close();srv.close();console.log(bad?'FAILED':'ALL OK');process.exit(bad?1:0)
