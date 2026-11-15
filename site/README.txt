@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
 v3.33.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.0_opposition_redesign.zip         | v3.32.2
 v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
 v3.32.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.1_messages_polish.zip              | v3.32.0
@@ -255,6 +256,11 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.33.1 - Opposition report: form chips explained
+- Owner question (15-Nov-2026, DEV): the W / L chips looked like the wrong colours. They were right under the one colour rule (green good for your team), but a plain "W" for the opponent showing red was confusing.
+- The rows are now labelled with the opponent's name ("North Petherton's last 3 results") and a short key sits under the chips: green is good for your team (they lost), red is bad for your team (they won). Same for the close games row in the Luck check. Colours unchanged.
+- Tests: the labels and the key are present.
+- Docs: What's new
 v3.33.0 - Opposition report redesign and a fuller WhatsApp message
 - Owner request (15-Nov-2026): the report needed to be clearer, better organised and aligned, and the WhatsApp share needed to read properly offline. Presentation only: the data behind the report is unchanged.
 - New "At a glance" card at the top: win chance, difficulty, their form, head to head and their rest, each with a coloured dot (green good for your team, amber neutral, red bad) and a key. Tap a row to jump to that section. Jump links sit under it (This game, Their form, You v them, Season).

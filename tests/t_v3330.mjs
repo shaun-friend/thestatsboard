@@ -42,6 +42,7 @@ c('takeaway lines on the sections',(nostyle.match(/class="tk"/g)||[]).length>=2)
 c('phone: season section folded',/<details class="gfold">/.test(nostyle));
 c('their results labelled their win / their loss',/Their (win|loss) \d+/.test(nostyle));
 c('their loss is green, their win is red',!/chip w">Their win/.test(nostyle)&&!/chip l">Their loss/.test(nostyle));
+c('form chips say whose results and show the key',/Okehampton's last 3 results \(oldest to latest\)/.test(nostyle)&&/Green: good for Ivybridge 1XV \(they lost\)/.test(nostyle)&&/Red: bad for Ivybridge 1XV \(they won\)/.test(nostyle));
 // wide
 let tw=await (await get('/?view=opposition&layout=wide&'+base)).text();let nw=tw.replace(/<style>[\s\S]*?<\/style>/g,'');
 fs.writeFileSync(new URL('./w/opp_v3330w.html',import.meta.url),tw);

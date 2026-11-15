@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.33.1 15-Nov-2026 Opposition report: the W/L form chips now say whose results they are and show a green/red key (green good for your team, red bad).
 //   v3.33.0 15-Nov-2026 Opposition report redesign: At a glance card, jump links, one colour rule (green good for your team), numbered sections with takeaways, aligned two-by-two wide grid, and a fuller WhatsApp message that always includes directions.
 //   v3.32.2 15-Nov-2026 Inbox list: always shows reason, date and time, device and the start of each message, newest first (reads the message itself if the list has no details for it).
 //   v3.32.1 15-Nov-2026 Messages polish: welcome page branding and a fuller thank-you on the form, Inbox with Refresh and automatic refresh, date/time and device type on each message, an email-style reading view with a reason tag, and filters by reason.
@@ -249,7 +250,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.33.0";
+const VERSION = "v3.33.1";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -297,6 +298,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
 v3.33.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.0_opposition_redesign.zip         | v3.32.2
 v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
 v3.32.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.1_messages_polish.zip              | v3.32.0
@@ -510,6 +512,11 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.33.1 - Opposition report: form chips explained
+- Owner question (15-Nov-2026, DEV): the W / L chips looked like the wrong colours. They were right under the one colour rule (green good for your team), but a plain "W" for the opponent showing red was confusing.
+- The rows are now labelled with the opponent's name ("North Petherton's last 3 results") and a short key sits under the chips: green is good for your team (they lost), red is bad for your team (they won). Same for the close games row in the Luck check. Colours unchanged.
+- Tests: the labels and the key are present.
+- Docs: What's new
 v3.33.0 - Opposition report redesign and a fuller WhatsApp message
 - Owner request (15-Nov-2026): the report needed to be clearer, better organised and aligned, and the WhatsApp share needed to read properly offline. Presentation only: the data behind the report is unchanged.
 - New "At a glance" card at the top: win chance, difficulty, their form, head to head and their rest, each with a coloured dot (green good for your team, amber neutral, red bad) and a key. Tap a row to jump to that section. Jump links sit under it (This game, Their form, You v them, Season).
@@ -2066,6 +2073,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.33.1", "Opposition report: the W / L chips now say they are the opponent's results, with a short key under them (green is good for your team, red is bad)."],
       ["v3.33.0", "Opposition report: a new At a glance card at the top, jump links, one colour rule (green is good for your team, so their losses show green), tidier sections and an even grid on a wide screen. The WhatsApp share is now a full, well-organised message with emoji headings, scores from your side and directions to the ground."],
       ["v3.32.2", "Inbox: the message list always shows the reason, date and time, device and the start of the message, with the newest at the top."],
       ["v3.32.1", "Messages: the form now has the welcome page branding and a fuller thank-you message. The Inbox has a Refresh button (and refreshes itself every few minutes), shows the date and time and device type of each message, reads like an email with a coloured tag for the reason, and can be filtered by reason."],
@@ -5369,7 +5377,7 @@ ${themeToggleScript}
         if (df && df.status === "ok") {
           const vr = d.venue.record, vtxt = d.venue.n ? "Won " + vr.w + (vr.d ? ", drawn " + vr.d : "") + ", lost " + vr.l : "No games there yet";
           const chips = df.chips.map(x => `<span class="ch ${x === "W" ? "cb" : x === "L" ? "cg" : "cd"}">${x}</span>`).join("");
-          C.diff = `<div class="card"><h2>Game Difficulty: this game only</h2><div class="verdict v-${df.level}">${df.label}</div><div class="dbar d-${df.level}"><i></i><i></i><i></i></div><div class="dlab"><span>Easy</span><span>Medium</span><span>Hard</span></div><div class="row"><span>Table position</span><b>${e(ord(d.opp.position))} of ${d.tableSize}</b></div><div class="row"><span>Recent form (oldest to latest)</span><b class="chips">${chips}</b></div><div class="row"><span>Playing them at ${v.oppHome ? "their" : "your"} ground</span><b>${e(vtxt)}</b></div><p class="note">A guide from ${on}'s table position, last 3 results and record at this venue.</p></div>`;
+          C.diff = `<div class="card"><h2>Game Difficulty: this game only</h2><div class="verdict v-${df.level}">${df.label}</div><div class="dbar d-${df.level}"><i></i><i></i><i></i></div><div class="dlab"><span>Easy</span><span>Medium</span><span>Hard</span></div><div class="row"><span>Table position</span><b>${e(ord(d.opp.position))} of ${d.tableSize}</b></div><div class="row"><span>${on}'s last 3 results (oldest to latest)</span><b class="chips">${chips}</b></div><p class="ckn"><i class="dot g"></i> Green: good for ${me} (they lost) &nbsp;<i class="dot r"></i> Red: bad for ${me} (they won)</p><div class="row"><span>Playing them at ${v.oppHome ? "their" : "your"} ground</span><b>${e(vtxt)}</b></div><p class="note">A guide from ${on}'s table position, last 3 results and record at this venue.</p></div>`;
         } else if (df) {
           C.diff = `<div class="card"><h2>Game Difficulty: this game only</h2><p class="note" style="margin:0">Too early to say. ${on} ${df.games === 1 ? "has" : "have"} played ${df.games} game${df.games === 1 ? "" : "s"}, and the rating needs at least 3.</p></div>`;
         }
@@ -5389,7 +5397,7 @@ ${themeToggleScript}
           const pct = r0 => Math.round((r0 - 1) / Math.max(1, lk.N - 1) * 100);
           const sentence = luckText(lk, on, ord);
           const cch = lk.chips.map(x => `<span class="ch ${x === "W" ? "cb" : x === "L" ? "cg" : "cd"}">${x}</span>`).join("");
-          C.luck = `<div class="card"><h2>Luck check: ${on}</h2><div class="lk lk-${lk.verdict}"><b>${lk.label}</b></div><p class="note" style="margin:6px 0 10px">${sentence}</p><div class="dumb"><span class="dm-line"></span><i class="dm-dot" style="left:${pct(lk.tableRank)}%"></i><i class="dm-ring" style="left:${pct(lk.pdRank)}%"></i></div><div class="dmk"><span><i class="dm-dot s"></i> League table position (${ord(lk.tableRank)})</span><span><i class="dm-ring s"></i> By points difference (${ord(lk.pdRank)})</span></div><div class="big" style="grid-template-columns:1fr 1fr;margin-top:10px"><div><b>${lk.pdPerGame > 0 ? "+" : lk.pdPerGame < 0 ? "−" : ""}${Math.abs(lk.pdPerGame)}</b><span>Points difference per game (${ord(lk.pdRank)} best)</span></div><div><b>${lk.closeN} of ${lk.gamesN}</b><span>Games decided by 7 or fewer</span></div></div>${cch ? `<div class="row"><span>Close games (oldest to latest)</span><b class="chips">${cch}</b></div>` : ""}<p class="note">Worked out from league scores only: it cannot see injuries, cards or conditions.</p></div>`;
+          C.luck = `<div class="card"><h2>Luck check: ${on}</h2><div class="lk lk-${lk.verdict}"><b>${lk.label}</b></div><p class="note" style="margin:6px 0 10px">${sentence}</p><div class="dumb"><span class="dm-line"></span><i class="dm-dot" style="left:${pct(lk.tableRank)}%"></i><i class="dm-ring" style="left:${pct(lk.pdRank)}%"></i></div><div class="dmk"><span><i class="dm-dot s"></i> League table position (${ord(lk.tableRank)})</span><span><i class="dm-ring s"></i> By points difference (${ord(lk.pdRank)})</span></div><div class="big" style="grid-template-columns:1fr 1fr;margin-top:10px"><div><b>${lk.pdPerGame > 0 ? "+" : lk.pdPerGame < 0 ? "−" : ""}${Math.abs(lk.pdPerGame)}</b><span>Points difference per game (${ord(lk.pdRank)} best)</span></div><div><b>${lk.closeN} of ${lk.gamesN}</b><span>Games decided by 7 or fewer</span></div></div>${cch ? `<div class="row"><span>${on}'s close games (oldest to latest)</span><b class="chips">${cch}</b></div><p class="ckn"><i class="dot g"></i> Green: good for ${me} (they lost) &nbsp;<i class="dot r"></i> Red: bad for ${me} (they won)</p>` : ""}<p class="note">Worked out from league scores only: it cannot see injuries, cards or conditions.</p></div>`;
         } else if (lk && lk.status === "early") {
           C.luck = `<div class="card"><h2>Luck check: ${on}</h2><p class="note" style="margin:0">Too early to say. ${on} ${lk.played === 1 ? "has" : "have"} played ${lk.played} game${lk.played === 1 ? "" : "s"}, and the check needs at least 5.</p></div>`;
         }
@@ -5548,7 +5556,7 @@ ${wide ? `.wrap{max-width:1100px}.grid{display:grid;grid-template-columns:1fr 1f
 .glc{background:#10161a;border:1px solid #232d31;border-radius:18px;padding:16px 18px;margin:0 0 12px}.gh.sm{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#9eafa5;margin:0 0 4px}.gr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #1f292d;text-decoration:none;color:inherit}.gr small{display:block;font-size:12px;color:#9eafa5}.gr b{display:block;font-size:15px;line-height:1.3}.gr em{margin-left:auto;font-style:normal;color:#7f948a;font-size:18px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}.dot.g{background:#4fc27d}.dot.a{background:#e6b84a}.dot.r{background:#e8736f}.key{display:flex;gap:14px;flex-wrap:wrap;padding-top:10px;border-top:1px solid #1f292d;font-size:12px;color:#9eafa5}.key span{display:flex;align-items:center;gap:6px}
 .jmp{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;scrollbar-width:none}.jmp a{flex:none;padding:8px 14px;border-radius:99px;background:#111719;border:1px solid #2c3a34;color:#cfd8d3;font-size:13px;font-weight:700;text-decoration:none}html{scroll-behavior:smooth}.gb{scroll-margin-top:12px}
-.cg{background:#1d6539}.cb{background:#762e31}
+.cg{background:#1d6539}.cb{background:#762e31}.ckn{margin:2px 0 0;font-size:12px;color:#9eafa5;line-height:1.6}.ckn .dot{width:9px;height:9px;vertical-align:baseline}body.light .ckn{color:#53665a}
 body.light .glc{background:#fff;border-color:#cbd8ce}body.light .gr,body.light .key{border-top-color:#e0e7e1}body.light .gr small,body.light .key,body.light .gh.sm{color:#53665a}body.light .jmp a{background:#fff;border-color:#cbd8ce;color:#26382d}body.light .tk{background:#edf2ee;color:#26382d}body.light .nb{background:#dcf1e3;color:#1b7f3b}
 body.light .card{background:#fff;border-color:#cbd8ce}body.light .card h2{color:#40564a}body.light .big div,body.light .trend div{background:#edf2ee}body.light .big span,body.light .trend label,body.light .row span,body.light .trend small,body.light th,body.light .bar .d{color:#53665a}body.light .note,body.light .sub,body.light .foot{color:#53665a}body.light td,body.light .row{border-top-color:#e0e7e1}body.light .tag{background:#dcebf6;color:#1d5a85}body.light .up{color:#1b7f3b}body.light .dn{color:#a32d2d}body.light .am{color:#8a5a00}
 </style></head><body class="${theme}">${themeBoot("true")}<div class="wrap">
