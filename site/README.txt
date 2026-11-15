@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.32.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.1_messages_polish.zip              | v3.32.0
 v3.32.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.0_messages.zip                     | v3.31.2
 v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
 v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
@@ -252,6 +253,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.32.1 - Messages polish
+- Owner feedback (15-Nov-2026) after trying v3.32.0 on DEV.
+- The message form and the thank-you now carry the welcome page branding (wordmark and tagline). The thank-you reads: "Thank you for your message." then a short paragraph about reading every message and resolving what we can, and that a requested feature may appear in the next release.
+- Inbox: a Refresh button, and it refreshes by itself every three minutes while the page is open and visible (one KV read each time). The list shows the day, date and time each message was received. A coloured tag (Fault, Team request, Idea, Other) sits beside the subject.
+- Device type: the form now records a short device description worked out from the browser (for example "Phone - iOS - Safari" or "Computer - Windows - Chrome"; a Mac with a touch screen is an iPad, a smart TV is a TV). The raw browser string is not kept, and the form says the device type is noted.
+- Reading view: opens like an email, with the subject (first line of the message), a tag, From, Received (full date and time), Device, Page and Status, then the message, with the actions along the top.
+- Filters: chips for All and each reason with counts, plus Hide done.
+- Docs: Admin guide, What's new
 v3.32.0 - Message the Stats Board (visitor messages and an Inbox)
 - Owner request (15-Nov-2026; mock-up Stats Board Messages canvas): a contact form for visitors, readable only by the owner for now, with a discreet envelope in Admin when a new message is waiting.
 - Decisions (15-Nov-2026): the page the visitor came from is attached; the visitor's email is optional; old messages clear out automatically but a message can be kept; spam protection yes; no email notification yet (to add later as an Admin option); reading messages should later become a role permission for a signed-in user.

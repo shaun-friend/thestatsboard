@@ -19,8 +19,13 @@ const d=await b.newPage({viewport:{width:1100,height:700}});d.on('pageerror',e=>
 await d.goto('http://localhost:8799/admin');await d.waitForSelector('#envn:not([hidden])',{timeout:3000});c('the envelope shows a count of 1',(await d.textContent('#envn'))==='1');
 await d.screenshot({path:'w/msg_admin.png'});
 await d.click('#env');await d.waitForSelector('.it');c('inbox lists the message as new',await d.$('.it.nw')!==null);
-await d.click('.it');await d.waitForSelector('.dt .tx');c('message opens',/Sponsor logos/.test(await d.textContent('.dt .tx')));
+await d.click('.it');await d.waitForSelector('#dt .tx');c('message opens',/Sponsor logos/.test(await d.textContent('#dt .tx')));
 c('it is now read',await d.$('.it.nw')===null);
+c('the tag shows beside the subject',/Idea/.test(await d.textContent('#dt .sj')));
+c('the received date and time and device are shown',/2026/.test(await d.textContent('#dt .mr'))&&/Device/.test(await d.textContent('#dt .mr')));
+c('the filter chips count by reason',/Idea\s*1/.test(await d.textContent('#fl')));
+await d.click('.fc[data-f=team]');c('filtering by another reason hides it',await d.$('.it')===null);await d.click('.fc[data-f=idea]');await d.waitForSelector('.it');c('filtering by this reason shows it',true);await d.click('.fc[data-f=all]');
+await d.click('#rf');await d.waitForTimeout(300);c('refresh keeps the list',await d.$('.it')!==null);
 await d.screenshot({path:'w/msg_inbox.png'});
 await d.click('text=Mark done');await d.waitForSelector('text=Mark as not done');c('mark done works',true);
 await d.click('text=Keep for good');await d.waitForSelector('text=Stop keeping');c('keep works',/kept/.test(await d.textContent('.lst')));

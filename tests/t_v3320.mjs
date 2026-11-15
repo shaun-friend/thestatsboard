@@ -22,6 +22,9 @@ let r=await get('/contact');let t=await r.text();
 c('the form is public and has its fields',r.status===200&&/Message the Stats Board/.test(t)&&/name="r"/.test(t)&&/id="mt"/.test(t)&&/id="mw"/.test(t));
 c('the form says messages are deleted after 90 days',/deleted after 90 days/.test(t));
 c('the form is not indexed',/noindex/.test(t));
+c('the form carries the welcome page branding',/BOARD/.test(t)&&/rugby fixtures, results and tables at a glance/.test(t));
+c('the thank you wording is the new text',/Thank you for your message\./.test(t)&&/aim to resolve as many of the problems we hear about as we can/.test(t)&&/you may see your request on the site in our next release/.test(t)&&/check back soon/.test(t));
+c('the form says the device type is noted',/type of device/.test(t));
 // spam guard
 r=await send(good({t0:Date.now()-500}));c('too fast is refused',r.status===429&&keys().length===0);
 r=await send(good({website:'http://spam.example'}));c('hidden field filled in: pretends ok, stores nothing',(await r.json()).ok===true&&keys().length===0);
@@ -30,12 +33,20 @@ r=await send(good({text:'x'.repeat(1001)}));c('over 1000 characters refused',r.s
 r=await send(good({email:'not an email'}));c('bad email refused',r.status===400&&keys().length===0);
 r=await send(good({reason:'bogus'}));let j=await r.json();c('an unknown reason is accepted as other',j.ok===true&&keys().length===1);
 let m=JSON.parse(store[keys()[0]]);
+c('the device type is worked out (a plain browser is a computer) and no raw user agent is kept',m.dc==='Computer'&&meta[keys()[0]].d==='Computer'&&!/Mozilla/.test(store[keys()[0]]));
 c('stored as new, with a 90 day expiry',m.s==='new'&&m.r==='other'&&Math.abs(expi[keys()[0]]-(Date.now()/1000+90*86400))<120);
 c('the page they came from is kept',m.from==='/?team=11039&view=fixtures');
 c('metadata carries the list fields',meta[keys()[0]].s==='new'&&meta[keys()[0]].r==='other'&&/Colts/.test(meta[keys()[0]].sn));
 r=await send(good({from:'https://evil.example/x',email:'a@b.co'}));await r.json();
 let ms=keys().map(k=>JSON.parse(store[k]));c('an address on another site is dropped, an email is kept',ms.some(x=>x.from===''&&x.email==='a@b.co'));
 for(const k of Object.keys(store))if(k.startsWith('msg:')||k.startsWith('mrl:'))delete store[k];
+ip='7.7.7.7';r=await send(good({text:'From an iPhone'}),{'User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'});await r.json();
+let iph=keys().map(k=>JSON.parse(store[k])).find(x=>x.text==='From an iPhone');c('an iPhone is noted as Phone, iOS, Safari',iph&&iph.dv==='Phone \u00b7 iOS \u00b7 Safari'&&iph.dc==='Phone');
+ip='7.7.7.8';r=await send(good({text:'From an iPad',touch:true}),{'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'});await r.json();
+let ipd=keys().map(k=>JSON.parse(store[k])).find(x=>x.text==='From an iPad');c('a touch Mac is noted as an iPad',ipd&&ipd.dc==='Tablet'&&/iPadOS/.test(ipd.dv));
+ip='7.7.7.9';r=await send(good({text:'From a TV'}),{'User-Agent':'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 Chrome/76 TV Safari/537.36'});await r.json();
+c('a smart TV is noted as TV',keys().map(k=>JSON.parse(store[k])).some(x=>x.text==='From a TV'&&x.dc==='TV'));
+for(const k of Object.keys(store))if(k.startsWith('msg:')||k.startsWith('mrl:'))delete store[k];ip='1.1.1.1';
 // rate limits
 let sent=0;for(let i=0;i<6;i++){r=await send(good());if((await r.json()).ok)sent++}c('one visitor can send five an hour, not six',sent===5&&keys().length===5);
 ip='2.2.2.2';sent=0;for(let i=0;i<8;i++){r=await send(good());if((await r.json()).ok)sent++}c('the whole site takes ten an hour',sent===5&&keys().length===10);
@@ -45,11 +56,11 @@ for(const k of Object.keys(store))if(k.startsWith('msg:')||k.startsWith('mrl:'))
 r=await get('/inbox');c('/inbox needs the club PIN',r.status===303||r.status===401);
 r=await get('/api/inbox');c('/api/inbox needs the club PIN',r.status===303||r.status===401);
 r=await req('/api/inbox',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:'msg:0000000000000-aaaa',act:'delete'})});c('changing the inbox needs the club PIN',r.status===401);
-r=await inbox('/inbox');t=await r.text();c('/inbox opens with the PIN',r.status===200&&/Inbox/.test(t)&&/Mark done/.test(t));
+r=await inbox('/inbox');t=await r.text();c('/inbox opens with the PIN, with a refresh button and filters',r.status===200&&/Inbox/.test(t)&&/Mark done/.test(t)&&/id="rf"/.test(t)&&/id="fl"/.test(t)&&/setInterval/.test(t));
 // reading
 ip='3.3.3.3';await (await send(good({reason:'team',text:'Please add our U14s'}))).json();await new Promise(r=>setTimeout(r,5));ip='4.4.4.4';await (await send(good({reason:'idea',text:'Sponsor logos on the TV'}))).json();
 j=await (await inbox('/api/inbox')).json();
-c('the list shows both, newest first, both new',j.ok&&j.items.length===2&&j.news===2&&/Sponsor/.test(j.items[0].sn));
+c('the list shows both, newest first, both new, with the device',j.ok&&j.items.length===2&&j.news===2&&/Sponsor/.test(j.items[0].sn)&&j.items[0].d==='Computer');
 let id=j.items[1].id;
 j=await (await inbox('/api/inbox?msg='+encodeURIComponent(id))).json();c('opening a message returns it',j.ok&&/U14s/.test(j.m.text));
 j=await (await inbox('/api/inbox')).json();c('opening marks it read, one is still new',j.news===1&&j.items.find(x=>x.id===id).s==='read');
