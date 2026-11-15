@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.31.1 15-Nov-2026 Our teams: a Show on screens switch on each team hides it everywhere without deleting it (up to six showing, twelve in the list, at least one on).
 //   v3.31.0 15-Nov-2026 The Match Centre prepares each team in its own request (&warm=N from the page), so every team gets a fresh 50-request budget on the free plan. A team not ready shows its last complete answer or "Updating this team" and the page refreshes when the requests finish.
 //   v3.30.20 14-Nov-2026 Each visit now counts its outside requests (free plan allows 50): essential feeds may use 40, extras stop at 20 for one team (8 on the Match Centre, where many teams share one visit), and cache lookups are counted too. A cold six-team Match Centre made 83 requests (156 with cache lookups) and lost the Colts cup feed; it now stays within 50.
 //   v3.30.19 14-Nov-2026 A feed that fails quickly (server error, too many requests, dropped connection) is asked once more; the Feed log now says why a feed failed. Found from the first Feed log rows (Colts competition 1608, Brixham team feed).
@@ -243,7 +244,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.31.0";
+const VERSION = "v3.31.1";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -291,6 +292,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
 v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
 v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
 v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
@@ -498,6 +500,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.31.1 - Our teams: hide a team without deleting it
+- Owner request (15-Nov-2026): a slider on the Our teams page to hide a team without deleting it.
+- Each team has a "Show on screens" switch. Off hides the team everywhere (Links page, Match Centre, phone team bar, TV banners, calendar and page titles, because the site's team list leaves it out). Its friendly name, colour, league and RFU numbers stay saved, so switching it on restores it as it was. A hidden team is dimmed in the list.
+- Limits: up to six teams show at once (as in v3.30.14), up to twelve are kept in the list, and at least one must stay on (switching off the last one, or removing it, is refused, and the server shows the first team if a list ever arrived with everything hidden). Search to add a team is switched off at six showing, with a note to hide or remove one. Saving more than six showing keeps them all but hides the extras after the sixth.
+- Unchanged: nothing else changes for a club that does not use the switch; a team link or a Match Centre &teams= list still works for a team that is hidden.
+- Tests: hidden flag saved and kept, Admin shows the switch, Match Centre and the teams list leave out a hidden team, all-hidden keeps the first, eight visible gives six showing and two hidden, thirteen keeps twelve, switching back on keeps colour and league.
+- Docs: Admin guide, What's new
 v3.31.0 - Match Centre prepares each team in its own request
 - Owner report (14-Nov-2026, Feed log, 23:08): Colts "Missing: competition 1608 (request limit reached for this visit)". The held answer kept the right game on screen, but the cup feed could not be read.
 - Cause: the free Cloudflare plan allows 50 requests per visit, and Cloudflare counts cache lookups as well as outside fetches. A cold Match Centre built every team in one visit, so the later teams and competitions ran out of budget.
@@ -1840,6 +1849,7 @@ const DOC_SECTIONS = [
       "Add a team: type a team or club name, press Search, pick the team, then pick its league for this season. It is added with the RFU's own name as its friendly name; change it to what you want.",
       "Change league: use this on a team at the start of a season, or when it moves division. It searches the RFU for that team's leagues and replaces the old one.",
       "Move up, Move down and Remove set the order (the Links page and Match Centre follow it). The last team cannot be removed.",
+      "Show on screens: a switch on each team. Switch it off to hide the team everywhere (Links page, Match Centre, phone team bar, TV banners) without deleting it; its name, colour and league are kept, so switching it back on restores it as it was. Up to six teams can show at once and at least one has to stay on. The list holds up to twelve teams in all, so hidden teams are a way to keep a squad or a team for next season ready.",
       "Nothing changes until you press Save changes. Changes show on pages within about a minute.",
       "A name typed into a link (friendlyName) still wins over the Admin name, so TVs and bookmarks set up earlier keep showing what they showed. A link that repeats the RFU's own name counts as having no name. Links made from the Links page and the link builder no longer carry a name, so they follow the list.",
       "Teams that are not on the list, such as opponents, keep the name the RFU gives them."
@@ -1998,6 +2008,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.31.1", "Our teams has a Show on screens switch on each team: switch it off to hide the team everywhere without deleting it, and on again to bring it back as it was."],
       ["v3.31.0", "The Match Centre now prepares each team separately in the background, so a cold start no longer runs out of requests and the Colts cup game is not lost. A team being prepared shows Updating this team for a moment."],
       ["v3.30.20", "The Match Centre no longer runs out of outside requests with six teams (the cause of the Colts showing the wrong next game): extras like venue pages now wait their turn so the results feeds always get through."],
       ["v3.30.19", "A feed from the RFU that fails for a quick reason is now asked again once, which should stop the Colts next game flipping; the Feed log also says why a feed failed."],
@@ -2216,7 +2227,8 @@ const SETTINGS_DEFAULT = () => ({
 // Our teams (v3.29): the club's own team list, kept in the settings record. Each entry: team (RFU number), teamName (the RFU's own name),
 // name (the friendly name shown everywhere), short (phone jump bar label), accent (team colour), league, competition, division.
 const TEAM_PALETTE = ["#2f9e5b", "#d9a21b", "#c0303f", "#3d8fd6", "#8a63d2", "#e07b39", "#2aa5a5", "#c45a9a"];
-const MAX_CLUB_TEAMS = 6; // v3.30.14: the Match Centre and the screens are laid out for up to six teams
+const MAX_CLUB_TEAMS = 6; // v3.30.14: the Match Centre and the screens are laid out for up to six teams showing at once
+const MAX_CLUB_ALL = 12; // v3.31.1: teams can also be hidden (kept but not shown anywhere), up to twelve in the list
 function cleanClubTeams(arr) {
   if (!Array.isArray(arr)) return null;
   const txt = (x, max) => String(x == null ? "" : x).replace(/[\u0000-\u001f\u007f<>"]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -2224,11 +2236,15 @@ function cleanClubTeams(arr) {
   for (const r of arr) {
     if (!r || typeof r !== "object") continue;
     const team = String(r.team == null ? "" : r.team), comp = String(r.competition == null ? "" : r.competition), div = String(r.division == null ? "" : r.division);
-    if (!/^\d{1,9}$/.test(team) || !/^\d{1,9}$/.test(comp) || !/^\d{1,9}$/.test(div) || seen.has(team) || out.length >= MAX_CLUB_TEAMS) continue;
+    if (!/^\d{1,9}$/.test(team) || !/^\d{1,9}$/.test(comp) || !/^\d{1,9}$/.test(div) || seen.has(team) || out.length >= MAX_CLUB_ALL) continue;
     seen.add(team);
     const teamName = txt(r.teamName, 40) || txt(r.name, 40) || "Team", name = txt(r.name, 40) || teamName;
-    out.push({ name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
+    const hide = r.hidden === true && true;
+    out.push({ ...(hide ? { hidden: true } : {}), name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
   }
+  // v3.31.1: at most six showing at once (any more are hidden), and never an empty screen: if everything is hidden the first team shows.
+  let shown = 0; for (const t of out) { if (t.hidden) continue; if (shown >= MAX_CLUB_TEAMS) t.hidden = true; else shown++; }
+  if (out.length && !shown) delete out[0].hidden;
   return out.length ? out : null;
 }
 // Short label for the phone jump bar and Match sheet tabs (v3.29.2): worked out from the friendly name, so a rename updates it.
@@ -2364,7 +2380,7 @@ let TEAMS_STAMP = "d";
 function applyClubTeams(list) {
   const st = JSON.stringify(list); if (st === TEAMS_STAMP.src) return;
   let h = 5381; for (let i = 0; i < st.length; i++) h = ((h * 33) ^ st.charCodeAt(i)) >>> 0;
-  TEAMS.length = 0; for (const t of list) TEAMS.push({ ...t });
+  TEAMS.length = 0; for (const t of list) { if (t.hidden) continue; const { hidden, ...rest } = t; TEAMS.push(rest); } // hidden teams stay in the settings but are not shown anywhere
   TEAMS_STAMP = { src: st, toString() { return h.toString(36); } };
 }
 // A name in the link wins. A link whose friendlyName is empty, or just repeats the RFU name (teamName), carries no name of its
@@ -2492,7 +2508,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .tw{margin-top:8px;display:flex;flex-direction:column;gap:6px}.tw label{display:flex;gap:8px;align-items:center;font-size:14px}
 .save{margin:22px 0 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.btn{font:700 15px Arial,Helvetica,sans-serif;background:#7fd19a;color:#0b1110;border:0;border-radius:99px;padding:12px 24px;cursor:pointer}.btn:disabled{opacity:.5;cursor:default}.n{font-size:12.5px;color:#91a49a}
 body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r,body.light .nb{border-color:#e3ebe5}body.light .btn{background:#1b7f3b;color:#fff}body.light .seg{border-color:#cbd8ce}body.light .tg span{background:#c9d4cc}
-.tm{padding:14px 0;border-bottom:1px solid #1f2925}.tm:last-child{border:0}.tmt{display:flex;gap:12px;align-items:flex-end}.tmc{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#0b1110;font-weight:800;font-size:14px;margin-bottom:2px}.tmf{flex:1;min-width:0}.tmr{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.tmr>div{flex:1;min-width:140px}.tmr input[type=color]{padding:3px 6px;height:46px;cursor:pointer}.tmm{margin:8px 0 0!important;line-height:1.5}.tmb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tb{background:#26312d!important;color:#e6efe9!important;padding:8px 14px!important;font-size:13px!important}.tb.rm{color:#f09595!important}
+.tm{padding:14px 0;border-bottom:1px solid #1f2925}.tm:last-child{border:0}.tmt{display:flex;gap:12px;align-items:flex-end}.tmc{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#0b1110;font-weight:800;font-size:14px;margin-bottom:2px}.tmf{flex:1;min-width:0}.tmr{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.tmr>div{flex:1;min-width:140px}.tmr input[type=color]{padding:3px 6px;height:46px;cursor:pointer}.tmm{margin:8px 0 0!important;line-height:1.5}.tmh{opacity:.55}.tms{margin-top:10px!important}.tmb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tb{background:#26312d!important;color:#e6efe9!important;padding:8px 14px!important;font-size:13px!important}.tb.rm{color:#f09595!important}
 .tsr{display:flex;flex-direction:column;gap:6px;margin-top:10px}.tsr button{text-align:left;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;border-radius:12px;padding:11px 13px;font:600 14px Arial,Helvetica,sans-serif;cursor:pointer;display:flex;flex-direction:column;gap:2px}.tsr button small{color:#91a49a;font-weight:400;font-size:12.5px}
 @media (max-width:520px){.tmb{display:grid;grid-template-columns:1fr 1fr}.tb{white-space:nowrap}}
 body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}body.light .tm{border-color:#e3ebe5}
@@ -2597,19 +2613,21 @@ $("mlb").addEventListener("click",function(){$("mlc").hidden=!$("mlc").hidden});
 $("mad").addEventListener("click",function(){var v=$("mnl").value.replace(/\s+/g," ").trim();if(!v||lines.length>=20||lines.indexOf(v)>=0)return;sync();lines.push(v);$("mnl").value="";rl()});
 $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
-var MAXT=${MAX_CLUB_TEAMS},club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
+var MAXT=${MAX_CLUB_TEAMS},MAXALL=${MAX_CLUB_ALL},club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
 function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
-function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=club.length>=MAXT;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" The list is full (six teams at most). Remove a team to add another.").trim()}
+function shown(){return club.filter(function(t){return!t.hidden}).length}
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
+$("tml").addEventListener("change",function(e){var r=e.target.closest(".tm");if(!r||!e.target.classList.contains("thd"))return;var t=club[+r.getAttribute("data-i")],on=e.target.checked;if(!on&&shown()<2){e.target.checked=true;$("tm1").textContent="At least one team has to stay on.";return}if(on&&shown()>=MAXT){e.target.checked=false;$("tm1").textContent="Six teams can show at once. Hide another team first.";return}if(on)delete t.hidden;else t.hidden=true;rt();md()});
 $("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
 $("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
-if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
+if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1&&(club[i].hidden||shown()>1)){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
 function lgs(id,nm){$("tp").innerHTML="";$("tm1").textContent="Loading leagues for "+nm+"...";fetch("/api/builder/team?team="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){if(d.error)throw new Error(d.error);var ls=d.leagues||[];$("tm1").textContent=ls.length?"Choose the league for "+d.name+":":"No league found for "+d.name+" this season.";var h="";ls.forEach(function(l,k){h+='<button type="button" class="tlg" data-k="'+k+'">'+esc(l.divisionName)+'<small>'+esc(l.competitionName)+'</small></button>'});$("tp").innerHTML=h;$("tp").onclick=function(ev){var b=ev.target.closest(".tlg");if(!b)return;var l=ls[+b.getAttribute("data-k")],tid=String(d.team);
 if(addAt>=0){var t=club[addAt];t.league=l.divisionName;t.competition=String(l.competition);t.division=String(l.division)}else{var nn=d.name||nm;club.push({name:nn,accent:PAL[club.length%PAL.length],league:l.divisionName,competition:String(l.competition),division:String(l.division),team:tid,teamName:d.name||nm})}
 addAt=-1;$("tp").innerHTML="";$("tr").innerHTML="";$("tm1").textContent="Done. Press Save changes to keep it.";rt();md()};$("tp").scrollIntoView&&$("tp").scrollIntoView({block:"nearest"});if(ls.length===1&&addAt<0){var only=$("tp").querySelector(".tlg");if(only)only.click()}}).catch(function(e){$("tm1").textContent="Could not load that team: "+e.message})}
 function tfind(){var n=$("tq").value.trim();$("tp").innerHTML="";$("tr").innerHTML="";if(n.length<2){$("tm1").textContent="Type at least two letters.";return}$("tm1").textContent="Searching...";addAt=-1;fetch("/api/builder/search?name="+encodeURIComponent(n),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){var ts=d.teams||[];$("tm1").textContent=ts.length?ts.length+" found. Pick one:":"No teams match. Check the spelling or try the club name only.";var h="";ts.slice(0,25).forEach(function(t){h+='<button type="button" class="tsb" data-id="'+esc(t.id)+'" data-n="'+esc(t.name)+'">'+esc(t.name)+'<small>no. '+esc(t.id)+'</small></button>'});$("tr").innerHTML=h}).catch(function(){$("tm1").textContent="Search did not work. Try again."})}
 $("tgo").addEventListener("click",tfind);$("tq").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();tfind()}});
-$("tr").addEventListener("click",function(e){var b=e.target.closest(".tsb");if(!b)return;var id=b.getAttribute("data-id");if(club.some(function(t){return t.team===id})){$("tm1").textContent="That team is already on the list. Use Change league on it instead.";return}if(club.length>=MAXT){$("tm1").textContent="The list is full (six teams at most). Remove a team first.";return}addAt=-1;$("tr").innerHTML="";lgs(id,b.getAttribute("data-n"))});
+$("tr").addEventListener("click",function(e){var b=e.target.closest(".tsb");if(!b)return;var id=b.getAttribute("data-id");if(club.some(function(t){return t.team===id})){$("tm1").textContent="That team is already on the list. Use Change league on it instead.";return}if(shown()>=MAXT||club.length>=MAXALL){$("tm1").textContent="Six teams can show at once. Hide or remove a team first.";return}addAt=-1;$("tr").innerHTML="";lgs(id,b.getAttribute("data-n"))});
 rt();
 var SECS=["home","teams","notices","screens","match","data","privacy","access","status"];
 function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}

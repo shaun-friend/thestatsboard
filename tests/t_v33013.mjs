@@ -45,5 +45,5 @@ nextFx={...fut(15342,'Okehampton',true,3),competition:{name:'Devon Cup'},group:{
 const eight=Array.from({length:8},(_,i)=>({name:'Team '+i,teamName:'Team '+i,competition:'1699',division:'75791',team:String(5000+i),league:'L',accent:'#2f9e5b'}));
 r=await post({club:{teams:eight}});c('saving eight teams is accepted',(await r.json()).ok===true);
 const stored=Object.values(store).map(v=>{try{return JSON.parse(v)}catch(_){return null}}).find(o=>o&&o.club)||{};
-const kept=(stored.club&&stored.club.teams||[]).length;c('only six are kept',kept===6);
+const kept=(stored.club&&stored.club.teams||[]).length;const showing=(stored.club&&stored.club.teams||[]).filter(t=>!t.hidden).length;c('eight are kept but only six show (v3.31.1)',kept===8&&showing===6);
 console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

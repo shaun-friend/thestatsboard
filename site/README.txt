@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.31.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.1_hide_team.zip                    | v3.31.0
 v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
 v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
 v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
@@ -249,6 +250,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.31.1 - Our teams: hide a team without deleting it
+- Owner request (15-Nov-2026): a slider on the Our teams page to hide a team without deleting it.
+- Each team has a "Show on screens" switch. Off hides the team everywhere (Links page, Match Centre, phone team bar, TV banners, calendar and page titles, because the site's team list leaves it out). Its friendly name, colour, league and RFU numbers stay saved, so switching it on restores it as it was. A hidden team is dimmed in the list.
+- Limits: up to six teams show at once (as in v3.30.14), up to twelve are kept in the list, and at least one must stay on (switching off the last one, or removing it, is refused, and the server shows the first team if a list ever arrived with everything hidden). Search to add a team is switched off at six showing, with a note to hide or remove one. Saving more than six showing keeps them all but hides the extras after the sixth.
+- Unchanged: nothing else changes for a club that does not use the switch; a team link or a Match Centre &teams= list still works for a team that is hidden.
+- Tests: hidden flag saved and kept, Admin shows the switch, Match Centre and the teams list leave out a hidden team, all-hidden keeps the first, eight visible gives six showing and two hidden, thirteen keeps twelve, switching back on keeps colour and league.
+- Docs: Admin guide, What's new
 v3.31.0 - Match Centre prepares each team in its own request
 - Owner report (14-Nov-2026, Feed log, 23:08): Colts "Missing: competition 1608 (request limit reached for this visit)". The held answer kept the right game on screen, but the cup feed could not be read.
 - Cause: the free Cloudflare plan allows 50 requests per visit, and Cloudflare counts cache lookups as well as outside fetches. A cold Match Centre built every team in one visit, so the later teams and competitions ran out of budget.
