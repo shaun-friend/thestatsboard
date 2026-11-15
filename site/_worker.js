@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.34.0 15-Nov-2026 Win Predictor: never more lopsided than 80/20 until both sides have eight league games (85/15 after), an "Early season" note, a Win Predictor switch on each team in Admin, and a rallying line when the club's own side is the underdog (35% or less; Underdog line switch under Screens).
 //   v3.33.1 15-Nov-2026 Opposition report: the W/L form chips now say whose results they are and show a green/red key (green good for your team, red bad).
 //   v3.33.0 15-Nov-2026 Opposition report redesign: At a glance card, jump links, one colour rule (green good for your team), numbered sections with takeaways, aligned two-by-two wide grid, and a fuller WhatsApp message that always includes directions.
 //   v3.32.2 15-Nov-2026 Inbox list: always shows reason, date and time, device and the start of each message, newest first (reads the message itself if the list has no details for it).
@@ -250,7 +251,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.33.1";
+const VERSION = "v3.34.0";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -298,6 +299,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.34.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.0_win_predictor_early.zip          | v3.33.1
 v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
 v3.33.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.0_opposition_redesign.zip         | v3.32.2
 v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
@@ -512,6 +514,15 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.34.0 - Win Predictor: gentler early season, and a switch per team
+- Owner request (15-Nov-2026): the Women have moved up a league and are playing teams they have not met, so early percentages are rough, and a very low chance could demotivate the team.
+- The most lopsided chance shown used to be 97% to 3%. It is now 80% to 20% while the thinner side has played fewer than eight league games, and 85% to 15% from eight (the model itself is unchanged; the same limits are used by the check page). The ordering and the size of the gap are unchanged.
+- An "Early season: based on N games each" note sits under the bar until both sides have eight league games, and the How is this worked out? text says so.
+- Admin, Our teams: each team has a new Win Predictor switch. Off stops the win chance showing for that team only (Match Stats, team page, Match Centre, Opposition report and its WhatsApp message). It only matters while Win Predictor is on under Screens.
+- Owner request (15-Nov-2026): when your own team is the underdog (35% or less) a short rallying line shows under the bar, such as "Underdogs bite. Make them earn every metre." Eight lines, picked from the fixture so it is the same on every screen and reload. It also shows in the Opposition report and its WhatsApp message. New Underdog line switch under Screens (on by default).
+- Cached win chances from before the release are ignored (new cache key), so the new limits show straight away.
+- Tests: limits at 4, 7, 8 and 20 games, the old 97/3 limit for callers without a game count, early flag and note, how-it-works text, per-team switch saved, kept and honoured, Admin shows the switch.
+- Docs: Win Predictor, Admin guide
 v3.33.1 - Opposition report: form chips explained
 - Owner question (15-Nov-2026, DEV): the W / L chips looked like the wrong colours. They were right under the one colour rule (green good for your team), but a plain "W" for the opponent showing red was confusing.
 - The rows are now labelled with the opponent's name ("North Petherton's last 3 results") and a short key sits under the chips: green is good for your team (they lost), red is bad for your team (they won). Same for the close games row in the Luck check. Colours unchanged.
@@ -1868,14 +1879,16 @@ const DOC_SECTIONS = [
       "Every team gets a strength in points from the results in its division this season. Each game says: the home side's strength, minus the away side's strength, plus a home advantage, should equal the margin. All the teams are solved together, so beating a strong side counts for more than beating a weak one. A team with only a few games is pulled towards the middle until it has played more.",
       "Home advantage is measured from this league's own results (it is shrunk towards 4 points while there are few games).",
       "Last season's results count about half as much, and the season before about a quarter. Only games between teams in this season's division are used. A team that is new to the division starts at the middle and earns its rating this season.",
-      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 97% to 3%.",
+      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 85% to 15%, and while a side has played fewer than eight league games it is held to 80% to 20%, with an Early season note under the bar.",
       "Walkovers and games with no score are left out."
     ] },
+    { h: "Underdog line" },
+    { p: "When your own team has a 35% chance or less, a short rallying line appears under the bar, for example \"Underdogs bite. Make them earn every metre.\" The line is picked from the fixture, so it is the same on every screen and every reload. It also appears in the Opposition report and its WhatsApp message. The Underdog line switch under Screens turns it off." },
     { h: "When it is not shown" },
     { ul: [
       "Either side has played fewer than four league games this season.",
       "The next game is a cup, plate, friendly or similar game, or the other side is not in this league's table, so there is no common yardstick.",
-      "The switch in Admin is off."
+      "The switch in Admin is off, or the Win Predictor switch on that team in Our teams is off."
     ] },
     { h: "On a phone" },
     { p: "On a phone a How is this worked out? line under the bar opens a one-sentence version of the above for that game, such as how many points better one side is rated and what the home advantage adds. It is hidden on big screens." },
@@ -1906,7 +1919,7 @@ const DOC_SECTIONS = [
       "Add a team: type a team or club name, press Search, pick the team, then pick its league for this season. It is added with the RFU's own name as its friendly name; change it to what you want.",
       "Change league: use this on a team at the start of a season, or when it moves division. It searches the RFU for that team's leagues and replaces the old one.",
       "Move up, Move down and Remove set the order (the Links page and Match Centre follow it). The last team cannot be removed.",
-      "Show on screens: a switch on each team. Switch it off to hide the team everywhere (Links page, Match Centre, phone team bar, TV banners) without deleting it; its name, colour and league are kept, so switching it back on restores it as it was. Up to six teams can show at once and at least one has to stay on. The list holds up to twelve teams in all, so hidden teams are a way to keep a squad or a team for next season ready.",
+      "Show on screens: a switch on each team. Switch it off to hide the team everywhere (Links page, Match Centre, phone team bar, TV banners) without deleting it; its name, colour and league are kept, so switching it back on restores it as it was. Each team also has a Win Predictor switch: off stops the win chance showing for that team only (for example early in a promoted team's first season). Up to six teams can show at once and at least one has to stay on. The list holds up to twelve teams in all, so hidden teams are a way to keep a squad or a team for next season ready.",
       "Nothing changes until you press Save changes. Changes show on pages within about a minute.",
       "A name typed into a link (friendlyName) still wins over the Admin name, so TVs and bookmarks set up earlier keep showing what they showed. A link that repeats the RFU's own name counts as having no name. Links made from the Links page and the link builder no longer carry a name, so they follow the list.",
       "Teams that are not on the list, such as opponents, keep the name the RFU gives them."
@@ -2073,6 +2086,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.34.0", "Win Predictor: early in the season it is never more lopsided than 80% to 20% (85% to 15% once both sides have eight league games), with an Early season note under the bar. The club can also switch the Win Predictor off for a single team in Admin. When your own team is the underdog (35% or less) a short rallying line shows under the bar, which can be switched off under Screens."],
       ["v3.33.1", "Opposition report: the W / L chips now say they are the opponent's results, with a short key under them (green is good for your team, red is bad)."],
       ["v3.33.0", "Opposition report: a new At a glance card at the top, jump links, one colour rule (green is good for your team, so their losses show green), tidier sections and an even grid on a wide screen. The WhatsApp share is now a full, well-organised message with emoji headings, scores from your side and directions to the ground."],
       ["v3.32.2", "Inbox: the message list always shows the reason, date and time, device and the start of the message, with the newest at the top."],
@@ -2287,7 +2301,7 @@ const SETTINGS_KEY = "club:" + CLUB_ID;
 const MAINT_LINES_DEFAULT = ["We're just lining up the conversion - Try again soon!", "Back after the break.", "We've gone into touch.", "Currently in the scrum.", "Awaiting the TMO.", "Held up over the line."];
 const SETTINGS_DEFAULT = () => ({
   notices: { home: { on: false, text: "", style: "info", until: "" }, tv: { on: false, text: "", style: "info", applies: "club", teams: [], until: "" } },
-  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false, contact: true },
+  features: { around: true, weather: true, checked: true, wocolour: true, count: true, screens: true, powered: true, webfallback: true, winchance: false, underdog: true, contact: true },
   reporting: { days: 14 },
   signin: { days: 30 },
   matchCentre: { layout: "next" },
@@ -2311,7 +2325,7 @@ function cleanClubTeams(arr) {
     seen.add(team);
     const teamName = txt(r.teamName, 40) || txt(r.name, 40) || "Team", name = txt(r.name, 40) || teamName;
     const hide = r.hidden === true && true;
-    out.push({ ...(hide ? { hidden: true } : {}), name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
+    out.push({ ...(hide ? { hidden: true } : {}), ...(r.nowin === true ? { nowin: true } : {}), name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
   }
   // v3.31.1: at most six showing at once (any more are hidden), and never an empty screen: if everything is hidden the first team shows.
   let shown = 0; for (const t of out) { if (t.hidden) continue; if (shown >= MAX_CLUB_TEAMS) t.hidden = true; else shown++; }
@@ -2334,7 +2348,7 @@ function normCdf(z) { // Abramowitz and Stegun 7.1.26
   const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
   return z > 0 ? 1 - p : p;
 }
-const WIN_CFG = { minGames: 4, haPrior: 4, haK: 10, ridge: 3, sigma0: 17, sigmaK: 8, sigmaMin: 12, sigmaMax: 28, pMin: 3 };
+const WIN_CFG = { minGames: 4, haPrior: 4, haK: 10, ridge: 3, sigma0: 17, sigmaK: 8, sigmaMin: 12, sigmaMax: 28, pMin: 3, pEarly: 20, pFull: 15, fullGames: 8 };
 // games: [{ h: homeId, a: awayId, hs, as, w }] with w 1 for this season, 0.5 and 0.25 for earlier ones. Returns null when either side has fewer than minGames games this season.
 function winModel(games, homeId, awayId, cfg) {
   const C = { ...WIN_CFG, ...(cfg || {}) }; homeId = String(homeId); awayId = String(awayId);
@@ -2357,7 +2371,10 @@ function winModel(games, homeId, awayId, cfg) {
   const gap = r[homeId] - r[awayId], mu = gap + ha;
   return { pHome: normCdf(mu / sigma), mu, gap, ha, sigma, nHome: nH, nAway: nA, games: gs.length };
 }
-function winPercents(pHome) { const lo = WIN_CFG.pMin; const h = Math.max(lo, Math.min(100 - lo, Math.round(pHome * 100))); return { home: h, away: 100 - h }; }
+// v3.34.0: the most lopsided chance shown depends on how many league games the thinner side has had this season: 80/20 under eight games (early ratings are rough),
+// 85/15 from eight. Called without a game count (older callers and tests) the old 97/3 limit applies.
+function winFloor(n) { return n === undefined || n === null ? WIN_CFG.pMin : n >= WIN_CFG.fullGames ? WIN_CFG.pFull : WIN_CFG.pEarly; }
+function winPercents(pHome, n) { const lo = winFloor(n); const h = Math.max(lo, Math.min(100 - lo, Math.round(pHome * 100))); return { home: h, away: 100 - h }; }
 // Check on past games: each finished game is predicted using only the games played before it (this season only).
 // games need ts (time). Returns how often the favourite won, the Brier score (0 is perfect, 0.25 is always saying 50/50) and a calibration table.
 function winBacktest(games) {
@@ -2365,7 +2382,7 @@ function winBacktest(games) {
   let n = 0, fav = 0, favN = 0, brier = 0, homeW = 0, homeN = 0, mae = 0, hs = 0; const bk = {};
   for (const g of all) {
     const m = winModel(all.filter(x => x.ts < g.ts).map(x => ({ ...x, w: 1 })), g.h, g.a); if (!m) continue;
-    const out = g.hs > g.as ? 1 : g.hs < g.as ? 0 : 0.5, p = winPercents(m.pHome).home / 100;
+    const out = g.hs > g.as ? 1 : g.hs < g.as ? 0 : 0.5, p = winPercents(m.pHome, Math.min(m.nHome, m.nAway)).home / 100;
     n++; brier += (p - out) ** 2; mae += Math.abs((g.hs - g.as) - m.mu); homeN++; homeW += out;
     const f = p >= 0.5 ? p : 1 - p, fw = p >= 0.5 ? out : 1 - out; if (out !== 0.5) { favN++; fav += fw; }
     const k = f >= 0.9 ? "90+" : f >= 0.8 ? "80-89" : f >= 0.7 ? "70-79" : f >= 0.6 ? "60-69" : "50-59"; const b = bk[k] || (bk[k] = { n: 0, p: 0, w: 0 }); b.n++; b.p += f; b.w += fw;
@@ -2374,20 +2391,24 @@ function winBacktest(games) {
   return { predicted: n, finished: all.length, favouriteWon: favN ? r2(fav / favN) : null, favouriteGames: favN, brier: n ? r2(brier / n) : null, brierAlways5050: 0.25, homeWinRate: n ? r2(homeW / homeN) : null, avgMarginError: n ? Math.round(mae / n * 10) / 10 : null,
     buckets: ["50-59", "60-69", "70-79", "80-89", "90+"].filter(k => bk[k]).map(k => ({ band: k, games: bk[k].n, said: r2(bk[k].p / bk[k].n), happened: r2(bk[k].w / bk[k].n) })) };
 }
-const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
+const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wcq{font-size:.8em;font-weight:700;font-style:italic;margin-top:.55em;line-height:1.3}.wcm .wcq{text-align:center}.wce{font-size:.72em;font-weight:700;opacity:.8;margin-top:.5em;letter-spacing:.02em}.wcm .wce{text-align:center}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
 // Win chance bar (v3.30). win = { home: {name, pct}, away: {name, pct}, gap, ha }; home is on the left, as everywhere else on the site.
 // o.left / o.right are the two colours (CSS values); o.fs the font size the bar is scaled from.
 function winHow(win) {
   const g = Math.round(Math.abs(win.gap)), ha = Math.max(0, Math.round(win.ha)), hn = win.home.name, an = win.away.name;
   const lead = g < 1 ? hn + " and " + an + " are rated level on results" : win.gap > 0 ? hn + " are rated about " + g + " points better than " + an + " on results" : an + " are rated about " + g + " points better than " + hn + " on results";
-  return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter.";
+  const early = win.early ? " It is early in the season (" + win.n + " league games each so far), so the chance is kept between " + WIN_CFG.pEarly + "% and " + (100 - WIN_CFG.pEarly) + "% until both sides have played " + WIN_CFG.fullGames + "." : "";
+  return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter." + early;
 }
+// v3.34.0: a short rallying line under the Win Predictor bar when the club's own side is the underdog (35% or less). Neutral wording, no names; the line is picked from the fixture so it stays the same on every screen and reload.
+const UNDERDOG_LINES = ["Nobody expects it. That is when rugby gets interesting.", "Underdogs bite. Make them earn every metre.", "The bar says one thing. The 80 minutes say another.", "Form is a guess. Fire is a fact. Go and get it.", "Everyone loves an upset. Let's give them one.", "A percentage never won a ruck. Heart does.", "Back them loudly. The touchline is worth points.", "Written off? Good. Prove it wrong."];
+function underdogLine(win, mineHome, key) { if (!win || !win.home || !win.away) return ""; const mine = mineHome ? win.home.pct : win.away.pct; if (mine > 35) return ""; let h = 0; for (const ch of String(key)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return UNDERDOG_LINES[h % UNDERDOG_LINES.length]; }
 function winBarHtml(win, o) {
   if (!win || !win.home || !win.away) return "";
   const e = noticeEsc, op = o || {};
   const label = "Win Predictor: " + win.home.name + " " + win.home.pct + " percent, " + win.away.name + " " + win.away.pct + " percent";
   const st = `--wcl:${e(op.left || "#2f9e5b")};--wcr:${e(op.right || "#7f93a3")};--wcfs:${e(op.fs || "16px")}${op.leftFg ? ";--wclt:" + e(op.leftFg) : ""}${op.rightFg ? ";--wcrt:" + e(op.rightFg) : ""}`;
-  const how = `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
+  const how = (win.line ? `<div class="wcq">${e(win.line)}</div>` : "") + (win.early ? `<div class="wce">Early season: based on ${e(String(win.n))} games each</div>` : "") + `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
   if (op.compact) return WIN_CSS + `<div class="wc wcm" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcb"><i class="wl" style="flex:${win.home.pct}"><b>${win.home.pct}%</b>${win.home.pct >= 28 ? `<em>${e(win.home.name)}</em>` : ""}</i><i class="wr" style="flex:${win.away.pct}">${win.away.pct >= 28 ? `<em>${e(win.away.name)}</em>` : ""}<b>${win.away.pct}%</b></i></div>${how}</div>`;
   return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
 }
@@ -2479,6 +2500,7 @@ function cleanSettings(raw) {
   d.notices.tv = { on: t.on === true, text: txt(t.text, 120), style: style(t.style), applies: ["all", "club", "chosen"].includes(t.applies) ? t.applies : "club", teams: Array.isArray(t.teams) ? t.teams.map(String).filter(x => ids.includes(x)) : [], until: until(t.until) };
   for (const k of ["around", "weather", "checked", "wocolour", "count", "screens", "powered", "webfallback", "contact"]) d.features[k] = f[k] === false ? false : true;
   d.features.winchance = f.winchance === true;
+  d.features.underdog = f.underdog !== false;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
   { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
@@ -2629,6 +2651,7 @@ ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The smal
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
+${sw("fu", s.features.underdog, "Underdog line", "A short rallying line under the Win Predictor bar when your own team has a 35% chance or less, for example &ldquo;Underdogs bite. Make them earn every metre.&rdquo; Only shows while Win Predictor is on.")}
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
@@ -2692,8 +2715,8 @@ var MAXT=${MAX_CLUB_TEAMS},MAXALL=${MAX_CLUB_ALL},club=${JSON.stringify(s.club.t
 function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
 function shown(){return club.filter(function(t){return!t.hidden}).length}
-function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
-$("tml").addEventListener("change",function(e){var r=e.target.closest(".tm");if(!r||!e.target.classList.contains("thd"))return;var t=club[+r.getAttribute("data-i")],on=e.target.checked;if(!on&&shown()<2){e.target.checked=true;$("tm1").textContent="At least one team has to stay on.";return}if(on&&shown()>=MAXT){e.target.checked=false;$("tm1").textContent="Six teams can show at once. Hide another team first.";return}if(on)delete t.hidden;else t.hidden=true;rt();md()});
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><div class="r tms"><div><b>Win Predictor</b><small>Switch off to stop the win chance showing for this team. Only matters while Win Predictor is on under Screens.</small></div><label class="tg"><input type="checkbox" class="twp"'+(t.nowin?"":" checked")+'><span></span></label></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
+$("tml").addEventListener("change",function(e){var r=e.target.closest(".tm");if(r&&e.target.classList.contains("twp")){var tw=club[+r.getAttribute("data-i")];if(e.target.checked)delete tw.nowin;else tw.nowin=true;md();return}if(!r||!e.target.classList.contains("thd"))return;var t=club[+r.getAttribute("data-i")],on=e.target.checked;if(!on&&shown()<2){e.target.checked=true;$("tm1").textContent="At least one team has to stay on.";return}if(on&&shown()>=MAXT){e.target.checked=false;$("tm1").textContent="Six teams can show at once. Hide another team first.";return}if(on)delete t.hidden;else t.hidden=true;rt();md()});
 $("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
 $("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
 if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1&&(club[i].hidden||shown()>1)){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
@@ -2713,7 +2736,7 @@ addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.retur
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,underdog:$("fu").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -5488,6 +5511,7 @@ ${themeToggleScript}
         bits.push("");
         sec("\u{1F3AF}", "VERDICT", [
           winPct !== null ? "Win chance: *" + winPct + "%* " + myName + " (" + winOpp + "% " + oppName + ")" : "",
+          d.win && d.win.line ? "\u{1F4AA} " + d.win.line : "",
           df && df.status === "ok" ? "Difficulty: *" + df.label + "* " + (df.level === "easy" ? "\u{1F7E2}" : df.level === "hard" ? "\u{1F534}" : "\u{1F7E0}") : ""]);
         sec("\u{1F4C8}", "THEIR FORM", [
           nL ? formTxt + " (" + d.last.slice().reverse().map(g => g.out).join(" ") + ")" : "",
@@ -6477,10 +6501,11 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       const winChanceFor = async () => {
         const namesOfNext = [(next.group && next.group.name) || "", (next.competition && next.competition.name) || ""].join(" ");
         if (NOT_LEAGUE_RE.test(namesOfNext)) return null;
+        if ((TEAMS.find(t => String(t.team) === String(teamId)) || {}).nowin) return null; // v3.34.0: switched off for this team in Admin
         const idHome = String(nextHomeId), idAway = String(nextAwayId), idMe = String(teamId), idOpp = String(nextSide.home ? nextAwayId : nextHomeId);
         const divIds = new Set(table.map(t => String(t.id)));
         if (!divIds.has(idHome) || !divIds.has(idAway)) return null;
-        const key = [season, competition, division, idHome, idAway, resultObjects.length].join("|");
+        const key = ["v34", season, competition, division, idHome, idAway, resultObjects.length].join("|");
         const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 86400000) return hit.v;
         { const sh = await sharedGet("wp|" + key); if (sh && sh.ok) { WC_CACHE.set(key, { at: Date.now(), v: sh.v }); return sh.v; } }
         const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm) }; };
@@ -6502,11 +6527,11 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         }
         const m = winModel(games, idHome, idAway);
         let v = null;
-        if (m) { const pc = winPercents(m.pHome); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk }; }
+        if (m) { const nMin = Math.min(m.nHome, m.nAway), pc = winPercents(m.pHome, nMin); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk, n: nMin, early: nMin < WIN_CFG.fullGames }; }
         if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); await sharedPut("wp|" + key, { ok: true, v }, 86400); return v;
       };
       let nextWin = null;
-      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
+      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } if (nextWin && (await siteSettings()).features.underdog !== false) { const ul = underdogLine(nextWin, nextSide.home, [season, nextHomeId, nextAwayId, next.date || ""].join("|")); if (ul) nextWin = { ...nextWin, line: ul }; } }
       const winHex = v => { const t = String(v || "").trim().replace(/^#/, ""); return /^[0-9a-f]{6}$/i.test(t) ? "#" + t.toLowerCase() : ""; };
       const winOpp = "#7f93a3", winMe = winHex(url.searchParams.get("colour")) || (TEAMS.find(t => String(t.team) === String(teamId)) || {}).accent || "#2f9e5b";
       const nextTeamCrest = (id, name) => {

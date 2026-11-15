@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.34.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.0_win_predictor_early.zip          | v3.33.1
 v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
 v3.33.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.0_opposition_redesign.zip         | v3.32.2
 v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
@@ -256,6 +257,15 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.34.0 - Win Predictor: gentler early season, and a switch per team
+- Owner request (15-Nov-2026): the Women have moved up a league and are playing teams they have not met, so early percentages are rough, and a very low chance could demotivate the team.
+- The most lopsided chance shown used to be 97% to 3%. It is now 80% to 20% while the thinner side has played fewer than eight league games, and 85% to 15% from eight (the model itself is unchanged; the same limits are used by the check page). The ordering and the size of the gap are unchanged.
+- An "Early season: based on N games each" note sits under the bar until both sides have eight league games, and the How is this worked out? text says so.
+- Admin, Our teams: each team has a new Win Predictor switch. Off stops the win chance showing for that team only (Match Stats, team page, Match Centre, Opposition report and its WhatsApp message). It only matters while Win Predictor is on under Screens.
+- Owner request (15-Nov-2026): when your own team is the underdog (35% or less) a short rallying line shows under the bar, such as "Underdogs bite. Make them earn every metre." Eight lines, picked from the fixture so it is the same on every screen and reload. It also shows in the Opposition report and its WhatsApp message. New Underdog line switch under Screens (on by default).
+- Cached win chances from before the release are ignored (new cache key), so the new limits show straight away.
+- Tests: limits at 4, 7, 8 and 20 games, the old 97/3 limit for callers without a game count, early flag and note, how-it-works text, per-team switch saved, kept and honoured, Admin shows the switch.
+- Docs: Win Predictor, Admin guide
 v3.33.1 - Opposition report: form chips explained
 - Owner question (15-Nov-2026, DEV): the W / L chips looked like the wrong colours. They were right under the one colour rule (green good for your team), but a plain "W" for the opponent showing red was confusing.
 - The rows are now labelled with the opponent's name ("North Petherton's last 3 results") and a short key sits under the chips: green is good for your team (they lost), red is bad for your team (they won). Same for the close games row in the Luck check. Colours unchanged.
