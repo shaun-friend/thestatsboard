@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.34.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.2_tv_only_notes.zip                | v3.34.1
 v3.34.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.1_underdog_lines.zip               | v3.34.0
 v3.34.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.0_win_predictor_early.zip          | v3.33.1
 v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
@@ -258,6 +259,11 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.34.2 - Early season note and underdog line on TV screens only
+- Owner request (15-Nov-2026): show the note and the motivational line on TV views only.
+- The "Early season: based on N games each" note and the underdog line now show only on wide screens (900 pixels and up, the same cut-off as the other TV-only items) and are only slightly larger there, kept small so they never push anything out of the panel. Phones, the Opposition report on a phone and its WhatsApp message no longer carry them, and the phone "How is this worked out?" text no longer mentions the early-season limit. The 80/20 and 85/15 limits themselves are unchanged and apply on every screen.
+- Tests: a Win Predictor bar with both the note and the line is now part of the Match Centre fit check at 2576x858, 2576x923, 1920x1080, 1366x768, 1280x720 and 1024x600 (the earlier check had no bar in it). Also checked: hidden below 900px, shown from 900px, not in the WhatsApp message.
+- Docs: What's new
 v3.34.1 - Underdog lines reworded
 - Owner feedback (15-Nov-2026): the underdog lines sounded too American.
 - The eight lines now have a drier club-rugby voice, for example "Odds are for bookmakers. Get stuck in." and "Nobody has told the ball who is favourite." Nothing else changes: same 35% rule, same switch under Screens, still no team names in the lines.

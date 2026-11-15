@@ -48,14 +48,15 @@ c('early: flagged early with the game count',!!win&&win.early===true&&win.n===5)
 c('early: never more lopsided than 80/20',!!win&&win.home.pct<=80&&win.home.pct>=20);
 let h=await (await get('/?'+base)).text();
 c('early: note under the bar',/class="wce">Early season: based on 5 games each</.test(h));
-c('early: how-it-works text says so',/It is early in the season \(5 league games each so far\), so the chance is kept between 20% and 80% until both sides have played 8/.test(h));
+c('early: note is TV-only (hidden by default, shown from 900px)',/\.wcq,\.wce\{display:none\}/.test(h)&&/@media\(min-width:900px\)\{\.wcq\{display:block/.test(h)&&/\.wce\{display:block/.test(h));
+c('early: phone how-it-works text does not mention it',!/It is early in the season/.test(h));
 // 3. later in the season: whole round robin (7 games each plus)
 res=fullRes;w=await load();
 j=await sumM();win=j.next&&j.next.win;
 c('later: prediction shown, not early',!!win&&win.early===false&&win.n>=8);
 c('later: within 15 to 85',!!win&&win.home.pct<=85&&win.home.pct>=15);
 h=await (await get('/?'+base)).text();
-c('later: no early note on the page',!/class="wce"/.test(h)&&!/It is early in the season/.test(h));
+c('later: no early note on the page',!/class="wce"/.test(h));
 // 4. per-team switch
 const team=(o)=>({name:'Ivybridge 1XV',teamName:'Ivybridge',competition:'1699',division:'75791',team:'11039',league:'R2',accent:'#2f9e5b',...o});
 r=await post({features:{winchance:true},club:{teams:[team({nowin:true})]}});c('saving a team with the switch off is accepted',(await r.json()).ok===true);
@@ -69,6 +70,8 @@ r=await post({features:{winchance:true},club:{teams:[team({})]}});await r.json()
 j=await sumM();c('switch on again: win chance is back',!!(j.next&&j.next.win));
 r=await post({features:{winchance:true},club:{teams:[team({nowin:'yes'})]}});await r.json();w=await load();
 j=await sumM();c('only true switches it off (junk is ignored)',!!(j.next&&j.next.win));
+// WhatsApp message never carries the underdog line
+let wt=await (await get('/?view=opposition&'+base)).text();c('whatsapp: no underdog line',!/%F0%9F%92%AA/.test(wt));
 // 5. opposition report follows the same limits and the switch
 let t=await (await get('/?view=opposition&'+base)).text();
 c('opposition: early-season note appears only when early',!/class="wce"/.test(t));

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.34.2 15-Nov-2026 Win Predictor: the Early season note and the underdog line show on TV screens only (900px and up) and are larger there; gone from phones and the WhatsApp message. Match Centre fit test now includes a Win Predictor bar with both.
 //   v3.34.1 15-Nov-2026 Underdog line: the eight lines reworded in a drier, British club-rugby voice (no American sports-speak).
 //   v3.34.0 15-Nov-2026 Win Predictor: never more lopsided than 80/20 until both sides have eight league games (85/15 after), an "Early season" note, a Win Predictor switch on each team in Admin, and a rallying line when the club's own side is the underdog (35% or less; Underdog line switch under Screens).
 //   v3.33.1 15-Nov-2026 Opposition report: the W/L form chips now say whose results they are and show a green/red key (green good for your team, red bad).
@@ -252,7 +253,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.34.1";
+const VERSION = "v3.34.2";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -300,6 +301,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.34.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.2_tv_only_notes.zip                | v3.34.1
 v3.34.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.1_underdog_lines.zip               | v3.34.0
 v3.34.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.0_win_predictor_early.zip          | v3.33.1
 v3.33.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.33.1_form_key.zip                     | v3.33.0
@@ -516,6 +518,11 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.34.2 - Early season note and underdog line on TV screens only
+- Owner request (15-Nov-2026): show the note and the motivational line on TV views only.
+- The "Early season: based on N games each" note and the underdog line now show only on wide screens (900 pixels and up, the same cut-off as the other TV-only items) and are only slightly larger there, kept small so they never push anything out of the panel. Phones, the Opposition report on a phone and its WhatsApp message no longer carry them, and the phone "How is this worked out?" text no longer mentions the early-season limit. The 80/20 and 85/15 limits themselves are unchanged and apply on every screen.
+- Tests: a Win Predictor bar with both the note and the line is now part of the Match Centre fit check at 2576x858, 2576x923, 1920x1080, 1366x768, 1280x720 and 1024x600 (the earlier check had no bar in it). Also checked: hidden below 900px, shown from 900px, not in the WhatsApp message.
+- Docs: What's new
 v3.34.1 - Underdog lines reworded
 - Owner feedback (15-Nov-2026): the underdog lines sounded too American.
 - The eight lines now have a drier club-rugby voice, for example "Odds are for bookmakers. Get stuck in." and "Nobody has told the ball who is favourite." Nothing else changes: same 35% rule, same switch under Screens, still no team names in the lines.
@@ -1886,11 +1893,11 @@ const DOC_SECTIONS = [
       "Every team gets a strength in points from the results in its division this season. Each game says: the home side's strength, minus the away side's strength, plus a home advantage, should equal the margin. All the teams are solved together, so beating a strong side counts for more than beating a weak one. A team with only a few games is pulled towards the middle until it has played more.",
       "Home advantage is measured from this league's own results (it is shrunk towards 4 points while there are few games).",
       "Last season's results count about half as much, and the season before about a quarter. Only games between teams in this season's division are used. A team that is new to the division starts at the middle and earns its rating this season.",
-      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 85% to 15%, and while a side has played fewer than eight league games it is held to 80% to 20%, with an Early season note under the bar.",
+      "The expected margin of the next game (the strength gap plus the home advantage) is compared with how widely results in this league usually vary, which gives the chance of each side winning. A draw is shared evenly between the two. A result is never shown as better than 85% to 15%, and while a side has played fewer than eight league games it is held to 80% to 20% (an Early season note under the bar says so, on TV screens only).",
       "Walkovers and games with no score are left out."
     ] },
     { h: "Underdog line" },
-    { p: "When your own team has a 35% chance or less, a short rallying line appears under the bar, for example \"Odds are for bookmakers. Get stuck in.\" The line is picked from the fixture, so it is the same on every screen and every reload. It also appears in the Opposition report and its WhatsApp message. The Underdog line switch under Screens turns it off." },
+    { p: "When your own team has a 35% chance or less, a short rallying line appears under the bar, for example \"Odds are for bookmakers. Get stuck in.\" The line is picked from the fixture, so it is the same on every screen and every reload. The line and the Early season note show on TV screens only (900 pixels wide and up); phones and the WhatsApp message do not carry them. The Underdog line switch under Screens turns the line off." },
     { h: "When it is not shown" },
     { ul: [
       "Either side has played fewer than four league games this season.",
@@ -2093,6 +2100,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.34.2", "The Early season note and the underdog line under the Win Predictor now show on TV screens only, a little larger so they can be read across the room."],
       ["v3.34.1", "The underdog lines under the Win Predictor now have a drier, more British club-rugby tone."],
       ["v3.34.0", "Win Predictor: early in the season it is never more lopsided than 80% to 20% (85% to 15% once both sides have eight league games), with an Early season note under the bar. The club can also switch the Win Predictor off for a single team in Admin. When your own team is the underdog (35% or less) a short rallying line shows under the bar, which can be switched off under Screens."],
       ["v3.33.1", "Opposition report: the W / L chips now say they are the opponent's results, with a short key under them (green is good for your team, red is bad)."],
@@ -2399,14 +2407,13 @@ function winBacktest(games) {
   return { predicted: n, finished: all.length, favouriteWon: favN ? r2(fav / favN) : null, favouriteGames: favN, brier: n ? r2(brier / n) : null, brierAlways5050: 0.25, homeWinRate: n ? r2(homeW / homeN) : null, avgMarginError: n ? Math.round(mae / n * 10) / 10 : null,
     buckets: ["50-59", "60-69", "70-79", "80-89", "90+"].filter(k => bk[k]).map(k => ({ band: k, games: bk[k].n, said: r2(bk[k].p / bk[k].n), happened: r2(bk[k].w / bk[k].n) })) };
 }
-const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wcq{font-size:.8em;font-weight:700;font-style:italic;margin-top:.55em;line-height:1.3}.wcm .wcq{text-align:center}.wce{font-size:.72em;font-weight:700;opacity:.8;margin-top:.5em;letter-spacing:.02em}.wcm .wce{text-align:center}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
+const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wcq,.wce{display:none}.wcm .wcq,.wcm .wce{text-align:center}@media(min-width:900px){.wcq{display:block;font-size:.88em;font-weight:700;font-style:italic;margin-top:.55em;line-height:1.3}.wce{display:block;font-size:.78em;font-weight:700;opacity:.85;margin-top:.5em;letter-spacing:.02em}}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
 // Win chance bar (v3.30). win = { home: {name, pct}, away: {name, pct}, gap, ha }; home is on the left, as everywhere else on the site.
 // o.left / o.right are the two colours (CSS values); o.fs the font size the bar is scaled from.
 function winHow(win) {
   const g = Math.round(Math.abs(win.gap)), ha = Math.max(0, Math.round(win.ha)), hn = win.home.name, an = win.away.name;
   const lead = g < 1 ? hn + " and " + an + " are rated level on results" : win.gap > 0 ? hn + " are rated about " + g + " points better than " + an + " on results" : an + " are rated about " + g + " points better than " + hn + " on results";
-  const early = win.early ? " It is early in the season (" + win.n + " league games each so far), so the chance is kept between " + WIN_CFG.pEarly + "% and " + (100 - WIN_CFG.pEarly) + "% until both sides have played " + WIN_CFG.fullGames + "." : "";
-  return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter." + early;
+  return lead + "; playing at home adds about " + ha + " points for " + hn + ". The chance comes from that gap and how widely results in this league usually vary. This season's results count fully, last season's about half and the season before about a quarter.";
 }
 // v3.34.0: a short rallying line under the Win Predictor bar when the club's own side is the underdog (35% or less). Neutral wording, no names; the line is picked from the fixture so it stays the same on every screen and reload.
 const UNDERDOG_LINES = ["Nobody has told the ball who is favourite.", "Odds are for bookmakers. Get stuck in.", "Right, the form book is sorted. Now go and ignore it.", "Eighty minutes is a long time. Plenty of room for a surprise.", "A bit of mud, a bit of grit and a loud touchline will do.", "Not the favourites? Never stopped a good game of rugby.", "Give them something to talk about in the bar afterwards.", "Back them loudly. Every voice on the touchline helps."];
@@ -2659,7 +2666,7 @@ ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The smal
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
-${sw("fu", s.features.underdog, "Underdog line", "A short rallying line under the Win Predictor bar when your own team has a 35% chance or less, for example &ldquo;Odds are for bookmakers. Get stuck in.&rdquo; Only shows while Win Predictor is on.")}
+${sw("fu", s.features.underdog, "Underdog line", "On TV screens, a short rallying line under the Win Predictor bar when your own team has a 35% chance or less, for example &ldquo;Odds are for bookmakers. Get stuck in.&rdquo; Only shows while Win Predictor is on.")}
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
@@ -5519,7 +5526,6 @@ ${themeToggleScript}
         bits.push("");
         sec("\u{1F3AF}", "VERDICT", [
           winPct !== null ? "Win chance: *" + winPct + "%* " + myName + " (" + winOpp + "% " + oppName + ")" : "",
-          d.win && d.win.line ? "\u{1F4AA} " + d.win.line : "",
           df && df.status === "ok" ? "Difficulty: *" + df.label + "* " + (df.level === "easy" ? "\u{1F7E2}" : df.level === "hard" ? "\u{1F534}" : "\u{1F7E0}") : ""]);
         sec("\u{1F4C8}", "THEIR FORM", [
           nL ? formTxt + " (" + d.last.slice().reverse().map(g => g.out).join(" ") + ")" : "",
