@@ -27,7 +27,8 @@ const get=(p)=>w.fetch(new Request('https://x.co.uk'+p,{headers:{'User-Agent':'M
 const sc=new Map();globalThis.caches={default:{match:async r=>{const v=sc.get(String(r.url||r));return v?new Response(v.body,{headers:v.h}):undefined},put:async(r,x)=>{sc.set(String(r.url||r),{body:await x.text(),h:[...x.headers]})}}};
 const bg=[];const ctx2={waitUntil(p){bg.push(p)}};const flush=async()=>{await Promise.all(bg.splice(0))};
 let rfu=0;const f0=globalThis.fetch;globalThis.fetch=async(u,o)=>{if(String(u).includes('cluster.england-rfu.com'))rfu++;return f0(u,o)};
-const page=async(q)=>{const r=await w.fetch(new Request('https://thestatsboard.co.uk'+(q||'/?'+base),{headers:{'User-Agent':'Mozilla/5.0'}}),{...env,ENV_LABEL:''},ctx2);const t=await r.text();return {h:r.headers,t,s:r.status}};
+const page0=async(q)=>{const r=await w.fetch(new Request('https://thestatsboard.co.uk'+(q||'/?'+base),{headers:{'User-Agent':'Mozilla/5.0'}}),{...env,ENV_LABEL:''},ctx2);const t=await r.text();return {h:r.headers,t,s:r.status}};
+const page=async(q)=>{let r=await page0(q);const m=/var D=(\[[\d,]*\]),K="rfuWarmAt"/.exec(r.t);if(m&&q&&q.includes('view=stack')){for(const i of JSON.parse(m[1]))await page0(q+'&warm='+i);r=await page0(q)}return r};
 const env2={};
 
 let failTeamFeed=false;const f1=globalThis.fetch;globalThis.fetch=async(u,o)=>{const s=String(u);if(failTeamFeed&&/full-matches\?/.test(s)&&/teamId=/.test(s)&&!/competitionId=/.test(s)&&/season=2026-2027/.test(s))return {ok:false,status:500,text:async()=>''};return f1(u,o)};

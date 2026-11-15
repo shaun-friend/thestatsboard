@@ -23,7 +23,8 @@ globalThis.fetch=async u=>{const s=String(u);globalThis.__u.push(s);
  return {ok:false,status:500,text:async()=>''}};
 let n=0;const load=async()=>(await import(src+'?i='+(++n))).default;
 const env={CLUB_PIN:'1',SETTINGS:kv};let w=await load();
-const get=(p,h={},e=env)=>w.fetch(new Request('https://x.co.uk'+p,{headers:{'User-Agent':'Mozilla/5.0',...h}}),e,{});
+const get0=(p,h={},e=env)=>w.fetch(new Request('https://x.co.uk'+p,{headers:{'User-Agent':'Mozilla/5.0',...h}}),e,{});
+const get=async(p,h={},e=env)=>{let r=await get0(p,h,e);if(p.includes('view=stack')&&!p.includes('warm=')){const t=await r.clone().text();const m=/var D=(\[[\d,]*\]),K="rfuWarmAt"/.exec(t);if(m){for(const i of JSON.parse(m[1]))await (await get0(p+'&warm='+i,h,e)).text();r=await get0(p,h,e)}}return r};
 const ck=((await w.fetch(new Request('https://x.co.uk/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1'})}),env,{})).headers.get('Set-Cookie')||'').split(';')[0];
 
 // ---- Match Centre: ground and table line ----

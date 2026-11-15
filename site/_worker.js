@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.31.0 15-Nov-2026 The Match Centre prepares each team in its own request (&warm=N from the page), so every team gets a fresh 50-request budget on the free plan. A team not ready shows its last complete answer or "Updating this team" and the page refreshes when the requests finish.
 //   v3.30.20 14-Nov-2026 Each visit now counts its outside requests (free plan allows 50): essential feeds may use 40, extras stop at 20 for one team (8 on the Match Centre, where many teams share one visit), and cache lookups are counted too. A cold six-team Match Centre made 83 requests (156 with cache lookups) and lost the Colts cup feed; it now stays within 50.
 //   v3.30.19 14-Nov-2026 A feed that fails quickly (server error, too many requests, dropped connection) is asked once more; the Feed log now says why a feed failed. Found from the first Feed log rows (Colts competition 1608, Brixham team feed).
 //   v3.30.18 14-Nov-2026 Phone app: the Links button's sheet (and the app's own page addresses) no longer carry the Admin friendly name; a name typed into the address is kept.
@@ -242,8 +243,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.30.20";
-const BUILD_DATE = "14-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.31.0";
+const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -290,6 +291,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
 v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
 v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
 v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
@@ -496,6 +498,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.31.0 - Match Centre prepares each team in its own request
+- Owner report (14-Nov-2026, Feed log, 23:08): Colts "Missing: competition 1608 (request limit reached for this visit)". The held answer kept the right game on screen, but the cup feed could not be read.
+- Cause: the free Cloudflare plan allows 50 requests per visit, and Cloudflare counts cache lookups as well as outside fetches. A cold Match Centre built every team in one visit, so the later teams and competitions ran out of budget.
+- Change: the page is built from what is already kept (one lookup per team). A team that is not ready shows its last complete answer, or "Updating this team", and the page asks the browser to prepare each such team with its own request (the address with &warm=N). Each of those requests has a fresh budget of 50. When they finish, the page refreshes by the usual crossfade (or a reload on a phone). One team missing is prepared in the same visit. A team that is ready costs one lookup, so asking again is cheap.
+- Pages that left teams to be prepared are not kept at the edge, and an older kept copy is dropped, so the next visit builds a page that prepares them. The browser tries once every two minutes at most, so a feed that keeps failing cannot cause a loop.
+- Unchanged: the held answer for a vanished game, the Feed log, the 15-minute shared copy of each team, the request budget from v3.30.20.
+- Tests: a cold four-team page stays well inside the limit and asks for all four teams; each team request succeeds within 50; afterwards the page is complete with almost no outside requests; an unknown team number is refused; a team that is ready costs no outside request.
+- Docs: none - behind the scenes
 v3.30.20 - Request budget: stop a busy Match Centre running out of outside requests
 - Owner report (14-Nov-2026, DEV, Feed log): Colts 22:04 "Missing: competition 1608 (error: Too many subrequests by single Worker invocation)". The wrong next game came back again.
 - Cause: the free Cloudflare plan allows 50 outside requests per visit. A cold Match Centre with six teams made 83 (6 competition feeds, 36 team feeds, 16 + 12 website lookups, 6 match records, 6 venue pages). Past 50, Cloudflare refused the rest, and the cup competition feed was one of them. The retry added in v3.30.19 could not help.
@@ -1988,6 +1998,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.31.0", "The Match Centre now prepares each team separately in the background, so a cold start no longer runs out of requests and the Colts cup game is not lost. A team being prepared shows Updating this team for a moment."],
       ["v3.30.20", "The Match Centre no longer runs out of outside requests with six teams (the cause of the Colts showing the wrong next game): extras like venue pages now wait their turn so the results feeds always get through."],
       ["v3.30.19", "A feed from the RFU that fails for a quick reason is now asked again once, which should stop the Colts next game flipping; the Feed log also says why a feed failed."],
       ["v3.30.18", "Phone view: the links from the Links button no longer include the team name setting; they follow the name set in Admin."],
@@ -5444,19 +5455,20 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       const menuHref = pubOrigin + "/?" + new URLSearchParams({theme}).toString();
       const crest = (id, name) => `<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="https://images.englandrugby.com/club_images/${encodeURIComponent(id)}.png" alt="" onload="this.parentNode.querySelector('.ini').style.display='none'" onerror="this.remove()">` : ""}</span>`;
       if (AUTO.auto) {
-        stackTeams = await Promise.all(stackTeams.map(async t => {
+        stackTeams = await Promise.all(stackTeams.map(async (t, wi) => {
           if (t.season) return t;
+          if (url.searchParams.get("warm") !== null && String(wi) !== url.searchParams.get("warm")) return t;
           const fx = await leagueFix(worker, url.origin, t.team, season, AUTO.prev || seasonName(+season.slice(0, 4) - 1), t.competition, t.division);
           return fx.changed ? { ...t, competition: fx.competition, division: fx.division } : t;
         }));
       }
       const wpOn = (await siteSettings()).features.winchance === true;
-      const results = await Promise.all(stackTeams.map(async t => {
-        const q = new URLSearchParams({season: t.season || season, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, format: "summary"});
+      // v3.31.0: one team's summary, worked out (or read from the 15-minute shared copy) by its own request, so every team gets its own 50-request budget.
+      const qOf = t => new URLSearchParams({season: t.season || season, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, format: "summary"});
+      const keysOf = t => { const q = qOf(t); return { q, skey: "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, gkey: "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0) }; };
+      const compute = async t => {
+        const { q, skey, gkey } = keysOf(t);
         try {
-          // v3.30.5: each team's summary is kept in the shared cache for 15 minutes, so a Match Centre load does not redo every team's page work (the free plan allows 10 ms per request).
-          const skey = "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, gkey = "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0), shared = await sharedGet(skey);
-          if (shared && shared.ok) return {t, s: shared.v};
           const r = await worker.fetch(new Request(url.origin + "/?" + q.toString()));
           if (!r.ok) throw new Error("HTTP " + r.status);
           const sj = await r.json();
@@ -5485,6 +5497,28 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
           await sharedPut(skey, { ok: true, v: sj }, 900); await sharedPut(gkey, { ok: true, v: sj }, 604800);
           return {t, s: sj};
         } catch (err) { await feedLogAdd("error", t.name, String(err && err.message || err)); return {t, error: String(err && err.message || err)}; }
+      };
+      // A separate request from the page (&warm=N) prepares one team and says whether it worked.
+      const warmQ = url.searchParams.get("warm");
+      if (warmQ !== null) {
+        const wt = /^\d+$/.test(warmQ) ? stackTeams[Number(warmQ)] : null;
+        if (!wt) return new Response(JSON.stringify({ ok: false }), { status: 400, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+        const have1 = await sharedGet(keysOf(wt).skey);
+        if (have1 && have1.ok) return new Response(JSON.stringify({ ok: true, cached: true }), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+        const rw = await compute(wt);
+        return new Response(JSON.stringify({ ok: !rw.error, partial: !!(rw.s && rw.s.partial) }), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+      }
+      const haveAll = await Promise.all(stackTeams.map(async t => { const sh = await sharedGet(keysOf(t).skey); return sh && sh.ok ? { t, s: sh.v } : null; }));
+      const missing = haveAll.map((h, i) => h ? -1 : i).filter(i => i >= 0);
+      const inlineIdx = missing.length === 1 ? missing[0] : -1; // a single team fits in this visit's budget; more are prepared by their own requests
+      const deferred = [];
+      let cacheOk = false; try { cacheOk = typeof caches !== "undefined" && !!caches.default; } catch (_) { cacheOk = false; }
+      const results = await Promise.all(stackTeams.map(async (t, i) => {
+        if (haveAll[i]) return haveAll[i];
+        if (i === inlineIdx || !cacheOk) return compute(t); // no shared cache here (for example a local test run): nothing could be kept for a later request, so work it out now
+        deferred.push(i);
+        const good = await sharedGet(keysOf(t).gkey);
+        return good && good.ok && good.v ? { t, s: good.v } : { t, loading: true };
       }));
       const cdOf = n => {
         if (!(n && n.iso)) return "";
@@ -5514,8 +5548,8 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       };
       // v3.30.9: if the feed's league name is still only "Group 1" (no competition name came with it), use the league text saved for the team in Admin
       const leagueOf = (t, s) => /^(group|pool|section)\s*[0-9a-z]{1,3}$/i.test(String(s.league || "").trim()) && t.league ? t.league : s.league;
-      const colHtml = ({t, s, error}, idx) => {
-        if (error || !s) return `<section class="cw" ${acStyle(t, idx)}><div class="ch"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="cnx"><div class="empty" style="color:var(--on)">Couldn't load this team. It will retry on the next refresh.</div></div></section>`;
+      const colHtml = ({t, s, error, loading}, idx) => {
+        if (error || !s) return `<section class="cw" ${acStyle(t, idx)}><div class="ch"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="cnx"><div class="empty" style="color:var(--on)">${loading ? "Updating this team&hellip;" : "Couldn't load this team. It will retry on the next refresh."}</div></div></section>`;
         const L = lastOf(s.last), N = nextOf(s.next);
         const pos = s.position ? `<b class="ps2">${ordOf(s.position)}</b>` : "";
         const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
@@ -5524,10 +5558,10 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
         return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(leagueOf(t, s))}</div></div></div><div class="cnx${N ? "" : " e"}">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
-      const rowHtml = ({t, s, error}, idx) => {
+      const rowHtml = ({t, s, error, loading}, idx) => {
         const tsl = `<a class="tsl" href="${e(tableHref(t))}">Table &amp; Stats</a>`;
         const extra = `<div class="stab">${e(shortOf(t))}</div><div class="tbar">${e((s && s.team) || t.name)}<span>${e(s ? leagueOf(t, s) : t.league)}</span></div>`;
-        if (error || !s) return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="tn">${e(t.name)}</div><div class="sm">${e(t.league)}</div>${tsl}</div><div class="bx wide"><div class="empty">Couldn't load this team. It will retry on the next refresh.</div></div></div>`;
+        if (error || !s) return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="tn">${e(t.name)}</div><div class="sm">${e(t.league)}</div>${tsl}</div><div class="bx wide"><div class="empty">${loading ? "Updating this team&hellip;" : "Couldn't load this team. It will retry on the next refresh."}</div></div></div>`;
         const stats = [s.position ? `<span class="pl h">${s.position}${[,"st","nd","rd"][s.position % 10] && ![11,12,13].includes(s.position % 100) ? [,"st","nd","rd"][s.position % 10] : "th"}</span>` : "", s.points !== null && s.points !== undefined ? `<span class="pl h">${s.points} pts</span>` : "", s.played ? `<span class="pl h">Played ${s.played}</span>` : ""].join("");
         const l = s.last, n = s.next;
         const pillOf = h => h === null || h === undefined ? "" : `<span class="pl h">${h ? "Home" : "Away"}</span>`;
@@ -5555,7 +5589,9 @@ ${n.win ? winBarHtml(n.win, mcWin(n.win, n.mineHome, t, idx, false)) : ""}${n.ve
       const lyHtml = ly === "next" ? `<main class="ly ly-next ${lyFlags}" data-ly="next" style="--n:${results.length}">${results.map(colHtml).join("")}</main>`
         : "";
       const jump = results.map((r, i) => `<a href="#t${i}" ${acStyle(r.t, i)}>${e(shortOf(r.t))}</a>`).join("");
-      const refreshScript = `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)(window.rfuSoft?rfuSoft():location.reload())}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
+      const warmScript = deferred.length ? `<script>(function(){var D=${JSON.stringify(deferred)},K="rfuWarmAt",sr=/[?&]_sr=1(&|$)/.test(location.search);try{var l=Number(sessionStorage.getItem(K)||0);if(Date.now()-l<120000)return;sessionStorage.setItem(K,String(Date.now()))}catch(e){}window.__warming=true;setTimeout(function(){window.__warming=false},15000);var base=location.search+(location.search?"&":"?")+"warm=";Promise.all(D.map(function(i){return fetch(base+i,{cache:"no-store"}).then(function(r){return r.json()}).catch(function(){return{}})})).then(function(){window.__warming=false;setTimeout(function(){if(sr)location.reload();else if(window.rfuSoft)rfuSoft();else location.reload()},300)})})();</script>` : "";
+      if (deferred.length) { PARTIAL_COUNT++; DEFER_COUNT++; } // v3.31.0: a page with teams still being prepared is not kept at the edge
+      const refreshScript = warmScript + `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)(window.rfuSoft?rfuSoft():location.reload())}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
       // "Updated" is when the RFU data was last pulled (oldest across the teams), not when the page loaded.
       const dataTimes = results.map(r => r.s && Number(r.s.updatedAt)).filter(Boolean);
       const stamp = londonTime(dataTimes.length ? Math.min(...dataTimes) : Date.now());
@@ -7061,7 +7097,7 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "webonly"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly"];
 function pageKeySearch(sp) {
   const out = [];
   for (const k of KNOWN_PARAMS) if (k !== "screen") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
@@ -7086,7 +7122,7 @@ function pageState(builtAt, now) {
   const age = now - builtAt;
   return age < 1800000 ? "fresh" : age < 21600000 ? "stale" : "old";
 }
-let PARTIAL_COUNT = 0; // v3.30.7: goes up each time a build found a competition feed missing; a page built while it moved is not stored
+let PARTIAL_COUNT = 0, DEFER_COUNT = 0; // DEFER_COUNT: Match Centre teams left for their own requests (v3.31.0) // v3.30.7: goes up each time a build found a competition feed missing; a page built while it moved is not stored
 const PAGE_REBUILDING = new Map(); // key -> start time, so one instance does not start the same rebuild many times at once
 // ---- Team search and a team's competition list from the RFU data service (cluster.england-rfu.com) ----
 // The data service answers in tens of milliseconds and is rarely refused, unlike the englandrugby.com website. Its
@@ -7207,7 +7243,7 @@ if(hid){b.style.opacity="0"}
 go();addEventListener("resize",go);addEventListener("orientationchange",function(){setTimeout(go,200)});addEventListener("load",function(){go();setTimeout(function(){go();show()},400)});setTimeout(function(){go();show()},2500);
 })();</script>`;
 const SOFT_SCRIPT = `<script>/*rfu-soft*/(function(){var T0=Date.now(),LAST=0,GAP=0,busy=false,old=null,sr=/[?&]_sr=1(&|$)/.test(location.search);
-if(sr&&top!==self){var n=0;function chk(){var b=document.body;if(document.readyState==="complete"&&b&&!b.classList.contains("fitwait")&&getComputedStyle(b).opacity!=="0"){setTimeout(function(){try{parent.postMessage("rfu-sr-ready","*")}catch(e){}},500)}else if(n++<80)setTimeout(chk,250)}addEventListener("load",function(){setTimeout(chk,300)})}
+if(sr&&top!==self){var n=0;function chk(){var b=document.body;if(document.readyState==="complete"&&b&&!window.__warming&&!b.classList.contains("fitwait")&&getComputedStyle(b).opacity!=="0"){setTimeout(function(){try{parent.postMessage("rfu-sr-ready","*")}catch(e){}},500)}else if(n++<80)setTimeout(chk,250)}addEventListener("load",function(){setTimeout(chk,300)})}
 window.rfuSoft=function(){if(sr)return;var now=Date.now();
 if(!matchMedia("(min-width:801px) and (min-height:561px)").matches||!window.postMessage){location.reload();return}
 if(busy)return;if(LAST&&now-LAST<GAP*0.9)return;if(!GAP)GAP=now-T0;
@@ -7249,7 +7285,7 @@ function withStamp(html, powered) {
 // the page, so no layout (TV or phone) is moved.
 export default {
   async fetch(request, env, ctx) {
-    SITE_ENV = env || {}; SITE_CTX = ctx || null; SUB.n = 0; SUB.skipped = 0; SUB.stack = /[?&]view=stack\b/.test(String(request.url));
+    SITE_ENV = env || {}; SITE_CTX = ctx || null; SUB.n = 0; SUB.skipped = 0; SUB.stack = /[?&]view=stack\b/.test(String(request.url)) && !/[?&]warm=/.test(String(request.url));
     const t0 = Date.now();
     try { await siteSettings(); } catch (_) { /* default team list */ }
     const label = env && typeof env.ENV_LABEL === "string" ? env.ENV_LABEL.trim().slice(0, 30) : "";
@@ -7265,15 +7301,17 @@ export default {
     let pageKey = null, pageCache = null;
     if (request.method === "GET") {
       const u0 = new URL(request.url), v0 = u0.searchParams.get("view") || "";
-      if (u0.pathname === "/" && (["stack", "fixtures", "match"].includes(v0) || (!v0 && u0.searchParams.has("team")))) {
+      if (u0.pathname === "/" && !u0.searchParams.has("warm") && (["stack", "fixtures", "match"].includes(v0) || (!v0 && u0.searchParams.has("team")))) {
         try { pageCache = typeof caches !== "undefined" && caches.default ? caches.default : null; } catch (_) { pageCache = null; }
         if (pageCache) {
           const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP) + "&_sv=" + encodeURIComponent(String((await siteSettings()).savedAt || "")), { method: "GET" });
         }
       }
     }
-    let pc0 = PARTIAL_COUNT;
+    let pc0 = PARTIAL_COUNT, dc0 = DEFER_COUNT;
     const storePage = (html, status, hdrs) => {
+      // v3.31.0: teams were left for their own requests, so an older kept copy would hide them for hours: drop it, and the next visit builds a page that prepares them.
+      if (DEFER_COUNT !== dc0) { if (pageKey && pageCache && ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(Promise.resolve().then(() => pageCache.delete(pageKey)).catch(() => {})); return; }
       if (PARTIAL_COUNT !== pc0) return; // a competition feed was missing while this page was built: do not keep it
       if (!(pageKey && pageCache && status === 200 && !/RFU table error|Couldn.t load the match data|not available right now/.test(html))) return;
       const ch = new Headers(hdrs); ch.set("Cache-Control", "public, max-age=172800"); ch.set("X-Built-At", String(Date.now()));
@@ -7281,7 +7319,7 @@ export default {
       if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(store);
     };
     const buildPage = async () => {
-      pc0 = PARTIAL_COUNT;
+      pc0 = PARTIAL_COUNT; dc0 = DEFER_COUNT;
     const response = await worker.fetch(request, !!label);
     if (!(response.headers.get("Content-Type") || "").includes("text/html")) return response;
     let page = await response.text();

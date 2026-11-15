@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.31.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.0_team_batching.zip                | v3.30.20
 v3.30.20 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.20_request_budget.zip              | v3.30.19
 v3.30.19 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.19_feed_retry.zip                  | v3.30.18
 v3.30.18 | 14-Nov-2026 | RFU_Club_Dashboard_v3.30.18_app_links.zip                   | v3.30.17
@@ -248,6 +249,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.31.0 - Match Centre prepares each team in its own request
+- Owner report (14-Nov-2026, Feed log, 23:08): Colts "Missing: competition 1608 (request limit reached for this visit)". The held answer kept the right game on screen, but the cup feed could not be read.
+- Cause: the free Cloudflare plan allows 50 requests per visit, and Cloudflare counts cache lookups as well as outside fetches. A cold Match Centre built every team in one visit, so the later teams and competitions ran out of budget.
+- Change: the page is built from what is already kept (one lookup per team). A team that is not ready shows its last complete answer, or "Updating this team", and the page asks the browser to prepare each such team with its own request (the address with &warm=N). Each of those requests has a fresh budget of 50. When they finish, the page refreshes by the usual crossfade (or a reload on a phone). One team missing is prepared in the same visit. A team that is ready costs one lookup, so asking again is cheap.
+- Pages that left teams to be prepared are not kept at the edge, and an older kept copy is dropped, so the next visit builds a page that prepares them. The browser tries once every two minutes at most, so a feed that keeps failing cannot cause a loop.
+- Unchanged: the held answer for a vanished game, the Feed log, the 15-minute shared copy of each team, the request budget from v3.30.20.
+- Tests: a cold four-team page stays well inside the limit and asks for all four teams; each team request succeeds within 50; afterwards the page is complete with almost no outside requests; an unknown team number is refused; a team that is ready costs no outside request.
+- Docs: none - behind the scenes
 v3.30.20 - Request budget: stop a busy Match Centre running out of outside requests
 - Owner report (14-Nov-2026, DEV, Feed log): Colts 22:04 "Missing: competition 1608 (error: Too many subrequests by single Worker invocation)". The wrong next game came back again.
 - Cause: the free Cloudflare plan allows 50 outside requests per visit. A cold Match Centre with six teams made 83 (6 competition feeds, 36 team feeds, 16 + 12 website lookups, 6 match records, 6 venue pages). Past 50, Cloudflare refused the rest, and the cup competition feed was one of them. The retry added in v3.30.19 could not help.
