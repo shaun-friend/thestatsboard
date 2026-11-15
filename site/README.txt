@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.35.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.0_underdog_lines_admin.zip         | v3.34.2
 v3.34.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.2_tv_only_notes.zip                | v3.34.1
 v3.34.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.1_underdog_lines.zip               | v3.34.0
 v3.34.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.34.0_win_predictor_early.zip          | v3.33.1
@@ -259,6 +260,14 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.35.0 - Underdog lines editable in Admin
+- Owner request (15-Nov-2026): see and amend the Win Predictor motivational messages.
+- Admin, Screens: a new Underdog lines list under the Underdog line switch. Edit any line, delete it, add new ones (up to 20, 100 characters each) or restore the default eight. Press Save changes to keep edits. With no lines left, nothing is shown. Duplicates and angle brackets are dropped.
+- Each fixture still gets the same line every time (picked from the fixture), so adding or removing lines can change which line a fixture shows.
+- Fix found on the way: in Admin, Site status, Manage lines, adding a new pun line replaced every letter "s" in it with a space (the Add button read the text through a broken pattern). It now keeps the text as typed. The new Underdog lines list uses the correct pattern.
+- Edits show straight away on the Match Centre: its 15-minute saved copy of each team's summary now changes when the lines or the switch change.
+- Tests: Admin shows the default lines, saves and returns edited lines, caps at 20 and 100 characters, removes duplicates and angle brackets, keeps an empty list as empty, and defaults for settings saved before this release; a real underdog fixture uses the saved lines and shows none when the list is empty.
+- Docs: Admin guide, Win Predictor
 v3.34.2 - Early season note and underdog line on TV screens only
 - Owner request (15-Nov-2026): show the note and the motivational line on TV views only.
 - The "Early season: based on N games each" note and the underdog line now show only on wide screens (900 pixels and up, the same cut-off as the other TV-only items) and are only slightly larger there, kept small so they never push anything out of the panel. Phones, the Opposition report on a phone and its WhatsApp message no longer carry them, and the phone "How is this worked out?" text no longer mentions the early-season limit. The 80/20 and 85/15 limits themselves are unchanged and apply on every screen.

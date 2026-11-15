@@ -49,6 +49,7 @@ run node t_v3311.mjs "$S/t_worker.mjs"
 run node t_v3320.mjs "$S/t_worker.mjs"
 run node t_v3330.mjs "$S/t_worker.mjs"
 run node t_v3340.mjs "$S/t_worker.mjs"
+run node t_v3350.mjs "$S/t_worker.mjs"
 NODE_PATH=$(npm root -g) node x_opp_v3330.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "OPPOSITION LAYOUT TEST FAILED"; exit 1; }; echo "opposition layout ok"
 run node t_v3309.mjs "$S/t_worker.mjs"
 NODE_PATH=$(npm root -g) node t_v328.mjs || { echo "CROSSFADE TEST FAILED"; exit 1; }
