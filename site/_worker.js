@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.32.2 15-Nov-2026 Inbox list: always shows reason, date and time, device and the start of each message, newest first (reads the message itself if the list has no details for it).
 //   v3.32.1 15-Nov-2026 Messages polish: welcome page branding and a fuller thank-you on the form, Inbox with Refresh and automatic refresh, date/time and device type on each message, an email-style reading view with a reason tag, and filters by reason.
 //   v3.32.0 15-Nov-2026 Message the Stats Board: a visitor form (welcome page and phone team pages), an Inbox behind the club PIN with an envelope and count at the top of Admin, 90-day automatic clearing with Keep, spam guard, and an Admin switch.
 //   v3.31.2 15-Nov-2026 Match Centre: the Next game panel no longer clips on wide, short screens (it gets more of the column and the text is fitted until nothing is cut off).
@@ -247,7 +248,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.32.1";
+const VERSION = "v3.32.2";
 const BUILD_DATE = "15-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -295,6 +296,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
 v3.32.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.1_messages_polish.zip              | v3.32.0
 v3.32.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.0_messages.zip                     | v3.31.2
 v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
@@ -506,6 +508,12 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.32.2 - Inbox list shows details and newest first
+- Owner report (15-Nov-2026, DEV): every message in the Inbox list just said Other, with no text, date or time, and the order was not newest first.
+- The list is normally filled from details stored with each message. It now checks each entry has them and, if one does not, reads the message itself (up to 30 per refresh, inside the 50-request limit) and fills in the reason, date and time, device and the start of the text. The list is then sorted newest first, on the server and again in the page.
+- Could not be reproduced with the test storage, so the cause on DEV is not confirmed; this makes the list correct whatever the storage returns. If a row still says Other with no text after this, the message itself is unreadable.
+- Tests: a list with no details stored still shows reason, text, date and device, and is newest first; messages stored out of order list newest first.
+- Docs: What's new
 v3.32.1 - Messages polish
 - Owner feedback (15-Nov-2026) after trying v3.32.0 on DEV.
 - The message form and the thank-you now carry the welcome page branding (wordmark and tagline). The thank-you reads: "Thank you for your message." then a short paragraph about reading every message and resolving what we can, and that a requested feature may appear in the next release.
@@ -2048,6 +2056,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.32.2", "Inbox: the message list always shows the reason, date and time, device and the start of the message, with the newest at the top."],
       ["v3.32.1", "Messages: the form now has the welcome page branding and a fuller thank-you message. The Inbox has a Refresh button (and refreshes itself every few minutes), shows the date and time and device type of each message, reads like an email with a coloured tag for the reason, and can be filtered by reason."],
       ["v3.32.0", "Visitors can now message the Stats Board from a link on the welcome page and phone team pages. New messages show as an envelope with a count at the top of Admin and are read in a new Inbox. Messages are deleted after 90 days unless kept, and the form is protected against spam."],
       ["v3.31.2", "Match Centre on a wide TV: the Next game panel is no longer cut off at the bottom (the Home or Away tag, the Win Predictor bar, the position line and the table row are all shown)."],
@@ -2915,7 +2924,11 @@ async function inboxApi(request, url) {
       return J({ ok: true, m });
     }
     let l = null; try { l = await kv.list({ prefix: MSG_PREFIX, limit: 100 }); } catch (_) { return J({ ok: false, error: "Could not read the messages. Try again." }, 502); }
-    const items = (l.keys || []).map(k => { const x = k.metadata || {}; return { id: k.name, r: x.r || "other", at: x.at || "", s: x.s || "new", k: x.k ? 1 : 0, sn: x.sn || "", d: x.d || "" }; });
+    // The list normally carries what the Inbox needs in each key's metadata. If a key has none (or an incomplete copy), read the message itself (at most 30 of them, to stay inside the 50-request limit).
+    const keys = l.keys || [], need = keys.filter(k => !(k.metadata && k.metadata.at && k.metadata.r && typeof k.metadata.sn === "string")).slice(0, 30), fill = {};
+    await Promise.all(need.map(async k => { try { const m = await kv.get(k.name, { type: "json" }); if (m && m.text) fill[k.name] = { r: m.r, at: m.at, s: m.s, k: m.k ? 1 : 0, sn: String(m.text).slice(0, 80), d: m.dc || "" }; } catch (_) { /* shown as far as the list allows */ } }));
+    const items = keys.map(k => { const x = fill[k.name] || k.metadata || {}; return { id: k.name, r: x.r || "other", at: x.at || "", s: x.s || "new", k: x.k ? 1 : 0, sn: x.sn || "", d: x.d || "" }; });
+    items.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : a.id < b.id ? -1 : 1)); // newest first
     return J({ ok: true, items, news: items.filter(x => x.s === "new").length, more: l.list_complete === false });
   }
   if (request.method !== "POST") return J({ ok: false, error: "Use the Inbox page." }, 405);
@@ -3003,7 +3016,7 @@ dt.innerHTML='<button type="button" class="bk" id="bk">&lsaquo; All messages</bu
 document.getElementById("bk").onclick=function(){ib.classList.remove("sel");cur="";list()};dt.onclick=function(ev){var b=ev.target.closest("button[data-a]");if(!b)return;var a=b.getAttribute("data-a");if(a==="delete"&&armed!==m.id){armed=m.id;show(m);return}armed="";api({id:m.id,act:a},function(j){if(!j.ok){show(m,j.error||"That did not work.");return}if(a==="delete"){items=items.filter(function(x){return x.id!==m.id});cur="";ib.classList.remove("sel");dt.innerHTML='<div class="em">Deleted.</div>';list();return}var x=items.filter(function(y){return y.id===m.id})[0];if(x){x.s=j.m.s;x.k=j.m.k}show(j.m);list()})}}
 ls.onclick=function(ev){var b=ev.target.closest(".it");if(!b)return;cur=b.getAttribute("data-id");armed="";ib.classList.add("sel");list();fetch("/api/inbox?msg="+encodeURIComponent(cur)).then(function(r){return r.json()}).then(function(j){if(!j.ok){dt.innerHTML='<div class="em">'+e(j.error||"That message has gone.")+"</div>";return}var x=items.filter(function(y){return y.id===cur})[0];if(x&&x.s==="new")x.s="read";show(j.m);list()}).catch(function(){dt.innerHTML='<div class="em">Could not open that message.</div>'})};
 fl.onclick=function(ev){var b=ev.target.closest(".fc");if(b){flt=b.getAttribute("data-f");list();return}if(ev.target.id==="hdn"){hideDone=ev.target.checked;list()}};
-function load(){if(busy)return;busy=true;var rb=document.getElementById("rf");rb.disabled=true;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){busy=false;rb.disabled=false;if(!j.ok){sub.textContent=j.error||"Could not read the messages.";return}items=j.items||[];list();upd.textContent="Updated "+new Date().toLocaleTimeString("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit"})}).catch(function(){busy=false;rb.disabled=false;sub.textContent="Could not read the messages."})}
+function load(){if(busy)return;busy=true;var rb=document.getElementById("rf");rb.disabled=true;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){busy=false;rb.disabled=false;if(!j.ok){sub.textContent=j.error||"Could not read the messages.";return}items=(j.items||[]).slice().sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});list();upd.textContent="Updated "+new Date().toLocaleTimeString("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit"})}).catch(function(){busy=false;rb.disabled=false;sub.textContent="Could not read the messages."})}
 document.getElementById("rf").onclick=load;
 if(${hasKv ? "true" : "false"}){load();setInterval(function(){if(!document.hidden)load()},180000);document.addEventListener("visibilitychange",function(){if(!document.hidden)load()})}else list()})();</script></body></html>`;
 }

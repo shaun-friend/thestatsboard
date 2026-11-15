@@ -71,6 +71,11 @@ j=await (await inbox('/api/inbox',{method:'POST',body:JSON.stringify({id,act:'de
 j=await (await inbox('/api/inbox',{method:'POST',body:JSON.stringify({id:'msg:bad',act:'delete'})})).json();c('a bad id is refused',j.ok===false);
 j=await (await inbox('/api/inbox?msg='+encodeURIComponent('msg:0000000000000-zzzz'))).json();c('a missing message says it has gone',j.ok===false);
 r=await req('/api/inbox',{method:'POST',headers:{'Content-Type':'application/json',Cookie:ck,Origin:'https://evil.example'},body:JSON.stringify({id,act:'done'})});c('another site cannot change the inbox',r.status===403);
+// the list must not depend on key details being stored
+{const keep=JSON.parse(JSON.stringify(meta));for(const k of Object.keys(meta))if(k.startsWith('msg:'))meta[k]=null;
+ j=await (await inbox('/api/inbox')).json();c('with no details stored the list still shows reason, text and device',j.ok&&j.items.length>0&&j.items.every(x=>x.sn&&x.at&&x.r&&x.d));
+ c('and is newest first',j.items.every((x,i)=>i===0||j.items[i-1].at>=x.at));
+ for(const k of Object.keys(keep))meta[k]=keep[k];}
 // admin
 t=await (await get('/admin',ck)).text();
 c('Admin has the envelope and an Inbox link',/id="env"/.test(t)&&/href="\/inbox"/.test(t)&&/Inbox<span id="inbm"/.test(t));

@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.32.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.2_inbox_list.zip                   | v3.32.1
 v3.32.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.1_messages_polish.zip              | v3.32.0
 v3.32.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.32.0_messages.zip                     | v3.31.2
 v3.31.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.31.2_mc_clipping.zip                  | v3.31.1
@@ -253,6 +254,12 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.32.2 - Inbox list shows details and newest first
+- Owner report (15-Nov-2026, DEV): every message in the Inbox list just said Other, with no text, date or time, and the order was not newest first.
+- The list is normally filled from details stored with each message. It now checks each entry has them and, if one does not, reads the message itself (up to 30 per refresh, inside the 50-request limit) and fills in the reason, date and time, device and the start of the text. The list is then sorted newest first, on the server and again in the page.
+- Could not be reproduced with the test storage, so the cause on DEV is not confirmed; this makes the list correct whatever the storage returns. If a row still says Other with no text after this, the message itself is unreadable.
+- Tests: a list with no details stored still shows reason, text, date and device, and is newest first; messages stored out of order list newest first.
+- Docs: What's new
 v3.32.1 - Messages polish
 - Owner feedback (15-Nov-2026) after trying v3.32.0 on DEV.
 - The message form and the thank-you now carry the welcome page branding (wordmark and tagline). The thank-you reads: "Thank you for your message." then a short paragraph about reading every message and resolving what we can, and that a requested feature may appear in the next release.
