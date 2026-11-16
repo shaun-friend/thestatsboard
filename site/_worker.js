@@ -15,7 +15,8 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
-//   v3.37.0 16-Nov-2026 TV screen: one rotating link per club (/<club>/tv) that plays the Fixtures board, Match Centre, Next game, League table and League Leaders, set up in Admin under TV screen.
+//   v3.37.1 16-Nov-2026 Admin: the new section is named TV rotation (Screens was confusing next to it) and the Dark/Light choice no longer wraps on a phone.
+//   v3.37.0 16-Nov-2026 TV screen: one rotating link per club (/<club>/tv) that plays the Fixtures board, Match Centre, Next game, League table and League Leaders, set up in Admin under TV rotation.
 //   v3.36.3 16-Nov-2026 Fixtures board header: the team name is now larger than the season heading.
 //   v3.36.2 16-Nov-2026 Fixtures board header: team name above the heading, club name removed from the top right.
 //   v3.36.1 16-Nov-2026 The Message us link is now part of the page footer on phone pages instead of floating over the content.
@@ -261,7 +262,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.0";
+const VERSION = "v3.37.1";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -309,6 +310,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.1_tv_rotation_name.zip              | v3.37.0
 v3.37.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.0_tv_screen.zip                     | v3.36.3
 v3.36.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.3_fixtures_header_size.zip          | v3.36.2
 v3.36.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.2_fixtures_header.zip               | v3.36.1
@@ -534,13 +536,19 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.37.1 - TV rotation: clearer name, Dark/Light fix
+- Owner feedback (16-Nov-2026): "Screens" and "TV screen" side by side in the Admin menu were confusing, and Dark/Light stacked oddly on a phone.
+- Changed: the Admin section is now called TV rotation (menu, heading, Documentation). The Dark/Light choice stays on one line on phones.
+- Tests: Admin check, TV admin check.
+- Docs: TV rotation (one rotating link), What's new
+
 v3.37.0 - TV screen: one rotating link
 - Owner request (16-Nov-2026): one short link for a clubhouse TV that rotates the existing pages, controlled from Admin.
-- Added: /<club>/tv (and /tv) plays the Fixtures board, Match Centre, Next game, League table and League Leaders in turn with a crossfade. Admin has a new TV screen section: pages grouped by team, per-team Show switch, per-page switch, order, seconds (5 to 120), Remove, add one or add all, whole-team order, theme, optional page name/dots/progress strip, and an off-by-default switch to add new teams automatically. Settings are kept per club.
+- Added: /<club>/tv (and /tv) plays the Fixtures board, Match Centre, Next game, League table and League Leaders in turn with a crossfade. Admin has a new TV rotation section: pages grouped by team, per-team Show switch, per-page switch, order, seconds (5 to 120), Remove, add one or add all, whole-team order, theme, optional page name/dots/progress strip, and an off-by-default switch to add new teams automatically. Settings are kept per club.
 - 50-call rule: the rotating page makes no outside calls; every page is its own request and budget, starts 4 s after the last, and shows only when ready. A page that fails or does not settle in 30 s is skipped and retried. Each page refreshes about every 5 minutes. The route skips the seasons lookup.
 - Not built: a "skip a page with nothing to show" switch (only failed loads are skipped). Preview in Admin needs the changes saved first.
 - Tests: t_v3370 (route, club check, settings clean-up, hidden/off teams, auto-add, escaping, zero outside calls, maintenance); x_tv_admin_ui (add, remove, move, save); x_tv_rotate (stagger, never shows an unready page, one frame at a time).
-- Docs: TV screen (one rotating link), What's new
+- Docs: TV rotation (one rotating link), What's new
 
 v3.36.3 - Fixtures board header: team name larger than the heading
 - Owner request (16-Nov-2026): after v3.36.2 the team name should be larger than the season heading.
@@ -1977,7 +1985,7 @@ const DOC_SECTIONS = [
     { p: "The Win Predictor check page (/winchance, club PIN, also under Tools in Admin) takes every finished game this season, works out the chance using only the games played before it, and compares it with what happened: how often the favourite won, a Brier score (0 is perfect; 0.25 is what saying 50/50 every time scores), the points the expected margin was out by, and whether a 70% chance really happened about 70% of the time. Read it before switching the bars on." },
     { ex: [["Win Predictor check", "/winchance"]] }
   ] },
-  { id: "tvscreen", title: "TV screen (one rotating link)", who: "Site owner", blocks: [
+  { id: "tvscreen", title: "TV rotation (one rotating link)", who: "Site owner", blocks: [
     { p: "One link for a clubhouse TV that plays your TV pages in turn: the Fixtures board, Match Centre, Next game, League table and League Leaders. Type the link into the TV's browser once. What it plays is set in Admin, under TV screen, and the TV picks changes up on its next refresh of that page (within about five minutes)." },
     { h: "The link" },
     { p: "It is your club name followed by /tv, for example thestatsboard.co.uk/ivybridge/tv. Plain /tv works too. One link covers every team: you choose which teams and pages are in it, not which link to type." },
@@ -2184,7 +2192,8 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
-      ["v3.37.0", "New TV screen: one link (for example /ivybridge/tv) that rotates the Fixtures board, Match Centre, Next game, League table and League Leaders for a clubhouse TV. Choose the teams, pages, order and timings in Admin under TV screen."],
+      ["v3.37.1", "In Admin the TV screen section is now called TV rotation so it is not mixed up with Screens, and the Dark and Light choice no longer wraps on a phone."],
+      ["v3.37.0", "New TV screen: one link (for example /ivybridge/tv) that rotates the Fixtures board, Match Centre, Next game, League table and League Leaders for a clubhouse TV. Choose the teams, pages, order and timings in Admin under TV rotation."],
       ["v3.36.3", "On the Fixtures TV board the team name is now larger than the season heading above the games."],
       ["v3.36.2", "On the Fixtures TV board the team name now sits above the season heading, and the club name is no longer shown at the top right."],
       ["v3.36.1", "The Message us link on phone pages now sits in the footer instead of floating over the content."],
@@ -2824,7 +2833,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .ad .in{margin-top:9px}.ad input.in[type=date]{display:block;-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;height:46px;text-align:left}.ad input.in[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}.ad input.in[type=date]::-webkit-calendar-picker-indicator{margin:0}.two{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.two>div{flex:1;min-width:200px}.l{font-size:12px;color:#9eafa5;font-weight:700;margin-top:10px}.l span{font-weight:400}
 .cnt{font-size:12px;color:#91a49a;text-align:right;margin-top:3px}
 .env{position:relative;display:inline-flex;align-items:center;justify-content:center}.bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#2f9d57;color:#06150d;font:700 11px/14px Arial,Helvetica,sans-serif;text-align:center;border:2px solid #080b0d;box-sizing:border-box;display:block}.bdg[hidden]{display:none}body.light .bdg{border-color:#eef2ef;color:#fff}.tg{position:relative;flex:0 0 auto;width:46px;height:27px}.tg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}.tg span{position:absolute;inset:0;border-radius:99px;background:#2c3a34;transition:.15s}.tg span::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#cfd8d3;transition:.15s}.tg input:checked+span{background:#2f9d57}.tg input:checked+span::after{left:22px;background:#fff}.tg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}
-.seg{display:inline-flex;flex-wrap:wrap;border:1px solid #2c3a34;border-radius:18px;overflow:hidden;font-size:13px;font-weight:700;margin-top:6px}.seg label{position:relative}.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}.seg span{display:block;padding:7px 12px;color:#91a49a}.seg input:checked+span{background:#2f9d57;color:#fff}.seg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:-3px}
+#s-tv .seg{flex-wrap:nowrap;flex:none}#s-tv .seg span{white-space:nowrap}.seg{display:inline-flex;flex-wrap:wrap;border:1px solid #2c3a34;border-radius:18px;overflow:hidden;font-size:13px;font-weight:700;margin-top:6px}.seg label{position:relative}.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}.seg span{display:block;padding:7px 12px;color:#91a49a}.seg input:checked+span{background:#2f9d57;color:#fff}.seg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:-3px}
 .tw{margin-top:8px;display:flex;flex-direction:column;gap:6px}.tw label{display:flex;gap:8px;align-items:center;font-size:14px}
 .save{margin:22px 0 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.btn{font:700 15px Arial,Helvetica,sans-serif;background:#7fd19a;color:#0b1110;border:0;border-radius:99px;padding:12px 24px;cursor:pointer}.btn:disabled{opacity:.5;cursor:default}.n{font-size:12.5px;color:#91a49a}
 body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r,body.light .nb{border-color:#e3ebe5}body.light .btn{background:#1b7f3b;color:#fff}body.light .seg{border-color:#cbd8ce}body.light .tg span{background:#c9d4cc}
@@ -2837,7 +2846,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV screen</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2881,7 +2890,7 @@ ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentag
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
-<section class="sec" id="s-tv" hidden><h1>TV screen</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview.</p>
+<section class="sec" id="s-tv" hidden><h1>TV rotation</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview.</p>
 <div class="tvl"><div style="flex:1;min-width:220px"><small>Type this into the TV's browser</small><b id="tvlk"></b></div><button type="button" class="tvb" id="tvcp" style="padding:0 16px">Copy link</button><a class="tvpri" id="tvpv" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;padding:0 18px">Preview</a></div>
 <div class="cd">
 <div class="r"><div><b>Theme</b><small>Dark or light colours for every page on this screen.</small></div>${seg("tvt", s.tv.theme, [["dark", "Dark"], ["light", "Light"]])}</div>
@@ -5173,7 +5182,7 @@ const worker = {
       return new Response(lines.map(fold).join("\r\n") + "\r\n", { headers: { "Content-Type": "text/calendar;charset=utf-8", "Content-Disposition": 'inline; filename="fixtures.ics"', "Cache-Control": "public, max-age=900" } });
     }
 
-    // TV screen (v3.37): /<club>/tv rotates the club's TV pages (also /tv). Set up in Admin, TV screen. It makes no outside calls: every page
+    // TV screen (v3.37): /<club>/tv rotates the club's TV pages (also /tv). Set up in Admin, TV rotation. It makes no outside calls: every page
     // plays from its own frame, which is its own request.
     { const tvm = url.pathname.match(/^\/([A-Za-z0-9-]{1,40})\/tv\/?$/), tvAlias = /^\/tv\/?$/.test(url.pathname);
       if (request.method === "GET" && ((tvm && tvm[1].toLowerCase() === CLUB_ID) || tvAlias)) {
