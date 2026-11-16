@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.0 16-Nov-2026 TV screen: one rotating link per club (/<club>/tv) that plays the Fixtures board, Match Centre, Next game, League table and League Leaders, set up in Admin under TV screen.
 //   v3.36.3 16-Nov-2026 Fixtures board header: the team name is now larger than the season heading.
 //   v3.36.2 16-Nov-2026 Fixtures board header: team name above the heading, club name removed from the top right.
 //   v3.36.1 16-Nov-2026 The Message us link is now part of the page footer on phone pages instead of floating over the content.
@@ -260,7 +261,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.36.3";
+const VERSION = "v3.37.0";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -308,6 +309,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.0_tv_screen.zip                     | v3.36.3
 v3.36.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.3_fixtures_header_size.zip          | v3.36.2
 v3.36.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.2_fixtures_header.zip               | v3.36.1
 v3.36.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.1_message_us_footer.zip             | v3.36.0
@@ -531,6 +533,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.0 - TV screen: one rotating link
+- Owner request (16-Nov-2026): one short link for a clubhouse TV that rotates the existing pages, controlled from Admin.
+- Added: /<club>/tv (and /tv) plays the Fixtures board, Match Centre, Next game, League table and League Leaders in turn with a crossfade. Admin has a new TV screen section: pages grouped by team, per-team Show switch, per-page switch, order, seconds (5 to 120), Remove, add one or add all, whole-team order, theme, optional page name/dots/progress strip, and an off-by-default switch to add new teams automatically. Settings are kept per club.
+- 50-call rule: the rotating page makes no outside calls; every page is its own request and budget, starts 4 s after the last, and shows only when ready. A page that fails or does not settle in 30 s is skipped and retried. Each page refreshes about every 5 minutes. The route skips the seasons lookup.
+- Not built: a "skip a page with nothing to show" switch (only failed loads are skipped). Preview in Admin needs the changes saved first.
+- Tests: t_v3370 (route, club check, settings clean-up, hidden/off teams, auto-add, escaping, zero outside calls, maintenance); x_tv_admin_ui (add, remove, move, save); x_tv_rotate (stagger, never shows an unready page, one frame at a time).
+- Docs: TV screen (one rotating link), What's new
 
 v3.36.3 - Fixtures board header: team name larger than the heading
 - Owner request (16-Nov-2026): after v3.36.2 the team name should be larger than the season heading.
@@ -1967,6 +1977,23 @@ const DOC_SECTIONS = [
     { p: "The Win Predictor check page (/winchance, club PIN, also under Tools in Admin) takes every finished game this season, works out the chance using only the games played before it, and compares it with what happened: how often the favourite won, a Brier score (0 is perfect; 0.25 is what saying 50/50 every time scores), the points the expected margin was out by, and whether a 70% chance really happened about 70% of the time. Read it before switching the bars on." },
     { ex: [["Win Predictor check", "/winchance"]] }
   ] },
+  { id: "tvscreen", title: "TV screen (one rotating link)", who: "Site owner", blocks: [
+    { p: "One link for a clubhouse TV that plays your TV pages in turn: the Fixtures board, Match Centre, Next game, League table and League Leaders. Type the link into the TV's browser once. What it plays is set in Admin, under TV screen, and the TV picks changes up on its next refresh of that page (within about five minutes)." },
+    { h: "The link" },
+    { p: "It is your club name followed by /tv, for example thestatsboard.co.uk/ivybridge/tv. Plain /tv works too. One link covers every team: you choose which teams and pages are in it, not which link to type." },
+    { h: "Setting it up" },
+    { ul: [
+      "Pages are grouped by team. Each team has a Show switch, so a whole team can be left out without losing its settings.",
+      "Add all pages for a team, or use + Add a page to add one at a time. The Match Centre sits under All teams.",
+      "Each page has its own on/off switch, an up and down button for the order, a seconds stepper (5 to 120) and Remove. The arrows next to a team move the whole team.",
+      "Theme chooses dark or light for every page. The optional strip at the bottom shows the page name, dots and a progress line (off by default).",
+      "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
+      "Save changes, then press Preview. A hidden team in Our teams is skipped on the TV."
+    ] },
+    { h: "How it keeps within the 50-call limit" },
+    { p: "The rotating page makes no outside calls of its own. Each page inside it is its own request with its own budget, starts a few seconds after the one before, and only fades in once it has settled. A page that fails or never settles is skipped and tried again later, so the screen never shows a half-built page. Each page refreshes itself about every five minutes. Maintenance mode shows the Back soon page instead." },
+    { ex: [["Open the TV screen", "/tv"]] }
+  ] },
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Links, Usage, Match sheet, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
@@ -2157,6 +2184,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.0", "New TV screen: one link (for example /ivybridge/tv) that rotates the Fixtures board, Match Centre, Next game, League table and League Leaders for a clubhouse TV. Choose the teams, pages, order and timings in Admin under TV screen."],
       ["v3.36.3", "On the Fixtures TV board the team name is now larger than the season heading above the games."],
       ["v3.36.2", "On the Fixtures TV board the team name now sits above the season heading, and the club name is no longer shown at the top right."],
       ["v3.36.1", "The Message us link on phone pages now sits in the footer instead of floating over the content."],
@@ -2387,8 +2415,118 @@ const SETTINGS_DEFAULT = () => ({
   matchCentre: { layout: "next" },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
   club: { teams: TEAMS_DEFAULT.map(t => ({ ...t })), saved: false },
+  tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", dots: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
   savedAt: ""
 });
+// v3.37.0: the TV screen. One link, /<club>/tv, rotates the club's TV pages. Each page is a normal TV page in its own frame, so it is
+// its own request with its own 50-call budget; this page makes no outside calls. Settings (tv): items [{page, team, secs, on}] (order
+// inside a team is the list order), order (group keys: "all" for the Match Centre, else a team number), off (group keys switched off),
+// theme, dots (page label, dots and progress line), auto (add new teams automatically), seen (team numbers known at the last save).
+const TV_PAGES = { centre: "Match Centre", fixtures: "Fixtures board", match: "Next game", table: "League table", leaders: "League Leaders" };
+const TV_TEAM_PAGES = ["fixtures", "match", "table", "leaders"];
+function cleanTv(r, ids) {
+  r = r && typeof r === "object" ? r : {};
+  const idset = new Set(ids), items = [], dup = new Set();
+  for (const x of Array.isArray(r.items) ? r.items : []) {
+    if (!x || typeof x !== "object" || items.length >= 80) continue;
+    const page = String(x.page || ""), team = page === "centre" ? "all" : String(x.team == null ? "" : x.team);
+    if (!TV_PAGES[page] || (page !== "centre" && !idset.has(team))) continue;
+    const k = page + "|" + team; if (dup.has(k)) continue; dup.add(k);
+    const n = Math.round(Number(x.secs));
+    items.push({ page, team, secs: n >= 5 && n <= 120 ? n : (page === "centre" ? 25 : 20), on: x.on !== false });
+  }
+  const keys = ["all", ...ids], order = [];
+  for (const k of Array.isArray(r.order) ? r.order : []) { const t = String(k); if (keys.includes(t) && !order.includes(t)) order.push(t); }
+  for (const k of keys) if (!order.includes(k)) order.push(k);
+  const off = [...new Set((Array.isArray(r.off) ? r.off : []).map(String).filter(t => keys.includes(t)))];
+  const seen = Array.isArray(r.seen) ? [...new Set(r.seen.map(String).filter(t => idset.has(t)))] : ids.slice();
+  return { items, order, off, theme: r.theme === "light" ? "light" : "dark", dots: r.dots === true, auto: r.auto === true, seen };
+}
+// The groups the TV screen is made of, in play order: the Match Centre ("All teams") and one group per team. With "add new teams
+// automatically" on, a team that was not on the list at the last save gets all four of its pages, switched on, at the end.
+function tvGroups(s) {
+  const tv = s.tv, teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [], byId = new Map(teams.map(t => [String(t.team), t]));
+  const items = tv.items.map(x => ({ ...x }));
+  if (tv.auto) for (const t of teams) {
+    const id = String(t.team); if (tv.seen.includes(id) || t.hidden) continue;
+    for (const p of TV_TEAM_PAGES) if (!items.some(x => x.page === p && x.team === id)) items.push({ page: p, team: id, secs: 20, on: true });
+  }
+  return tv.order.filter(k => k === "all" || byId.has(k)).map(k => {
+    const t = byId.get(k);
+    return { key: k, name: k === "all" ? "All teams" : (t.name || t.short || t.teamName || k), short: k === "all" ? "ALL" : String(t.short || t.name || "").slice(0, 3).toUpperCase(), on: !tv.off.includes(k), hidden: !!(t && t.hidden), items: items.filter(x => x.team === k) };
+  });
+}
+// The pages the TV screen plays: switched-on pages of teams that are switched on and not hidden in Our teams.
+function tvPlan(s) {
+  const out = [], teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [], th = s.tv.theme;
+  for (const g of tvGroups(s)) {
+    if (!g.on || g.hidden) continue;
+    const t = teams.find(x => String(x.team) === g.key);
+    for (const it of g.items) {
+      if (!it.on) continue;
+      const q = new URLSearchParams();
+      if (it.page === "centre") q.set("view", "stack");
+      else {
+        if (!t) continue;
+        if (it.page !== "table") q.set("view", it.page);
+        q.set("layout", "tv"); q.set("competition", String(t.competition)); q.set("division", String(t.division)); q.set("team", String(t.team)); q.set("teamName", String(t.teamName || ""));
+      }
+      q.set("theme", th);
+      out.push({ k: it.page, n: TV_PAGES[it.page] + (t ? " · " + (t.name || t.short || "") : ""), u: "/?" + q.toString(), s: it.secs });
+    }
+  }
+  return out;
+}
+function tvScreenPage(plan, dots, theme) {
+  const light = theme === "light", bg = light ? "#f4f8f5" : "#0a100e", fg = light ? "#24332b" : "#c5d2cb";
+  const data = JSON.stringify({ p: plan, d: dots === true }).replace(/</g, "\\u003c");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>TV screen - The Stats Board</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif}
+#st{position:fixed;inset:0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
+#ld[hidden]{display:none}#ld{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:3vh;letter-spacing:.08em;opacity:.7}
+#bt{position:fixed;left:0;right:0;bottom:0;z-index:5;pointer-events:none}#bt[hidden]{display:none}
+#bi{display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:0 2.4vw 1.1vh;font-size:2.2vh;text-shadow:0 0 6px ${bg}}
+#dots{display:flex;gap:1vh}#dots i{display:block;width:1.3vh;height:1.3vh;border-radius:50%;background:${light ? "#b8c8bd" : "#33433b"}}#dots i.on{background:#4cc36f}
+#pg{height:.6vh;background:${light ? "#dbe6de" : "#17211d"}}#bar{height:100%;width:0;background:#4cc36f}</style></head><body>
+<!-- class="ver" rfu-soft : the pages inside this screen show the version, so no extra stamp or refresh script is added here -->
+<div id="st"></div><div id="ld">${plan.length ? "Loading" : "Nothing is switched on for this screen yet"}</div>
+<div id="bt" hidden><div id="bi"><span id="lab"></span><span id="dots"></span></div><div id="pg"><div id="bar"></div></div></div>
+<script type="application/json" id="tvd">${data}</script>
+<script>(function(){
+var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
+if(!P.length)return;
+var FADE=800,STAG=4000,TMO=30000,REF=300000;
+var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null}}),cur=-1,tm=null;
+if(D){bt.hidden=false;P.forEach(function(){dt.appendChild(document.createElement("i"))})}
+function mk(sl){
+  if(sl.busy)return;
+  var f=document.createElement("iframe");f.className="fr";f.tabIndex=-1;f.setAttribute("aria-hidden","true");f.src=sl.p.u+"&_sr=1";sl.busy=f;st.appendChild(f);
+  f.__to=setTimeout(function(){if(sl.busy!==f)return;sl.busy=null;try{f.remove()}catch(e){}sl.fail++;setTimeout(function(){mk(sl)},Math.min(300000,30000*sl.fail))},TMO)
+}
+function ready(sl){
+  var f=sl.busy;clearTimeout(f.__to);sl.busy=null;sl.fail=0;
+  var old=sl.f;sl.f=f;
+  if(cur===sl.i){f.className="fr on";if(old)old.className="fr"}
+  if(old)setTimeout(function(){try{old.remove()}catch(e){}},FADE+200);
+  setTimeout(function(){mk(sl)},REF+sl.i*15000);
+  if(cur<0)show(sl.i)
+}
+addEventListener("message",function(e){
+  if(e.data!=="rfu-sr-ready")return;
+  for(var i=0;i<S.length;i++){var b=S[i].busy;if(b&&b.contentWindow===e.source){ready(S[i]);return}}
+});
+function nextReady(from){for(var k=1;k<=S.length;k++){var j=(from+k)%S.length;if(S[j].f)return j}return -1}
+function show(j){
+  if(cur>=0&&S[cur].f&&cur!==j)S[cur].f.className="fr";
+  cur=j;S[j].f.className="fr on";ld.hidden=true;
+  if(D){lab.textContent=S[j].p.n+" \\u00b7 "+(j+1)+" of "+S.length;[].forEach.call(dt.children,function(x,k){x.className=k===j?"on":""});
+    bar.style.transition="none";bar.style.width="0";void bar.offsetWidth;bar.style.transition="width "+S[j].p.s+"s linear";bar.style.width="100%"}
+  clearTimeout(tm);tm=setTimeout(adv,S[j].p.s*1000)
+}
+function adv(){var j=nextReady(cur);if(j<0||j===cur){tm=setTimeout(adv,S[cur].p.s*1000);return}show(j)}
+S.forEach(function(sl,i){setTimeout(function(){mk(sl)},i*STAG)});
+})();</script></body></html>`;
+}
 // Our teams (v3.29): the club's own team list, kept in the settings record. Each entry: team (RFU number), teamName (the RFU's own name),
 // name (the friendly name shown everywhere), short (phone jump bar label), accent (team colour), league, competition, division.
 const TEAM_PALETTE = ["#2f9e5b", "#d9a21b", "#c0303f", "#3d8fd6", "#8a63d2", "#e07b39", "#2aa5a5", "#c45a9a"];
@@ -2585,6 +2723,7 @@ function cleanSettings(raw) {
     if (Array.isArray(m.lines)) { const seen = new Set(), out = []; for (const x of m.lines) { const l = txt(x, 100).replace(/[<>]/g, ""); if (l && !seen.has(l) && out.length < 20) { seen.add(l); out.push(l); } } d.maintenance.lines = out; }
     const pk = typeof m.pun === "string" ? txt(m.pun, 100).replace(/[<>]/g, "") : "random";
     d.maintenance.pun = pk === "random" || pk === "none" || d.maintenance.lines.includes(pk) ? pk : "random"; }
+  d.tv = cleanTv(r.tv, ids);
   if (clubT) d.club = { teams: clubT, saved: true };
   d.savedAt = typeof r.savedAt === "string" ? r.savedAt.slice(0, 40) : "";
   return d;
@@ -2644,6 +2783,7 @@ function adminPage(theme, isDev, s, kvOk) {
   const seg = (name, cur, opts) => `<div class="seg">${opts.map(o => `<label><input type="radio" name="${name}" value="${o[0]}"${cur === o[0] ? " checked" : ""}><span>${o[1]}</span></label>`).join("")}</div>`;
   const styleOpts = [["info", "Information"], ["warning", "Warning"]];
   const h = s.notices.home, v = s.notices.tv, m = s.maintenance;
+  const tvJson = JSON.stringify({ groups: tvGroups(s).map(g => ({ key: g.key, name: g.name, short: g.short, on: g.on, hidden: g.hidden, items: g.items.map(i => ({ page: i.page, secs: i.secs, on: i.on })) })), ids: (s.club.teams || []).map(t => String(t.team)), slug: CLUB_ID, pages: TV_PAGES }).replace(/</g, "\\u003c");
   const setup = kvOk ? "" : `<div class="card"><h3>Settings storage is not connected</h3><p class="msg">The site is running on its default settings. To change settings here, connect a KV namespace: in Cloudflare open the Pages project, Settings, Bindings, Add, KV namespace, name the variable <b>SETTINGS</b>, then redeploy. Use a separate namespace for the DEV and PROD projects so test notices never reach the live site.</p></div>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Admin</title>
 <style>
@@ -2658,6 +2798,18 @@ ${MENU_CSS}
 .adt~a{color:#7fd89a;font-weight:600;font-size:14px;min-height:40px}
 .adm{min-width:0;padding-bottom:84px}.adm h1{margin:0 0 4px}.adm .sub{margin:0 0 14px}
 .ov{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:6px}.oc{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}.oc small{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#91a49a;font-weight:700}.oc b{font-size:28px;line-height:1.45}.oc b.good{color:#7fd19a}.oc b.bad{color:#f0c870}.oc span{font-size:12.5px;color:#91a49a;line-height:1.4}
+.tvl{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px 16px;margin:0 0 14px}.tvl small{display:block;color:#91a49a;margin-bottom:4px}.tvl b{display:block;font-size:20px;word-break:break-all}
+.tvt2{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 10px}.tvt2 h3{margin:0}.tvt2 span{color:#91a49a;font-size:14px}
+.tvg{background:#111719;border:1px solid #26312d;border-radius:14px;margin:0 0 14px;overflow:hidden}.tvg.off{opacity:.62}
+.tvh{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#16221d;border-left:6px solid #3fb26b;flex-wrap:wrap}.tvh .tn{flex:1;min-width:150px}.tvh .tn b{display:block;font-size:18px}.tvh .tn small{color:#91a49a;font-size:13px}.tvsh{color:#91a49a}
+.tvb2{width:38px;height:38px;border-radius:50%;background:#fff;color:#1f7a45;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.tvr{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 28px;border-top:1px solid #1d2925;flex-wrap:wrap}.tvr.off{opacity:.55}.tvr .pn{flex:1;min-width:120px;font-weight:700}.tvm,.tvsc{display:flex;align-items:center;gap:4px}.tvs{min-width:44px;text-align:center;font-weight:700}
+.tvb{min-width:36px;min-height:38px;border-radius:8px;border:1px solid #3a4a43;background:#16201c;color:#e6efe9;font:inherit;font-size:15px;cursor:pointer}
+.tvx{background:none;border:0;color:#e08a82;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;min-height:38px}
+.tvad{padding:8px 14px 10px 28px;border-top:1px solid #1d2925;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tvnote{color:#a9bab1;font-size:14px;flex:1;min-width:180px}
+.tvadd{min-height:40px;padding:0 14px;border-radius:8px;border:1px dashed #3a6a4c;background:transparent;color:#7fd89a;font:inherit;font-weight:700;cursor:pointer}
+.tvpri{min-height:40px;padding:0 16px;border-radius:8px;border:0;background:#2f9d57;color:#06140c;font:inherit;font-weight:700;cursor:pointer}
+body.light .tvl,body.light .tvg{background:#fff;border-color:#cbd8ce}body.light .tvh{background:#eaf3ed}body.light .tvr,body.light .tvad{border-color:#e0e9e2}body.light .tvb{background:#f1f6f2;color:#14301e;border-color:#b9c9bd}body.light .tvb2{background:#e3f0e7;border:1px solid #cbd8ce}body.light .tvnote,body.light .tvh .tn small{color:#53665a}
 .warn{margin:14px 0 0;background:#3a2f12;color:#f0c870;border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.5}
 
 .sbar:not(.show){display:none}.sbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0c1113;border-top:1px solid #26312d;padding:12px max(16px,calc((100vw - 1040px)/2 + 246px)) calc(12px + env(safe-area-inset-bottom)) ;}
@@ -2685,7 +2837,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV screen</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -2728,6 +2880,16 @@ ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", 
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
+</section>
+<section class="sec" id="s-tv" hidden><h1>TV screen</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview.</p>
+<div class="tvl"><div style="flex:1;min-width:220px"><small>Type this into the TV's browser</small><b id="tvlk"></b></div><button type="button" class="tvb" id="tvcp" style="padding:0 16px">Copy link</button><a class="tvpri" id="tvpv" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;padding:0 18px">Preview</a></div>
+<div class="cd">
+<div class="r"><div><b>Theme</b><small>Dark or light colours for every page on this screen.</small></div>${seg("tvt", s.tv.theme, [["dark", "Dark"], ["light", "Light"]])}</div>
+${sw("tvd", s.tv.dots, "Show the page name, dots and a progress line", "A small strip at the bottom of the TV showing which page is on and how long is left. Off by default.")}
+${sw("tva", s.tv.auto, "Add new teams to the TV automatically", "A team added in Our teams gets its four pages (Fixtures board, Next game, League table, League Leaders) at the end of the list. Off: nothing appears until you add it.")}
+</div>
+<div class="tvt2"><h3>Pages, by team</h3><span id="tvsum"></span></div>
+<div id="tvb"></div>
 </section>
 <section class="sec" id="s-match" hidden><h1>Match day</h1><p class="sub">Tools for match days.</p>
 <div class="cd">
@@ -2801,7 +2963,46 @@ function tfind(){var n=$("tq").value.trim();$("tp").innerHTML="";$("tr").innerHT
 $("tgo").addEventListener("click",tfind);$("tq").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();tfind()}});
 $("tr").addEventListener("click",function(e){var b=e.target.closest(".tsb");if(!b)return;var id=b.getAttribute("data-id");if(club.some(function(t){return t.team===id})){$("tm1").textContent="That team is already on the list. Use Change league on it instead.";return}if(shown()>=MAXT||club.length>=MAXALL){$("tm1").textContent="Six teams can show at once. Hide or remove a team first.";return}addAt=-1;$("tr").innerHTML="";lgs(id,b.getAttribute("data-n"))});
 rt();
-var SECS=["home","teams","notices","screens","match","data","privacy","access","status"];
+var TVI=${tvJson};
+function tvE(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function tvB(txt,label,fn,cls){var b=tvE("button",cls||"tvb",txt);b.type="button";if(label)b.setAttribute("aria-label",label);b.addEventListener("click",function(){fn();tvDraw();md()});return b}
+function tvSw(on,label,fn){var l=tvE("label","tg"),i=document.createElement("input");i.type="checkbox";i.checked=on;i.setAttribute("aria-label",label);i.addEventListener("change",function(){fn(i.checked);tvDraw();md()});l.appendChild(i);l.appendChild(document.createElement("span"));return l}
+function tvMove(a,i,d){var j=i+d;if(j<0||j>=a.length)return;var x=a[i];a[i]=a[j];a[j]=x}
+function tvFmt(sec){var m=Math.floor(sec/60),s=sec%60;return m?m+" min "+s+" s":s+" s"}
+function tvDraw(){
+var box=$("tvb");box.innerHTML="";var n=0,sec=0;
+TVI.groups.forEach(function(g,gi){
+var live=g.on&&!g.hidden,on=0;g.items.forEach(function(it){if(it.on)on++;if(live&&it.on){n++;sec+=it.secs}});
+var card=tvE("div","tvg"+(live?"":" off")),h=tvE("div","tvh");
+h.appendChild(tvE("span","tvb2",g.short));
+var nm=tvE("div","tn");nm.appendChild(tvE("b",null,g.name));
+nm.appendChild(tvE("small",null,g.hidden?"Hidden in Our teams, so skipped on the TV":!g.on?"Switched off, so skipped on the TV":!g.items.length?"No pages yet":on+" of "+g.items.length+(g.items.length===1?" page on":" pages on")));h.appendChild(nm);
+h.appendChild(tvB("▲","Move "+g.name+" up",function(){tvMove(TVI.groups,gi,-1)}));h.appendChild(tvB("▼","Move "+g.name+" down",function(){tvMove(TVI.groups,gi,1)}));
+h.appendChild(tvE("small","tvsh","Show"));h.appendChild(tvSw(g.on,"Show "+g.name+" on the TV",function(v){g.on=v}));
+card.appendChild(h);
+g.items.forEach(function(it,ii){
+var r=tvE("div","tvr"+(it.on?"":" off"));
+var mv=tvE("span","tvm");mv.appendChild(tvB("▲","Move up",function(){tvMove(g.items,ii,-1)}));mv.appendChild(tvB("▼","Move down",function(){tvMove(g.items,ii,1)}));r.appendChild(mv);
+r.appendChild(tvSw(it.on,"Show "+TVI.pages[it.page],function(v){it.on=v}));
+r.appendChild(tvE("span","pn",TVI.pages[it.page]));
+var sc=tvE("span","tvsc");sc.appendChild(tvB("−","Fewer seconds",function(){it.secs=Math.max(5,it.secs-5)}));sc.appendChild(tvE("span","tvs",it.secs+" s"));sc.appendChild(tvB("+","More seconds",function(){it.secs=Math.min(120,it.secs+5)}));r.appendChild(sc);
+r.appendChild(tvB("Remove","Remove "+TVI.pages[it.page],function(){g.items.splice(ii,1)},"tvx"));
+card.appendChild(r)});
+var have={};g.items.forEach(function(it){have[it.page]=1});
+var miss=g.key==="all"?(have.centre?[]:["centre"]):["fixtures","match","table","leaders"].filter(function(p){return!have[p]});
+var ad=tvE("div","tvad");
+if(g.key!=="all"&&!g.items.length){ad.appendChild(tvE("span","tvnote","Not on the TV yet. Nothing appears for this team until you add pages."));ad.appendChild(tvB("Add all pages for "+g.name,null,function(){["fixtures","match","table","leaders"].forEach(function(p){g.items.push({page:p,secs:20,on:true})})},"tvpri"))}
+else if(!miss.length){ad.appendChild(tvE("span","tvnote","Every page for "+g.name+" is on the list."))}
+else if(g.key==="all"){ad.appendChild(tvB("+ Add the Match Centre",null,function(){g.items.push({page:"centre",secs:25,on:true})},"tvadd"))}
+else if(!g.open){ad.appendChild(tvB("+ Add a page for "+g.name,null,function(){g.open=true},"tvadd"))}
+else{miss.forEach(function(p){ad.appendChild(tvB(TVI.pages[p],"Add "+TVI.pages[p]+" for "+g.name,function(){g.items.push({page:p,secs:20,on:true});g.open=false},"tvadd"))});ad.appendChild(tvB("Cancel",null,function(){g.open=false},"tvx"))}
+card.appendChild(ad);box.appendChild(card)});
+$("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round"}
+function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){o.items.push({page:it.page,team:g.key,secs:it.secs,on:it.on})})});return o}
+var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
+$("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
+tvDraw();
+var SECS=["home","teams","notices","screens","tv","match","data","privacy","access","status"];
 function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}
 addEventListener("hashchange",route);route();
 var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add("show");$("dirty").hidden=false;$("dis").hidden=false}
@@ -2810,7 +3011,7 @@ addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.retur
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club}};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club},tv:tvOut()};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -4758,7 +4959,7 @@ async function leagueFix(worker, origin, teamId, season, prev, comp, div) {
   leagueFixMem.set(key, { at: now, v });
   return v;
 }
-const AUTO_SKIP = /^\/(api|builder|probe|release-notes|admin|version|unlock|club-unlock|manifest|icon|apple-touch|favicon)/;
+const AUTO_SKIP = /^\/(api|builder|probe|release-notes|admin|version|unlock|club-unlock|manifest|icon|apple-touch|favicon|tv\/?$|[A-Za-z0-9-]{1,40}\/tv\/?$)/;
 // One calculation for every page: which season (and league) does a link with no season= mean today?
 async function autoSeasonFor(worker, url, isDev, teams) {
   const p = url.searchParams, iso = todayIso(url, isDev);
@@ -4971,6 +5172,14 @@ const worker = {
       lines.push("END:VCALENDAR");
       return new Response(lines.map(fold).join("\r\n") + "\r\n", { headers: { "Content-Type": "text/calendar;charset=utf-8", "Content-Disposition": 'inline; filename="fixtures.ics"', "Cache-Control": "public, max-age=900" } });
     }
+
+    // TV screen (v3.37): /<club>/tv rotates the club's TV pages (also /tv). Set up in Admin, TV screen. It makes no outside calls: every page
+    // plays from its own frame, which is its own request.
+    { const tvm = url.pathname.match(/^\/([A-Za-z0-9-]{1,40})\/tv\/?$/), tvAlias = /^\/tv\/?$/.test(url.pathname);
+      if (request.method === "GET" && ((tvm && tvm[1].toLowerCase() === CLUB_ID) || tvAlias)) {
+        const ts = await siteSettings();
+        return new Response(tvScreenPage(tvPlan(ts), ts.tv.dots, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+      } }
 
     // Welcome screen: the bare address with no team or view in the link.
     if ((url.pathname === "/" || url.pathname === "") && !["team", "view", "format", "competition", "division"].some(k => url.searchParams.has(k))) {

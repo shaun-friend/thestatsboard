@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.0_tv_screen.zip                     | v3.36.3
 v3.36.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.3_fixtures_header_size.zip          | v3.36.2
 v3.36.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.2_fixtures_header.zip               | v3.36.1
 v3.36.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.1_message_us_footer.zip             | v3.36.0
@@ -265,6 +266,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.0 - TV screen: one rotating link
+- Owner request (16-Nov-2026): one short link for a clubhouse TV that rotates the existing pages, controlled from Admin.
+- Added: /<club>/tv (and /tv) plays the Fixtures board, Match Centre, Next game, League table and League Leaders in turn with a crossfade. Admin has a new TV screen section: pages grouped by team, per-team Show switch, per-page switch, order, seconds (5 to 120), Remove, add one or add all, whole-team order, theme, optional page name/dots/progress strip, and an off-by-default switch to add new teams automatically. Settings are kept per club.
+- 50-call rule: the rotating page makes no outside calls; every page is its own request and budget, starts 4 s after the last, and shows only when ready. A page that fails or does not settle in 30 s is skipped and retried. Each page refreshes about every 5 minutes. The route skips the seasons lookup.
+- Not built: a "skip a page with nothing to show" switch (only failed loads are skipped). Preview in Admin needs the changes saved first.
+- Tests: t_v3370 (route, club check, settings clean-up, hidden/off teams, auto-add, escaping, zero outside calls, maintenance); x_tv_admin_ui (add, remove, move, save); x_tv_rotate (stagger, never shows an unready page, one frame at a time).
+- Docs: TV screen (one rotating link), What's new
 
 v3.36.3 - Fixtures board header: team name larger than the heading
 - Owner request (16-Nov-2026): after v3.36.2 the team name should be larger than the season heading.
