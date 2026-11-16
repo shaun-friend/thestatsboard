@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.36.1 16-Nov-2026 The Message us link is now part of the page footer on phone pages instead of floating over the content.
 //   v3.36.0 16-Nov-2026 The Welcome page is kept ready-made like the other pages (quicker; Admin changes and maintenance mode still show at once).
 //   v3.35.2 15-Nov-2026 Win Predictor heading now reads Win Predictor / Game Difficulty on every bar.
 //   v3.35.1 15-Nov-2026 Win Predictor: the underdog lines are removed everywhere, including Admin. The Match Centre bars now line up across panels (the Early season note keeps its row on every panel).
@@ -257,7 +258,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.36.0";
+const VERSION = "v3.36.1";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -305,6 +306,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.36.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.1_message_us_footer.zip             | v3.36.0
 v3.36.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.0_welcome_cache.zip                 | v3.35.2
 v3.35.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.2_win_predictor_heading.zip         | v3.35.1
 v3.35.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.1_win_predictor_align.zip          | v3.35.0
@@ -526,6 +528,12 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.36.1 - Message us link moved into the page footer
+- Owner request (16-Nov-2026): on phone pages the small Message us link floated at the bottom right and overlapped the content.
+- Fixed: the link is now part of the page's own footer, centred under the version line, so it scrolls with the page and never sits over a game, table or button. Where it shows is unchanged: phone and tablet team pages only, never TV screens, the Links page or the app shell, and only while the Message form switch is on.
+- Tests: new phone check at four widths that the link covers no content and the page does not scroll sideways (it fails on the old floating link); the existing link-presence tests still pass.
+- Docs: What's new
+- Parked idea closed: the picture-card WhatsApp share is not wanted (owner, 16-Nov-2026); the text message stays as it is.
 v3.36.0 - Welcome page kept ready-made
 - Owner question (16-Nov-2026): why the Welcome page was slow on the Usage page (about 280 ms typical, 0% ready made) when the other pages take about 7 ms.
 - Cause: the Welcome page was the only page not kept at the edge, so it was rebuilt, and the saved settings read, on every visit. Recent teams are held in each browser (localStorage), so the page itself is the same for everyone.
@@ -2134,6 +2142,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.36.1", "The Message us link on phone pages now sits in the footer instead of floating over the content."],
       ["v3.36.0", "The Welcome page now loads faster. Nothing looks different, and your recent teams are still kept on your own device."],
       ["v3.35.2", "The heading above the Win Predictor bar now reads Win Predictor / Game Difficulty."],
       ["v3.35.1", "The underdog lines under the Win Predictor are gone, including from Admin. The Win Predictor bars now line up across the Match Centre panels. The Win Predictor can still be switched off for the whole site or for one team."],
@@ -3114,7 +3123,8 @@ function contactInject(html, url) {
   const q = url.searchParams;
   if (url.pathname !== "/" || q.get("view") === "teams" || !(q.has("team") || q.has("view")) || ["layout", "ly", "screen", "embed", "frag", "format", "app", "s"].some(k => q.has(k)) || (q.get("device") || "").toLowerCase() === "tv") return html;
   if (/class="clubhead"|layout=tv/.test(html) || html.includes('id="sbmsg"')) return html;
-  const a = `<a id="sbmsg" href="/contact?from=${encodeURIComponent((url.pathname + url.search).slice(0, 200))}" style="position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(2px,env(safe-area-inset-bottom));z-index:2147483644;font:11px/1 Arial,Helvetica,sans-serif;color:rgba(128,140,134,.95);text-decoration:underline;padding:6px 4px">Message us</a>`;
+  // v3.36.1: part of the page's own footer (centred above the version line) instead of floating over the content at the bottom right.
+  const a = `<div id="sbmsgw" style="text-align:center;padding:14px 16px calc(16px + env(safe-area-inset-bottom));font:12px/1 Arial,Helvetica,sans-serif"><a id="sbmsg" href="/contact?from=${encodeURIComponent((url.pathname + url.search).slice(0, 200))}" style="color:rgba(128,140,134,.95);text-decoration:underline;padding:8px 6px">Message us</a></div>`;
   return html.replace(/<\/body>/i, a + "</body>");
 }
 

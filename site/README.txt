@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.36.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.1_message_us_footer.zip             | v3.36.0
 v3.36.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.0_welcome_cache.zip                 | v3.35.2
 v3.35.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.2_win_predictor_heading.zip         | v3.35.1
 v3.35.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.1_win_predictor_align.zip          | v3.35.0
@@ -263,6 +264,12 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.36.1 - Message us link moved into the page footer
+- Owner request (16-Nov-2026): on phone pages the small Message us link floated at the bottom right and overlapped the content.
+- Fixed: the link is now part of the page's own footer, centred under the version line, so it scrolls with the page and never sits over a game, table or button. Where it shows is unchanged: phone and tablet team pages only, never TV screens, the Links page or the app shell, and only while the Message form switch is on.
+- Tests: new phone check at four widths that the link covers no content and the page does not scroll sideways (it fails on the old floating link); the existing link-presence tests still pass.
+- Docs: What's new
+- Parked idea closed: the picture-card WhatsApp share is not wanted (owner, 16-Nov-2026); the text message stays as it is.
 v3.36.0 - Welcome page kept ready-made
 - Owner question (16-Nov-2026): why the Welcome page was slow on the Usage page (about 280 ms typical, 0% ready made) when the other pages take about 7 ms.
 - Cause: the Welcome page was the only page not kept at the edge, so it was rebuilt, and the saved settings read, on every visit. Recent teams are held in each browser (localStorage), so the page itself is the same for everyone.
