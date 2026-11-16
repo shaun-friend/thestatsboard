@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
 v3.37.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.1_tv_rotation_name.zip              | v3.37.0
 v3.37.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.0_tv_screen.zip                     | v3.36.3
 v3.36.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.3_fixtures_header_size.zip          | v3.36.2
@@ -267,6 +268,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.2 - TV rotation: phone spacing
+- Owner feedback (16-Nov-2026): spacing was out on mobile in the TV rotation list (the Show switch dropped under its label, page controls wrapped untidily).
+- Changed: on phones each team header shows its name, then one line with the up/down arrows and the Show switch together; each page is two tidy lines (switch and name, then order arrows, seconds and Remove). Desktop is unchanged.
+- Tests: TV admin check.
+- Docs: What's new
 
 v3.37.1 - TV rotation: clearer name, Dark/Light fix
 - Owner feedback (16-Nov-2026): "Screens" and "TV screen" side by side in the Admin menu were confusing, and Dark/Light stacked oddly on a phone.
