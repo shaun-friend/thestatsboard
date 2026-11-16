@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.36.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.0_welcome_cache.zip                 | v3.35.2
 v3.35.2 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.2_win_predictor_heading.zip         | v3.35.1
 v3.35.1 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.1_win_predictor_align.zip          | v3.35.0
 v3.35.0 | 15-Nov-2026 | RFU_Club_Dashboard_v3.35.0_underdog_lines_admin.zip         | v3.34.2
@@ -262,6 +263,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.36.0 - Welcome page kept ready-made
+- Owner question (16-Nov-2026): why the Welcome page was slow on the Usage page (about 280 ms typical, 0% ready made) when the other pages take about 7 ms.
+- Cause: the Welcome page was the only page not kept at the edge, so it was rebuilt, and the saved settings read, on every visit. Recent teams are held in each browser (localStorage), so the page itself is the same for everyone.
+- Changed: the bare address is now kept like the other pages, for the rest of the UK day on weekdays (30 minutes at weekends). The key holds the version, theme, other link settings and the time Admin was last saved, so a release or any Admin change (including a Home notice) shows at once. Light and dark are kept separately.
+- Unchanged: Maintenance mode is checked before any stored page, so the Back soon page always wins, and the Welcome page returns as soon as it is switched off. The maintenance page itself is never stored.
+- Tests: second visit is a stored copy, light and dark kept apart, no recents in the page, Admin notice added and removed at once, next UK day rebuilt, team links unaffected, maintenance on and off with a stored copy.
+- Docs: What's new
 v3.35.2 - Win Predictor heading now reads Win Predictor / Game Difficulty
 - Owner request (15-Nov-2026): soften how blunt the bar can look when a team is clearly the underdog.
 - Changed: the small heading above every Win Predictor bar (Match Centre and Competition table) now reads WIN PREDICTOR / GAME DIFFICULTY. The switches (whole site and per team) are unchanged and still cover the bar.
