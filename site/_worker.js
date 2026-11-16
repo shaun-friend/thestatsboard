@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.10 16-Nov-2026 CPU savings: match dates are worked out once per page and the London-day formatter is shared (Error 1102 on the free plan); pages use roughly a fifth to a third less working time.
 //   v3.37.9 16-Nov-2026 TV screen: stronger pinch-zoom and double-tap-zoom block for iPhone Safari.
 //   v3.37.8 16-Nov-2026 TV screen: pinch-zoom is switched off (it crashed the page on iPhones).
 //   v3.37.7 16-Nov-2026 TV rotation: every page it loads carries the release number in its address, so a new release is never shown from an old browser copy.
@@ -270,7 +271,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.9";
+const VERSION = "v3.37.10";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -318,6 +319,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
 v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
 v3.37.8 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.8_tv_no_pinch_zoom.zip             | v3.37.7
 v3.37.7 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.7_tv_fresh_pages.zip               | v3.37.6
@@ -551,6 +553,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.10 - CPU savings (Error 1102 on the free plan)
+- Owner report (16-Nov-2026): a lot of CPU errors on the live site in the last 12 hours. The site is on the free plan (10 ms of working time per request) and the owner prefers pages to be made cheaper rather than paying.
+- Found by timing each page with the sample feed (new x_cpu_bench): the team dashboard was the most expensive page, and a large part of that was dates being parsed again and again (every list, key and comparison) and a new date formatter being built on every call.
+- Changed: each match's date is now worked out once per page and reused, and the "which London day" formatter is built once and shared. Nothing on screen changes.
+- Measured with the sample feed (warm, one request): TV dashboard 11.6 to 6.8 ms, Match Stats 7.9 to 5.6 ms, Opposition report 9.0 to 6.5 ms, Fixtures 4.9 to 3.8 ms, phone dashboard 9.8 to 8.7 ms. These are a laptop-style test, not Cloudflare's own numbers, so judge by Cloudflare Metrics after it is live.
+- Not fixed here: the first request after a quiet spell (a "cold" start) still costs several times more than a warm one, so some 1102s can remain right after a deploy or a long quiet period.
+- Tests: all existing tests pass; x_cpu_bench.mjs prints the timings for next time.
+- Docs: What's new
 
 v3.37.9 - TV rotation: stronger zoom lock for iPhone
 - Owner report (16-Nov-2026): after v3.37.8 pinch-zoom still worked on the TV preview on an iPhone.
@@ -2261,6 +2272,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.10", "Behind the scenes: pages use less of the server's working time (about a fifth to a third less in tests), to cut the Error 1102 messages on the free plan. Nothing looks different."],
       ["v3.37.9", "Stronger zoom lock on the TV link for iPhones (two-finger touches and double-tap are cancelled too)."],
       ["v3.37.8", "The TV link no longer pinch-zooms on a phone (zooming crashed Safari on iPhones)."],
       ["v3.37.7", "The TV screen now asks for fresh pages after every release, so a phone or TV does not keep showing an older layout."],
@@ -4757,6 +4769,8 @@ async function cachedTextTry(target, accept) {
   if (err) throw err;
   return r;
 }
+let LDN_DTF = null; // v3.37.10: one shared formatter for "which London day is this", instead of building a new one on every call
+const ldnDay = d => (LDN_DTF || (LDN_DTF = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }))).format(d);
 const londonTime = ms => new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 
 // Light/dark choice on phones is saved in the browser and shared by every page.
@@ -6729,10 +6743,16 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       const ownClubName = (() => { const t = selectedTeam && selectedTeam.name ? selectedTeam.name : (teamName && !/^__none__$/.test(teamName) ? teamName : ""); return t ? clubOf(t) : clubOf(displayTeamName); })();
       const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;")
         .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+      // v3.37.10: each match's date is worked out once and reused (it was re-parsed every time a list was built or compared). Nothing changes the returned Date.
+      const dateOfMemo = new WeakMap();
       const dateOf = m => {
+        const obj = m !== null && typeof m === "object";
+        if (obj) { const hit = dateOfMemo.get(m); if (hit !== undefined) return hit; }
         const raw = m.date || m.fixtureDate || m.matchDate || m.startDate || m.kickoffDate || m.kickOffDate || "";
         const d = new Date(raw);
-        return Number.isNaN(d.getTime()) ? null : d;
+        const out = Number.isNaN(d.getTime()) ? null : d;
+        if (obj) dateOfMemo.set(m, out);
+        return out;
       };
       // Keep completed results and scheduled fixtures separate. The RFU
       // fixtures collection can contain historical 0-0 placeholders; merging
@@ -6954,7 +6974,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       const tvDash = layout === "tv";
       const tvWhen = iso => {
         const dd = new Date(iso); if (Number.isNaN(dd.getTime())) return "";
-        const ldn = d => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(d);
+        const ldn = ldnDay;
         const t0 = ldn(new Date()), t1 = ldn(dd);
         const dayN = x => Math.round(Date.parse(x + "T00:00:00Z") / 864e5);
         const diff = dayN(t1) - dayN(t0);
