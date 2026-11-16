@@ -46,7 +46,7 @@ let j=await sumM();let win=j.next&&j.next.win;
 c('early: a prediction is shown with five games each',!!win&&win.home.pct+win.away.pct===100);
 c('early: flagged early with the game count',!!win&&win.early===true&&win.n===5);
 c('early: never more lopsided than 80/20',!!win&&win.home.pct<=80&&win.home.pct>=20);
-let h=await (await get('/?'+base)).text();
+let h=await (await get('/?'+base+'&layout=mobile')).text();
 c('early: note under the bar',/class="wce">Early season: based on 5 games each</.test(h));
 c('early: note is TV-only (hidden by default, shown from 900px)',/\.wce\{display:none\}/.test(h)&&/@media\(min-width:900px\)\{\.wce\{display:block/.test(h));
 c('early: phone how-it-works text does not mention it',!/It is early in the season/.test(h));

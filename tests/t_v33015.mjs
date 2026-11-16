@@ -33,8 +33,8 @@ await setTeams(['Ivybridge 1XV']);
 const pages=[['mobile','/?'+base+'&layout=mobile'],['tv','/?'+base+'&layout=tv'],['match','/?view=match&'+base],['opposition','/?view=opposition&'+base],['fixtures','/?view=fixtures&'+base],['leaders','/?view=leaders&'+base]];
 for(const [n,q] of pages){const t=await (await get(q)).text();c(n+': no friendlyName with the Admin name in any link',!/friendlyName(=|%3D)Ivybridge(\+|%20|%2B|%2520)1XV/.test(t));c(n+': page still shows the Admin name',/Ivybridge 1XV/.test(t))}
 // the links still work: opening a stripped link gives the Admin name back
-const t1=await (await get('/?'+base+'&layout=tv')).text();const ml=(t1.match(/href="(\/\?view=opposition[^"]*)"/)||[])[1];
-c('the TV page links to the opposition report',!!ml);
+const t1=await (await get('/?'+base+'&layout=mobile')).text();const ml=(t1.match(/href="(\/\?view=opposition[^"]*)"/)||[])[1];
+c('the phone page links to the opposition report',!!ml);
 if(ml){const o=await (await get(ml.replace(/&amp;/g,'&'))).text();c('a stripped link still shows the Admin name',/Ivybridge 1XV/.test(o))}
 // calendar link without a name uses the Admin name
 const ics=await (await get('/calendar.ics?'+base)).text();c('calendar file follows the Admin name',/Ivybridge 1XV/.test(ics)||ics.includes('BEGIN:VCALENDAR'));

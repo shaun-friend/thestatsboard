@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.5 16-Nov-2026 TV League table no longer repeats other pages: next-match reminder in the header and on the opponent row, season snapshot at the side.
 //   v3.37.4 16-Nov-2026 TV rotation on a phone: pages are drawn at TV size (1920 x 1080) and shrunk to fit, so Preview shows the TV layout.
 //   v3.37.3 16-Nov-2026 TV rotation in Admin: each page is one line on a phone.
 //   v3.37.2 16-Nov-2026 TV rotation in Admin: tidier spacing on phones (team controls on one line, each page on two).
@@ -265,7 +266,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.4";
+const VERSION = "v3.37.5";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -313,6 +314,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
 v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
 v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
 v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
@@ -541,6 +543,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.5 - TV League table: no repeated information
+- Owner request (16-Nov-2026): the TV pages should not repeat each other now that they rotate.
+- Changed: on the TV layout only, the League table page drops the top tiles, Recent form, Latest results and Next fixture panels (these live on Next game, League Leaders and the Fixtures board). The table takes the room, with a Season snapshot at the side (win rate, current run, home and away record, biggest win, worst defeat). The header shows a NEXT MATCH pill (opponent, Home/Away, This Thursday / Next Sunday wording) and the opponent's row in the table is shaded light grey with a NEXT MATCH tag. Fixtures board, Next game, League Leaders and the phone and desktop layouts are unchanged.
+- No extra outside calls: the page makes the same requests as before (13 in the test feed for TV, 4 for phone), and the rotator still makes none.
+- Tests: new x_nm_check covers the TV page (no tiles, pill, one tagged row, snapshot only, no scrolling) and that the phone layout keeps everything.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.4 - TV rotation: phone preview shows the TV layout
 - Owner request (16-Nov-2026): Preview on a phone showed the phone layouts, which do not suit TV pages.
@@ -2217,6 +2226,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.5", "On the TV screen, the League table page no longer repeats the other pages. It shows the table, a season snapshot and a NEXT MATCH reminder with the opponent highlighted in grey."],
       ["v3.37.4", "Opening the TV link on a phone (and Preview in Admin) now shows a shrunk-down TV screen with the real TV layouts, instead of the phone layouts."],
       ["v3.37.3", "On a phone each page in the TV rotation list is now a single line."],
       ["v3.37.2", "The TV rotation list in Admin is tidier on a phone: the team controls and each page now sit in neat lines."],
@@ -6898,12 +6908,34 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         q.delete("debug");
         return "?" + q.toString();
       };
+      // TV layout only: a one-line NEXT MATCH reminder (the table page no longer repeats the Next fixture panel) and a marker on the opponent's row.
+      const tvDash = layout === "tv";
+      const tvWhen = iso => {
+        const dd = new Date(iso); if (Number.isNaN(dd.getTime())) return "";
+        const ldn = d => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(d);
+        const t0 = ldn(new Date()), t1 = ldn(dd);
+        const dayN = x => Math.round(Date.parse(x + "T00:00:00Z") / 864e5);
+        const diff = dayN(t1) - dayN(t0);
+        const wk = x => Math.floor((dayN(x) + 3) / 7); // Monday-Sunday weeks
+        const wdn = dd.toLocaleDateString("en-GB", { weekday: "long", timeZone: "Europe/London" });
+        if (diff < 0) return "";
+        if (diff === 0) return "Today";
+        if (diff === 1) return "Tomorrow";
+        const wd = wk(t1) - wk(t0);
+        return wd === 0 ? "This " + wdn : wd === 1 ? "Next " + wdn : dd.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" });
+      };
+      let tvNext = null;
+      if (tvDash) {
+        if (cupNext) tvNext = { oppId: cupNext.oppId, opp: cupNext.oppName, home: !!cupNext.home, when: cupNext.dateLabel };
+        else if (next && nextSide) tvNext = { oppId: nextSide.home ? (next.awayTeam && (next.awayTeam.commonId || next.awayTeam.id)) : (next.homeTeam && (next.homeTeam.commonId || next.homeTeam.id)), opp: nextSide.home ? nextAwayName : nextHomeName, home: !!nextSide.home, when: tvWhen(next.date || next.fixtureDate || next.matchDate || next.startDate || next.kickoffDate || next.kickOffDate || "") || dateLabel(next) };
+      }
+      const tvPill = tvNext ? `<div class="nextm"><span class="nmt">Next match</span><span class="nmo">${esc(tvNext.opp)}</span><span class="nmw">${tvNext.home ? "Home" : "Away"} &middot; <b>${esc(tvNext.when)}</b></span></div>` : "";
       const clubLabel = t => (layout !== "tv" && !isSelected(t))
         ? `<a class="club-link" href="${esc(teamHref(t))}">${esc(t.name)}</a>`
         : esc(isSelected(t) ? displayTeamName : t.name);
       const rows = table.map((t,i) => `
-        <tr class="${isSelected(t) ? "selected" : ""}">
-          <td>${i+1}</td><td class="club-cell"><span class="club-content"><img class="table-crest" src="${esc(crestFor(t.id) || badgeUri(t.name))}" data-fb="${esc(badgeUri(t.name))}" alt="" loading="lazy" onerror="this.onerror=null;this.src=this.dataset.fb"><span>${clubLabel(t)}</span></span></td>
+        <tr class="${isSelected(t) ? "selected" : ""}${tvNext && !isSelected(t) && ((tvNext.oppId != null && String(tvNext.oppId) === String(t.id)) || (tvNext.oppId == null && tvNext.opp === t.name)) ? " nextrow" : ""}">
+          <td>${i+1}</td><td class="club-cell"><span class="club-content"><img class="table-crest" src="${esc(crestFor(t.id) || badgeUri(t.name))}" data-fb="${esc(badgeUri(t.name))}" alt="" loading="lazy" onerror="this.onerror=null;this.src=this.dataset.fb"><span>${clubLabel(t)}</span>${tvNext && !isSelected(t) && ((tvNext.oppId != null && String(tvNext.oppId) === String(t.id)) || (tvNext.oppId == null && tvNext.opp === t.name)) ? '<span class="nmtag">Next match</span>' : ""}</span></td>
           <td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
           <td class="c-pf">${t.pf}</td><td class="c-pa">${t.pa}</td><td class="c-pd">${t.pd > 0 ? "+" : ""}${t.pd}</td>
           <td>${t.tb}</td><td>${t.lb}</td><td class="points">${t.pts}</td>
@@ -7491,6 +7523,10 @@ body.light .next-date{color:#20743b}
 .mobonly{display:none}.gp{font-style:normal}.gp-chase{color:#f09595}.gp-lead{color:#7fd89a}.gp-level{color:#e0b44e}.stat small .gp{white-space:nowrap}body.light .gp-chase{color:#a32d2d}body.light .gp-lead{color:#1b7f3b}body.light .gp-level{color:#8a5a00}
 .fdn{font-size:12px;line-height:1.35;color:#91a49a;margin-top:6px;text-align:left}.fdt{display:flex;justify-content:space-between;align-items:baseline}.fdt b{font-size:13px;letter-spacing:0;text-transform:none;color:#f2f6f4}body.light .fdt b{color:#14301e}.fdsep{height:1px;background:#26312d;margin:10px 0}body.light .fdsep{background:#c9dccd}.fdiff{text-align:left}.fdiff{margin:6px 0 4px}.fdt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;margin-bottom:5px}.fdbar{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;height:12px}.fdbar i{border-radius:6px;background:#26312d}body.light .fdbar i{background:#d5dfd8}.fd-easy .fdbar i:nth-child(1){background:#3fb865}.fd-medium .fdbar i:nth-child(-n+2){background:#e2a93b}.fd-hard .fdbar i,body.light .fd-hard .fdbar i{background:#e05a5a}.fdl{display:grid;grid-template-columns:repeat(3,1fr);font-size:12px;margin-top:4px;color:#7d8c84}.fdl span:nth-child(2){text-align:center}.fdl span:nth-child(3){text-align:right}.fd-easy .fdl span:nth-child(1){font-weight:800;color:#3fb865}.fd-medium .fdl span:nth-child(2){font-weight:800;color:#e2a93b}.fd-hard .fdl span:nth-child(3){font-weight:800;color:#e05a5a}.runin{margin-top:2px}.hl{display:grid;grid-template-columns:repeat(4,1fr)!important;gap:8px;margin-top:8px}.hl>div{text-align:center;padding:9px 6px!important}.hl label{font-size:11px!important;margin-bottom:5px!important;letter-spacing:.05em!important}.hl strong{font-size:17px;font-weight:900;display:block}
 ${AROUND_CSS}${LUCK_CSS}
+body.tvdash{grid-template-rows:auto auto minmax(0,1fr) auto}.tvbody{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,27vw,400px);gap:12px;min-height:0;margin-top:10px}.tvbody .table-panel{min-height:0}.main.tvside{display:flex;flex-direction:column;margin:0;min-height:0}.tvside .panel{flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.nextm{display:flex;align-items:center;gap:12px;margin-left:auto;padding:8px 18px;border-radius:99px;border:1px solid #d9dfdc;background:#111719;white-space:nowrap}.nmt{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#0a100e;background:#d9dfdc;border-radius:99px;padding:3px 10px}.nmo{font-size:18px;font-weight:800}.nmw{font-size:15px;color:#b4c4bb}.nmw b{color:#fff;font-size:17px}
+tr.nextrow td{background:#d9dfdc!important;color:#0a100e!important;font-weight:800}.nmtag{margin-left:8px;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:#0a100e;border-radius:99px;padding:1px 8px;white-space:nowrap}
+body.light .nextm{background:#fff;border-color:#8a9a90}body.light .nmt{background:#14301e;color:#fff}body.light .nmw{color:#53665a}body.light .nmw b{color:#14301e}body.light tr.nextrow td{background:#cfd6d2!important;color:#14301e!important}
 .nlinks{text-align:center;margin-top:12px}.nlinks a{display:inline-block;margin:4px;text-decoration:none;font:700 14px Arial,Helvetica,sans-serif;color:#f5f7f6;background:#17211c;border:1px solid #294333;border-radius:99px;padding:9px 16px}body.light .nlinks a{background:#fff;color:#18221c;border-color:#cbd8ce}
 .mix .mrow{display:grid;grid-template-columns:26px 1fr 38px 78px;align-items:center;gap:6px;padding:8px 6px;border-top:1px solid #1f2a26;font-size:14px}.mix .mrow:first-of-type{border-top:0}.mix .mrow.me{background:#14532d;border-radius:8px;font-weight:800}.mix .mp{text-align:center;color:#a7b8ad}.mix .mn{display:flex;align-items:center;gap:8px;min-width:0}.mix .mpt{text-align:right;font-weight:900}.mix .g{text-align:right;font-size:12px;font-weight:700}
 .lead .lrow{padding:10px 0;border-top:1px solid #1f2a26}.lead .lrow:first-of-type{border-top:0}.lead label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a9b8af;margin-bottom:5px}.lead .lv{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.lead .lv b{font-size:15px}.lead .lv span{font-size:20px;font-weight:900;color:#7fd89a}.lead .ly{font-size:12px;color:#91a49a;margin-top:3px}.lead .lnl{font-size:12px;color:#b4c4bb;margin-top:3px;line-height:1.35}body.light .lead .lnl{color:#33443a}.lead .lnote{font-size:11px;color:#7d8c84;margin:8px 0 0}
@@ -7501,19 +7537,19 @@ body.light .mbar a,body.light .mbar button{background:#fff;color:#18221c;border-
 html:has(body.light){background:#eef2ef}
 .mbar :focus-visible,.club-link:focus-visible{outline:3px solid #7fd89a;outline-offset:2px}
 ${mobileCss}
-</style></head><body class="${theme}">
+</style></head><body class="${theme}${tvDash ? " tvdash" : ""}">
 ${layout === "tv" ? "" : themeBoot(layout === "mobile" ? "true" : 'window.matchMedia("(max-width:700px)").matches')}
 ${layout === "tv" ? "" : `<nav class="mbar"><a href="${esc(pubOrigin + "/?" + new URLSearchParams({theme}).toString())}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>`}
 <div class="topline"><span>Club season dashboard</span><span>England Rugby • Live league data</span></div>
-<header class="clubhead"><div class="crest-wrap">${crest}${crestFallback}</div><div style="min-width:0"><h1 class="club-title">${esc(displayTeamName)}</h1><div class="league">${esc(leagueTitle)}</div></div><div class="head-right" style="margin-left:auto"><div class="season">${esc(season)}</div><div class="updated">Updated ${esc(londonTime(dataTime))} &middot; refreshes every hour</div></div></header>
-<section class="stats">
+<header class="clubhead"><div class="crest-wrap">${crest}${crestFallback}</div><div style="min-width:0"><h1 class="club-title">${esc(displayTeamName)}</h1><div class="league">${esc(leagueTitle)}</div></div>${tvPill}<div class="head-right" style="margin-left:auto"><div class="season">${esc(season)}</div><div class="updated">Updated ${esc(londonTime(dataTime))} &middot; refreshes every hour</div></div></header>
+${tvDash ? "" : `<section class="stats">
 ${stat("League position",position?`#${position}`:"—",`${table.length} clubs in division`)}
 ${stat("League points",selectedStats.pts,gap ? gap.html : `${gapToTop===0?"Top of the table":`${gapToTop} points off top`}`)}
 ${stat("Played",selectedStats.p)}
 <div class="stat wdl-stat"><div><span>Wins</span><strong>${selectedStats.w}</strong></div><div><span>Draws</span><strong>${selectedStats.d}</strong></div><div><span>Losses</span><strong>${selectedStats.l}</strong></div></div>
 ${stat("Points difference",`${selectedStats.pd>0?"+":""}${selectedStats.pd}`)}
 ${stat("Points for",selectedStats.pf,`Against ${selectedStats.pa}`)}
-</section>
+</section>`}
 ${(() => {
   const i = selectedTeam ? table.indexOf(selectedTeam) : -1;
   if (i < 0) return "";
@@ -7524,12 +7560,12 @@ ${(() => {
   return `<section class="panel mobonly mix"><h2>In the mix</h2>${rowsM}</section>`;
 })()}
 ${ownAround ? `<section class="panel mobonly arnd"><h2>Around you this weekend</h2>${aroundHtml(ownAround, esc, ordinalOf, displayTeamName)}<p class="lnote" style="margin:8px 0 0">Clubs within 3 places of ${esc(displayTeamName)}.</p></section>` : ""}
-<section class="table-panel"><table><thead><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="c-pf">PF</th><th class="c-pa">PA</th><th class="c-pd">PD</th><th title="Try bonus points">TB</th><th title="Lost bonus points">LB</th><th>Pts</th></tr></thead><tbody>${tableContent}</tbody></table></section>
-<section class="main">
-<div class="panel"><h2>Recent form • last five</h2><div class="formrow">${formHtml}</div><h2>Latest results</h2>${resultHtml}</div>
-<div class="panel next-fixture-panel"><h2>Next fixture</h2>${cupNext ? cupNextHtml : nextHtml}${cupNext ? `<div class="nlinks mobonly"><a href="${esc(nextLinkMatch)}">Match Stats</a><a href="${esc(nextLinkOpp)}">Opposition Report</a></div>` : next && nextSide ? `<div class="nlinks mobonly"><a href="${esc(nextLinkMatch)}">Match Stats</a><a href="${esc(nextLinkOpp)}">Opposition Report</a></div>` : ""}</div>
-<div class="panel"><h2>Season snapshot</h2><div class="split snapshot"><div><label>Average scored</label><strong>${selectedStats.p?(selectedStats.pf/selectedStats.p).toFixed(1):"—"}</strong><small>points per match</small></div><div><label>Average conceded</label><strong>${selectedStats.p?(selectedStats.pa/selectedStats.p).toFixed(1):"—"}</strong><small>points per match</small></div><div><label>Win rate</label><strong>${selectedStats.p?Math.round(selectedStats.w/selectedStats.p*100)+"%":"—"}</strong><small>of matches played</small></div></div><div class="split season-records"><div><label>Home record</label><div class="record-grid"><div><span>Wins</span><strong>${homeRecord.w}</strong></div><div><span>Draws</span><strong>${homeRecord.d}</strong></div><div><span>Losses</span><strong>${homeRecord.l}</strong></div></div><small>${homeRecord.p} played</small></div><div><label>Away record</label><div class="record-grid"><div><span>Wins</span><strong>${awayRecord.w}</strong></div><div><span>Draws</span><strong>${awayRecord.d}</strong></div><div><span>Losses</span><strong>${awayRecord.l}</strong></div></div><small>${awayRecord.p} played</small></div></div><div class="split hl"><div><label>Current run</label><strong>${esc(hl.run)}</strong></div><div><label>Bonus points</label><strong>${selectedStats.bp}</strong></div><div><label>Biggest win</label><strong>${esc(hl.biggestWin)}</strong></div><div><label>Worst defeat</label><strong>${esc(hl.worstDefeat)}</strong></div></div></div>
-</section>
+${tvDash ? '<div class="tvbody">' : ""}<section class="table-panel"><table><thead><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="c-pf">PF</th><th class="c-pa">PA</th><th class="c-pd">PD</th><th title="Try bonus points">TB</th><th title="Lost bonus points">LB</th><th>Pts</th></tr></thead><tbody>${tableContent}</tbody></table></section>
+<section class="main${tvDash ? " tvside" : ""}">
+${tvDash ? "" : `<div class="panel"><h2>Recent form • last five</h2><div class="formrow">${formHtml}</div><h2>Latest results</h2>${resultHtml}</div>`}
+${tvDash ? "" : `<div class="panel next-fixture-panel"><h2>Next fixture</h2>${cupNext ? cupNextHtml : nextHtml}${cupNext ? `<div class="nlinks mobonly"><a href="${esc(nextLinkMatch)}">Match Stats</a><a href="${esc(nextLinkOpp)}">Opposition Report</a></div>` : next && nextSide ? `<div class="nlinks mobonly"><a href="${esc(nextLinkMatch)}">Match Stats</a><a href="${esc(nextLinkOpp)}">Opposition Report</a></div>` : ""}</div>`}
+${tvDash ? `<div class="panel"><h2>Season snapshot</h2><div class="split snapshot"><div><label>Win rate</label><strong>${selectedStats.p?Math.round(selectedStats.w/selectedStats.p*100)+"%":"—"}</strong><small>of matches played</small></div><div><label>Current run</label><strong>${esc(hl.run)}</strong><small>in a row</small></div></div><div class="split season-records"><div><label>Home record</label><div class="record-grid"><div><span>Wins</span><strong>${homeRecord.w}</strong></div><div><span>Draws</span><strong>${homeRecord.d}</strong></div><div><span>Losses</span><strong>${homeRecord.l}</strong></div></div><small>${homeRecord.p} played</small></div><div><label>Away record</label><div class="record-grid"><div><span>Wins</span><strong>${awayRecord.w}</strong></div><div><span>Draws</span><strong>${awayRecord.d}</strong></div><div><span>Losses</span><strong>${awayRecord.l}</strong></div></div><small>${awayRecord.p} played</small></div></div><div class="split hl"><div><label>Biggest win</label><strong>${esc(hl.biggestWin)}</strong></div><div><label>Worst defeat</label><strong>${esc(hl.worstDefeat)}</strong></div></div></div>` : `<div class="panel"><h2>Season snapshot</h2><div class="split snapshot"><div><label>Average scored</label><strong>${selectedStats.p?(selectedStats.pf/selectedStats.p).toFixed(1):"—"}</strong><small>points per match</small></div><div><label>Average conceded</label><strong>${selectedStats.p?(selectedStats.pa/selectedStats.p).toFixed(1):"—"}</strong><small>points per match</small></div><div><label>Win rate</label><strong>${selectedStats.p?Math.round(selectedStats.w/selectedStats.p*100)+"%":"—"}</strong><small>of matches played</small></div></div><div class="split season-records"><div><label>Home record</label><div class="record-grid"><div><span>Wins</span><strong>${homeRecord.w}</strong></div><div><span>Draws</span><strong>${homeRecord.d}</strong></div><div><span>Losses</span><strong>${homeRecord.l}</strong></div></div><small>${homeRecord.p} played</small></div><div><label>Away record</label><div class="record-grid"><div><span>Wins</span><strong>${awayRecord.w}</strong></div><div><span>Draws</span><strong>${awayRecord.d}</strong></div><div><span>Losses</span><strong>${awayRecord.l}</strong></div></div><small>${awayRecord.p} played</small></div></div><div class="split hl"><div><label>Current run</label><strong>${esc(hl.run)}</strong></div><div><label>Bonus points</label><strong>${selectedStats.bp}</strong></div><div><label>Biggest win</label><strong>${esc(hl.biggestWin)}</strong></div><div><label>Worst defeat</label><strong>${esc(hl.worstDefeat)}</strong></div></div></div>`}
+</section>${tvDash ? "</div>" : ""}
 ${ownLuck ? `<section class="panel mobonly lkp"><h2>Luck check</h2>${ownLuck.status === "ok" ? `<div class="lkv lk-${ownLuck.verdict}">${esc(ownLuck.label)}</div><p>${esc(luckText(ownLuck, displayTeamName, ordinalOf))}</p><div class="lkt"><div><b>${ownLuck.pdPerGame > 0 ? "+" : ownLuck.pdPerGame < 0 ? "\u2212" : ""}${Math.abs(ownLuck.pdPerGame)}</b><span>Points difference per game</span></div><div><b>${ownLuck.closeN} of ${ownLuck.gamesN}</b><span>Games decided by 7 or fewer</span></div></div>` : `<p style="margin:0">Too early to say. ${esc(displayTeamName)} ${ownLuck.played === 1 ? "has" : "have"} played ${ownLuck.played} game${ownLuck.played === 1 ? "" : "s"}, and the check needs at least 5.</p>`}</section>` : ""}
 ${leaders ? `<section class="panel mobonly lead"><h2>League leaders</h2>${leaders.metrics.map(m => `<div class="lrow"><label>${esc(m.label)}</label><div class="lv"><b>${esc(m.leaderName)}</b><span>${esc(m.value)}</span></div>${m.leaderNames && m.leaderNames.length ? `<div class="lnl">${esc(m.leaderNames.join(", "))}</div>` : ""}${m.you ? `<div class="ly">${esc(displayTeamName)}: currently ${m.you.joint ? "joint " : ""}${ordinalOf(m.you.rank)}, ${esc(m.you.phrase || m.you.value)}</div>` : ""}</div>`).join("")}${leaders.early ? `<p class="lnote">Early in the season: some clubs have played only a few games.</p>` : ""}</section>` : ""}
 <div class="foot"><span>${table.length} clubs • ${seenResults.size} completed league matches • ${fixtureObjects.length} fixtures scanned</span><span>${rfuTable ? "League table from " + (feedTable ? "the RFU feed" : "englandrugby.com") + "; other statistics calculated from RFU match results" : "Statistics calculated from RFU match results; bonus points are estimated"}</span></div>

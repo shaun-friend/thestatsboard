@@ -38,7 +38,7 @@ c('on: the two chances add to 100',!!win&&win.home.pct+win.away.pct===100);
 c('on: home side is Ivybridge, on the left, and favoured',!!win&&win.home.id==='11039'&&win.home.name==='Ivybridge 1XV'&&win.home.pct>50);
 c('on: kept between 3 and 97',!!win&&win.home.pct<=97&&win.home.pct>=3);
 c('on: earlier seasons were read',!!win&&win.prior>0);
-h=await (await get('/?'+base)).text();
+h=await (await get('/?'+base+'&layout=mobile')).text();
 c('on: dashboard shows the bar with both names',/class="wc"/.test(h)&&/class="wcn"/.test(h)&&new RegExp(win.home.pct+'%').test(h)&&/Okehampton/.test(h));
 c('on: how-it-works line is there for phones only',/class="wcx"/.test(h)&&/\.wcx\{display:none/.test(h)&&/@media\(max-width:800px\)\{\.wcx\{display:block\}/.test(h));
 c('on: how-it-works text names the sides',/Ivybridge 1XV are rated about \d+ points better than Okehampton|rated level|Okehampton are rated about/.test(h));

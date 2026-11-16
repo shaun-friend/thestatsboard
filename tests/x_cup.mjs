@@ -69,7 +69,7 @@ if(SC==='first'){
 const m=/<div class="bars">([\s\S]*?)<\/div>\s*<div class="h2h|<div class="bars">([\s\S]{0,1500})/.exec(html);
 console.log((html.match(/<div class="c">[^<]*/g)||[]).join(' | '));
 
-const std=await (await w.fetch(req2('/?'+base+'&layout=tv'),env2,ctx)).text();
+const std=await (await w.fetch(req2('/?'+base+'&layout=mobile'),env2,ctx)).text();
 const panel=(/<h2>Next fixture<\/h2>([\s\S]{0,3500})/.exec(std)||[])[1]||'';
 if(SC==='league'){ok('standard view: league game next shows no cup name',!/DEVON COLTS CUP/.test(panel)&&/Cullompton/.test(panel))}
 else{ok('standard view: cup game shows cup name and opponent',/DEVON COLTS CUP/.test(panel)&&/Exmouth U18/.test(panel)&&!/Cullompton/.test(panel))}

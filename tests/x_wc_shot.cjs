@@ -17,17 +17,10 @@ bx=await box(p,'.wc');c('match stats phone: bar fits the width',bx.l>=0&&bx.r<=3
 c('match stats phone: how-it-works shown',await p.isVisible('.wcx'));
 c('match stats phone: no sideways scroll',await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
 await p.screenshot({path:__dirname+'/w/wc_match_phone.png',fullPage:true});await p.close();
-// Dashboard TV
-({p,errs}=await open('wc_tv.html',1920,1080));
-c('dashboard tv: no page errors',errs.length===0);
-bx=await box(p,'.wc');const pn=await box(p,'.next-fixture-panel');c('dashboard tv: bar sits inside its panel',bx.t>=pn.t&&bx.b<=pn.b+1);
-c('dashboard tv: venue line still inside the panel',await p.evaluate(()=>{const v=document.querySelector('.next-venue');if(!v)return true;const r=v.getBoundingClientRect(),q=document.querySelector('.next-fixture-panel').getBoundingClientRect();return r.bottom<=q.bottom+1}));
-await p.screenshot({path:__dirname+'/w/wc_dash_tv.png'});await p.close();
-// Dashboard TV on a smaller screen
-({p,errs}=await open('wc_tv.html',1366,768));
-bx=await box(p,'.wc');const pn2=await box(p,'.next-fixture-panel');c('dashboard tv 768p: bar sits inside its panel',bx.t>=pn2.t&&bx.b<=pn2.b+1);
-c('dashboard tv 768p: venue line still inside the panel',await p.evaluate(()=>{const v=document.querySelector('.next-venue');if(!v)return true;const r=v.getBoundingClientRect(),q=document.querySelector('.next-fixture-panel').getBoundingClientRect();return r.bottom<=q.bottom+1}));
-await p.screenshot({path:__dirname+'/w/wc_dash_tv768.png'});await p.close();
+// Dashboard TV: the League table page no longer repeats the Win Predictor (it lives on Next game)
+for(const [w,h] of [[1920,1080],[1366,768]]){({p,errs}=await open('wc_tv.html',w,h));
+c('dashboard tv '+h+'p: no page errors',errs.length===0);
+c('dashboard tv '+h+'p: no Win Predictor bar or Next fixture panel (shown on Next game instead)',await p.locator('.wc').count()===0&&await p.locator('.next-fixture-panel').count()===0);await p.close();}
 // Dashboard phone
 ({p,errs}=await open('wc_mobile.html',390,844));
 bx=await box(p,'.wc');c('dashboard phone: bar fits the width',bx.l>=0&&bx.r<=391);

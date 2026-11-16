@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
 v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
 v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
 v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
@@ -270,6 +271,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.5 - TV League table: no repeated information
+- Owner request (16-Nov-2026): the TV pages should not repeat each other now that they rotate.
+- Changed: on the TV layout only, the League table page drops the top tiles, Recent form, Latest results and Next fixture panels (these live on Next game, League Leaders and the Fixtures board). The table takes the room, with a Season snapshot at the side (win rate, current run, home and away record, biggest win, worst defeat). The header shows a NEXT MATCH pill (opponent, Home/Away, This Thursday / Next Sunday wording) and the opponent's row in the table is shaded light grey with a NEXT MATCH tag. Fixtures board, Next game, League Leaders and the phone and desktop layouts are unchanged.
+- No extra outside calls: the page makes the same requests as before (13 in the test feed for TV, 4 for phone), and the rotator still makes none.
+- Tests: new x_nm_check covers the TV page (no tiles, pill, one tagged row, snapshot only, no scrolling) and that the phone layout keeps everything.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.4 - TV rotation: phone preview shows the TV layout
 - Owner request (16-Nov-2026): Preview on a phone showed the phone layouts, which do not suit TV pages.
