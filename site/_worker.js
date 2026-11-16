@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.4 16-Nov-2026 TV rotation on a phone: pages are drawn at TV size (1920 x 1080) and shrunk to fit, so Preview shows the TV layout.
 //   v3.37.3 16-Nov-2026 TV rotation in Admin: each page is one line on a phone.
 //   v3.37.2 16-Nov-2026 TV rotation in Admin: tidier spacing on phones (team controls on one line, each page on two).
 //   v3.37.1 16-Nov-2026 Admin: the new section is named TV rotation (Screens was confusing next to it) and the Dark/Light choice no longer wraps on a phone.
@@ -264,7 +265,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.3";
+const VERSION = "v3.37.4";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -312,6 +313,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
 v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
 v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
 v3.37.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.1_tv_rotation_name.zip              | v3.37.0
@@ -539,6 +541,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.4 - TV rotation: phone preview shows the TV layout
+- Owner request (16-Nov-2026): Preview on a phone showed the phone layouts, which do not suit TV pages.
+- Changed: when the TV link is opened in a window narrower than 1280 pixels (a phone or small tablet), every page is drawn at a full 1920 x 1080 TV size and the whole stage is shrunk to fit and centred, so the pages use their TV layouts. Real TVs and desktop windows 1280 wide or more are untouched. A short note under TV rotation explains the shrunk-down preview.
+- Tests: x_tv_rotate now also checks that a 390-wide phone gives the pages a 1920-wide window, scales the stage to fit, and that a TV-size window is not scaled.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.3 - TV rotation: one line per page on phones
 - Owner feedback (16-Nov-2026): each page could be on one line on a phone.
@@ -2014,6 +2022,7 @@ const DOC_SECTIONS = [
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
       "Save changes, then press Preview. A hidden team in Our teams is skipped on the TV."
     ] },
+    { p: "Opening the link on a phone or small tablet (window narrower than 1280 pixels) shows the screen as a shrunk-down TV: each page is drawn at full TV size and scaled to fit, so you can check the layout, order and timings. The text is small on purpose. On a real TV the screen fills the display as normal." },
     { h: "How it keeps within the 50-call limit" },
     { p: "The rotating page makes no outside calls of its own. Each page inside it is its own request with its own budget, starts a few seconds after the one before, and only fades in once it has settled. A page that fails or never settles is skipped and tried again later, so the screen never shows a half-built page. Each page refreshes itself about every five minutes. Maintenance mode shows the Back soon page instead." },
     { ex: [["Open the TV screen", "/tv"]] }
@@ -2208,6 +2217,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.4", "Opening the TV link on a phone (and Preview in Admin) now shows a shrunk-down TV screen with the real TV layouts, instead of the phone layouts."],
       ["v3.37.3", "On a phone each page in the TV rotation list is now a single line."],
       ["v3.37.2", "The TV rotation list in Admin is tidier on a phone: the team controls and each page now sit in neat lines."],
       ["v3.37.1", "In Admin the TV screen section is now called TV rotation so it is not mixed up with Screens, and the Dark and Light choice no longer wraps on a phone."],
@@ -2525,6 +2535,10 @@ if(!P.length)return;
 var FADE=800,STAG=4000,TMO=30000,REF=300000;
 var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null}}),cur=-1,tm=null;
 if(D){bt.hidden=false;P.forEach(function(){dt.appendChild(document.createElement("i"))})}
+// On a screen narrower than a TV (a phone or small tablet checking the link) the pages are drawn at a full 1920 x 1080 TV size and shrunk to fit, so they
+// use their TV layout instead of the phone one. A real TV (1280 wide or more) is untouched.
+function fit(){var w=innerWidth,h=innerHeight;if(w>=1280){st.style.cssText="";return}var k=Math.min(w/1920,h/1080);st.style.cssText="inset:auto;width:1920px;height:1080px;transform-origin:0 0;transform:scale("+k+");left:"+Math.max(0,(w-1920*k)/2)+"px;top:"+Math.max(0,(h-1080*k)/2)+"px"}
+fit();addEventListener("resize",fit);
 function mk(sl){
   if(sl.busy)return;
   var f=document.createElement("iframe");f.className="fr";f.tabIndex=-1;f.setAttribute("aria-hidden","true");f.src=sl.p.u+"&_sr=1";sl.busy=f;st.appendChild(f);
@@ -2912,7 +2926,7 @@ ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentag
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
-<section class="sec" id="s-tv" hidden><h1>TV rotation</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview.</p>
+<section class="sec" id="s-tv" hidden><h1>TV rotation</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview. On a phone the preview shows a shrunk-down TV screen, so you see the TV layout, order and timings.</p>
 <div class="tvl"><div style="flex:1;min-width:220px"><small>Type this into the TV's browser</small><b id="tvlk"></b></div><button type="button" class="tvb" id="tvcp" style="padding:0 16px">Copy link</button><a class="tvpri" id="tvpv" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;padding:0 18px">Preview</a></div>
 <div class="cd">
 <div class="r"><div><b>Theme</b><small>Dark or light colours for every page on this screen.</small></div>${seg("tvt", s.tv.theme, [["dark", "Dark"], ["light", "Light"]])}</div>

@@ -19,5 +19,17 @@ const seen=new Set();for(let i=0;i<12;i++){await p.clock.runFor(5000);(await on(
 ck('never showed the unready table',!seen.has('table'));ck('shows the others in turn',seen.has('fixtures')&&seen.has('match')&&seen.has('leaders'),[...seen].join());
 ck('only one frame visible at a time',(await p.$$eval('iframe.on',f=>f.length))===1);
 ck('dots strip present',(await p.$$eval('#dots i',e=>e.length))===4);
+
+// phone-size window: frames must still get a TV-width window (1920) and the stage is scaled down
+const q=await b.newPage({viewport:{width:390,height:844}});await q.route('**/*',r=>{const u=new URL(r.request().url());
+ if(u.pathname==='/ivybridge/tv')return r.fulfill({status:200,contentType:'text/html',body:html});
+ if(u.pathname==='/')return r.fulfill({status:200,contentType:'text/html',body:'<body><h1>x</h1><script>setTimeout(function(){parent.postMessage("rfu-sr-ready","*")},100)</script></body>'});r.fulfill({status:200,body:''})});
+await q.goto('https://sb.test/ivybridge/tv');await q.waitForTimeout(1500);
+const fw=await q.evaluate(()=>{const f=document.querySelector('iframe');return f?f.contentWindow.innerWidth:0});
+const tr=await q.evaluate(()=>getComputedStyle(document.getElementById('st')).transform);
+ck('phone: pages get a 1920 wide window',fw===1920,fw);ck('phone: stage is scaled down',/matrix\(0\.2/.test(tr),tr);
+const L=await q.evaluate(()=>{const r=document.getElementById('st').getBoundingClientRect();return [Math.round(r.left),Math.round(r.right),Math.round(r.width)]});ck('phone: stage fits the screen width',L[2]>=388&&L[2]<=392&&L[0]>=0,L.join());
+await q.setViewportSize({width:1280,height:720});await q.waitForTimeout(200);
+ck('TV size: stage not scaled',await q.evaluate(()=>getComputedStyle(document.getElementById('st')).transform==='none'));
 ck('no js errors',errs.length===0);if(errs.length)console.log(errs);
 await b.close();console.log(bad?'FAILED '+bad:'ALL OK')})();

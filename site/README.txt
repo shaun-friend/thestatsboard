@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
 v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
 v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
 v3.37.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.1_tv_rotation_name.zip              | v3.37.0
@@ -269,6 +270,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.4 - TV rotation: phone preview shows the TV layout
+- Owner request (16-Nov-2026): Preview on a phone showed the phone layouts, which do not suit TV pages.
+- Changed: when the TV link is opened in a window narrower than 1280 pixels (a phone or small tablet), every page is drawn at a full 1920 x 1080 TV size and the whole stage is shrunk to fit and centred, so the pages use their TV layouts. Real TVs and desktop windows 1280 wide or more are untouched. A short note under TV rotation explains the shrunk-down preview.
+- Tests: x_tv_rotate now also checks that a 390-wide phone gives the pages a 1920-wide window, scales the stage to fit, and that a TV-size window is not scaled.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.3 - TV rotation: one line per page on phones
 - Owner feedback (16-Nov-2026): each page could be on one line on a phone.
