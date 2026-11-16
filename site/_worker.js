@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.11 16-Nov-2026 CPU savings: the TV dashboard no longer works out the Win Predictor or the phone-only panels it does not show.
 //   v3.37.10 16-Nov-2026 CPU savings: match dates are worked out once per page and the London-day formatter is shared (Error 1102 on the free plan); pages use roughly a fifth to a third less working time.
 //   v3.37.9 16-Nov-2026 TV screen: stronger pinch-zoom and double-tap-zoom block for iPhone Safari.
 //   v3.37.8 16-Nov-2026 TV screen: pinch-zoom is switched off (it crashed the page on iPhones).
@@ -271,7 +272,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.10";
+const VERSION = "v3.37.11";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -319,6 +320,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
 v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
 v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
 v3.37.8 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.8_tv_no_pinch_zoom.zip             | v3.37.7
@@ -554,6 +556,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.37.11 - CPU savings: the TV dashboard skips work it does not show
+- Owner request (16-Nov-2026): build the page in stages after a cold start, to stop Error 1102 on the free plan.
+- Looked at first: the team dashboard is one large piece of code that builds the table, results and side panels together, and a cold request costs two to three times a warm one mostly because the code has to be read and warmed up the first time. Splitting that safely, and having it help, needs the real Cloudflare Metrics (which pages fail and when). Not built yet.
+- Changed (a safe first step): the TV layout of the team dashboard hides In the mix, Around you, Luck check and League leaders, and since v3.37.5 it no longer shows the Win Predictor, but it was still working all of them out. It now skips that work (TV pages without format=...). Phone, tablet and data requests are unchanged.
+- Measured: no difference with the sample feed (7.3 ms before and 7.5 ms after, within noise) because the sample has no Win Predictor data. On the live site this removes the Win Predictor calculation and its shared-cache writes from every TV page build.
+- Tests: all existing tests pass; x_cpu_avg.mjs averages 80 requests for steadier timings.
+- Docs: What's new
 v3.37.10 - CPU savings (Error 1102 on the free plan)
 - Owner report (16-Nov-2026): a lot of CPU errors on the live site in the last 12 hours. The site is on the free plan (10 ms of working time per request) and the owner prefers pages to be made cheaper rather than paying.
 - Found by timing each page with the sample feed (new x_cpu_bench): the team dashboard was the most expensive page, and a large part of that was dates being parsed again and again (every list, key and comparison) and a new date formatter being built on every call.
@@ -2272,6 +2281,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.11", "Behind the scenes: the TV screen no longer works out things it does not show (the Win Predictor and phone-only panels), saving server working time. Nothing looks different."],
       ["v3.37.10", "Behind the scenes: pages use less of the server's working time (about a fifth to a third less in tests), to cut the Error 1102 messages on the free plan. Nothing looks different."],
       ["v3.37.9", "Stronger zoom lock on the TV link for iPhones (two-finger touches and double-tap are cancelled too)."],
       ["v3.37.8", "The TV link no longer pinch-zooms on a phone (zooming crashed Safari on iPhones)."],
@@ -6808,11 +6818,14 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         gdQ = sp.toString();
       }
       const hl = highlightsInfo(completed.filter(m => !walkoverInfo(m)).map(m => { const x = getSide(m); return { mine: x.mineScore, opp: x.oppScore }; }));
-      const leaders = leadersInfo(table, selectedTeam);
+      // v3.37.11: the TV layout hides the phone-only panels (In the mix, Around you, Luck check, League leaders) and no longer shows the Win Predictor,
+      // so a TV page (no format=...) skips the work for them. Data requests (format=summary) and the phone layouts are unchanged.
+      const tvLite = layout === "tv" && !url.searchParams.get("format");
+      const leaders = tvLite ? null : leadersInfo(table, selectedTeam);
       const dayL = dd => dd.toLocaleDateString("en-CA", { timeZone: "Europe/London" });
       const playedFx = mm => { const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); return hs !== null && as !== null && !(hs === 0 && as === 0); };
-      const ownAround = selectedTeam ? aroundInfo({ table, myId: teamId, todayStr: dayL(new Date()), day: dayL, fixtures: fixtureObjects.map(mm => ({ d: dateOf(mm), hId: teamIdOf(mm.homeTeam), hName: teamNameOf(mm.homeTeam), aId: teamIdOf(mm.awayTeam), aName: teamNameOf(mm.awayTeam), played: playedFx(mm) })) }) : null;
-      const ownLuck = selectedTeam ? luckInfo(table, selectedTeam.id, completed.filter(m => { const x = getSide(m); return !x.wo && Math.abs(x.mineScore - x.oppScore) <= 7; }).slice().reverse().map(m => getSide(m).res), completed.length) : null;
+      const ownAround = selectedTeam && !tvLite ? aroundInfo({ table, myId: teamId, todayStr: dayL(new Date()), day: dayL, fixtures: fixtureObjects.map(mm => ({ d: dateOf(mm), hId: teamIdOf(mm.homeTeam), hName: teamNameOf(mm.homeTeam), aId: teamIdOf(mm.awayTeam), aName: teamNameOf(mm.awayTeam), played: playedFx(mm) })) }) : null;
+      const ownLuck = selectedTeam && !tvLite ? luckInfo(table, selectedTeam.id, completed.filter(m => { const x = getSide(m); return !x.wo && Math.abs(x.mineScore - x.oppScore) <= 7; }).slice().reverse().map(m => getSide(m).res), completed.length) : null;
       const lastFive = completed.slice(0,5);
       const formHtml = form.length ? form.map((f,i)=>`<span class="form ${f.toLowerCase()}${i === 0 ? " new" : ""}" title="${i === 0 ? "Most recent: " : ""}${f}">${f}</span>`).join("") : `<span class="muted">No completed matches yet</span>`;
       const resultHtml = lastFive.length ? lastFive.map(m=>{
@@ -6931,7 +6944,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); await sharedPut("wp|" + key, { ok: true, v }, 86400); return v;
       };
       let nextWin = null;
-      if (next && nextSide && teamId && (!wcFmt || (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
+      if (next && nextSide && teamId && (!wcFmt ? !tvLite : (wcFmt === "summary" && (!wcDet || wcDet === "match" || (wcDet === "opposition" && url.searchParams.get("frag") !== "gd")))) && (await siteSettings()).features.winchance === true) { try { nextWin = await winChanceFor(); } catch (_) { nextWin = null; } }
       const winHex = v => { const t = String(v || "").trim().replace(/^#/, ""); return /^[0-9a-f]{6}$/i.test(t) ? "#" + t.toLowerCase() : ""; };
       const winOpp = "#7f93a3", winMe = winHex(url.searchParams.get("colour")) || (TEAMS.find(t => String(t.team) === String(teamId)) || {}).accent || "#2f9e5b";
       const nextTeamCrest = (id, name) => {

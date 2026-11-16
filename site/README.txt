@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
 v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
 v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
 v3.37.8 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.8_tv_no_pinch_zoom.zip             | v3.37.7
@@ -277,6 +278,13 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.37.11 - CPU savings: the TV dashboard skips work it does not show
+- Owner request (16-Nov-2026): build the page in stages after a cold start, to stop Error 1102 on the free plan.
+- Looked at first: the team dashboard is one large piece of code that builds the table, results and side panels together, and a cold request costs two to three times a warm one mostly because the code has to be read and warmed up the first time. Splitting that safely, and having it help, needs the real Cloudflare Metrics (which pages fail and when). Not built yet.
+- Changed (a safe first step): the TV layout of the team dashboard hides In the mix, Around you, Luck check and League leaders, and since v3.37.5 it no longer shows the Win Predictor, but it was still working all of them out. It now skips that work (TV pages without format=...). Phone, tablet and data requests are unchanged.
+- Measured: no difference with the sample feed (7.3 ms before and 7.5 ms after, within noise) because the sample has no Win Predictor data. On the live site this removes the Win Predictor calculation and its shared-cache writes from every TV page build.
+- Tests: all existing tests pass; x_cpu_avg.mjs averages 80 requests for steadier timings.
+- Docs: What's new
 v3.37.10 - CPU savings (Error 1102 on the free plan)
 - Owner report (16-Nov-2026): a lot of CPU errors on the live site in the last 12 hours. The site is on the free plan (10 ms of working time per request) and the owner prefers pages to be made cheaper rather than paying.
 - Found by timing each page with the sample feed (new x_cpu_bench): the team dashboard was the most expensive page, and a large part of that was dates being parsed again and again (every list, key and comparison) and a new date formatter being built on every call.
