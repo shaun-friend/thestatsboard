@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.36.3 16-Nov-2026 Fixtures board header: the team name is now larger than the season heading.
 //   v3.36.2 16-Nov-2026 Fixtures board header: team name above the heading, club name removed from the top right.
 //   v3.36.1 16-Nov-2026 The Message us link is now part of the page footer on phone pages instead of floating over the content.
 //   v3.36.0 16-Nov-2026 The Welcome page is kept ready-made like the other pages (quicker; Admin changes and maintenance mode still show at once).
@@ -259,7 +260,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.36.2";
+const VERSION = "v3.36.3";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -307,6 +308,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.36.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.3_fixtures_header_size.zip          | v3.36.2
 v3.36.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.2_fixtures_header.zip               | v3.36.1
 v3.36.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.1_message_us_footer.zip             | v3.36.0
 v3.36.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.36.0_welcome_cache.zip                 | v3.35.2
@@ -530,6 +532,11 @@ v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
 
+v3.36.3 - Fixtures board header: team name larger than the heading
+- Owner request (16-Nov-2026): after v3.36.2 the team name should be larger than the season heading.
+- Changed: on the season Fixtures TV board the team name is now the larger line (bold, white, 4.8% of the screen height) and "2026-2027 Season Fixtures" sits under it, smaller (3.2%). The two lines together are still shorter than the crest, so the header height and the rows below do not move. Only this board changes; League Leaders and other headers are untouched.
+- Tests: header check now also requires the team name line to be larger than the heading; clipping and alignment checks pass at all six TV sizes.
+- Docs: What's new
 v3.36.2 - Fixtures board header: team above the heading, no club name
 - Owner request (16-Nov-2026): on the season Fixtures TV board the team name reads better above the "2026-2027 Season Fixtures" heading, and the club name on the right is not needed.
 - Changed: the team name now sits above the heading (same size and colour as before), and the club name is removed from the top right. The clock and date stay where they were. The header keeps the same height, so the rows below do not move. Branding option D otherwise unchanged (edge stripe, crest, last checked line).
@@ -2150,6 +2157,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.36.3", "On the Fixtures TV board the team name is now larger than the season heading above the games."],
       ["v3.36.2", "On the Fixtures TV board the team name now sits above the season heading, and the club name is no longer shown at the top right."],
       ["v3.36.1", "The Message us link on phone pages now sits in the footer instead of floating over the content."],
       ["v3.36.0", "The Welcome page now loads faster. Nothing looks different, and your recent teams are still kept on your own device."],
@@ -5280,7 +5288,7 @@ setInterval(check,2000)})();</script></body></html>`;
 <style>
 ${MENU_CSS}
 html,body{height:100%}body{overflow:hidden;padding:2.2vh 2.2vw 3.6vh;display:flex;flex-direction:column}
-.hd{display:flex;align-items:center;justify-content:space-between;gap:2vw;height:9vh}.hl{display:flex;align-items:center;gap:1.6vw;flex:0 0 auto}.hd h1{margin:0;font-size:4.6vh;line-height:1.05;white-space:nowrap}.tn{display:block;font-size:3vh;line-height:1.2;color:#c5d1ca;white-space:nowrap}body.light .tn{color:#33443a}.hd p{margin:0;font-size:2.1vh;line-height:1.3;color:#91a49a;text-align:right;flex:1;min-width:0}.crest.hdc{width:8vh;height:8vh;flex-basis:8vh}.crest.hdc .ini{font-size:2.6vh}.crest.hdc img{padding:.7vh}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:2vw;height:9vh}.hl{display:flex;align-items:center;gap:1.6vw;flex:0 0 auto}.hd h1{margin:0;font-size:4.6vh;line-height:1.05;white-space:nowrap}.tn{display:block;font-size:3vh;line-height:1.2;color:#c5d1ca;white-space:nowrap}body.light .tn{color:#33443a}.fxh .tn{font-size:4.8vh;font-weight:700;line-height:1.1;color:#fff}body.light .fxh .tn{color:#14301e}.fxh h1{font-size:3.2vh;line-height:1.1;font-weight:700}.hd p{margin:0;font-size:2.1vh;line-height:1.3;color:#91a49a;text-align:right;flex:1;min-width:0}.crest.hdc{width:8vh;height:8vh;flex-basis:8vh}.crest.hdc .ini{font-size:2.6vh}.crest.hdc img{padding:.7vh}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:2.2vw;flex:1;min-height:0;margin-top:1.4vh;align-content:start}.col{display:flex;flex-direction:column;gap:.8vh;min-width:0}
 .fx{--rh:${rh};height:calc(var(--rh) * 1vh - .8vh);display:flex;align-items:center;gap:1.2vw;background:#111719;border:1px solid #26312d;border-left:.7vh solid #4a5a52;border-radius:1.2vh;padding:0 1.2vw;font-size:calc(var(--rh) * .36vh)}
 .fx.w{border-left-color:#2f9e5b}.fx.l{border-left-color:#d9534f}.fx.d{border-left-color:#e0a82e}.fx.nx{box-shadow:0 0 0 .35vh #7fd89a}
@@ -5300,7 +5308,7 @@ body::before{content:"";position:fixed;left:0;top:0;bottom:0;width:.9vw;backgrou
 body.light .rt b{color:var(--b1)}body.light .rt em{color:#14301e}body.light .rt span{color:#53665a}
 .ftl{position:fixed;left:2.2vw;bottom:.8vh;font-size:1.6vh;color:#5f7769;letter-spacing:.06em;z-index:5}body.light .ftl{color:#63746a}
 .arn{flex:none;height:11.3vh;margin-top:1.2vh;background:#111719;border:1px solid #26312d;border-radius:1.6vh;padding:1vh 1.4vw;overflow:hidden}.arn .bl{font-size:1.6vh;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:0 0 .8vh}.agrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6vh 1.6vw}.ag{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.7vw;font-size:2.3vh;min-width:0}.ag span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#a9b8af}.ag .ah{text-align:right}.ag span.wn{color:#f5f7f6;font-weight:800}.ag span.wow{color:#5fdc86;font-weight:800}.ag span.wol{color:#ee6b66;font-weight:800}.ag b{font-size:1.05em;background:#1d2b36;border-radius:.8vh;padding:.1em .5em;color:#fff}body.light .arn{background:#fff;border-color:#cbd8ce}body.light .arn .bl,body.light .ag span{color:#53665a}body.light .ag span.wn{color:#14301e}body.light .ag span.wow{color:#1b7f3b}body.light .ag span.wol{color:#c0302b}body.light .ag b{background:#dcebf6;color:#1d3a50}
-</style></head><body class="${theme}"><div class="hd"><div class="hl">${crest(team, title).replace("crest sm", "crest hdc")}<div class="tt"><span class="tn">${e(title)}</span><h1>${e(season)} Season Fixtures</h1></div></div><div class="rt"><em id="sbclk"></em><span id="sbdt"></span></div></div>
+</style></head><body class="${theme}"><div class="hd"><div class="hl">${crest(team, title).replace("crest sm", "crest hdc")}<div class="tt fxh"><span class="tn">${e(title)}</span><h1>${e(season)} Season Fixtures</h1></div></div><div class="rt"><em id="sbclk"></em><span id="sbdt"></span></div></div>
 ${nt ? tvNoticeHtml(nt, true) : ""}
 ${bannerHtml}
 ${tvBody}
