@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.3 16-Nov-2026 TV rotation in Admin: each page is one line on a phone.
 //   v3.37.2 16-Nov-2026 TV rotation in Admin: tidier spacing on phones (team controls on one line, each page on two).
 //   v3.37.1 16-Nov-2026 Admin: the new section is named TV rotation (Screens was confusing next to it) and the Dark/Light choice no longer wraps on a phone.
 //   v3.37.0 16-Nov-2026 TV screen: one rotating link per club (/<club>/tv) that plays the Fixtures board, Match Centre, Next game, League table and League Leaders, set up in Admin under TV rotation.
@@ -263,7 +264,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.2";
+const VERSION = "v3.37.3";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -311,6 +312,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
 v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
 v3.37.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.1_tv_rotation_name.zip              | v3.37.0
 v3.37.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.0_tv_screen.zip                     | v3.36.3
@@ -537,6 +539,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.3 - TV rotation: one line per page on phones
+- Owner feedback (16-Nov-2026): each page could be on one line on a phone.
+- Changed: on phones each page row is one line: on/off switch, name, order arrows (stacked), seconds stepper and a cross to remove. Desktop is unchanged.
+- Tests: TV admin check (now clicks the team switch directly so the fixed save bar cannot cover it).
+- Docs: What's new
 
 v3.37.2 - TV rotation: phone spacing
 - Owner feedback (16-Nov-2026): spacing was out on mobile in the TV rotation list (the Show switch dropped under its label, page controls wrapped untidily).
@@ -2200,6 +2208,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.3", "On a phone each page in the TV rotation list is now a single line."],
       ["v3.37.2", "The TV rotation list in Admin is tidier on a phone: the team controls and each page now sit in neat lines."],
       ["v3.37.1", "In Admin the TV screen section is now called TV rotation so it is not mixed up with Screens, and the Dark and Light choice no longer wraps on a phone."],
       ["v3.37.0", "New TV screen: one link (for example /ivybridge/tv) that rotates the Fixtures board, Match Centre, Next game, League table and League Leaders for a clubhouse TV. Choose the teams, pages, order and timings in Admin under TV rotation."],
@@ -2821,7 +2830,7 @@ ${MENU_CSS}
 .tvg{background:#111719;border:1px solid #26312d;border-radius:14px;margin:0 0 14px;overflow:hidden}.tvg.off{opacity:.62}
 .tvctl{display:flex;align-items:center;gap:10px;margin-left:auto}.tvmv,.tvshw{display:flex;align-items:center;gap:6px}
 @media(max-width:600px){.tvh{padding:10px 12px}.tvh .tn{min-width:0}.tvctl{flex:1 0 100%;justify-content:space-between;margin-left:0;padding-top:2px}
-.tvr{padding:8px 12px;gap:8px 10px}.tvr>.tg{order:1}.tvr>.pn{order:2;flex:1 1 0;min-width:0}.tvr>.tvm{order:3}.tvr>.tvsc{order:4;margin-left:auto}.tvr>.tvx{order:5;margin-left:6px}
+.tvg .tvr{padding:6px 10px;gap:6px;flex-wrap:nowrap}.tvg .tvr>.tg{order:1;flex:none}.tvg .tvr>.pn{order:2;flex:1 1 0;min-width:0;font-size:15px;line-height:1.15}.tvg .tvr>.tvm{order:3;flex-direction:column;gap:2px}.tvg .tvr .tvm .tvb{min-width:34px;min-height:22px;padding:0;font-size:10px}.tvg .tvr>.tvsc{order:4;gap:2px}.tvg .tvr .tvsc .tvb{min-width:30px;padding:0}.tvg .tvr .tvs{min-width:34px;font-size:14px}.tvg .tvr>.tvx{order:5;font-size:0;min-width:32px;padding:0;text-decoration:none}.tvg .tvr>.tvx::before{content:"✕";font-size:16px}
 .tvg .tvad{padding-left:12px;padding-right:12px}}
 .tvh{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#16221d;border-left:6px solid #3fb26b;flex-wrap:wrap}.tvh .tn{flex:1;min-width:150px}.tvh .tn b{display:block;font-size:18px}.tvh .tn small{color:#91a49a;font-size:13px}.tvsh{color:#91a49a}
 .tvb2{width:38px;height:38px;border-radius:50%;background:#fff;color:#1f7a45;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}

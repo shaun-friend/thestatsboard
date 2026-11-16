@@ -24,7 +24,7 @@ await grp(1).locator('.tvr').nth(0).locator('.tvm button').nth(1).click(); // mo
 ck('moved down',(await grp(1).locator('.tvr').nth(1).locator('.pn').innerText())==='Fixtures board');
 const sb=grp(1).locator('.tvr').nth(0).locator('.tvsc button').nth(1);await sb.click();
 ck('secs +5 (Fixtures now row 1)',true);
-await grp(2).locator('.tvh input').click({force:true}); // switch Vandals off
+await grp(2).locator('.tvh input').evaluate(e=>e.click()); // switch Vandals off
 await grp(0).locator('.tvh button').nth(1).click();     // move All teams down
 ck('team moved',(await grp(0).locator('.tn b').innerText())!=='All teams');
 const sum=await p.$eval('#tvsum',e=>e.textContent);ck('summary counts 5 pages',/^5 pages on/.test(sum));

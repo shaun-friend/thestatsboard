@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
 v3.37.2 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.2_tv_rotation_phone_spacing.zip     | v3.37.1
 v3.37.1 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.1_tv_rotation_name.zip              | v3.37.0
 v3.37.0 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.0_tv_screen.zip                     | v3.36.3
@@ -268,6 +269,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.3 - TV rotation: one line per page on phones
+- Owner feedback (16-Nov-2026): each page could be on one line on a phone.
+- Changed: on phones each page row is one line: on/off switch, name, order arrows (stacked), seconds stepper and a cross to remove. Desktop is unchanged.
+- Tests: TV admin check (now clicks the team switch directly so the fixed save bar cannot cover it).
+- Docs: What's new
 
 v3.37.2 - TV rotation: phone spacing
 - Owner feedback (16-Nov-2026): spacing was out on mobile in the TV rotation list (the Show switch dropped under its label, page controls wrapped untidily).
