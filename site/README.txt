@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
 v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
 v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
 v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
@@ -271,6 +272,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.6 - TV screen: loading message shows the logo
+- Owner request (16-Nov-2026): the loading message should show the Stats Board logo so it is obvious what is loading.
+- Also changed: the TV League table page now fills the whole screen. The header sits at the top, the table takes all the spare height (rows get taller, and text and crests get bigger when the league has 20 clubs or fewer) and the Season snapshot panel matches its height. Leagues with more clubs keep the old fit-to-screen sizing.
+- Changed: while the TV screen link is starting up (and on the "nothing is switched on" message) it now shows the Stats Board logo and name above the word Loading. The logo is the app icon the site already serves, so there are no extra outside calls.
+- Tests: x_tv_rotate checks the loading screen has the logo and name.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.5 - TV League table: no repeated information
 - Owner request (16-Nov-2026): the TV pages should not repeat each other now that they rotate.

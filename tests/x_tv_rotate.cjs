@@ -31,5 +31,6 @@ ck('phone: pages get a 1920 wide window',fw===1920,fw);ck('phone: stage is scale
 const L=await q.evaluate(()=>{const r=document.getElementById('st').getBoundingClientRect();return [Math.round(r.left),Math.round(r.right),Math.round(r.width)]});ck('phone: stage fits the screen width',L[2]>=388&&L[2]<=392&&L[0]>=0,L.join());
 await q.setViewportSize({width:1280,height:720});await q.waitForTimeout(200);
 ck('TV size: stage not scaled',await q.evaluate(()=>getComputedStyle(document.getElementById('st')).transform==='none'));
+ck('loading screen shows the logo and name',/<div id="ld"><img src="\/icon-192\.png"[^>]*><b>The Stats Board<\/b><span>Loading<\/span>/.test(html));
 ck('no js errors',errs.length===0);if(errs.length)console.log(errs);
 await b.close();console.log(bad?'FAILED '+bad:'ALL OK')})();

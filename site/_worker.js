@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.6 16-Nov-2026 TV screen loading message shows The Stats Board logo and name above "Loading".
 //   v3.37.5 16-Nov-2026 TV League table no longer repeats other pages: next-match reminder in the header and on the opponent row, season snapshot at the side.
 //   v3.37.4 16-Nov-2026 TV rotation on a phone: pages are drawn at TV size (1920 x 1080) and shrunk to fit, so Preview shows the TV layout.
 //   v3.37.3 16-Nov-2026 TV rotation in Admin: each page is one line on a phone.
@@ -266,7 +267,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.5";
+const VERSION = "v3.37.6";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -314,6 +315,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
 v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
 v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
 v3.37.3 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.3_tv_rotation_one_line.zip           | v3.37.2
@@ -543,6 +545,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.6 - TV screen: loading message shows the logo
+- Owner request (16-Nov-2026): the loading message should show the Stats Board logo so it is obvious what is loading.
+- Also changed: the TV League table page now fills the whole screen. The header sits at the top, the table takes all the spare height (rows get taller, and text and crests get bigger when the league has 20 clubs or fewer) and the Season snapshot panel matches its height. Leagues with more clubs keep the old fit-to-screen sizing.
+- Changed: while the TV screen link is starting up (and on the "nothing is switched on" message) it now shows the Stats Board logo and name above the word Loading. The logo is the app icon the site already serves, so there are no extra outside calls.
+- Tests: x_tv_rotate checks the loading screen has the logo and name.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.5 - TV League table: no repeated information
 - Owner request (16-Nov-2026): the TV pages should not repeat each other now that they rotate.
@@ -2226,6 +2235,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.6", "The TV screen's loading message now shows The Stats Board logo, so it is clear what is loading."],
       ["v3.37.5", "On the TV screen, the League table page no longer repeats the other pages. It shows the table, a season snapshot and a NEXT MATCH reminder with the opponent highlighted in grey."],
       ["v3.37.4", "Opening the TV link on a phone (and Preview in Admin) now shows a shrunk-down TV screen with the real TV layouts, instead of the phone layouts."],
       ["v3.37.3", "On a phone each page in the TV rotation list is now a single line."],
@@ -2530,13 +2540,13 @@ function tvScreenPage(plan, dots, theme) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>TV screen - The Stats Board</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif}
 #st{position:fixed;inset:0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
-#ld[hidden]{display:none}#ld{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:3vh;letter-spacing:.08em;opacity:.7}
+#ld[hidden]{display:none}#ld{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;font-size:3vh;letter-spacing:.08em;text-align:center}#ld img{height:22vh;width:22vh;border-radius:22%;box-shadow:0 1vh 4vh rgba(0,0,0,.35)}#ld b{font-size:4.2vh;letter-spacing:.04em}#ld span{opacity:.7}
 #bt{position:fixed;left:0;right:0;bottom:0;z-index:5;pointer-events:none}#bt[hidden]{display:none}
 #bi{display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:0 2.4vw 1.1vh;font-size:2.2vh;text-shadow:0 0 6px ${bg}}
 #dots{display:flex;gap:1vh}#dots i{display:block;width:1.3vh;height:1.3vh;border-radius:50%;background:${light ? "#b8c8bd" : "#33433b"}}#dots i.on{background:#4cc36f}
 #pg{height:.6vh;background:${light ? "#dbe6de" : "#17211d"}}#bar{height:100%;width:0;background:#4cc36f}</style></head><body>
 <!-- class="ver" rfu-soft : the pages inside this screen show the version, so no extra stamp or refresh script is added here -->
-<div id="st"></div><div id="ld">${plan.length ? "Loading" : "Nothing is switched on for this screen yet"}</div>
+<div id="st"></div><div id="ld"><img src="/icon-192.png" alt=""><b>The Stats Board</b><span>${plan.length ? "Loading" : "Nothing is switched on for this screen yet"}</span></div>
 <div id="bt" hidden><div id="bi"><span id="lab"></span><span id="dots"></span></div><div id="pg"><div id="bar"></div></div></div>
 <script type="application/json" id="tvd">${data}</script>
 <script>(function(){
@@ -7523,7 +7533,7 @@ body.light .next-date{color:#20743b}
 .mobonly{display:none}.gp{font-style:normal}.gp-chase{color:#f09595}.gp-lead{color:#7fd89a}.gp-level{color:#e0b44e}.stat small .gp{white-space:nowrap}body.light .gp-chase{color:#a32d2d}body.light .gp-lead{color:#1b7f3b}body.light .gp-level{color:#8a5a00}
 .fdn{font-size:12px;line-height:1.35;color:#91a49a;margin-top:6px;text-align:left}.fdt{display:flex;justify-content:space-between;align-items:baseline}.fdt b{font-size:13px;letter-spacing:0;text-transform:none;color:#f2f6f4}body.light .fdt b{color:#14301e}.fdsep{height:1px;background:#26312d;margin:10px 0}body.light .fdsep{background:#c9dccd}.fdiff{text-align:left}.fdiff{margin:6px 0 4px}.fdt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;margin-bottom:5px}.fdbar{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;height:12px}.fdbar i{border-radius:6px;background:#26312d}body.light .fdbar i{background:#d5dfd8}.fd-easy .fdbar i:nth-child(1){background:#3fb865}.fd-medium .fdbar i:nth-child(-n+2){background:#e2a93b}.fd-hard .fdbar i,body.light .fd-hard .fdbar i{background:#e05a5a}.fdl{display:grid;grid-template-columns:repeat(3,1fr);font-size:12px;margin-top:4px;color:#7d8c84}.fdl span:nth-child(2){text-align:center}.fdl span:nth-child(3){text-align:right}.fd-easy .fdl span:nth-child(1){font-weight:800;color:#3fb865}.fd-medium .fdl span:nth-child(2){font-weight:800;color:#e2a93b}.fd-hard .fdl span:nth-child(3){font-weight:800;color:#e05a5a}.runin{margin-top:2px}.hl{display:grid;grid-template-columns:repeat(4,1fr)!important;gap:8px;margin-top:8px}.hl>div{text-align:center;padding:9px 6px!important}.hl label{font-size:11px!important;margin-bottom:5px!important;letter-spacing:.05em!important}.hl strong{font-size:17px;font-weight:900;display:block}
 ${AROUND_CSS}${LUCK_CSS}
-body.tvdash{grid-template-rows:auto auto minmax(0,1fr) auto}.tvbody{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,27vw,400px);gap:12px;min-height:0;margin-top:10px}.tvbody .table-panel{min-height:0}.main.tvside{display:flex;flex-direction:column;margin:0;min-height:0}.tvside .panel{flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+body.tvdash{display:flex;flex-direction:column}body.tvdash>.topline,body.tvdash>.clubhead,body.tvdash>.foot{flex:none}body.tvdash>.tvbody{flex:1 1 auto;min-height:0}.tvbody[style] .table-panel table{font-size:clamp(13px,var(--tvfs),28px)}.tvbody[style] .club-cell,.tvbody[style] .club-content{font-size:1em}.tvbody[style] .table-crest{width:1.6em;height:1.6em}.tvbody .table-panel td,.tvbody .table-panel th{font-size:inherit}.tvbody{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,27vw,400px);gap:12px;min-height:0;margin-top:10px;margin-bottom:6px}.tvbody .table-panel{min-height:0}.main.tvside{display:flex;flex-direction:column;margin:0;min-height:0}.tvside .panel{flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden}
 .nextm{display:flex;align-items:center;gap:12px;margin-left:auto;padding:8px 18px;border-radius:99px;border:1px solid #d9dfdc;background:#111719;white-space:nowrap}.nmt{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#0a100e;background:#d9dfdc;border-radius:99px;padding:3px 10px}.nmo{font-size:18px;font-weight:800}.nmw{font-size:15px;color:#b4c4bb}.nmw b{color:#fff;font-size:17px}
 tr.nextrow td{background:#d9dfdc!important;color:#0a100e!important;font-weight:800}.nmtag{margin-left:8px;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:#0a100e;border-radius:99px;padding:1px 8px;white-space:nowrap}
 body.light .nextm{background:#fff;border-color:#8a9a90}body.light .nmt{background:#14301e;color:#fff}body.light .nmw{color:#53665a}body.light .nmw b{color:#14301e}body.light tr.nextrow td{background:#cfd6d2!important;color:#14301e!important}
@@ -7560,7 +7570,7 @@ ${(() => {
   return `<section class="panel mobonly mix"><h2>In the mix</h2>${rowsM}</section>`;
 })()}
 ${ownAround ? `<section class="panel mobonly arnd"><h2>Around you this weekend</h2>${aroundHtml(ownAround, esc, ordinalOf, displayTeamName)}<p class="lnote" style="margin:8px 0 0">Clubs within 3 places of ${esc(displayTeamName)}.</p></section>` : ""}
-${tvDash ? '<div class="tvbody">' : ""}<section class="table-panel"><table><thead><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="c-pf">PF</th><th class="c-pa">PA</th><th class="c-pd">PD</th><th title="Try bonus points">TB</th><th title="Lost bonus points">LB</th><th>Pts</th></tr></thead><tbody>${tableContent}</tbody></table></section>
+${tvDash ? `<div class="tvbody"${table.length <= 20 ? ` style="--tvfs:calc(26vh / ${Math.max(8, table.length)})"` : ""}>` : ""}<section class="table-panel"><table><thead><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th class="c-pf">PF</th><th class="c-pa">PA</th><th class="c-pd">PD</th><th title="Try bonus points">TB</th><th title="Lost bonus points">LB</th><th>Pts</th></tr></thead><tbody>${tableContent}</tbody></table></section>
 <section class="main${tvDash ? " tvside" : ""}">
 ${tvDash ? "" : `<div class="panel"><h2>Recent form • last five</h2><div class="formrow">${formHtml}</div><h2>Latest results</h2>${resultHtml}</div>`}
 ${tvDash ? "" : `<div class="panel next-fixture-panel"><h2>Next fixture</h2>${cupNext ? cupNextHtml : nextHtml}${cupNext ? `<div class="nlinks mobonly"><a href="${esc(nextLinkMatch)}">Match Stats</a><a href="${esc(nextLinkOpp)}">Opposition Report</a></div>` : next && nextSide ? `<div class="nlinks mobonly"><a href="${esc(nextLinkMatch)}">Match Stats</a><a href="${esc(nextLinkOpp)}">Opposition Report</a></div>` : ""}</div>`}
