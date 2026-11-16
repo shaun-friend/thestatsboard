@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.8 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.8_tv_no_pinch_zoom.zip             | v3.37.7
 v3.37.7 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.7_tv_fresh_pages.zip               | v3.37.6
 v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
 v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
@@ -273,6 +274,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.8 - TV rotation: no pinch-zoom on phones
+- Owner report (16-Nov-2026): pinching to zoom the TV preview on an iPhone made Safari show "Web Page Crashed"; the preview restarted from the beginning first.
+- Cause: the preview draws every page at 1920 x 1080 and shrinks it. Zooming makes Safari redraw those large pages at a huge size and the phone runs out of memory, then the page reloads and does it again.
+- Changed: the TV link no longer zooms (viewport locked to scale 1, touch zoom and the iOS pinch gesture switched off). The pages cannot be touched through the preview, so nothing else changes. A real TV is unaffected.
+- Tests: x_tv_rotate checks the viewport locks zooming and the pinch gestures are cancelled.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.7 - TV rotation: always load the current release
 - Owner report (16-Nov-2026): Preview on a phone still showed the previous League table layout after v3.37.6 was deployed.
