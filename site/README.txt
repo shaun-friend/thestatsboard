@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.7 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.7_tv_fresh_pages.zip               | v3.37.6
 v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
 v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
 v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
@@ -272,6 +273,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.7 - TV rotation: always load the current release
+- Owner report (16-Nov-2026): Preview on a phone still showed the previous League table layout after v3.37.6 was deployed.
+- Changed: every page address the TV rotation loads now ends with the release number (_v=...), so a phone or TV browser that kept an older copy of a page asks for a fresh one after each release. Nothing else changes, and it adds no outside calls.
+- Tests: x_tv_rotate checks each page address in the TV plan carries the release number.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.6 - TV screen: loading message shows the logo
 - Owner request (16-Nov-2026): the loading message should show the Stats Board logo so it is obvious what is loading.

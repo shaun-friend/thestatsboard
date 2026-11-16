@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.7 16-Nov-2026 TV rotation: every page it loads carries the release number in its address, so a new release is never shown from an old browser copy.
 //   v3.37.6 16-Nov-2026 TV screen loading message shows The Stats Board logo and name above "Loading".
 //   v3.37.5 16-Nov-2026 TV League table no longer repeats other pages: next-match reminder in the header and on the opponent row, season snapshot at the side.
 //   v3.37.4 16-Nov-2026 TV rotation on a phone: pages are drawn at TV size (1920 x 1080) and shrunk to fit, so Preview shows the TV layout.
@@ -267,7 +268,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.6";
+const VERSION = "v3.37.7";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -315,6 +316,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.7 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.7_tv_fresh_pages.zip               | v3.37.6
 v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
 v3.37.5 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.5_tv_no_repeats.zip                | v3.37.4
 v3.37.4 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.4_tv_rotation_phone_preview.zip     | v3.37.3
@@ -545,6 +547,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.7 - TV rotation: always load the current release
+- Owner report (16-Nov-2026): Preview on a phone still showed the previous League table layout after v3.37.6 was deployed.
+- Changed: every page address the TV rotation loads now ends with the release number (_v=...), so a phone or TV browser that kept an older copy of a page asks for a fresh one after each release. Nothing else changes, and it adds no outside calls.
+- Tests: x_tv_rotate checks each page address in the TV plan carries the release number.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.6 - TV screen: loading message shows the logo
 - Owner request (16-Nov-2026): the loading message should show the Stats Board logo so it is obvious what is loading.
@@ -2235,6 +2243,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.7", "The TV screen now asks for fresh pages after every release, so a phone or TV does not keep showing an older layout."],
       ["v3.37.6", "The TV screen's loading message now shows The Stats Board logo, so it is clear what is loading."],
       ["v3.37.5", "On the TV screen, the League table page no longer repeats the other pages. It shows the table, a season snapshot and a NEXT MATCH reminder with the opponent highlighted in grey."],
       ["v3.37.4", "Opening the TV link on a phone (and Preview in Admin) now shows a shrunk-down TV screen with the real TV layouts, instead of the phone layouts."],
@@ -2528,7 +2537,7 @@ function tvPlan(s) {
         if (it.page !== "table") q.set("view", it.page);
         q.set("layout", "tv"); q.set("competition", String(t.competition)); q.set("division", String(t.division)); q.set("team", String(t.team)); q.set("teamName", String(t.teamName || ""));
       }
-      q.set("theme", th);
+      q.set("theme", th); q.set("_v", VERSION);
       out.push({ k: it.page, n: TV_PAGES[it.page] + (t ? " · " + (t.name || t.short || "") : ""), u: "/?" + q.toString(), s: it.secs });
     }
   }
