@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.9 16-Nov-2026 TV screen: stronger pinch-zoom and double-tap-zoom block for iPhone Safari.
 //   v3.37.8 16-Nov-2026 TV screen: pinch-zoom is switched off (it crashed the page on iPhones).
 //   v3.37.7 16-Nov-2026 TV rotation: every page it loads carries the release number in its address, so a new release is never shown from an old browser copy.
 //   v3.37.6 16-Nov-2026 TV screen loading message shows The Stats Board logo and name above "Loading".
@@ -269,7 +270,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.8";
+const VERSION = "v3.37.9";
 const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -317,6 +318,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
 v3.37.8 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.8_tv_no_pinch_zoom.zip             | v3.37.7
 v3.37.7 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.7_tv_fresh_pages.zip               | v3.37.6
 v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
@@ -549,6 +551,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.9 - TV rotation: stronger zoom lock for iPhone
+- Owner report (16-Nov-2026): after v3.37.8 pinch-zoom still worked on the TV preview on an iPhone.
+- Cause: iPhone Safari ignores the viewport zoom lock, so v3.37.8 alone was not enough.
+- Changed: the TV link also cancels two-finger touches and double-tap zoom, sets the touch rule iOS respects (pan only) and cancels the pinch gesture on the document itself. A real TV is unaffected.
+- Tests: x_tv_rotate checks these handlers are present. They need a real iPhone to prove, so check Preview on one.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.8 - TV rotation: no pinch-zoom on phones
 - Owner report (16-Nov-2026): pinching to zoom the TV preview on an iPhone made Safari show "Web Page Crashed"; the preview restarted from the beginning first.
@@ -2252,6 +2261,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.9", "Stronger zoom lock on the TV link for iPhones (two-finger touches and double-tap are cancelled too)."],
       ["v3.37.8", "The TV link no longer pinch-zooms on a phone (zooming crashed Safari on iPhones)."],
       ["v3.37.7", "The TV screen now asks for fresh pages after every release, so a phone or TV does not keep showing an older layout."],
       ["v3.37.6", "The TV screen's loading message now shows The Stats Board logo, so it is clear what is loading."],
@@ -2557,7 +2567,7 @@ function tvScreenPage(plan, dots, theme) {
   const light = theme === "light", bg = light ? "#f4f8f5" : "#0a100e", fg = light ? "#24332b" : "#c5d2cb";
   const data = JSON.stringify({ p: plan, d: dots === true }).replace(/</g, "\\u003c");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="robots" content="noindex,nofollow"><title>TV screen - The Stats Board</title>
-<style>html,body{margin:0;height:100%;overflow:hidden;background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;touch-action:none;-webkit-user-select:none;user-select:none}
+<style>html,body{margin:0;height:100%;overflow:hidden;background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #st{position:fixed;inset:0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
 #ld[hidden]{display:none}#ld{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;font-size:3vh;letter-spacing:.08em;text-align:center}#ld img{height:22vh;width:22vh;border-radius:22%;box-shadow:0 1vh 4vh rgba(0,0,0,.35)}#ld b{font-size:4.2vh;letter-spacing:.04em}#ld span{opacity:.7}
 #bt{position:fixed;left:0;right:0;bottom:0;z-index:5;pointer-events:none}#bt[hidden]{display:none}
@@ -2579,7 +2589,8 @@ if(D){bt.hidden=false;P.forEach(function(){dt.appendChild(document.createElement
 function fit(){var w=innerWidth,h=innerHeight;if(w>=1280){st.style.cssText="";return}var k=Math.min(w/1920,h/1080);st.style.cssText="inset:auto;width:1920px;height:1080px;transform-origin:0 0;transform:scale("+k+");left:"+Math.max(0,(w-1920*k)/2)+"px;top:"+Math.max(0,(h-1080*k)/2)+"px"}
 fit();addEventListener("resize",fit);
 // Pinch-zooming a phone preview makes the browser redraw 1920 x 1080 pages at a huge size and iPhones run out of memory, so zooming is switched off here.
-["gesturestart","gesturechange","gestureend"].forEach(function(n){addEventListener(n,function(e){e.preventDefault()},{passive:false})});
+["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false,capture:true})});
+document.addEventListener("touchstart",function(e){if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});document.addEventListener("touchmove",function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false,capture:true});var lt=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-lt<350)e.preventDefault();lt=n},{passive:false,capture:true});
 function mk(sl){
   if(sl.busy)return;
   var f=document.createElement("iframe");f.className="fr";f.tabIndex=-1;f.setAttribute("aria-hidden","true");f.src=sl.p.u+"&_sr=1";sl.busy=f;st.appendChild(f);

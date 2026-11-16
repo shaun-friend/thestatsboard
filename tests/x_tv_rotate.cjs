@@ -33,6 +33,6 @@ await q.setViewportSize({width:1280,height:720});await q.waitForTimeout(200);
 ck('TV size: stage not scaled',await q.evaluate(()=>getComputedStyle(document.getElementById('st')).transform==='none'));
 ck('loading screen shows the logo and name',/<div id="ld"><img src="\/icon-192\.png"[^>]*><b>The Stats Board<\/b><span>Loading<\/span>/.test(html));
 ck('page addresses carry the release number',(html.match(/"u":"[^"]*_v=v3\.\d+\.\d+[^"]*"/g)||[]).length>=1&&!(html.match(/"u":"[^"]*"/g)||[]).some(u=>!/_v=v/.test(u)));
-ck('zoom is locked (viewport, touch-action, gesture events)',/maximum-scale=1,user-scalable=no/.test(html)&&/touch-action:none/.test(html)&&/gesturestart/.test(html));
+ck('zoom is locked (viewport, touch-action, gesture events)',/maximum-scale=1,user-scalable=no/.test(html)&&/touch-action:pan-x pan-y/.test(html)&&/touches\.length>1/.test(html)&&/gesturestart/.test(html));
 ck('no js errors',errs.length===0);if(errs.length)console.log(errs);
 await b.close();console.log(bad?'FAILED '+bad:'ALL OK')})();

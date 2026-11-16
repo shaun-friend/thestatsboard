@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
 v3.37.8 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.8_tv_no_pinch_zoom.zip             | v3.37.7
 v3.37.7 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.7_tv_fresh_pages.zip               | v3.37.6
 v3.37.6 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.6_tv_loading_logo.zip              | v3.37.5
@@ -274,6 +275,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.9 - TV rotation: stronger zoom lock for iPhone
+- Owner report (16-Nov-2026): after v3.37.8 pinch-zoom still worked on the TV preview on an iPhone.
+- Cause: iPhone Safari ignores the viewport zoom lock, so v3.37.8 alone was not enough.
+- Changed: the TV link also cancels two-finger touches and double-tap zoom, sets the touch rule iOS respects (pan only) and cancels the pinch gesture on the document itself. A real TV is unaffected.
+- Tests: x_tv_rotate checks these handlers are present. They need a real iPhone to prove, so check Preview on one.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.8 - TV rotation: no pinch-zoom on phones
 - Owner report (16-Nov-2026): pinching to zoom the TV preview on an iPhone made Safari show "Web Page Crashed"; the preview restarted from the beginning first.
