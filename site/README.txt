@@ -275,7 +275,7 @@ Earlier versions are described in the notes below. Zips from v22g and earlier we
 
 v3.37.6 - TV screen: loading message shows the logo
 - Owner request (16-Nov-2026): the loading message should show the Stats Board logo so it is obvious what is loading.
-- Also changed: the TV League table page now fills the whole screen. The header sits at the top, the table takes all the spare height (rows get taller, and text and crests get bigger when the league has 20 clubs or fewer) and the Season snapshot panel matches its height. Leagues with more clubs keep the old fit-to-screen sizing.
+- Also changed: the TV League table page now fills the whole screen. The header sits at the top, the table takes all the spare height (rows get taller, and club names, numbers, crests, the next-match pill and the Season snapshot get bigger when the league has 20 clubs or fewer) and the Season snapshot panel matches its height. Leagues with more clubs keep the old fit-to-screen sizing.
 - Changed: while the TV screen link is starting up (and on the "nothing is switched on" message) it now shows the Stats Board logo and name above the word Loading. The logo is the app icon the site already serves, so there are no extra outside calls.
 - Tests: x_tv_rotate checks the loading screen has the logo and name.
 - Docs: TV rotation (one rotating link), What's new
