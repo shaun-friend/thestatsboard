@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
 v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
 v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
 v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
@@ -296,6 +297,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.3 - Version on the TV setup page
+- Owner request (17-Nov-2026): the setup screen should show the app version in the footer.
+- Changed: the TV setup page (/setup) shows "The Stats Board v3.39.3 · 17-Nov-2026" centred at the foot, in a larger size than the small "Powered by" line (which is hidden on this page so the version is not shown twice), so it can be read across a room when checking which release a screen is on.
+- Request limit: no change.
+- Tests: the setup browser test checks the footer line shows once, is visible and has the version and date; the existing tests pass.
+- Docs: none - the Documentation does not describe the setup page footer.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.2 - Quick setup: a clear message when a code was not picked up
 - Owner request (17-Nov-2026): how to tell a phone user that a code has expired (option 2 chosen: a message on the phone, no new storage writes).

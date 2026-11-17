@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.3 17-Nov-2026 Quick setup: the TV setup page shows the version and date in a readable footer line.
 //   v3.39.2 17-Nov-2026 Quick setup: if the screen has not collected a sent code after about 20 seconds the phone says so, shows the code to check and offers Enter a different code.
 //   v3.39.1 17-Nov-2026 Screens: the rotator checks for changes every 5 minutes (was 2); the screen list is cached for 60 seconds; Usage shows one line per named screen.
 //   v3.39.0 17-Nov-2026 Paired screens: each quick-setup screen gets its own random ID; Admin lists them (Paired screens) with Kick out and Remove; a kicked-out screen returns to the setup code.
@@ -292,7 +293,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.2";
+const VERSION = "v3.39.3";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -339,6 +340,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
 v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
 v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
 v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
@@ -594,6 +596,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.3 - Version on the TV setup page
+- Owner request (17-Nov-2026): the setup screen should show the app version in the footer.
+- Changed: the TV setup page (/setup) shows "The Stats Board v3.39.3 · 17-Nov-2026" centred at the foot, in a larger size than the small "Powered by" line (which is hidden on this page so the version is not shown twice), so it can be read across a room when checking which release a screen is on.
+- Request limit: no change.
+- Tests: the setup browser test checks the footer line shows once, is visible and has the version and date; the existing tests pass.
+- Docs: none - the Documentation does not describe the setup page footer.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.2 - Quick setup: a clear message when a code was not picked up
 - Owner request (17-Nov-2026): how to tell a phone user that a code has expired (option 2 chosen: a message on the phone, no new storage writes).
@@ -2496,6 +2506,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.3", "The TV setup page now shows the version and date in the footer, large enough to read from across a room."],
       ["v3.39.2", "Quick setup: if the screen has not picked up what you sent after about 20 seconds (for example its code had run out and refreshed), the phone says \"Not confirmed yet\", shows the code to check against the screen and offers Enter a different code. If the screen picks it up later, it changes to Screen linked."],
       ["v3.39.1", "Screens now check for changes every 5 minutes instead of 2, which halves their traffic. A running rotating screen picks up an Admin change or a kick out within about 5 minutes. The Usage page shows one line per named screen: the page it showed last, its total loads and when it was last seen. The phone address for quick setup is now thestatsboard.co.uk/pair (the old /p still works). Teams for a single-page screen come from Admin, Our teams (add the team there first), and a team switched off there can still be chosen. A waiting TV now gets a new code by itself when the old one runs out."],
       ["v3.39.0", "Paired screens: every screen set up with the quick setup page gets its own ID and appears in Admin, Paired screens. Kick out sends a screen back to the setup code (a rotating screen within about 5 minutes, other pages at their next refresh). Two screens can share a name; each shows a short ending to tell them apart."],
@@ -8296,7 +8307,7 @@ function setupScreenPage(code, origin) {
 .steps{display:flex;flex-direction:column;gap:3vmin;font-size:3.6vmin;text-align:left;max-width:70vmin}.st{display:flex;gap:2.2vmin;align-items:center}.n{width:6vmin;height:6vmin;border-radius:50%;background:#1b3a29;color:#6fdc98;display:grid;place-items:center;font-weight:800;font-size:3.2vmin;flex:none}
 .lab{font-size:2.6vmin;color:#a9bbb1}.code{font-size:8vmin;font-weight:800;letter-spacing:.2em;color:#e8c26a}.foot{font-size:2.6vmin;color:#7f9388}
 .ok{width:16vmin;height:16vmin;border-radius:50%;background:#1b3a29;display:grid;place-items:center;font-size:9vmin;color:#6fdc98}.bar{width:60vmin;height:1.1vmin;border-radius:1vmin;background:#1b3a29;overflow:hidden}.bar i{display:block;height:100%;width:0;background:#4fc27d;transition:width 3s linear}
-button{font:700 3vmin Arial,sans-serif;color:#fff;background:#18512f;border:0;border-radius:1.6vmin;padding:1.8vmin 4vmin;cursor:pointer}[hidden]{display:none!important}
+[hidden]{display:none!important}#sbv{display:none!important}.ver{position:fixed;left:0;right:0;bottom:2.6vmin;text-align:center;font-size:2.2vmin;letter-spacing:.04em;color:#7f9388}
 @media (max-width:760px) and (orientation:portrait){.row{flex-direction:column;gap:4vmin}.qr svg{width:60vmin;height:60vmin}.steps{font-size:4.4vmin}.code{font-size:11vmin}h1{font-size:9vmin}.sub{font-size:4vmin}}</style></head><body>
 <div class="w" id="a"><div>${sbWordmark(true)}</div><h1>Set up this screen</h1><div class="sub">Use your phone. It takes about a minute.</div>
 <div class="row"><div><div class="lab" style="margin-bottom:1.2vmin">Scan with your phone camera</div><div class="qr" id="qr"></div></div>
@@ -8304,6 +8315,7 @@ button{font:700 3vmin Arial,sans-serif;color:#fff;background:#18512f;border:0;bo
 <div><div class="lab">Or go to <b>${origin.replace(/^https?:\/\//, "")}/pair</b> and enter</div><div class="code">${code.slice(0, 3)} ${code.slice(3)}</div></div></div></div>
 <div class="foot" id="ft">Waiting for your phone&hellip; This code expires in <b id="cd">${Math.floor(PAIR_TTL / 60)}:${String(PAIR_TTL % 60).padStart(2, "0")}</b></div></div>
 <div class="w" id="b" hidden><div class="ok">&#10003;</div><h1>Screen linked</h1><div class="sub" id="what"></div><div class="bar"><i id="bar"></i></div><div class="foot">If this screen forgets its link after a restart, set its start page to <span id="lk"></span></div></div>
+<div class="ver">${VERSION_LABEL}</div>
 <script>${QR_JS}</script>
 <script>(function(){var KEY="sbScreenLink",CODE="${code}",LINK=${JSON.stringify(link)},t0=Date.now(),GAP=location.search.indexOf("r=1")>=0?15000:5000;
 function $(i){return document.getElementById(i)}

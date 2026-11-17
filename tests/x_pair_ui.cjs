@@ -21,6 +21,7 @@ await tv({answer:n=>n<3?{ok:false}:{ok:true,t:'/ivybridge/tv?screen=Bar',l:'Rota
  // the QR matrix equals the library's own matrix for https://sb.test/pair/<code>
  const same=await p.evaluate(c=>{var q=qrcode(0,"M");q.addData("https://sb.test/pair/"+c);q.make();var n=q.getModuleCount(),d="";for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(q.isDark(r,k))d+="M"+k+" "+r+"h1v1h-1z";return document.querySelector('#qr svg path').getAttribute('d')===d},CODE);
  ck('QR encodes this screen\'s phone address',same);
+ ck('version and date shown in the footer, once',/^The Stats Board v\d+\.\d+\.\d+ \u00b7 \d\d-[A-Za-z]{3}-\d{4}$/.test(await p.textContent('.ver'))&&await p.isVisible('.ver')&&!(await p.isVisible('#sbv')),await p.textContent('.ver'));
  await p.screenshot({path:'w/pair_tv_wait.png'});
  await p.clock.runFor(3100);await p.waitForTimeout(30);ck('first poll uses the code',s.polls[0]===CODE,s.polls.join());
  for(let i=0;i<30&&!(await p.isVisible('#b'));i++){await p.clock.runFor(1000);await p.waitForTimeout(40)}
