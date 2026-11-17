@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.17 17-Nov-2026 Match Centre: the Last result text is centred on its box.
 //   v3.37.16 17-Nov-2026 Usage panel counts only version-tagged points (clean tally); mistyped addresses show a not-found page instead of the default team table.
 //   v3.37.15 17-Nov-2026 Cosmetic: Match Centre last result and table centred, fixtures left bar removed, background glow on Match Stats and League Leaders.
 //   v3.37.14 17-Nov-2026 Usage: Pages cut off also marks background rebuilds of a kept copy, which is how most screen pages are rebuilt.
@@ -277,7 +278,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.16";
+const VERSION = "v3.37.17";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -325,6 +326,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.17 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.17_last_result_centred.zip | v3.37.16
 v3.37.16 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.16_not_found_page_clean_usage.zip | v3.37.15
 v3.37.15 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.15_cosmetic_centre_glow.zip         | v3.37.14
 v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
@@ -565,6 +567,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.17 - Match Centre: Last result text centred
+- Owner request (17-Nov-2026): on the Match Centre TV columns the Last result text was not centred in its box (the team badge sat beside it and pushed the text off the centre line).
+- Changed: the Last result label, score and opponent line are now centred on the box, and the badge sits at the left edge (a little smaller so it keeps clear of the text).
+- Request limit: no change (styling only).
+- Tests: the existing page tests still pass.
+- Docs: What's new
 
 v3.37.16 - Usage panel clean tally; mistyped addresses show a not-found page
 - Owner request (17-Nov-2026): the Pages cut off panel mixed rows from three versions and could not be read; a mistyped address always landed on the Ivybridge table.
@@ -2331,6 +2340,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.17", "Match Centre: the Last result text in each team column is now centred on the box, with the team badge at the left edge."],
       ["v3.37.16", "A mistyped address now shows a Page not found page with a link to the welcome page, instead of the default team table. The Usage Pages cut off panel starts a clean tally. On the test site the PIN now lasts 30 minutes from the last visit, so a rotating screen stays signed in."],
       ["v3.37.15", "Looks: the Updated and last checked times now show the day when it is not today (Yesterday 21:03), the misleading \"refreshes hourly\" wording is gone, on the Usage page Teams people look up shows team names again, Match Centre now centres each team's last result and table position, the colour bar is gone from the TV Fixtures page, and Match Stats and League Leaders have the same soft green background as the team page."],
       ["v3.37.14", "Usage page: the Pages cut off panel now also counts pages rebuilt in the background, which is how most screen pages are refreshed."],
@@ -6482,7 +6492,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx.e{justify-content:center}.cnx .onw{width:100%;display:flex;align-items:center;justify-content:center}.ly-two .cnx .on{font-size:2.5rem}.ly-two .cnx .onw{min-height:7.25rem}.cnx .nb{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:.5rem}.cnx .nw{width:100%;display:flex;justify-content:center}.ly-win .cnx .nw{min-height:5.6rem}.ly-ven .cnx .og{min-height:1.9rem}.ly-clash .cnx .oq{min-height:2rem}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
 .clw{flex:28 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}
-.cls{justify-content:center}.cls .ln{text-align:center}.cls .rs{justify-content:center}.ctb{justify-content:center}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
+.cls{position:relative;justify-content:center}.cls>.cr{position:absolute;left:1.1rem;top:50%;transform:translateY(-50%)}.cls>.cr{width:4.6rem;height:4.6rem;flex-basis:4.6rem}.cls .ln{flex:1;text-align:center}.cls .rs{justify-content:center}.ctb{justify-content:center}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
 .rs-a .rw>.bx,.rs-b .rw>.bx,.rs-c .rw>.bx,.rs-d .rw>.bx{border-color:var(--bd)}
 .rs-b .rw>.bx.tbx,.rs-c .rw>.bx.tbx,.rs-d .rw>.bx.tbx{background:var(--card);border-color:var(--bd)}
