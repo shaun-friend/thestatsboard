@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.4 17-Nov-2026 Quick setup: the version line is the last thing on the TV setup page, smaller, and cannot overlap anything.
 //   v3.39.3 17-Nov-2026 Quick setup: the TV setup page shows the version and date in a readable footer line.
 //   v3.39.2 17-Nov-2026 Quick setup: if the screen has not collected a sent code after about 20 seconds the phone says so, shows the code to check and offers Enter a different code.
 //   v3.39.1 17-Nov-2026 Screens: the rotator checks for changes every 5 minutes (was 2); the screen list is cached for 60 seconds; Usage shows one line per named screen.
@@ -293,7 +294,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.3";
+const VERSION = "v3.39.4";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -340,6 +341,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
 v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
 v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
 v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
@@ -596,6 +598,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.4 - Version line last on the TV setup page
+- Owner report (17-Nov-2026): the version overlapped other text at the foot of the setup page and should be much smaller; it should be the last thing on the page.
+- Changed: the version line (The Stats Board v3.39.4 · date) is now the last element of the page in normal flow (it was fixed to the bottom edge, so on some screens it could land on the countdown line). It is smaller (1.6% of the screen's short side) and sits below the countdown line with its own space; the page keeps the footer centred and the content centred above it.
+- Request limit: no change.
+- Tests: the setup browser test now checks the version line is below the countdown line, does not overlap it and is inside the screen; the page was also measured at 1920x1080, 1366x768, 1280x720, 1024x600 and the two iPad sizes in landscape and portrait. The existing tests pass.
+- Docs: none - the Documentation does not describe the setup page footer.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.3 - Version on the TV setup page
 - Owner request (17-Nov-2026): the setup screen should show the app version in the footer.
@@ -2506,6 +2516,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.4", "The version line on the TV setup page is now the last thing on the page, smaller, and sits clear of the countdown line."],
       ["v3.39.3", "The TV setup page now shows the version and date in the footer, large enough to read from across a room."],
       ["v3.39.2", "Quick setup: if the screen has not picked up what you sent after about 20 seconds (for example its code had run out and refreshed), the phone says \"Not confirmed yet\", shows the code to check against the screen and offers Enter a different code. If the screen picks it up later, it changes to Screen linked."],
       ["v3.39.1", "Screens now check for changes every 5 minutes instead of 2, which halves their traffic. A running rotating screen picks up an Admin change or a kick out within about 5 minutes. The Usage page shows one line per named screen: the page it showed last, its total loads and when it was last seen. The phone address for quick setup is now thestatsboard.co.uk/pair (the old /p still works). Teams for a single-page screen come from Admin, Our teams (add the team there first), and a team switched off there can still be chosen. A waiting TV now gets a new code by itself when the old one runs out."],
@@ -8301,13 +8312,13 @@ async function pairRoutes(request, url) {
 function setupScreenPage(code, origin) {
   const link = origin + "/pair/" + code;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Set up this screen - The Stats Board</title>
-<style>${PAIR_CSS}body{display:grid;place-items:center;background:radial-gradient(120vmin 70vmin at 50% 0,#14281d,#0a100e 70%);overflow:hidden;cursor:none}
-.w{display:flex;flex-direction:column;align-items:center;gap:3.4vmin;text-align:center;padding:3vmin}h1{margin:0;font-size:7.4vmin;letter-spacing:-.01em}.sub{font-size:3.2vmin;color:#a9bbb1}
+<style>${PAIR_CSS}body{display:flex;flex-direction:column;background:radial-gradient(120vmin 70vmin at 50% 0,#14281d,#0a100e 70%);overflow:hidden;cursor:none}
+.w{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.4vmin;text-align:center;padding:3vmin}h1{margin:0;font-size:7.4vmin;letter-spacing:-.01em}.sub{font-size:3.2vmin;color:#a9bbb1}
 .row{display:flex;gap:8vmin;align-items:center;margin-top:1vmin}.qr{background:#fff;padding:1.4vmin;border-radius:2.4vmin;line-height:0}.qr svg{width:38vmin;height:38vmin;display:block}
 .steps{display:flex;flex-direction:column;gap:3vmin;font-size:3.6vmin;text-align:left;max-width:70vmin}.st{display:flex;gap:2.2vmin;align-items:center}.n{width:6vmin;height:6vmin;border-radius:50%;background:#1b3a29;color:#6fdc98;display:grid;place-items:center;font-weight:800;font-size:3.2vmin;flex:none}
 .lab{font-size:2.6vmin;color:#a9bbb1}.code{font-size:8vmin;font-weight:800;letter-spacing:.2em;color:#e8c26a}.foot{font-size:2.6vmin;color:#7f9388}
 .ok{width:16vmin;height:16vmin;border-radius:50%;background:#1b3a29;display:grid;place-items:center;font-size:9vmin;color:#6fdc98}.bar{width:60vmin;height:1.1vmin;border-radius:1vmin;background:#1b3a29;overflow:hidden}.bar i{display:block;height:100%;width:0;background:#4fc27d;transition:width 3s linear}
-[hidden]{display:none!important}#sbv{display:none!important}.ver{position:fixed;left:0;right:0;bottom:2.6vmin;text-align:center;font-size:2.2vmin;letter-spacing:.04em;color:#7f9388}
+[hidden]{display:none!important}.ver{flex:none;text-align:center;font-size:1.6vmin;letter-spacing:.04em;color:#6f8379;padding:0 0 2vmin}
 @media (max-width:760px) and (orientation:portrait){.row{flex-direction:column;gap:4vmin}.qr svg{width:60vmin;height:60vmin}.steps{font-size:4.4vmin}.code{font-size:11vmin}h1{font-size:9vmin}.sub{font-size:4vmin}}</style></head><body>
 <div class="w" id="a"><div>${sbWordmark(true)}</div><h1>Set up this screen</h1><div class="sub">Use your phone. It takes about a minute.</div>
 <div class="row"><div><div class="lab" style="margin-bottom:1.2vmin">Scan with your phone camera</div><div class="qr" id="qr"></div></div>
@@ -8315,7 +8326,6 @@ function setupScreenPage(code, origin) {
 <div><div class="lab">Or go to <b>${origin.replace(/^https?:\/\//, "")}/pair</b> and enter</div><div class="code">${code.slice(0, 3)} ${code.slice(3)}</div></div></div></div>
 <div class="foot" id="ft">Waiting for your phone&hellip; This code expires in <b id="cd">${Math.floor(PAIR_TTL / 60)}:${String(PAIR_TTL % 60).padStart(2, "0")}</b></div></div>
 <div class="w" id="b" hidden><div class="ok">&#10003;</div><h1>Screen linked</h1><div class="sub" id="what"></div><div class="bar"><i id="bar"></i></div><div class="foot">If this screen forgets its link after a restart, set its start page to <span id="lk"></span></div></div>
-<div class="ver">${VERSION_LABEL}</div>
 <script>${QR_JS}</script>
 <script>(function(){var KEY="sbScreenLink",CODE="${code}",LINK=${JSON.stringify(link)},t0=Date.now(),GAP=location.search.indexOf("r=1")>=0?15000:5000;
 function $(i){return document.getElementById(i)}
@@ -8333,7 +8343,8 @@ function tick(){if(done)return;var l=Math.max(0,TTL-(Date.now()-t0)),sec=Math.fl
 setInterval(tick,1000);
 function poll(){if(done)return;
 fetch("/api/pair?c="+CODE,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(j&&j.ok&&typeof j.t==="string"&&j.t.charAt(0)==="/"&&j.t.charAt(1)!=="/"){linked(j)}else{setTimeout(poll,GAP)}}).catch(function(){setTimeout(poll,GAP+3000)})}
-setTimeout(poll,3000)})()</script></body></html>`;
+setTimeout(poll,3000)})()</script>
+<div class="ver">${VERSION_LABEL}</div></body></html>`;
 }
 function pairPhonePage(code, msg, s, names) {
   const esc = x => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

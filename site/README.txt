@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
 v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
 v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
 v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
@@ -297,6 +298,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.4 - Version line last on the TV setup page
+- Owner report (17-Nov-2026): the version overlapped other text at the foot of the setup page and should be much smaller; it should be the last thing on the page.
+- Changed: the version line (The Stats Board v3.39.4 · date) is now the last element of the page in normal flow (it was fixed to the bottom edge, so on some screens it could land on the countdown line). It is smaller (1.6% of the screen's short side) and sits below the countdown line with its own space; the page keeps the footer centred and the content centred above it.
+- Request limit: no change.
+- Tests: the setup browser test now checks the version line is below the countdown line, does not overlap it and is inside the screen; the page was also measured at 1920x1080, 1366x768, 1280x720, 1024x600 and the two iPad sizes in landscape and portrait. The existing tests pass.
+- Docs: none - the Documentation does not describe the setup page footer.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.3 - Version on the TV setup page
 - Owner request (17-Nov-2026): the setup screen should show the app version in the footer.
