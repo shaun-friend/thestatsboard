@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
 v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
 v3.37.18 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.18_tv_match_centre_no_message_link.zip | v3.37.17
 v3.37.17 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.17_last_result_centred.zip | v3.37.16
@@ -285,6 +286,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.20 - Test release for the TV screens
+- Owner request (17-Nov-2026): a small change to check that screens pick up a new release on their own and update their pages together.
+- Changed: nothing visible except the version in the footer of every page. Behind the scenes: none.
+- Request limit: no change.
+- Tests: the existing tests pass.
+- Docs: What's new
 
 v3.37.19 - TV rotation: total time in Admin, pages update together after a release
 - Owner requests (17-Nov-2026): the Admin TV rotation page should show how long one full round lasts (for digital signage), and after a release the rotator showed a mixture of old and new pages for several minutes.
