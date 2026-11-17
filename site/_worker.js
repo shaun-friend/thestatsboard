@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.22 17-Nov-2026 Admin, TV rotation: each team shows its crest in its header (badge kept if a crest is missing).
 //   v3.37.21 17-Nov-2026 TV rotation: page name and dots/progress line are separate options; the strip no longer covers the pages.
 //   v3.37.20 17-Nov-2026 Test release for the TV screens (version number only).
 //   v3.37.19 17-Nov-2026 TV rotation: total round time in Admin; pages refresh together once one comes back from a newer release.
@@ -282,7 +283,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.21";
+const VERSION = "v3.37.22";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -330,6 +331,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
 v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
 v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
 v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
@@ -575,6 +577,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.22 - TV rotation in Admin shows team crests
+- Owner request (17-Nov-2026): use the team crests on the Admin TV rotation page.
+- Changed: each team's header on the Admin, TV rotation page now shows its crest in place of the round initials badge. Crests come through the same /api/crest copy the rest of the site uses (kept for a day, so it costs nothing extra), and a team whose crest cannot be loaded keeps its initials badge. The Match Centre group keeps its badge.
+- Request limit: no change to the public pages.
+- Tests: the Admin TV test checks a crest is shown and that a missing crest keeps the badge; the existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.21 - TV rotation: separate page name option, strip no longer covers the pages
 - Owner request (17-Nov-2026): the page name should be a separate option from the dots and progress line, and the strip was conflicting with things at the bottom of the pages.
@@ -2379,6 +2388,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.22", "Admin, TV rotation: each team now shows its crest, as on the rest of the site."],
       ["v3.37.21", "TV rotation: the page name and the dots and progress line are now two separate switches in Admin, and the strip sits below the pages so it never covers anything."],
       ["v3.37.20", "Behind the scenes: a test release to check that TV screens update themselves. Nothing looks different except the version number."],
       ["v3.37.19", "Admin, TV rotation now shows how long one full round lasts, for setting up digital signage. After a release the pages on a TV screen now refresh together instead of one by one."],
@@ -3036,6 +3046,7 @@ ${MENU_CSS}
 .tvg .tvr{padding:6px 10px;gap:6px;flex-wrap:nowrap}.tvg .tvr>.tg{order:1;flex:none}.tvg .tvr>.pn{order:2;flex:1 1 0;min-width:0;font-size:15px;line-height:1.15}.tvg .tvr>.tvm{order:3;flex-direction:column;gap:2px}.tvg .tvr .tvm .tvb{min-width:34px;min-height:22px;padding:0;font-size:10px}.tvg .tvr>.tvsc{order:4;gap:2px}.tvg .tvr .tvsc .tvb{min-width:30px;padding:0}.tvg .tvr .tvs{min-width:34px;font-size:14px}.tvg .tvr>.tvx{order:5;font-size:0;min-width:32px;padding:0;text-decoration:none}.tvg .tvr>.tvx::before{content:"✕";font-size:16px}
 .tvg .tvad{padding-left:12px;padding-right:12px}}
 .tvh{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#16221d;border-left:6px solid #3fb26b;flex-wrap:wrap}.tvh .tn{flex:1;min-width:150px}.tvh .tn b{display:block;font-size:18px}.tvh .tn small{color:#91a49a;font-size:13px}.tvsh{color:#91a49a}
+.tvcr{width:38px;height:38px;object-fit:contain;flex:none}
 .tvb2{width:38px;height:38px;border-radius:50%;background:#fff;color:#1f7a45;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
 .tvr{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 28px;border-top:1px solid #1d2925;flex-wrap:wrap}.tvr.off{opacity:.55}.tvr .pn{flex:1;min-width:120px;font-weight:700}.tvm,.tvsc{display:flex;align-items:center;gap:4px}.tvs{min-width:44px;text-align:center;font-weight:700}
 .tvb{min-width:36px;min-height:38px;border-radius:8px;border:1px solid #3a4a43;background:#16201c;color:#e6efe9;font:inherit;font-size:15px;cursor:pointer}
@@ -3210,7 +3221,9 @@ var box=$("tvb");box.innerHTML="";var n=0,sec=0;
 TVI.groups.forEach(function(g,gi){
 var live=g.on&&!g.hidden,on=0;g.items.forEach(function(it){if(it.on)on++;if(live&&it.on){n++;sec+=it.secs}});
 var card=tvE("div","tvg"+(live?"":" off")),h=tvE("div","tvh");
-h.appendChild(tvE("span","tvb2",g.short));
+var bd=tvE("span","tvb2",g.short);
+if(/^[0-9]+$/.test(g.key)){var ci=document.createElement("img");ci.className="tvcr";ci.alt="";ci.width=38;ci.height=38;ci.src="/api/crest?id="+g.key;ci.onload=function(){if(bd.parentNode)bd.parentNode.replaceChild(ci,bd)};ci.onerror=function(){ci.onload=null}}
+h.appendChild(bd);
 var nm=tvE("div","tn");nm.appendChild(tvE("b",null,g.name));
 nm.appendChild(tvE("small",null,g.hidden?"Hidden in Our teams, so skipped on the TV":!g.on?"Switched off, so skipped on the TV":!g.items.length?"No pages yet":on+" of "+g.items.length+(g.items.length===1?" page on":" pages on")));h.appendChild(nm);
 var ct=tvE("div","tvctl"),mv0=tvE("span","tvmv");mv0.appendChild(tvB("▲","Move "+g.name+" up",function(){tvMove(TVI.groups,gi,-1)}));mv0.appendChild(tvB("▼","Move "+g.name+" down",function(){tvMove(TVI.groups,gi,1)}));

@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
 v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
 v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
 v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
@@ -287,6 +288,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.22 - TV rotation in Admin shows team crests
+- Owner request (17-Nov-2026): use the team crests on the Admin TV rotation page.
+- Changed: each team's header on the Admin, TV rotation page now shows its crest in place of the round initials badge. Crests come through the same /api/crest copy the rest of the site uses (kept for a day, so it costs nothing extra), and a team whose crest cannot be loaded keeps its initials badge. The Match Centre group keeps its badge.
+- Request limit: no change to the public pages.
+- Tests: the Admin TV test checks a crest is shown and that a missing crest keeps the badge; the existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.21 - TV rotation: separate page name option, strip no longer covers the pages
 - Owner request (17-Nov-2026): the page name should be a separate option from the dots and progress line, and the strip was conflicting with things at the bottom of the pages.

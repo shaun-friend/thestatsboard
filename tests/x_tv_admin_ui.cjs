@@ -7,9 +7,13 @@ const html=fs.readFileSync('w/tv_admin.html','utf8');
 await p.route('**/*',r=>{const rq=r.request(),u=rq.url();
  if(u==='https://sb.test/admin')return r.fulfill({status:200,contentType:'text/html',body:html});
  if(u.includes('/api/admin')&&rq.method()==='POST'){posted=JSON.parse(rq.postData());return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"label":"now"}'})}
+ if(u.includes('/api/crest?id=11039'))return r.fulfill({status:200,contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==','base64')});
+ if(u.includes('/api/crest'))return r.fulfill({status:404,body:'no'});
  r.fulfill({status:200,contentType:'application/json',body:'{}'})});
 await p.goto('https://sb.test/admin#tv');await p.waitForTimeout(400);
 const grp=i=>p.locator('.tvg').nth(i);
+ck('team with a crest shows it in its header',await p.locator('.tvg .tvh img.tvcr').count()>=1&&(await p.locator('.tvg').nth(1).locator('.tvh img.tvcr').count())===1);
+ck('team whose crest is missing keeps its badge',(await p.locator('.tvg .tvh .tvb2').count())>=1);
 await grp(1).locator('.tvpri').click();                 // add all for 1XV
 ck('add all gives 4 rows',await grp(1).locator('.tvr').count()===4);
 await grp(0).locator('.tvadd').click();                  // match centre
