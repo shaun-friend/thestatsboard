@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.12 17-Nov-2026 Usage: new "Pages cut off" panel (pages started minus finished) to show which pages Cloudflare stops part-way, e.g. Error 1102.
 //   v3.37.11 16-Nov-2026 CPU savings: the TV dashboard no longer works out the Win Predictor or the phone-only panels it does not show.
 //   v3.37.10 16-Nov-2026 CPU savings: match dates are worked out once per page and the London-day formatter is shared (Error 1102 on the free plan); pages use roughly a fifth to a third less working time.
 //   v3.37.9 16-Nov-2026 TV screen: stronger pinch-zoom and double-tap-zoom block for iPhone Safari.
@@ -272,8 +273,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.11";
-const BUILD_DATE = "16-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.37.12";
+const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -320,6 +321,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
 v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
 v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
 v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
@@ -555,6 +557,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.12 - Usage: pages cut off
+- Owner request (17-Nov-2026): the Cloudflare Metrics page cannot say which page failed with Error 1102, so the site should show it.
+- Cause of the gap: a page that Cloudflare stops part-way never finishes, so it never reaches the visit counter and cannot report itself.
+- Changed: just before a page is built (not when it is served from the kept copy) the site writes one small "start" point, with the same visit counting method as before. The Usage page has a new "Pages cut off" panel: per page type, how many builds started, how many finished, and the difference. It follows the Count visits switch (off means no start points either).
+- Request limit: nothing here is an outside request or a cache lookup, so it cannot use any of the 50 per visit. Cost: one extra small write per page build and well under a millisecond of CPU. The counts are read back with the same Cloudflare token as the rest of the Usage page.
+- Tests: x_usage_cut checks a page build writes exactly one start point, a data request writes none, the Usage page carries the cut-off panel, and the outside-request count of a page visit is unchanged.
+- Docs: Admin guide, What's new
 
 v3.37.11 - CPU savings: the TV dashboard skips work it does not show
 - Owner request (16-Nov-2026): build the page in stages after a cold start, to stop Error 1102 on the free plan.
@@ -2161,7 +2171,7 @@ const DOC_SECTIONS = [
     { h: "Test and live settings" },
     { p: "Each site (test and live) has its own Cloudflare project and its own KV namespace, so a notice tried on the test site never reaches the live one. A setting you want live is entered again on the live Admin page." },
     { h: "Usage and visit counting" },
-    { p: "The Usage page (/usage, club PIN) shows people per day, what they look at, which of the club's teams are viewed, which other teams are viewed (and the league and county), the device split, what the clubhouse screens are showing, how often the club pages were opened, wrong PIN entries, a Speed panel (how long pages took to build and how long outside fetches took), and how close the site is to Cloudflare's free daily request limit. A person counts once a day, so the totals are person-days. TV screens and calendar feeds are counted separately so an hourly refresh does not look like a crowd. The Reporting section of the Admin page has a Count visits switch, a Count clubhouse screen loads switch (off means TV screens are not counted at all and the screens chart stays empty) and the default period the Usage page opens on (7, 14, 30 or 90 days)." },
+    { p: "The Usage page (/usage, club PIN) shows people per day, what they look at, which of the club's teams are viewed, which other teams are viewed (and the league and county), the device split, what the clubhouse screens are showing, how often the club pages were opened, wrong PIN entries, a Speed panel (how long pages took to build and how long outside fetches took), a Pages cut off panel (pages Cloudflare stopped part-way, usually Error 1102 for too much CPU, shown as started minus finished), and how close the site is to Cloudflare's free daily request limit. A person counts once a day, so the totals are person-days. TV screens and calendar feeds are counted separately so an hourly refresh does not look like a crowd. The Reporting section of the Admin page has a Count visits switch, a Count clubhouse screen loads switch (off means TV screens are not counted at all and the screens chart stays empty) and the default period the Usage page opens on (7, 14, 30 or 90 days)." },
     { p: "Set up once per project: in Cloudflare open the Pages project, Settings, Bindings, Add, Analytics Engine, variable name USAGE, dataset stats_board_usage, then redeploy. To read the numbers back add two secrets, CF_ACCOUNT_ID (your account ID) and CF_API_TOKEN (an API token with Account Analytics Read). Use a separate dataset name for test if you want the two kept apart. Optionally add USAGE_SALT, a long random text, for the daily one-way code (the club PIN is used if it is missing). Nothing is counted until the binding exists." },
     { ex: [["Admin page", "/admin"], ["Usage page", "/usage"]] }
   ] },
@@ -2281,6 +2291,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.12", "Usage page: a new Pages cut off panel shows how many pages were started but never finished, which is how Error 1102 (too much CPU) shows up."],
       ["v3.37.11", "Behind the scenes: the TV screen no longer works out things it does not show (the Win Predictor and phone-only panels), saving server working time. Nothing looks different."],
       ["v3.37.10", "Behind the scenes: pages use less of the server's working time (about a fifth to a third less in tests), to cut the Error 1102 messages on the free plan. Nothing looks different."],
       ["v3.37.9", "Stronger zoom lock on the TV link for iPhones (two-finger touches and double-tap are cancelled too)."],
@@ -3530,6 +3541,19 @@ async function usageRecord(request, url, ms, status, hit) {
   const cf = request.cf || {};
   ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), c.kind, c.view, c.team, c.teamName, c.comp, c.div, c.device, String(cf.country || ""), String(cf.region || "").slice(0, 40), c.known, who, String(status || ""), hit ? "hit" : "miss", c.screen || ""], doubles: [1, Math.max(1, Math.round(ms || 0))] });
 }
+// v3.37.12: a page that Cloudflare stops part-way (Error 1102, too much CPU) never reaches usageRecord, so it is invisible. Just before a page is
+// built we write one small "start" point (no hashing, no outside request, not counted against the 50 limit); on the Usage page "started" minus
+// "finished" is the number of pages cut off. Pages served from the kept copy are not marked.
+async function usageStart(request, url) {
+  try {
+    const ds = SITE_ENV && SITE_ENV.USAGE;
+    if (!ds || typeof ds.writeDataPoint !== "function") return;
+    const c = usageClassify(request, url); if (!c) return;
+    const st = await siteSettings();
+    if (st.features.count === false || (c.kind === "tv" && st.features.screens === false)) return;
+    ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), "start", c.view, c.team, "", "", "", "", "", "", "", "", "", "start", ""], doubles: [1, 0] });
+  } catch (_) { /* counting never breaks a request */ }
+}
 // v3.28.3: one row per team number. The same team can be recorded with different spellings of its name, or as ours and not ours
 // (for example before and after it joined the list), so rows are merged by team number: counts add up, the most-used name and
 // league win, and "ours" shows if any record says so.
@@ -3567,7 +3591,7 @@ async function usageApi(url) {
   const bucket = days === 1 && dayStart ? "toStartOfInterval(timestamp, INTERVAL '1' HOUR)" : "toDate(timestamp)";
   const W = `FROM ${USAGE_DATASET} WHERE blob1 = '${usageScope()}' AND timestamp > ${sinceExpr}`;
   try {
-    const [perDay, tot, pages, teams, devs, others, srch, today, tvDay, tvPages, clubPg, pinDay, pinWhere, spPages, spUp, spDay, secDay, secWhere, scr] = await Promise.all([
+    const [perDay, tot, pages, teams, devs, others, srch, today, tvDay, tvPages, clubPg, pinDay, pinWhere, spPages, spUp, spDay, secDay, secWhere, cutRows, scr] = await Promise.all([
       usageQuery(`SELECT ${bucket} AS d, COUNT(DISTINCT blob12) AS people ${W} AND blob2 = 'page' GROUP BY d ORDER BY d`),
       usageQuery(`SELECT blob2 AS kind, COUNT(DISTINCT blob12) AS who, SUM(_sample_interval) AS n ${W} GROUP BY kind`),
       usageQuery(`SELECT blob3 AS view, SUM(_sample_interval) AS n ${W} AND blob2 = 'page' GROUP BY view ORDER BY n DESC LIMIT 12`),
@@ -3589,9 +3613,11 @@ async function usageApi(url) {
       // v3.20: address checks. Extra: if refused, only this card is lost.
       usageQuery(`SELECT toDate(timestamp) AS d, blob3 AS type, blob4 AS part, SUM(_sample_interval) AS n, COUNT(DISTINCT blob12) AS sources ${W} AND blob2 = 'sec' GROUP BY d, type, part ORDER BY d LIMIT 500`).catch(() => null),
       usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null),
+      // v3.37.12: pages cut off part-way = started minus finished, per page type. Extra: if refused, only this card is lost.
+      usageQuery(`SELECT blob3 AS view, SUM(IF(blob2 = 'start', _sample_interval, 0)) AS started, SUM(IF(blob2 IN ('page','tv') AND blob14 = 'miss', _sample_interval, 0)) AS done ${W} AND blob2 IN ('start','page','tv') GROUP BY view ORDER BY started DESC LIMIT 20`).catch(() => null),
       usageQuery(`SELECT blob15 AS screen, blob3 AS view, COUNT(DISTINCT blob12) AS devices, SUM(_sample_interval) AS loads, MAX(timestamp) AS last ${W} AND blob2 = 'tv' AND blob15 != '' GROUP BY screen, view ORDER BY loads DESC LIMIT 40`).catch(() => null)
     ]);
-    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
+    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, cut: cutRows, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
   } catch (e) { return J({ ok: false, error: "Could not read the usage data: " + String(e && e.message || e).slice(0, 120) }, 502); }
 }
 function usagePage(theme, isDev, defDays) {
@@ -3660,6 +3686,13 @@ function speedCard(d){
  (pg.length?'<table><tr><td class="mu">Page</td><td class="nu mu" style="width:70px">Loads</td><td class="nu mu" style="width:80px">Typical</td><td class="nu mu" style="width:110px">Slowest 1 in 20</td><td class="nu mu" style="width:70px">Over 2 s</td><td class="nu mu" style="width:80px">Ready made</td></tr>'+pg.map(function(r){var n=Number(r.n)||1;return"<tr><td>"+esc(r.kind==="tv"?"Screen: "+(SN[r.view]||r.view):(VN[r.view]||r.view))+'</td><td class="nu">'+num(r.n)+'</td><td class="nu">'+ms(r.p50)+'</td><td class="nu">'+ms(r.p95)+'</td><td class="nu">'+Math.round(Number(r.slow)/n*100)+'%</td><td class="nu">'+Math.round(Number(r.hits)/n*100)+"%</td></tr>"}).join("")+"</table>":'<p class="msg mu">No page timings yet.</p>')+
  '<h2 style="margin-top:16px">Outside data</h2><p class="n">Each time the site had to fetch fresh data from RFU, the weather or the postcode service (stored copies are used the rest of the time). "Visitor waited" means someone was waiting for that fetch; otherwise it ran in the background.</p>'+
  (up.length?'<table><tr><td class="mu">Source</td><td class="nu mu" style="width:70px">Fetches</td><td class="nu mu" style="width:80px">Typical</td><td class="nu mu" style="width:110px">Slowest 1 in 20</td><td class="nu mu" style="width:70px">Failed</td><td class="nu mu" style="width:110px">Visitor waited</td></tr>'+up.map(function(r){return"<tr><td>"+esc(r.src)+'</td><td class="nu">'+num(r.n)+'</td><td class="nu">'+ms(r.p50)+'</td><td class="nu">'+ms(r.p95)+'</td><td class="nu">'+num(r.bad)+'</td><td class="nu">'+num(r.waited)+"</td></tr>"}).join("")+"</table>":'<p class="msg mu">No outside fetches recorded yet.</p>')+"</div>"}
+function cutCard(d){
+ var rows=d.cut;
+ if(!rows)return'<div class="cd"><h2>Pages cut off</h2><p class="n">This could not be read this time.</p></div>';
+ rows=rows.filter(function(r){return Number(r.started)>0});
+ var head='<div class="cd"><h2>Pages cut off</h2><p class="n">Each time a page has to be built (not served from the kept copy) it is marked as started, and as finished when it is done. A page that Cloudflare stops part-way, usually Error 1102 because it used too much CPU, is started but never finished. Counting began with v3.37.12, so earlier days show nothing.</p>';
+ if(!rows.length)return head+'<p class="msg mu">No builds recorded yet.</p></div>';
+ return head+'<table><tr><td class="mu">Page</td><td class="nu mu" style="width:80px">Started</td><td class="nu mu" style="width:80px">Finished</td><td class="nu mu" style="width:90px">Cut off</td><td class="nu mu" style="width:70px">Share</td></tr>'+rows.map(function(r){var st=Number(r.started)||0,dn=Math.min(Number(r.done)||0,st),cut=Math.max(0,st-dn);return"<tr><td>"+esc(VN[r.view]||SN[r.view]||r.view)+'</td><td class="nu">'+num(st)+'</td><td class="nu">'+num(dn)+'</td><td class="nu">'+num(cut)+'</td><td class="nu">'+(st?Math.round(cut/st*100):0)+"%</td></tr>"}).join("")+"</table></div>"}
 function show(d){
  if(!d.ok){
   if(d.setup){o.innerHTML='<div class="cd"><h2>Visit counting is not set up yet</h2><p class="msg">'+(d.setup.binding?"":"The USAGE binding is missing: in Cloudflare open the Pages project, Settings, Bindings, Add, Analytics Engine, variable name <b>USAGE</b>, dataset <b>${USAGE_DATASET}</b>, then redeploy. ")+(d.setup.key?"":"To read the numbers back, add two secrets, <b>CF_ACCOUNT_ID</b> and <b>CF_API_TOKEN</b> (a token with Account, Account Analytics, Read). ")+"Nothing is counted until the binding is added.</p></div>";return}
@@ -3681,7 +3714,7 @@ function show(d){
  '<div class="cd"><h2>Our teams</h2><p class="n">Views of teams on the club list</p>'+rows(ours,function(r){return"<tr><td>"+esc(r.n)+'</td><td class="nu">'+num(r.v)+"</td></tr>"})+"</div></div>"+
  '<div class="cd hl"><h2>Teams people look up</h2><p class="n">Every team opened on a phone, tablet or computer, or picked in the link builder, whether or not it is in our list (ours are marked). TV screens are not counted here. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
  rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+(String(r.own)==="1"?' <span class="mu">&middot; ours</span>':"")+' <span class="mu">&middot; no. '+esc(r.team)+'</span>'+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
- clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
+ clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+cutCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}
 function load(){o.innerHTML='<p class="msg">Loading&hellip;</p>';fetch("/api/usage?days="+days,{cache:"no-store"}).then(function(r){return r.json()}).then(show).catch(function(){o.innerHTML='<div class="cd"><p class="msg">Sorry, the usage data could not be loaded.</p></div>'})}
@@ -8152,6 +8185,7 @@ export default {
         }
       } catch (_) { /* miss */ }
     }
+    await usageStart(request, new URL(request.url));
     return await buildPage();
     };
     const resp = await serve();

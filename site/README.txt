@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
 v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
 v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
 v3.37.9 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.9_tv_no_zoom_iphone.zip             | v3.37.8
@@ -277,6 +278,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.12 - Usage: pages cut off
+- Owner request (17-Nov-2026): the Cloudflare Metrics page cannot say which page failed with Error 1102, so the site should show it.
+- Cause of the gap: a page that Cloudflare stops part-way never finishes, so it never reaches the visit counter and cannot report itself.
+- Changed: just before a page is built (not when it is served from the kept copy) the site writes one small "start" point, with the same visit counting method as before. The Usage page has a new "Pages cut off" panel: per page type, how many builds started, how many finished, and the difference. It follows the Count visits switch (off means no start points either).
+- Request limit: nothing here is an outside request or a cache lookup, so it cannot use any of the 50 per visit. Cost: one extra small write per page build and well under a millisecond of CPU. The counts are read back with the same Cloudflare token as the rest of the Usage page.
+- Tests: x_usage_cut checks a page build writes exactly one start point, a data request writes none, the Usage page carries the cut-off panel, and the outside-request count of a page visit is unchanged.
+- Docs: Admin guide, What's new
 
 v3.37.11 - CPU savings: the TV dashboard skips work it does not show
 - Owner request (16-Nov-2026): build the page in stages after a cold start, to stop Error 1102 on the free plan.

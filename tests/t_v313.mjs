@@ -7,7 +7,7 @@ let calls=[],body='v1',failNext=false,timeouts=[];
 const AS=AbortSignal.timeout;AbortSignal.timeout=ms=>{timeouts.push(ms);return AS.call(AbortSignal,ms)};
 globalThis.fetch=async(u,o)=>{calls.push(String(u));if(failNext)throw new Error('boom');return {ok:true,status:200,text:async()=>body}};
 const bg=[];const ctx={waitUntil(p){bg.push(p)}};const flush=async()=>{await Promise.all(bg.splice(0))};
-const pts=[];T.setEnv({USAGE:{writeDataPoint:d=>pts.push(d)}});T.setCtx(ctx);
+const pts=[];T.setEnv({USAGE:{writeDataPoint:d=>(d.blobs[1]!=='start'&&pts.push(d))}});T.setCtx(ctx);
 const U='https://cluster.england-rfu.com/fixtures-and-results/full-matches?x=1';
 let r=await T.cachedText(U);ok('first call fetches',r.text==='v1'&&calls.length===1);
 ok('first call waits up to 8 s',timeouts.at(-1)===8000);
@@ -49,7 +49,7 @@ ok('postcode lookup still cached after 20 days',calls.length===n2+1);
 ok('live clock is 30 minutes (weekend) or 24 hours (weekday)',[1800,86400].includes(T.ttlFor(U)));
 // Server-Timing + page record with timing
 const written=[];T.setEnv({});
-const env={CLUB_PIN:'1234',USAGE:{writeDataPoint:d=>d.blobs[1]!=='up'&&written.push(d)}};
+const env={CLUB_PIN:'1234',USAGE:{writeDataPoint:d=>d.blobs[1]!=='up'&&d.blobs[1]!=='start'&&written.push(d)}};
 globalThis.Date=RD;
 globalThis.fetch=async()=>({ok:false,status:404,text:async()=>'',json:async()=>({})});
 const c2={waitUntil(p){bg.push(p)}};
