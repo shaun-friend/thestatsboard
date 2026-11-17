@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
 v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
 v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
 v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
@@ -279,6 +280,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.14 - Usage: count background rebuilds
+- Owner report (17-Nov-2026): with TV screens rotating for five minutes the Pages cut off counts did not move.
+- Cause: screens mostly receive the kept copy, and when it goes stale the page is rebuilt in the background, which was not marked. Only builds a visitor waited for were counted.
+- Changed: the background rebuild of a stale kept copy now writes the same start and done points. Served-from-copy requests are still not counted.
+- Request limit: no outside requests or cache lookups added; a few more small writes per rebuild.
+- Tests: the existing x_usage_cut checks still pass (a background rebuild only happens at weekends, so it is not exercised in the test rig).
+- Docs: Admin guide, What's new
 
 v3.37.13 - Usage: pages cut off fix
 - Owner report (17-Nov-2026): on the test site the Pages cut off panel showed Match Centre, Fixtures, Match Stats, Leaders and Feedlog as 100% cut off although the pages had shown.

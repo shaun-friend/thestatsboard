@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.14 17-Nov-2026 Usage: Pages cut off also marks background rebuilds of a kept copy, which is how most screen pages are rebuilt.
 //   v3.37.13 17-Nov-2026 Usage: Pages cut off no longer counts pages that showed (a finished marker is written as soon as the page is built); club pages are left out.
 //   v3.37.12 17-Nov-2026 Usage: new "Pages cut off" panel (pages started minus finished) to show which pages Cloudflare stops part-way, e.g. Error 1102.
 //   v3.37.11 16-Nov-2026 CPU savings: the TV dashboard no longer works out the Win Predictor or the phone-only panels it does not show.
@@ -274,7 +275,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.13";
+const VERSION = "v3.37.14";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -322,6 +323,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
 v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
 v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
 v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
@@ -559,6 +561,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.14 - Usage: count background rebuilds
+- Owner report (17-Nov-2026): with TV screens rotating for five minutes the Pages cut off counts did not move.
+- Cause: screens mostly receive the kept copy, and when it goes stale the page is rebuilt in the background, which was not marked. Only builds a visitor waited for were counted.
+- Changed: the background rebuild of a stale kept copy now writes the same start and done points. Served-from-copy requests are still not counted.
+- Request limit: no outside requests or cache lookups added; a few more small writes per rebuild.
+- Tests: the existing x_usage_cut checks still pass (a background rebuild only happens at weekends, so it is not exercised in the test rig).
+- Docs: Admin guide, What's new
 
 v3.37.13 - Usage: pages cut off fix
 - Owner report (17-Nov-2026): on the test site the Pages cut off panel showed Match Centre, Fixtures, Match Stats, Leaders and Feedlog as 100% cut off although the pages had shown.
@@ -2301,6 +2311,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.14", "Usage page: the Pages cut off panel now also counts pages rebuilt in the background, which is how most screen pages are refreshed."],
       ["v3.37.13", "Usage page: the Pages cut off panel no longer counts pages that did show, and no longer lists club pages such as Feedlog."],
       ["v3.37.12", "Usage page: a new Pages cut off panel shows how many pages were started but never finished, which is how Error 1102 (too much CPU) shows up."],
       ["v3.37.11", "Behind the scenes: the TV screen no longer works out things it does not show (the Win Predictor and phone-only panels), saving server working time. Nothing looks different."],
@@ -8190,7 +8201,7 @@ export default {
             const hh = new Headers(hit.headers); hh.set("X-Page-Cache", "HIT"); hh.set("X-Page-State", st); hh.set("Cache-Control", "public, max-age=60");
             if (st === "stale" && ctx && typeof ctx.waitUntil === "function") {
               const k = pageKey.url, started = PAGE_REBUILDING.get(k);
-              if (!started || Date.now() - started > 30000) { PAGE_REBUILDING.set(k, Date.now()); ctx.waitUntil(buildPage().catch(() => {}).finally(() => PAGE_REBUILDING.delete(k))); }
+              if (!started || Date.now() - started > 30000) { PAGE_REBUILDING.set(k, Date.now()); ctx.waitUntil((async () => { await usageStart(request, new URL(request.url), "start"); await buildPage(); await usageStart(request, new URL(request.url), "done"); })().catch(() => {}).finally(() => PAGE_REBUILDING.delete(k))); }
             }
             return new Response(hit.body, { status: hit.status, headers: hh });
           }
