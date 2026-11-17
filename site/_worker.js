@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.5 17-Nov-2026 Quick setup: the TV setup page is fixed to the visible screen (footer no longer lost under the iPad toolbar) and the QR box keeps its size so the page no longer shifts when it reloads.
 //   v3.39.4 17-Nov-2026 Quick setup: the version line is the last thing on the TV setup page, smaller, and cannot overlap anything.
 //   v3.39.3 17-Nov-2026 Quick setup: the TV setup page shows the version and date in a readable footer line.
 //   v3.39.2 17-Nov-2026 Quick setup: if the screen has not collected a sent code after about 20 seconds the phone says so, shows the code to check and offers Enter a different code.
@@ -294,7 +295,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.4";
+const VERSION = "v3.39.5";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -341,6 +342,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
 v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
 v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
 v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
@@ -598,6 +600,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.5 - Setup page fits an iPad screen
+- Owner reports (17-Nov-2026, testing on an iPad): the footer had gone completely; and each time the page refreshed (code not used) it dropped down slightly.
+- Cause (footer): the page was as tall as 100vh. On an iPad the browser toolbar makes the visible screen shorter than 100vh, and the page does not scroll, so the bottom of the page (the version line) was cut off. The earlier overlap came from the same cause with the fixed line.
+- Cause (dropping): the page is centred in its height, and the height moved with the toolbar each time the page reloaded; the QR code box also had no size until the code was drawn.
+- Changed: the setup page is now fixed to the visible screen (top, bottom, left and right at 0) so its height always equals the visible area; the content is centred above the version line, which is last. The QR box has its full size from the first paint.
+- Request limit: no change.
+- Tests: the setup browser test checks the page is fixed to the screen and the same height, and that the QR box has its full size; measured at 1180x820, 820x1180 and 1366x1024. Not tested in Safari itself (not available here): the owner's iPad is the real check. The existing tests pass.
+- Docs: none - the Documentation does not describe the setup page layout.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.4 - Version line last on the TV setup page
 - Owner report (17-Nov-2026): the version overlapped other text at the foot of the setup page and should be much smaller; it should be the last thing on the page.
@@ -2516,6 +2528,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.5", "The TV setup page now fits the visible screen on an iPad (the footer was being lost under the browser toolbar) and no longer shifts down slightly each time it refreshes its code."],
       ["v3.39.4", "The version line on the TV setup page is now the last thing on the page, smaller, and sits clear of the countdown line."],
       ["v3.39.3", "The TV setup page now shows the version and date in the footer, large enough to read from across a room."],
       ["v3.39.2", "Quick setup: if the screen has not picked up what you sent after about 20 seconds (for example its code had run out and refreshed), the phone says \"Not confirmed yet\", shows the code to check against the screen and offers Enter a different code. If the screen picks it up later, it changes to Screen linked."],
@@ -8312,14 +8325,14 @@ async function pairRoutes(request, url) {
 function setupScreenPage(code, origin) {
   const link = origin + "/pair/" + code;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Set up this screen - The Stats Board</title>
-<style>${PAIR_CSS}body{display:flex;flex-direction:column;background:radial-gradient(120vmin 70vmin at 50% 0,#14281d,#0a100e 70%);overflow:hidden;cursor:none}
+<style>${PAIR_CSS}html{height:100%;overflow:hidden}body{position:fixed;top:0;right:0;bottom:0;left:0;min-height:0;display:flex;flex-direction:column;background:radial-gradient(120vmin 70vmin at 50% 0,#14281d,#0a100e 70%);overflow:hidden;cursor:none;-webkit-text-size-adjust:100%}
 .w{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.4vmin;text-align:center;padding:3vmin}h1{margin:0;font-size:7.4vmin;letter-spacing:-.01em}.sub{font-size:3.2vmin;color:#a9bbb1}
-.row{display:flex;gap:8vmin;align-items:center;margin-top:1vmin}.qr{background:#fff;padding:1.4vmin;border-radius:2.4vmin;line-height:0}.qr svg{width:38vmin;height:38vmin;display:block}
+.row{display:flex;gap:8vmin;align-items:center;margin-top:1vmin}.qr{background:#fff;padding:1.4vmin;border-radius:2.4vmin;line-height:0;width:40.8vmin;height:40.8vmin}.qr svg{width:38vmin;height:38vmin;display:block}
 .steps{display:flex;flex-direction:column;gap:3vmin;font-size:3.6vmin;text-align:left;max-width:70vmin}.st{display:flex;gap:2.2vmin;align-items:center}.n{width:6vmin;height:6vmin;border-radius:50%;background:#1b3a29;color:#6fdc98;display:grid;place-items:center;font-weight:800;font-size:3.2vmin;flex:none}
 .lab{font-size:2.6vmin;color:#a9bbb1}.code{font-size:8vmin;font-weight:800;letter-spacing:.2em;color:#e8c26a}.foot{font-size:2.6vmin;color:#7f9388}
 .ok{width:16vmin;height:16vmin;border-radius:50%;background:#1b3a29;display:grid;place-items:center;font-size:9vmin;color:#6fdc98}.bar{width:60vmin;height:1.1vmin;border-radius:1vmin;background:#1b3a29;overflow:hidden}.bar i{display:block;height:100%;width:0;background:#4fc27d;transition:width 3s linear}
 [hidden]{display:none!important}.ver{flex:none;text-align:center;font-size:1.6vmin;letter-spacing:.04em;color:#6f8379;padding:0 0 2vmin}
-@media (max-width:760px) and (orientation:portrait){.row{flex-direction:column;gap:4vmin}.qr svg{width:60vmin;height:60vmin}.steps{font-size:4.4vmin}.code{font-size:11vmin}h1{font-size:9vmin}.sub{font-size:4vmin}}</style></head><body>
+@media (max-width:760px) and (orientation:portrait){.row{flex-direction:column;gap:4vmin}.qr{width:62.8vmin;height:62.8vmin}.qr svg{width:60vmin;height:60vmin}.steps{font-size:4.4vmin}.code{font-size:11vmin}h1{font-size:9vmin}.sub{font-size:4vmin}}</style></head><body>
 <div class="w" id="a"><div>${sbWordmark(true)}</div><h1>Set up this screen</h1><div class="sub">Use your phone. It takes about a minute.</div>
 <div class="row"><div><div class="lab" style="margin-bottom:1.2vmin">Scan with your phone camera</div><div class="qr" id="qr"></div></div>
 <div class="steps"><div class="st"><div class="n">1</div><div>Scan the QR code</div></div><div class="st"><div class="n">2</div><div>Sign in with the club PIN</div></div><div class="st"><div class="n">3</div><div>Choose what this screen shows</div></div>

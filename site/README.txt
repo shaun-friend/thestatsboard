@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
 v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
 v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
 v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
@@ -298,6 +299,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.5 - Setup page fits an iPad screen
+- Owner reports (17-Nov-2026, testing on an iPad): the footer had gone completely; and each time the page refreshed (code not used) it dropped down slightly.
+- Cause (footer): the page was as tall as 100vh. On an iPad the browser toolbar makes the visible screen shorter than 100vh, and the page does not scroll, so the bottom of the page (the version line) was cut off. The earlier overlap came from the same cause with the fixed line.
+- Cause (dropping): the page is centred in its height, and the height moved with the toolbar each time the page reloaded; the QR code box also had no size until the code was drawn.
+- Changed: the setup page is now fixed to the visible screen (top, bottom, left and right at 0) so its height always equals the visible area; the content is centred above the version line, which is last. The QR box has its full size from the first paint.
+- Request limit: no change.
+- Tests: the setup browser test checks the page is fixed to the screen and the same height, and that the QR box has its full size; measured at 1180x820, 820x1180 and 1366x1024. Not tested in Safari itself (not available here): the owner's iPad is the real check. The existing tests pass.
+- Docs: none - the Documentation does not describe the setup page layout.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.4 - Version line last on the TV setup page
 - Owner report (17-Nov-2026): the version overlapped other text at the foot of the setup page and should be much smaller; it should be the last thing on the page.
