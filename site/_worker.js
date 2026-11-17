@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.0 17-Nov-2026 Paired screens: each quick-setup screen gets its own random ID; Admin lists them (Paired screens) with Kick out and Remove; a kicked-out screen returns to the setup code.
 //   v3.38.0 17-Nov-2026 TV quick setup: open /setup on a TV, scan the QR code with a phone, sign in with the club PIN and choose what the screen shows. The rotator now passes a screen name to its pages.
 //   v3.37.27 17-Nov-2026 League Leaders: the team name in bold before the league name under the title (Mobile and TV).
 //   v3.37.26 17-Nov-2026 TV rotation: always starts on the first page in the list (falls back after 30 seconds if it fails to load).
@@ -289,7 +290,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.38.0";
+const VERSION = "v3.39.0";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -336,6 +337,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
 v3.38.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.38.0_tv_quick_setup.zip | v3.37.27
 v3.37.27 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.27_leaders_team.zip | v3.37.26
 v3.37.26 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.26_tv_first_slide.zip | v3.37.25
@@ -588,6 +590,17 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.0 - Paired screens: unique IDs and Kick out
+- Owner request (17-Nov-2026): a way to kick a screen out from Admin so it goes back to the QR code; paired screens must be unique even if names match.
+- New: every pairing makes a random 12-character screen ID (checked against the list for a clash) that travels in the screen's link as sid=. The screen's label is the name typed (or "Screen") plus the last 4 characters of the ID, so two screens called Bar show as "Bar k7f2" and "Bar 09ae" on the Admin and Usage pages. The phone page warns when a name is already in use.
+- New: Admin, Paired screens lists each screen (label, what it shows, when paired). Kick out (two taps) marks the ID; Remove then clears a kicked-out screen from the list. The list is kept in the settings store under one key (up to 60 screens; the oldest kicked-out ones are dropped to make room).
+- Kick out works like this: a rotating screen checks for changes every 2 minutes and now treats a redirect to the setup page as "go back to setup"; Match Centre and single pages ask on every load and refresh (their refresh frame answers "kicked", and the page goes to /setup?reset=1). /setup?reset=1 clears the saved link and shows a new code.
+- Screens paired with v3.38.0 have no ID and cannot be kicked from Admin (use /setup?reset=1 on the screen). A copied link carries the ID, so kicking out stops copies too.
+- Request limit: a screen with an ID adds one settings-store read to each Match Centre or single-page load and to each 2-minute rotator check (the rotator's own pages carry no ID, so they are unchanged). That is one extra subrequest of 50 on those requests. Free allowance 100,000 reads a day: one screen on the rotator is about 720 reads a day.
+- Tests: new API test (unique IDs across 30 pairings with the same name, PIN on the list and kick, remove only after kick, kicked links redirected on the rotator, /tv, Match Centre and refresh frame, malformed IDs ignored, 60-screen limit, Admin section present); new browser test (a kicked rotator goes to /setup?reset=1 at its next check, a live one stays; a refresh frame answering "kicked" sends the page to setup). The existing tests pass.
+- Docs: Setting up a clubhouse screen
+- Not promoted: DEV only until the owner says promote.
 
 v3.38.0 - TV quick setup (QR code pairing)
 - Owner request (17-Nov-2026): set up a TV screen without typing on the TV; a screen name in the link so the Usage page can show the screen is connected. Codes are 6 digits.
@@ -2208,6 +2221,7 @@ const DOC_SECTIONS = [
       "Press Send to screen. The TV picks it up within a few seconds and starts. The phone tells you when it has.",
       "The TV remembers its link, so after a restart it starts by itself. If it forgets (some signage players clear their storage on start), set the shown link as the player's start page instead. To pair a screen again, open thestatsboard.co.uk/setup?reset=1 on it."
     ] },
+    { p: "Each paired screen gets its own random ID and appears in Admin, Paired screens, with when it was paired and what it shows. Press Kick out (twice, to confirm) to send a screen back to the setup code, for example when a TV is moved or lent. A rotating screen notices within about 2 minutes; Match Centre and single pages at their next refresh (every 10 minutes on match days, hourly otherwise). Remove clears a kicked-out screen from the list. Two screens can have the same name: each shows a short ending (for example Bar k7f2) on the Admin and Usage pages. Screens paired before this release have no ID and cannot be kicked out from Admin." },
     { p: "The code works once and lasts 10 minutes. The TV only ever receives one of the club's own screen links, so nothing typed on the phone can send it elsewhere." },
     { h: "Making it your own" },
     { ul: [
@@ -2456,6 +2470,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.0", "Paired screens: every screen set up with the quick setup page gets its own ID and appears in Admin, Paired screens. Kick out sends a screen back to the setup code (a rotating screen within about 2 minutes, other pages at their next refresh). Two screens can share a name; each shows a short ending to tell them apart."],
       ["v3.38.0", "TV quick setup: on a new TV open thestatsboard.co.uk/setup, scan the QR code with your phone, sign in with the club PIN and choose what the screen shows (the rotating screen, the Match Centre or one page for one team). Nothing to type on the TV. You can name the screen so it shows by name on the Usage page."],
       ["v3.37.27", "League Leaders now says which team it is for: the team name in bold before the league name under the title."],
       ["v3.37.26", "TV rotation: the screen now always starts on the first slide in the list (it waits for it), instead of on whichever page loaded first."],
@@ -2758,7 +2773,7 @@ function tvGroups(s) {
 }
 // The pages the TV screen plays: switched-on pages of teams that are switched on and not hidden in Our teams.
 // The address of one TV page. withV adds the release stamp (the rotator's frames use it; a link saved on a screen does not, so it stays valid).
-function tvPageUrl(page, t, th, screen, withV) {
+function tvPageUrl(page, t, th, screen, withV, sid) {
   const q = new URLSearchParams();
   if (page === "centre") { q.set("view", "stack"); q.set("layout", "tv"); } // v3.37.18: layout=tv keeps the Message us link off a TV screen (the page is otherwise the same)
   else {
@@ -2766,7 +2781,7 @@ function tvPageUrl(page, t, th, screen, withV) {
     if (page !== "table") q.set("view", page);
     q.set("layout", "tv"); q.set("competition", String(t.competition)); q.set("division", String(t.division)); q.set("team", String(t.team)); q.set("teamName", String(t.teamName || ""));
   }
-  q.set("theme", th); if (screen) q.set("screen", screen); if (withV) q.set("_v", VERSION);
+  q.set("theme", th); if (screen) q.set("screen", screen); if (sid) q.set("sid", sid); if (withV) q.set("_v", VERSION);
   return "/?" + q.toString();
 }
 function tvPlan(s, screen) {
@@ -2851,7 +2866,7 @@ function adv(){var n=S.length,j=-1;for(var k=1;k<=n;k++){var c=(cur+k)%n;if(S[c]
 S.forEach(function(sl,i){setTimeout(function(){mk(sl)},i*STAG)});
 // Every 2 minutes the screen asks for its own address again (this page makes no outside calls, so it is cheap). If the pages, seconds, theme, strip options or release number have changed, it reloads itself so the change shows without anyone touching the screen.
 var SIG=document.getElementById("tvd").textContent;
-function chk(){fetch(location.href,{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.ok?r.text():""}).then(function(t){var a=t.indexOf('id="tvd">');if(a<0)return;a=t.indexOf(">",a)+1;var b=t.indexOf("</scr"+"ipt>",a);if(b>a&&t.slice(a,b)!==SIG)location.reload()}).catch(function(){})}
+function chk(){fetch(location.href,{cache:"no-store",credentials:"same-origin"}).then(function(r){if(r.redirected&&r.url.indexOf("/setup")>=0){location.replace("/setup?reset=1");return ""}return r.ok?r.text():""}).then(function(t){var a=t.indexOf('id="tvd">');if(a<0)return;a=t.indexOf(">",a)+1;var b=t.indexOf("</scr"+"ipt>",a);if(b>a&&t.slice(a,b)!==SIG)location.reload()}).catch(function(){})}
 setInterval(chk,120000);
 })();</script></body></html>`;
 }
@@ -3170,7 +3185,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3226,6 +3241,16 @@ ${sw("tva", s.tv.auto, "Add new teams to the TV automatically", "A team added in
 <div class="tvt2"><h3>Pages, by team</h3><span id="tvsum"></span></div>
 <div id="tvb"></div>
 </section>
+<section class="sec" id="s-paired" hidden><h1>Paired screens</h1><p class="sub">Screens set up with the quick setup page (open <b>/setup</b> on a TV). Each has its own ID. Kick out sends a screen back to the setup code: a rotating screen notices within about 2 minutes, other pages at their next refresh (every 10 minutes on match days, hourly otherwise). The Usage page shows when each screen was last seen.</p>
+<div class="cd" id="pl"><p class="n" id="pn">Loading&hellip;</p></div>
+<script>(function(){function $(i){return document.getElementById(i)}
+function when(t){if(!t)return"";var d=new Date(t);return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" "+d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}
+function act(id,a,b){if(b.getAttribute("data-c")!=="1"){b.setAttribute("data-c","1");b.textContent="Tap again to confirm";setTimeout(function(){b.setAttribute("data-c","");b.textContent=a==="kick"?"Kick out":"Remove"},4000);return}
+b.disabled=true;fetch("/api/screens",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({id:id,action:a})}).then(function(r){return r.json()}).then(function(){load()}).catch(function(){b.disabled=false})}
+function row(x){var d=document.createElement("div");d.className="nb";var h=document.createElement("div");h.className="nh";var l=document.createElement("div");var n=document.createElement("b");n.textContent=x.label;var s=document.createElement("small");
+s.textContent=(x.shows||"")+" - paired "+when(x.at)+(x.k?" - kicked out "+when(x.k):"");l.appendChild(n);l.appendChild(s);var b=document.createElement("button");b.className="btn";b.style.cssText="flex:none;width:auto;padding:10px 22px";b.type="button";b.textContent=x.k?"Remove":"Kick out";b.onclick=function(){act(x.id,x.k?"remove":"kick",b)};h.appendChild(l);h.appendChild(b);d.appendChild(h);return d}
+function load(){fetch("/api/screens",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var p=$("pl");p.textContent="";var a=j.screens||[];if(!a.length){var e=document.createElement("p");e.className="n";e.textContent="No screens have been paired yet. Open /setup on a TV to pair one.";p.appendChild(e);return}a.forEach(function(x){p.appendChild(row(x))})}).catch(function(){$("pn")&&($("pn").textContent="Could not load the list.")})}
+load();addEventListener("hashchange",function(){if(location.hash==="#paired")load()})})()</script></section>
 <section class="sec" id="s-match" hidden><h1>Match day</h1><p class="sub">Tools for match days.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
@@ -3341,7 +3366,7 @@ function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn"
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
 tvDraw();
-var SECS=["home","teams","notices","screens","tv","match","data","privacy","access","status"];
+var SECS=["home","teams","notices","screens","tv","paired","match","data","privacy","access","status"];
 function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}
 addEventListener("hashchange",route);route();
 var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add("show");$("dirty").hidden=false;$("dis").hidden=false}
@@ -5543,6 +5568,11 @@ const worker = {
     }
 
     // TV quick setup (v3.38): /setup (the screen), /p and /p/<code> (the phone, behind the club PIN), /api/pair and /api/pair-send.
+    { const sid = url.searchParams.get("sid"); // v3.39: a kicked-out screen goes back to the setup page
+      if (sid && request.method === "GET" && (url.pathname === "/" || /^\/(?:[A-Za-z0-9-]{1,40}\/)?tv\/?$/.test(url.pathname)) && await screenKicked(sid)) {
+        if (url.searchParams.get("_sr") === "1") return new Response("<!doctype html><script>try{parent.postMessage('rfu-kicked','*')}catch(e){}</scr" + "ipt>", { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store" } });
+        return new Response(null, { status: 302, headers: { "Location": "/setup?reset=1", "Cache-Control": "no-store" } });
+      } }
     { const pr = await pairRoutes(request, url); if (pr) return pr; }
 
     // TV screen (v3.37): /<club>/tv rotates the club's TV pages (also /tv). Set up in Admin, TV rotation. It makes no outside calls: every page
@@ -8100,7 +8130,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/inbox" || path === "/api/inbox" || path === "/p" || path.startsWith("/p/") || path === "/api/pair-send";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/inbox" || path === "/api/inbox" || path === "/p" || path.startsWith("/p/") || path === "/api/pair-send" || path === "/api/screens";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -8144,13 +8174,24 @@ const cleanScreenName = v => String(v || "").replace(/[^A-Za-z0-9 _.\-]/g, "").t
 function newPairCode() { const a = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000; return String(a).padStart(6, "0"); }
 const PAIR_CSS = `*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;background:#080b0d;color:#f2f6f4}.mu{color:#93a59b}.ac{color:#4fc27d}`;
 // What the screen opens, from a checked choice. page=centre needs no team; other pages need a team from Our teams.
-function pairTarget(choice, s, name) {
+// v3.39: paired screens. Each pairing makes a random screen ID (12 hex characters) that travels in the screen's link (sid=). The list is kept in the settings store
+// under "screens" (id -> {n name, l what it shows, at paired time, k kicked-out time}). A screen whose ID is marked kicked goes back to the setup page.
+const SCREEN_KEY = "screens", SCREEN_MAX = 60;
+const screenIdOk = v => /^[0-9a-f]{12}$/.test(String(v || ""));
+async function screensLoad() {
+  const kv = kvOf(); if (!kv) return {};
+  try { const r = await kv.get(SCREEN_KEY, { type: "json" }); return r && typeof r === "object" && !Array.isArray(r) ? r : {}; } catch (_) { return {}; }
+}
+async function screensSave(o) { const kv = kvOf(); if (!kv) return false; try { await kv.put(SCREEN_KEY, JSON.stringify(o)); return true; } catch (_) { return false; } }
+async function screenKicked(id) { if (!screenIdOk(id)) return false; const r = await screensLoad(); return !!(r[id] && r[id].k); }
+const screenLabel = (n, id) => (String(n || "Screen").slice(0, 19).trim() || "Screen") + " " + id.slice(-4);
+function pairTarget(choice, s, name, sid) {
   const th = s.tv.theme, teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [];
-  if (choice.kind === "rotator") return { t: "/" + CLUB_ID + "/tv" + (name ? "?screen=" + encodeURIComponent(name) : ""), l: "Rotating screen" };
-  if (choice.kind === "centre") return { t: tvPageUrl("centre", null, th, name, false), l: TV_PAGES.centre };
+  if (choice.kind === "rotator") return { t: "/" + CLUB_ID + "/tv?screen=" + encodeURIComponent(name) + "&sid=" + sid, l: "Rotating screen" };
+  if (choice.kind === "centre") return { t: tvPageUrl("centre", null, th, name, false, sid), l: TV_PAGES.centre };
   if (choice.kind === "page" && TV_PAGES[choice.page] && choice.page !== "centre") {
     const t = teams.find(x => String(x.team) === String(choice.team) && !x.hidden);
-    const u = t ? tvPageUrl(choice.page, t, th, name, false) : null;
+    const u = t ? tvPageUrl(choice.page, t, th, name, false, sid) : null;
     if (u) return { t: u, l: TV_PAGES[choice.page] + " · " + (t.name || t.short || "") };
   }
   return null;
@@ -8170,21 +8211,46 @@ async function pairRoutes(request, url) {
     try { await kv.delete("pair:" + c); } catch (_) { /* expires on its own */ }
     return J({ ok: true, t: r.t, l: String(r.l || "") });
   }
+  if (path === "/api/screens") { // behind the club PIN (clubGate)
+    if (request.method === "GET") {
+      const reg = await screensLoad();
+      return J({ ok: true, screens: Object.keys(reg).map(id => ({ id, label: screenLabel(reg[id].n, id), shows: String(reg[id].l || ""), at: Number(reg[id].at) || 0, k: Number(reg[id].k) || 0 })).sort((a, b) => b.at - a.at) });
+    }
+    if (request.method === "POST") {
+      let b = null; try { b = await request.json(); } catch (_) { b = null; }
+      const reg = await screensLoad(), id = b && String(b.id || "");
+      if (!id || !screenIdOk(id) || !reg[id]) return J({ ok: false, error: "That screen is not in the list." }, 404);
+      if (b.action === "kick") { if (!reg[id].k) reg[id].k = Date.now(); }
+      else if (b.action === "remove") { if (!reg[id].k) return J({ ok: false, error: "Kick the screen out first." }, 400); delete reg[id]; }
+      else return J({ ok: false, error: "Unknown action." }, 400);
+      if (!(await screensSave(reg))) return J({ ok: false, error: "Could not save. Try again." }, 500);
+      return J({ ok: true });
+    }
+    return J({ ok: false }, 405);
+  }
   if (path === "/api/pair-send" && request.method === "POST") { // behind the club PIN (clubGate)
     let b = null; try { b = await request.json(); } catch (_) { b = null; }
     const kv = kvOf(); if (!kv) return J({ ok: false, error: "Settings storage is not connected." }, 503);
     if (!b || !pairCodeOk(b.code)) return J({ ok: false, error: "The code must be 6 digits." }, 400);
-    const s = await siteSettings(), res = pairTarget({ kind: String(b.kind || ""), page: String(b.page || ""), team: String(b.team || "") }, s, cleanScreenName(b.name));
+    const s = await siteSettings(), reg = await screensLoad();
+    let id = sbRand(6), tries = 0; while (reg[id] && tries++ < 5) id = sbRand(6);
+    const base = cleanScreenName(b.name).slice(0, 19).trim() || "Screen", label = screenLabel(base, id);
+    const res = pairTarget({ kind: String(b.kind || ""), page: String(b.page || ""), team: String(b.team || "") }, s, label, id);
     if (!res) return J({ ok: false, error: "Choose what the screen should show." }, 400);
+    const ids = Object.keys(reg);
+    if (ids.length >= SCREEN_MAX) { for (const k of ids.filter(k => reg[k].k).sort((x, y) => reg[x].k - reg[y].k)) { delete reg[k]; if (Object.keys(reg).length < SCREEN_MAX) break; } }
+    if (Object.keys(reg).length >= SCREEN_MAX) return J({ ok: false, error: "Too many paired screens. Remove some in Admin, Paired screens." }, 400);
+    reg[id] = { n: base, l: res.l, at: Date.now(), k: 0 };
+    if (!(await screensSave(reg))) return J({ ok: false, error: "Could not save. Try again." }, 500);
     try { await kv.put("pair:" + b.code, JSON.stringify({ t: res.t, l: res.l, at: Date.now() }), { expirationTtl: PAIR_TTL }); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 500); }
-    return J({ ok: true, label: res.l, link: res.t });
+    return J({ ok: true, label: res.l, link: res.t, screen: label });
   }
   if ((path === "/p" || /^\/p\/[0-9]{6}$/.test(path)) && request.method === "GET") { // behind the club PIN (clubGate)
     let code = path === "/p" ? "" : path.slice(3);
     const typed = String(sp.get("c") || "").replace(/[^0-9]/g, "");
     if (path === "/p" && pairCodeOk(typed)) return new Response(null, { status: 303, headers: { "Location": "/p/" + typed, "Cache-Control": "no-store" } });
-    const s = await siteSettings();
-    return new Response(pairPhonePage(code, typed ? "That code needs 6 digits. Check the number on the screen." : "", s), { headers: H });
+    const s = await siteSettings(), names = code ? Object.values(await screensLoad()).filter(x => !x.k).map(x => String(x.n || "")) : [];
+    return new Response(pairPhonePage(code, typed ? "That code needs 6 digits. Check the number on the screen." : "", s, names), { headers: H });
   }
   return null;
 }
@@ -8220,7 +8286,7 @@ function poll(){if(Date.now()-t0>${PAIR_TTL * 1000}){expired();return}
 fetch("/api/pair?c="+CODE,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(j&&j.ok&&typeof j.t==="string"&&j.t.charAt(0)==="/"&&j.t.charAt(1)!=="/"){linked(j)}else{setTimeout(poll,5000)}}).catch(function(){setTimeout(poll,8000)})}
 setTimeout(poll,3000)})()</script></body></html>`;
 }
-function pairPhonePage(code, msg, s) {
+function pairPhonePage(code, msg, s, names) {
   const esc = x => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const teams = (Array.isArray(s.club && s.club.teams) ? s.club.teams : []).filter(t => !t.hidden);
   const tOpts = teams.map(t => `<option value="${esc(t.team)}">${esc(t.name || t.short || t.teamName || t.team)}</option>`).join("");
@@ -8238,10 +8304,11 @@ button{width:100%;font:700 16px Arial,Helvetica,sans-serif;color:#fff;background
 <label class="o"><input type="radio" name="k" value="centre"><div><b>Match Centre</b><span>Next games and results for every team.</span></div></label>
 <label class="o"><input type="radio" name="k" value="page"><div><b>One page for one team</b><span>Fixtures board, table, leaders and so on.</span></div></label>
 <div id="more" hidden><label class="l" for="tm">Team</label><select id="tm">${tOpts}</select><label class="l" for="pg">Page</label><select id="pg">${pOpts}</select></div>
-<label class="l" for="nm" style="margin-top:6px">Screen name (optional)</label><input id="nm" type="text" maxlength="24" placeholder="e.g. Clubhouse Bar" autocomplete="off"><p style="margin:-6px 0 14px;font-size:12px">The Usage page then shows this screen by name.</p>
+<label class="l" for="nm" style="margin-top:6px">Screen name (optional)</label><input id="nm" type="text" maxlength="24" placeholder="e.g. Clubhouse Bar" autocomplete="off"><p style="margin:-6px 0 14px;font-size:12px" id="nh">The Usage page then shows this screen by name, with a short ending to tell screens apart.</p>
 <p class="e" id="er" hidden></p><button id="go">Send to screen</button></div>
 <div id="d" hidden><div class="ok">&#10003;</div><h1 id="dh">Sent</h1><p id="dp"></p></div></div>
-<script>(function(){var CODE="${code}";function $(i){return document.getElementById(i)}
+<script>(function(){var CODE="${code}",NAMES=${JSON.stringify(names || []).replace(/</g, "\\u003c")};function $(i){return document.getElementById(i)}
+$("nm").oninput=function(){var v=this.value.trim().toLowerCase(),d=false;for(var i=0;i<NAMES.length;i++)if(v&&NAMES[i].toLowerCase()===v)d=true;$("nh").textContent=d?"Another screen already has this name. This one gets its own ending, so you can tell them apart.":"The Usage page then shows this screen by name, with a short ending to tell screens apart."};
 var rs=document.getElementsByName("k");function kind(){for(var i=0;i<rs.length;i++)if(rs[i].checked)return rs[i].value;return ""}
 function sync(){$("more").hidden=kind()!=="page"}for(var i=0;i<rs.length;i++)rs[i].onchange=sync;sync();
 function check(n){fetch("/api/pair?c="+CODE+"&check=1",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
@@ -8285,10 +8352,10 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg", "sid"];
 function pageKeySearch(sp) {
   const out = [];
-  for (const k of KNOWN_PARAMS) if (k !== "screen") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
+  for (const k of KNOWN_PARAMS) if (k !== "screen" && k !== "sid") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
   return out.length ? "?" + out.join("&") : "";
 }
 
@@ -8445,7 +8512,7 @@ f.src=u+(u.indexOf("?")<0?"?":"&")+"_sr=1";f.setAttribute("aria-hidden","true");
 f.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;border:0;margin:0;opacity:0;z-index:2147483000;transition:opacity 1.2s ease;background:"+(bg||"#000");
 function stop(){removeEventListener("message",on);clearTimeout(tm)}
 function fail(){if(done)return;done=true;stop();busy=false;try{f.remove()}catch(e){}}
-function on(e){if(done||e.source!==f.contentWindow||e.data!=="rfu-sr-ready")return;done=true;stop();LAST=Date.now();f.style.opacity="1";var prev=old;old=f;setTimeout(function(){try{if(prev)prev.remove()}catch(e){}busy=false},1500)}
+function on(e){if(done||e.source!==f.contentWindow)return;if(e.data==="rfu-kicked"){done=true;stop();location.replace("/setup?reset=1");return}if(e.data!=="rfu-sr-ready")return;done=true;stop();LAST=Date.now();f.style.opacity="1";var prev=old;old=f;setTimeout(function(){try{if(prev)prev.remove()}catch(e){}busy=false},1500)}
 addEventListener("message",on);var tm=setTimeout(fail,20000);document.body.appendChild(f)};
 })();</script>`;
 // v3.30.15: the Admin name is filled into a request by withClubName, so the page then built links carrying it (friendlyName=Ivybridge+1XV). Those are left out again: a link for a team on the club's list follows Admin by itself. A different name in a link is kept.

@@ -31,25 +31,26 @@ r=await F('/p?c=4827',{headers:{Cookie:ck}});ok('/p?c= with 4 digits is refused'
 r=await F('/p/1234',{headers:{Cookie:ck}});ok('/p/<4 digits> is not a page (404)',r.status===404);
 // send + collect
 r=await post({code,kind:'rotator',name:'Bar <b>1'});let j=await r.json();
-ok('rotator send ok',r.status===200&&j.ok&&j.link==='/ivybridge/tv?screen=Bar%20b1',JSON.stringify(j));
+const SID=/&sid=([0-9a-f]{12})$/;
+ok('rotator send ok',r.status===200&&j.ok&&/^\/ivybridge\/tv\?screen=Bar%20b1%20[0-9a-f]{4}&sid=[0-9a-f]{12}$/.test(j.link),JSON.stringify(j));
 ok('record expires after 10 minutes',ttl['pair:'+code]===600);
 r=await F('/api/pair?c='+code+'&check=1');j=await r.json();ok('check says waiting and keeps the code',j.waiting===true&&!!store['pair:'+code]);
-r=await F('/api/pair?c='+code);j=await r.json();ok('screen collects the link',j.ok&&j.t==='/ivybridge/tv?screen=Bar%20b1'&&j.l==='Rotating screen',JSON.stringify(j));
+r=await F('/api/pair?c='+code);j=await r.json();ok('screen collects the link',j.ok&&/^\/ivybridge\/tv\?screen=Bar%20b1%20[0-9a-f]{4}&sid=/.test(j.t)&&j.l==='Rotating screen',JSON.stringify(j));
 r=await F('/api/pair?c='+code);j=await r.json();ok('code works only once',!j.ok&&!store['pair:'+code]);
 r=await F('/api/pair?c=12ab');ok('bad code format is 400',r.status===400);
 r=await F('/api/pair?c=999999');ok('unknown code gives ok:false',(await r.json()).ok===false);
 // choices
 r=await post({code:'111111',kind:'centre',name:'Hall'});j=await r.json();
-ok('Match Centre link has layout=tv, screen, no stamp',j.ok&&j.link==='/?view=stack&layout=tv&theme=dark&screen=Hall',j.link);
+ok('Match Centre link has layout=tv, screen, sid, no stamp',j.ok&&/^\/\?view=stack&layout=tv&theme=dark&screen=Hall(?:%20|\+)[0-9a-f]{4}&sid=[0-9a-f]{12}$/.test(j.link),j.link);
 const tm=/<option value="(\d+)">/.exec(await (await F('/p/222222',{headers:{Cookie:ck}})).text())[1];
 r=await post({code:'333333',kind:'page',team:tm,page:'leaders',name:''});j=await r.json();
-ok('one-page link is the team page with layout=tv',j.ok&&j.link.startsWith('/?view=leaders&layout=tv&competition=')&&j.link.includes('team='+tm)&&!j.link.includes('_v=')&&!j.link.includes('screen='),j.link);
+ok('one-page link is the team page with layout=tv',j.ok&&j.link.startsWith('/?view=leaders&layout=tv&competition=')&&j.link.includes('team='+tm)&&!j.link.includes('_v=')&&/screen=Screen(?:%20|\+)[0-9a-f]{4}&sid=/.test(j.link),j.link);
 r=await post({code:'333333',kind:'page',team:'999',page:'leaders'});ok('unknown team refused',r.status===400);
 r=await post({code:'333333',kind:'page',team:tm,page:'../evil'});ok('unknown page refused',r.status===400);
 r=await post({code:'333333',kind:'url',target:'https://evil.example'});ok('arbitrary link refused',r.status===400);
 r=await post({code:'12345',kind:'rotator'});ok('5-digit code refused',r.status===400);
-r=await post({code:'444444',kind:'rotator',name:'x'.repeat(60)});j=await r.json();ok('screen name cut to 24 characters',j.link==='/ivybridge/tv?screen='+'x'.repeat(24),j.link);
-r=await post({code:'555555',kind:'rotator'},true);ok('no screen name gives the plain rotator link',(await (await F('/api/pair?c=555555')).json()).t==='/ivybridge/tv');
+r=await post({code:'444444',kind:'rotator',name:'x'.repeat(60)});j=await r.json();ok('screen name cut to 24 characters',j.link.startsWith('/ivybridge/tv?screen='+'x'.repeat(19)+'%20')&&decodeURIComponent(j.link.split('screen=')[1].split('&')[0]).length===24,j.link);
+r=await post({code:'555555',kind:'rotator'},true);ok('no screen name gives the default name Screen and an ID',/^\/ivybridge\/tv\?screen=Screen%20[0-9a-f]{4}&sid=[0-9a-f]{12}$/.test((await (await F('/api/pair?c=555555')).json()).t));
 // No storage
 {const e2={...env};delete e2.SETTINGS;r=await F('/api/pair?c=111111',{},e2);ok('no settings store: 503 not a crash',r.status===503)}
 // Rotator forwards the screen name

@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
 v3.38.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.38.0_tv_quick_setup.zip | v3.37.27
 v3.37.27 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.27_leaders_team.zip | v3.37.26
 v3.37.26 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.26_tv_first_slide.zip | v3.37.25
@@ -293,6 +294,17 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.0 - Paired screens: unique IDs and Kick out
+- Owner request (17-Nov-2026): a way to kick a screen out from Admin so it goes back to the QR code; paired screens must be unique even if names match.
+- New: every pairing makes a random 12-character screen ID (checked against the list for a clash) that travels in the screen's link as sid=. The screen's label is the name typed (or "Screen") plus the last 4 characters of the ID, so two screens called Bar show as "Bar k7f2" and "Bar 09ae" on the Admin and Usage pages. The phone page warns when a name is already in use.
+- New: Admin, Paired screens lists each screen (label, what it shows, when paired). Kick out (two taps) marks the ID; Remove then clears a kicked-out screen from the list. The list is kept in the settings store under one key (up to 60 screens; the oldest kicked-out ones are dropped to make room).
+- Kick out works like this: a rotating screen checks for changes every 2 minutes and now treats a redirect to the setup page as "go back to setup"; Match Centre and single pages ask on every load and refresh (their refresh frame answers "kicked", and the page goes to /setup?reset=1). /setup?reset=1 clears the saved link and shows a new code.
+- Screens paired with v3.38.0 have no ID and cannot be kicked from Admin (use /setup?reset=1 on the screen). A copied link carries the ID, so kicking out stops copies too.
+- Request limit: a screen with an ID adds one settings-store read to each Match Centre or single-page load and to each 2-minute rotator check (the rotator's own pages carry no ID, so they are unchanged). That is one extra subrequest of 50 on those requests. Free allowance 100,000 reads a day: one screen on the rotator is about 720 reads a day.
+- Tests: new API test (unique IDs across 30 pairings with the same name, PIN on the list and kick, remove only after kick, kicked links redirected on the rotator, /tv, Match Centre and refresh frame, malformed IDs ignored, 60-screen limit, Admin section present); new browser test (a kicked rotator goes to /setup?reset=1 at its next check, a live one stays; a refresh frame answering "kicked" sends the page to setup). The existing tests pass.
+- Docs: Setting up a clubhouse screen
+- Not promoted: DEV only until the owner says promote.
 
 v3.38.0 - TV quick setup (QR code pairing)
 - Owner request (17-Nov-2026): set up a TV screen without typing on the TV; a screen name in the link so the Usage page can show the screen is connected. Codes are 6 digits.

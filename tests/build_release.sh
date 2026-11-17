@@ -58,6 +58,8 @@ NODE_PATH=$(npm root -g) node x_tv_strip.cjs 2>&1 | tail -1 | grep -q "ALL OK" |
 NODE_PATH=$(npm root -g) node x_tv_selfreload.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV SELF RELOAD TEST FAILED"; exit 1; }; echo "tv self reload ok"
 run node t_v3380.mjs "$S/t_worker.mjs"
 node x_pair_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_pair_ui.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV QUICK SETUP TEST FAILED"; exit 1; }; echo "tv quick setup ok"
+run node t_v3390.mjs "$S/t_worker.mjs"
+node x_kick_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_kick.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "KICK OUT TEST FAILED"; exit 1; }; echo "kick out ok"
 NODE_PATH=$(npm root -g) node x_env_frame.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "ENV BADGE TEST FAILED"; exit 1; }; echo "env badge ok"
 NODE_PATH=$(npm root -g) node x_tv_version.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV VERSION SYNC TEST FAILED"; exit 1; }; echo "tv version sync ok"
 node x_nm_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_nm_check.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV LEAGUE TABLE TEST FAILED"; exit 1; }; echo "tv league table ok"
