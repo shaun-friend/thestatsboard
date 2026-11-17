@@ -18,8 +18,8 @@ await tv({answer:n=>n<3?{ok:false}:{ok:true,t:'/ivybridge/tv?screen=Bar',l:'Rota
  ck('QR code drawn',await p.$eval('#qr svg path',e=>e.getAttribute('d').length>500));
  {const vb=(await p.$eval('#qr svg',e=>e.getAttribute('viewBox'))).split(' ');ck('QR is a square symbol of at least 25 modules',vb[2]===vb[3]&&Number(vb[2])>=27,vb.join(' '))}
  ck('code shown in two groups of three',(await p.textContent('.code'))===CODE.slice(0,3)+' '+CODE.slice(3),await p.textContent('.code'));
- // the QR matrix equals the library's own matrix for https://sb.test/p/<code>
- const same=await p.evaluate(c=>{var q=qrcode(0,"M");q.addData("https://sb.test/p/"+c);q.make();var n=q.getModuleCount(),d="";for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(q.isDark(r,k))d+="M"+k+" "+r+"h1v1h-1z";return document.querySelector('#qr svg path').getAttribute('d')===d},CODE);
+ // the QR matrix equals the library's own matrix for https://sb.test/pair/<code>
+ const same=await p.evaluate(c=>{var q=qrcode(0,"M");q.addData("https://sb.test/pair/"+c);q.make();var n=q.getModuleCount(),d="";for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(q.isDark(r,k))d+="M"+k+" "+r+"h1v1h-1z";return document.querySelector('#qr svg path').getAttribute('d')===d},CODE);
  ck('QR encodes this screen\'s phone address',same);
  await p.screenshot({path:'w/pair_tv_wait.png'});
  await p.clock.runFor(3100);await p.waitForTimeout(30);ck('first poll uses the code',s.polls[0]===CODE,s.polls.join());
@@ -51,23 +51,27 @@ await tv({answer:()=>({ok:true,t:'//evil.example',l:'x'})},async(p,s)=>{
  await p.goto('https://sb.test/setup');await p.clock.runFor(30000);await p.waitForTimeout(50);
  ck('an off-site link from the API is ignored',await p.isVisible('#a')&&s.nav.length===0,s.nav.join());
 });
-// 5. Expiry after 10 minutes
+// 5. Expiry after 5 minutes: the page gets a fresh code by itself, and then checks less often
 await tv({},async(p,s)=>{
  await p.goto('https://sb.test/setup');
- for(let i=0;i<130;i++)await p.clock.runFor(5000);await p.waitForTimeout(50);
- const n=s.polls.length;
- ck('code expires and shows a new-code button',await p.isVisible('#nw')&&/expired/.test(await p.textContent('#ft')),await p.textContent('#ft'));
- await p.clock.runFor(60000);ck('polling stops after expiry (no endless storage reads)',s.polls.length===n,n+' '+s.polls.length);
- ck('about 120 polls in 10 minutes at most',n<=130,n);
+ ck('countdown starts at 5:00',(await p.textContent('#cd'))==='5:00',await p.textContent('#cd'));
+ await p.clock.runFor(61000);await p.waitForTimeout(40);ck('countdown counts down (about 3:59 after 61 seconds)',/^3:5[89]$|^4:0[01]$/.test(await p.textContent('#cd')),await p.textContent('#cd'));
+ for(let i=0;i<80&&!p.url().includes('r=1');i++){await p.clock.runFor(5000);await p.waitForTimeout(30)}
+ await p.waitForTimeout(150);
+ ck('after 5 minutes the screen reloads itself for a new code',p.url().includes('/setup?r=1'),p.url());
+ ck('about 60 polls at most in the first 5 minutes',s.polls.length<=70,s.polls.length);
+ const n=s.polls.length;for(let i=0;i<12;i++){await p.clock.runFor(5000);await p.waitForTimeout(30)}
+ ck('a refreshed code checks every 15 seconds (at most 5 polls in a minute)',s.polls.length-n<=5&&s.polls.length-n>=2,String(s.polls.length-n));
+ ck('the refreshed page still shows the code and QR',await p.isVisible('#qr svg')&&await p.isVisible('#a'));
 });
 // 6. Phone page
 {const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();const errs=[],sent=[];let chk=0;p.on('pageerror',e=>errs.push(String(e)));
  await p.route('**/*',r=>{const u=new URL(r.request().url());
-  if(u.pathname==='/p/482719')return r.fulfill({status:200,contentType:'text/html',body:phHtml});
+  if(u.pathname==='/pair/482719')return r.fulfill({status:200,contentType:'text/html',body:phHtml});
   if(u.pathname==='/api/pair-send'){sent.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,label:'Match Centre',link:'/x'})})}
   if(u.pathname==='/api/pair'){chk++;return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(chk<2?{ok:false,waiting:true}:{ok:false})})}
   r.fulfill({status:200,body:''})});
- await p.clock.install();await p.goto('https://sb.test/p/482719');
+ await p.clock.install();await p.goto('https://sb.test/pair/482719');
  ck('code shown',/482 719/.test(await p.textContent('.pill')));
  ck('team and page pickers hidden until chosen',!(await p.isVisible('#more')));
  await p.check('input[value=page]');ck('team and page pickers show for one page',await p.isVisible('#more'));

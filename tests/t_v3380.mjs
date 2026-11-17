@@ -18,22 +18,22 @@ ok('/setup shows a 6-digit code',!!code,h.slice(0,0));
 ok('/setup code differs on each load',(/CODE="(\d{6})"/.exec(await (await F('/setup')).text())||[])[1]!==code||Math.random()<1e-5);
 {const sc=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);let bad='';sc.forEach(s=>{try{new vm.Script(s)}catch(e){bad+=e.message}});ok('/setup scripts compile ('+sc.length+')',sc.length>=2&&!bad,bad)}
 // Phone pages need the PIN
-r=await F('/p/'+code);ok('/p/<code> without sign-in redirects to the PIN page',r.status===303&&/club-unlock\?next=%2Fp%2F/.test(r.headers.get('location')||''),r.status+' '+r.headers.get('location'));
-r=await F('/p');ok('/p without sign-in redirects',r.status===303);
+r=await F('/pair/'+code);ok('/p/<code> without sign-in redirects to the PIN page',r.status===303&&/club-unlock\?next=%2Fpair%2F/.test(r.headers.get('location')||''),r.status+' '+r.headers.get('location'));
+r=await F('/pair');ok('/p without sign-in redirects',r.status===303);
 r=await post({code,kind:'rotator'},false);ok('send without sign-in is refused (401) and stores nothing',r.status===401&&!store['pair:'+code]);
-r=await F('/p/'+code,{headers:{Cookie:ck}});h=await r.text();
+r=await F('/pair/'+code,{headers:{Cookie:ck}});h=await r.text();
 ok('/p/<code> with sign-in shows the choices',r.status===200&&/Rotating screen/.test(h)&&/Match Centre/.test(h)&&/One page for one team/.test(h)&&new RegExp('CODE="'+code+'"').test(h));
 {const sc=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);let bad='';sc.forEach(s=>{try{new vm.Script(s)}catch(e){bad+=e.message}});ok('/p scripts compile',sc.length>=1&&!bad,bad)}
 ok('team choices come from Our teams',/<option value="\d+">/.test(h));
 r=await F('/p',{headers:{Cookie:ck}});ok('/p asks for a code',/6-digit code/.test(await r.text()));
-r=await F('/p?c=482%20719',{headers:{Cookie:ck}});ok('/p?c= with 6 digits goes to /p/<code>',r.status===303&&r.headers.get('location')==='/p/482719');
-r=await F('/p?c=4827',{headers:{Cookie:ck}});ok('/p?c= with 4 digits is refused',r.status===200&&/needs 6 digits/.test(await r.text()));
-r=await F('/p/1234',{headers:{Cookie:ck}});ok('/p/<4 digits> is not a page (404)',r.status===404);
+r=await F('/pair?c=482%20719',{headers:{Cookie:ck}});ok('/p?c= with 6 digits goes to /pair/<code>',r.status===303&&r.headers.get('location')==='/pair/482719');
+r=await F('/pair?c=4827',{headers:{Cookie:ck}});ok('/p?c= with 4 digits is refused',r.status===200&&/needs 6 digits/.test(await r.text()));
+r=await F('/pair/1234',{headers:{Cookie:ck}});ok('/pair/<4 digits> is not a page (404)',r.status===404);
 // send + collect
 r=await post({code,kind:'rotator',name:'Bar <b>1'});let j=await r.json();
 const SID=/&sid=([0-9a-f]{12})$/;
 ok('rotator send ok',r.status===200&&j.ok&&/^\/ivybridge\/tv\?screen=Bar%20b1%20[0-9a-f]{4}&sid=[0-9a-f]{12}$/.test(j.link),JSON.stringify(j));
-ok('record expires after 10 minutes',ttl['pair:'+code]===600);
+ok('record expires after 5 minutes',ttl['pair:'+code]===300);
 r=await F('/api/pair?c='+code+'&check=1');j=await r.json();ok('check says waiting and keeps the code',j.waiting===true&&!!store['pair:'+code]);
 r=await F('/api/pair?c='+code);j=await r.json();ok('screen collects the link',j.ok&&/^\/ivybridge\/tv\?screen=Bar%20b1%20[0-9a-f]{4}&sid=/.test(j.t)&&j.l==='Rotating screen',JSON.stringify(j));
 r=await F('/api/pair?c='+code);j=await r.json();ok('code works only once',!j.ok&&!store['pair:'+code]);
@@ -42,7 +42,7 @@ r=await F('/api/pair?c=999999');ok('unknown code gives ok:false',(await r.json()
 // choices
 r=await post({code:'111111',kind:'centre',name:'Hall'});j=await r.json();
 ok('Match Centre link has layout=tv, screen, sid, no stamp',j.ok&&/^\/\?view=stack&layout=tv&theme=dark&screen=Hall(?:%20|\+)[0-9a-f]{4}&sid=[0-9a-f]{12}$/.test(j.link),j.link);
-const tm=/<option value="(\d+)">/.exec(await (await F('/p/222222',{headers:{Cookie:ck}})).text())[1];
+const tm=/<option value="(\d+)">/.exec(await (await F('/pair/222222',{headers:{Cookie:ck}})).text())[1];
 r=await post({code:'333333',kind:'page',team:tm,page:'leaders',name:''});j=await r.json();
 ok('one-page link is the team page with layout=tv',j.ok&&j.link.startsWith('/?view=leaders&layout=tv&competition=')&&j.link.includes('team='+tm)&&!j.link.includes('_v=')&&/screen=Screen(?:%20|\+)[0-9a-f]{4}&sid=/.test(j.link),j.link);
 r=await post({code:'333333',kind:'page',team:'999',page:'leaders'});ok('unknown team refused',r.status===400);
@@ -58,4 +58,8 @@ await F('/api/admin',{method:'POST',headers:{'Content-Type':'application/json',C
 r=await F('/ivybridge/tv?screen=Bar');h=await r.text();
 ok('rotator frames carry the screen name',(h.match(/screen=Bar/g)||[]).length>=2,(h.match(/id="tvd">[^<]{0,300}/)||[''])[0]);
 r=await F('/ivybridge/tv');h=await r.text();ok('rotator without a name has none',/id="tvd">\{"p":\[\{/.test(h)&&!/screen=/.test((h.match(/id="tvd">[^<]*/)||[''])[0]));
+r=await F('/p/'+code,{headers:{Cookie:ck}});ok('the old /p/<code> address still works',r.status===200&&/Rotating screen/.test(await r.text()));
+r=await F('/p?c=482719',{headers:{Cookie:ck}});ok('/p?c= still goes to /pair/<code>',r.status===303&&r.headers.get('location')==='/pair/482719');
+r=await F('/p/'+code);ok('old /p/<code> is also behind the PIN',r.status===303);
+h=await (await F('/setup')).text();ok('setup page tells people to go to /pair',/\/pair<\/b> and enter/.test(h)&&/\/pair\//.test(h));
 console.log(pass+' pass, '+fail+' fail');process.exit(fail?1:0);

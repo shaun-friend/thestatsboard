@@ -6,5 +6,5 @@ const w=(await import(process.argv[2]+'?p=1')).default;const env={CLUB_PIN:'1',S
 const q=await w.fetch(new Request('https://thestatsboard.co.uk/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1'})}),env,ctx);const ck=(q.headers.get('Set-Cookie')||'').split(';')[0];
 fs.mkdirSync('w',{recursive:true});
 fs.writeFileSync('w/setup.html',await (await w.fetch(new Request('https://sb.test/setup'),env,ctx)).text());
-fs.writeFileSync('w/phone.html',await (await w.fetch(new Request('https://sb.test/p/482719',{headers:{Cookie:ck}}),env,ctx)).text());
+fs.writeFileSync('w/phone.html',await (await w.fetch(new Request('https://sb.test/pair/482719',{headers:{Cookie:ck}}),env,ctx)).text());
 console.log('rendered');

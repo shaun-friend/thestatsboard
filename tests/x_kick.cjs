@@ -1,4 +1,4 @@
-// Kick out in a real browser: a rotating screen that finds its ID revoked at its 2-minute check goes to /setup?reset=1; a page whose refresh frame answers
+// Kick out in a real browser: a rotating screen that finds its ID revoked at its 5-minute check goes to /setup?reset=1; a page whose refresh frame answers
 // "rfu-kicked" does the same; a screen that is not kicked stays where it is.
 const {chromium}=require('playwright');const fs=require('fs');
 (async()=>{const b=await chromium.launch();let bad=0;const ck=(n,c,x)=>{if(!c){bad++;console.log('FAIL',n,x||'')}};
@@ -14,7 +14,7 @@ async function rot(kicked){const nav=[];let hits=0;
  await new Promise(f=>srv.listen(0,'127.0.0.1',f));const port=srv.address().port;
  const p=await b.newPage({viewport:{width:1280,height:720}});const errs=[];p.on('pageerror',e=>errs.push(String(e)));
  await p.clock.install();await p.goto('http://127.0.0.1:'+port+'/ivybridge/tv?screen=Bar%20k7f2&sid=0123456789ab');
- for(let i=0;i<14;i++){await p.clock.runFor(10000);await p.waitForTimeout(40)}
+ for(let i=0;i<34;i++){await p.clock.runFor(10000);await p.waitForTimeout(40)}
  await p.waitForTimeout(150);ck((kicked?'kicked':'live')+' rotator: no script errors',errs.length===0,errs.join('|'));const u=p.url();await p.close();srv.close();return {nav,u}}
 let x=await rot(true);ck('kicked rotator goes to /setup?reset=1 at its next check',x.nav.includes('/setup?reset=1')&&x.u.includes('/setup?reset=1'),x.nav.join()+' '+x.u);
 x=await rot(false);ck('live rotator stays on its page',x.nav.length===0&&x.u.includes('/ivybridge/tv'),x.nav.join()+' '+x.u);

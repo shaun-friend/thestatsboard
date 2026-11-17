@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
 v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
 v3.38.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.38.0_tv_quick_setup.zip | v3.37.27
 v3.37.27 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.27_leaders_team.zip | v3.37.26
@@ -294,6 +295,19 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.1 - Fewer screen checks, one Usage line per screen
+- Owner request (17-Nov-2026): after reviewing how often screens check in, trim the traffic; and show only the most recent page and contact on Usage, not four rows per screen.
+- Changed: a running rotating screen now asks for its own address every 5 minutes (was 2), so an Admin change, a new release or a Kick out reaches it within about 5 minutes (the first two were "about 2 minutes" in v3.37.23 and v3.39.0). This is the only regular traffic a screen makes.
+- Changed: the list of paired screens is kept in memory for 60 seconds by each running copy of the site (the settings store can take about that long to show a change anyway), so screens that reach the same copy share one read. Admin, the phone page and pairing always read fresh. A failed read counts as "not kicked", so a storage problem never blanks a screen.
+- Changed: the phone address is now /pair (was /p), so the setup page says "go to thestatsboard.co.uk/pair and enter 482 719" and the QR code opens /pair/<code>. /p and /p/<code> still work and are behind the PIN too.
+- Changed: One page for one team now lists every team in Admin, Our teams, including a team switched off there (hidden from the Match Centre and the rotation), marked "(hidden from screens)", so a hidden team can still have its own single-page screen. The phone page says teams come from Admin, Our teams and must be added there first.
+- Changed: the code now lasts 5 minutes (was 10) and the TV shows a countdown ("This code expires in 4:32"); when it runs out the page gets a new code by itself instead of showing a button (it only reloads once the site answers, so an offline screen retries later). A refreshed page checks every 15 seconds instead of 5, so a screen left waiting costs about 5,800 reads a day at most (6% of the free allowance); a first code still checks every 5 seconds (60 reads in its 5 minutes).
+- Changed: Usage, Named screens shows one line per screen: the page it showed last, its total loads and when it was last seen (it was one line per screen and page).
+- Request limit: lower than v3.39.0. A rotating screen makes at most 288 checks a day (was 720), each with at most one settings read plus one screen-list read, and the list read is often served from memory. 10 rotating screens are at most about 5,800 reads a day of the 100,000 free.
+- Tests: the phone tests use /pair and check the old /p addresses still work and are behind the PIN; the self-reload test now uses 5 minutes (one check in 5 minutes, reload at the next); the kick-out browser test waits for the 5-minute check; new check that repeated kicked-screen requests read the list once, and that Admin always reads fresh; Usage card test for one line per screen. The existing tests pass.
+- Docs: Setting up a clubhouse screen
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.0 - Paired screens: unique IDs and Kick out
 - Owner request (17-Nov-2026): a way to kick a screen out from Admin so it goes back to the QR code; paired screens must be unique even if names match.

@@ -45,6 +45,20 @@ ok('Admin has a Paired screens section and menu entry',/id="s-paired"/.test(h)&&
 {const sc=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);let bad='';sc.forEach((s,i)=>{try{new vm.Script(s)}catch(e){bad+=' #'+i+' '+e.message}});ok('Admin scripts compile',!bad,bad)}
 // phone page: names for the duplicate hint
 h=await (await F('/p/222222',{headers:{Cookie:ck}})).text();ok('phone page carries the names in use',/NAMES=\["Bar"/.test(h),(/NAMES=[^;]*/.exec(h)||[''])[0]);
+// v3.39.1: a team switched off in Our teams can still be sent to a screen as one page; the phone page says teams come from Admin
+{const save=await F('/api/admin',J('POST',{club:{teams:[{team:'11039',competition:'1699',division:'75791',name:'Ivybridge 1XV',teamName:'Ivybridge'},{team:'11063',competition:'1700',division:'75800',name:'Ivybridge 2XV',teamName:'Ivybridge 2nd XV',hidden:true}]}}));
+ const ph=await (await F('/pair/777777',{headers:{Cookie:ck}})).text();
+ ok('phone page lists a hidden team, marked',/<option value="11063">Ivybridge 2XV \(hidden from screens\)<\/option>/.test(ph)&&/<option value="11039">Ivybridge 1XV<\/option>/.test(ph),save.status+' '+(ph.match(/<option value="\d+">[^<]*/g)||[]).join('|'));
+ ok('phone page says teams come from Admin, Our teams',/Admin, Our teams: add a team there first/.test(ph));
+ const x=await pair('777777',{kind:'page',team:'11063',page:'table',name:'Lobby'});
+ ok('a hidden team can be sent as a single page',x.ok&&x.link.includes('team=11063')&&x.link.includes('competition=1700')&&!x.link.includes('view='),JSON.stringify(x));
+ const y=await pair('777778',{kind:'page',team:'99999',page:'table'});ok('a team that is not in the list is still refused',!y.ok)}
 // limit
 {for(let i=0;i<40;i++)await pair(String(300000+i),{kind:'centre',name:'N'});const x=await pair('399999',{kind:'centre',name:'Over'});ok('too many screens: refused with a message',!x.ok&&/Too many/.test(x.error||''),JSON.stringify(x))}
+// v3.39.1: the screen list is cached for 60 seconds for kick checks; Admin reads fresh
+{let reads=0;const g=kv.get;kv.get=async function(k,o){if(k==='screens')reads++;return g.call(this,k,o)};
+ const lk=links.find(l=>l.includes([...ids][5]));
+ await F(lk);await F(lk);await F(lk);ok('kick checks share one read within 60 seconds (at most 1 in 3 loads)',reads<=1,reads);
+ const before=reads;await F('/api/screens',J('GET'));await F('/api/screens',J('GET'));ok('Admin list reads fresh each time',reads===before+2,reads-before);
+ kv.get=g}
 console.log(pass+' pass, '+fail+' fail');process.exit(fail?1:0);
