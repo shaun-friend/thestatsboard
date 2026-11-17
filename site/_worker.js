@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.21 17-Nov-2026 TV rotation: page name and dots/progress line are separate options; the strip no longer covers the pages.
 //   v3.37.20 17-Nov-2026 Test release for the TV screens (version number only).
 //   v3.37.19 17-Nov-2026 TV rotation: total round time in Admin; pages refresh together once one comes back from a newer release.
 //   v3.37.18 17-Nov-2026 TV Match Centre: the rotator asks for layout=tv so no Message us link shows on a screen.
@@ -281,7 +282,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.20";
+const VERSION = "v3.37.21";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -329,6 +330,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
 v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
 v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
 v3.37.18 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.18_tv_match_centre_no_message_link.zip | v3.37.17
@@ -573,6 +575,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.21 - TV rotation: separate page name option, strip no longer covers the pages
+- Owner request (17-Nov-2026): the page name should be a separate option from the dots and progress line, and the strip was conflicting with things at the bottom of the pages.
+- Changed: Admin, TV rotation now has two switches, Show the page name and Show dots and a progress line, each off by default. A screen that already had the old single switch on keeps showing both. When either is on, the pages are drawn in the space above a thin strip along the bottom of the screen, so nothing on the page (footers, notes, Message us) is covered; with both off the pages fill the whole screen as before.
+- Request limit: no change.
+- Tests: new test for the four combinations on a TV and a phone preview (no overlap); the existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.20 - Test release for the TV screens
 - Owner request (17-Nov-2026): a small change to check that screens pick up a new release on their own and update their pages together.
@@ -2170,7 +2179,7 @@ const DOC_SECTIONS = [
       "Add all pages for a team, or use + Add a page to add one at a time. The Match Centre sits under All teams.",
       "Each page has its own on/off switch, an up and down button for the order, a seconds stepper (5 to 120) and Remove. The arrows next to a team move the whole team.",
       "Under the link, One full round lasts shows the total of every page that is switched on, in minutes and seconds and as plain seconds, so you can set the same display time on a digital signage system. It updates as you change seconds or switch pages, before you save.",
-      "Theme chooses dark or light for every page. The optional strip at the bottom shows the page name, dots and a progress line (off by default).",
+      "Theme chooses dark or light for every page. Two optional switches add a thin strip along the bottom, below the pages so nothing is covered: Show the page name, and Show dots and a progress line (both off by default).",
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
       "Save changes, then press Preview. A hidden team in Our teams is skipped on the TV."
     ] },
@@ -2370,6 +2379,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.21", "TV rotation: the page name and the dots and progress line are now two separate switches in Admin, and the strip sits below the pages so it never covers anything."],
       ["v3.37.20", "Behind the scenes: a test release to check that TV screens update themselves. Nothing looks different except the version number."],
       ["v3.37.19", "Admin, TV rotation now shows how long one full round lasts, for setting up digital signage. After a release the pages on a TV screen now refresh together instead of one by one."],
       ["v3.37.18", "The Message us link no longer shows on the Match Centre page of a TV screen."],
@@ -2621,13 +2631,13 @@ const SETTINGS_DEFAULT = () => ({
   matchCentre: { layout: "next" },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
   club: { teams: TEAMS_DEFAULT.map(t => ({ ...t })), saved: false },
-  tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", dots: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
+  tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", name: false, dots: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
   savedAt: ""
 });
 // v3.37.0: the TV screen. One link, /<club>/tv, rotates the club's TV pages. Each page is a normal TV page in its own frame, so it is
 // its own request with its own 50-call budget; this page makes no outside calls. Settings (tv): items [{page, team, secs, on}] (order
 // inside a team is the list order), order (group keys: "all" for the Match Centre, else a team number), off (group keys switched off),
-// theme, dots (page label, dots and progress line), auto (add new teams automatically), seen (team numbers known at the last save).
+// theme, name (page name strip), dots (dots and progress line), auto (add new teams automatically), seen (team numbers known at the last save).
 const TV_PAGES = { centre: "Match Centre", fixtures: "Fixtures board", match: "Next game", table: "League table", leaders: "League Leaders" };
 const TV_TEAM_PAGES = ["fixtures", "match", "table", "leaders"];
 function cleanTv(r, ids) {
@@ -2646,7 +2656,7 @@ function cleanTv(r, ids) {
   for (const k of keys) if (!order.includes(k)) order.push(k);
   const off = [...new Set((Array.isArray(r.off) ? r.off : []).map(String).filter(t => keys.includes(t)))];
   const seen = Array.isArray(r.seen) ? [...new Set(r.seen.map(String).filter(t => idset.has(t)))] : ids.slice();
-  return { items, order, off, theme: r.theme === "light" ? "light" : "dark", dots: r.dots === true, auto: r.auto === true, seen };
+  return { items, order, off, theme: r.theme === "light" ? "light" : "dark", name: r.name === undefined ? r.dots === true : r.name === true, dots: r.dots === true, auto: r.auto === true, seen };
 }
 // The groups the TV screen is made of, in play order: the Match Centre ("All teams") and one group per team. With "add new teams
 // automatically" on, a team that was not on the list at the last save gets all four of its pages, switched on, at the end.
@@ -2683,32 +2693,33 @@ function tvPlan(s) {
   }
   return out;
 }
-function tvScreenPage(plan, dots, theme) {
+function tvScreenPage(plan, opt, theme) {
+  const showName = !!(opt && opt.name), showDots = !!(opt && opt.dots), strip = showName || showDots;
   const light = theme === "light", bg = light ? "#f4f8f5" : "#0a100e", fg = light ? "#24332b" : "#c5d2cb";
-  const data = JSON.stringify({ p: plan, d: dots === true }).replace(/</g, "\\u003c");
+  const data = JSON.stringify({ p: plan, n: showName, d: showDots }).replace(/</g, "\\u003c");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="robots" content="noindex,nofollow"><title>TV screen - The Stats Board</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-#st{position:fixed;inset:0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
+#st{position:fixed;inset:0 0 ${strip ? "5vh" : "0"} 0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
 #ld[hidden]{display:none}#ld{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;font-size:3vh;letter-spacing:.08em;text-align:center}#ld img{height:22vh;width:22vh;border-radius:22%;box-shadow:0 1vh 4vh rgba(0,0,0,.35)}#ld b{font-size:4.2vh;letter-spacing:.04em}#ld span{opacity:.7}
-#bt{position:fixed;left:0;right:0;bottom:0;z-index:5;pointer-events:none}#bt[hidden]{display:none}
-#bi{display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:0 2.4vw 1.1vh;font-size:2.2vh;text-shadow:0 0 6px ${bg}}
+#bt{position:fixed;left:0;right:0;bottom:0;height:5vh;z-index:5;pointer-events:none;background:${bg}}#bt[hidden]{display:none}
+#bi{position:absolute;left:0;right:0;top:.6vh;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:0 2.4vw;font-size:2.2vh}
 #dots{display:flex;gap:1vh}#dots i{display:block;width:1.3vh;height:1.3vh;border-radius:50%;background:${light ? "#b8c8bd" : "#33433b"}}#dots i.on{background:#4cc36f}
-#pg{height:.6vh;background:${light ? "#dbe6de" : "#17211d"}}#bar{height:100%;width:0;background:#4cc36f}</style></head><body>
+#pg{position:absolute;left:0;right:0;top:0;height:.6vh;background:${light ? "#dbe6de" : "#17211d"}}#bar{height:100%;width:0;background:#4cc36f}</style></head><body>
 <!-- class="ver" rfu-soft : the pages inside this screen show the version, so no extra stamp or refresh script is added here -->
 <div id="st"></div><div id="ld"><img src="/icon-192.png" alt=""><b>The Stats Board</b><span>${plan.length ? "Loading" : "Nothing is switched on for this screen yet"}</span></div>
 <div id="bt" hidden><div id="bi"><span id="lab"></span><span id="dots"></span></div><div id="pg"><div id="bar"></div></div></div>
 <script type="application/json" id="tvd">${data}</script>
 <script>(function(){
-var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
+var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,N=C.n,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
 if(!P.length)return;
 var FADE=800,STAG=4000,TMO=30000,REF=300000;
 var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0;
 // Each page reports the version it was built by. When one comes back newer than the others shown so far, the others are refreshed straight away (one every 4 seconds) so a deploy is not shown as a mixture of old and new for several minutes.
 function vn(s){var a=String(s||"").replace("v","").split(".");return a.length===3?(+a[0])*1e6+(+a[1])*1e3+(+a[2]):0}
-if(D){bt.hidden=false;P.forEach(function(){dt.appendChild(document.createElement("i"))})}
+if(N||D){bt.hidden=false}if(D){P.forEach(function(){dt.appendChild(document.createElement("i"))})}else{dt.hidden=true;document.getElementById("pg").hidden=true}
 // On a screen narrower than a TV (a phone or small tablet checking the link) the pages are drawn at a full 1920 x 1080 TV size and shrunk to fit, so they
 // use their TV layout instead of the phone one. A real TV (1280 wide or more) is untouched.
-function fit(){var w=innerWidth,h=innerHeight;if(w>=1280){st.style.cssText="";return}var k=Math.min(w/1920,h/1080);st.style.cssText="inset:auto;width:1920px;height:1080px;transform-origin:0 0;transform:scale("+k+");left:"+Math.max(0,(w-1920*k)/2)+"px;top:"+Math.max(0,(h-1080*k)/2)+"px"}
+function fit(){var w=innerWidth,h=innerHeight,q=(N||D)?.05:0;if(w>=1280){st.style.cssText="";return}var H=1080*(1-q),k=Math.min(w/1920,h*(1-q)/H);st.style.cssText="inset:auto;width:1920px;height:"+H+"px;transform-origin:0 0;transform:scale("+k+");left:"+Math.max(0,(w-1920*k)/2)+"px;top:"+Math.max(0,(h*(1-q)-H*k)/2)+"px"}
 fit();addEventListener("resize",fit);
 // Pinch-zooming a phone preview makes the browser redraw 1920 x 1080 pages at a huge size and iPhones run out of memory, so zooming is switched off here.
 ["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false,capture:true})});
@@ -2738,7 +2749,7 @@ function nextReady(from){for(var k=1;k<=S.length;k++){var j=(from+k)%S.length;if
 function show(j){
   if(cur>=0&&S[cur].f&&cur!==j)S[cur].f.className="fr";
   cur=j;S[j].f.className="fr on";ld.hidden=true;
-  if(D){lab.textContent=S[j].p.n+" \\u00b7 "+(j+1)+" of "+S.length;[].forEach.call(dt.children,function(x,k){x.className=k===j?"on":""});
+  if(N)lab.textContent=S[j].p.n;if(D){[].forEach.call(dt.children,function(x,k){x.className=k===j?"on":""});
     bar.style.transition="none";bar.style.width="0";void bar.offsetWidth;bar.style.transition="width "+S[j].p.s+"s linear";bar.style.width="100%"}
   clearTimeout(tm);tm=setTimeout(adv,S[j].p.s*1000)
 }
@@ -3109,7 +3120,8 @@ ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded 
 <div class="tvl" id="tvtotbox"><div><small>One full round lasts (for digital signage)</small><b id="tvtot"></b></div></div>
 <div class="cd">
 <div class="r"><div><b>Theme</b><small>Dark or light colours for every page on this screen.</small></div>${seg("tvt", s.tv.theme, [["dark", "Dark"], ["light", "Light"]])}</div>
-${sw("tvd", s.tv.dots, "Show the page name, dots and a progress line", "A small strip at the bottom of the TV showing which page is on and how long is left. Off by default.")}
+${sw("tvn", s.tv.name, "Show the page name", "The name of the page that is on, in a thin strip along the bottom of the TV (the pages sit above it, so nothing is covered). Off by default.")}
+${sw("tvd", s.tv.dots, "Show dots and a progress line", "One dot per page and a line showing how long is left, in the same thin strip. Off by default.")}
 ${sw("tva", s.tv.auto, "Add new teams to the TV automatically", "A team added in Our teams gets its four pages (Fixtures board, Next game, League table, League Leaders) at the end of the list. Off: nothing appears until you add it.")}
 </div>
 <div class="tvt2"><h3>Pages, by team</h3><span id="tvsum"></span></div>
@@ -3224,7 +3236,7 @@ card.appendChild(ad);box.appendChild(card)});
 $("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round";
 $("tvtot").textContent=n?tvFmt(sec)+" ("+sec+" seconds) · "+n+" page"+(n===1?"":"s"):"Nothing is switched on yet";
 $("tvtotbox").title="Adds up the seconds of every page that is switched on, including changes you have not saved yet"}
-function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){o.items.push({page:it.page,team:g.key,secs:it.secs,on:it.on})})});return o}
+function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){o.items.push({page:it.page,team:g.key,secs:it.secs,on:it.on})})});return o}
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
 tvDraw();
@@ -5434,7 +5446,7 @@ const worker = {
     { const tvm = url.pathname.match(/^\/([A-Za-z0-9-]{1,40})\/tv\/?$/), tvAlias = /^\/tv\/?$/.test(url.pathname);
       if (request.method === "GET" && ((tvm && tvm[1].toLowerCase() === CLUB_ID) || tvAlias)) {
         const ts = await siteSettings();
-        return new Response(tvScreenPage(tvPlan(ts), ts.tv.dots, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+        return new Response(tvScreenPage(tvPlan(ts), { name: ts.tv.name, dots: ts.tv.dots }, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
       } }
 
     // Welcome screen: the bare address with no team or view in the link.

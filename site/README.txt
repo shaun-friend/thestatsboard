@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
 v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
 v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
 v3.37.18 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.18_tv_match_centre_no_message_link.zip | v3.37.17
@@ -286,6 +287,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.21 - TV rotation: separate page name option, strip no longer covers the pages
+- Owner request (17-Nov-2026): the page name should be a separate option from the dots and progress line, and the strip was conflicting with things at the bottom of the pages.
+- Changed: Admin, TV rotation now has two switches, Show the page name and Show dots and a progress line, each off by default. A screen that already had the old single switch on keeps showing both. When either is on, the pages are drawn in the space above a thin strip along the bottom of the screen, so nothing on the page (footers, notes, Message us) is covered; with both off the pages fill the whole screen as before.
+- Request limit: no change.
+- Tests: new test for the four combinations on a TV and a phone preview (no overlap); the existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.20 - Test release for the TV screens
 - Owner request (17-Nov-2026): a small change to check that screens pick up a new release on their own and update their pages together.

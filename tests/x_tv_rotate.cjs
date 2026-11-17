@@ -19,6 +19,8 @@ const seen=new Set();for(let i=0;i<12;i++){await p.clock.runFor(5000);(await on(
 ck('never showed the unready table',!seen.has('table'));ck('shows the others in turn',seen.has('fixtures')&&seen.has('match')&&seen.has('leaders'),[...seen].join());
 ck('only one frame visible at a time',(await p.$$eval('iframe.on',f=>f.length))===1);
 ck('dots strip present',(await p.$$eval('#dots i',e=>e.length))===4);
+const geo=await p.evaluate(()=>{const s=document.getElementById('st').getBoundingClientRect(),t=document.getElementById('bt').getBoundingClientRect();return {sb:s.bottom,bt:t.top,lab:document.getElementById('lab').textContent}});
+ck('strip sits below the pages (no overlap)',geo.sb<=geo.bt+0.5&&geo.bt<720,JSON.stringify(geo));ck('page name shown on its own',geo.lab.length>0&&!/ of /.test(geo.lab),geo.lab);
 
 // phone-size window: frames must still get a TV-width window (1920) and the stage is scaled down
 const q=await b.newPage({viewport:{width:390,height:844}});await q.route('**/*',r=>{const u=new URL(r.request().url());
