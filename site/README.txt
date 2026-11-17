@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
 v3.37.18 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.18_tv_match_centre_no_message_link.zip | v3.37.17
 v3.37.17 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.17_last_result_centred.zip | v3.37.16
 v3.37.16 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.16_not_found_page_clean_usage.zip | v3.37.15
@@ -284,6 +285,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.19 - TV rotation: total time in Admin, pages update together after a release
+- Owner requests (17-Nov-2026): the Admin TV rotation page should show how long one full round lasts (for digital signage), and after a release the rotator showed a mixture of old and new pages for several minutes.
+- Changed: Admin, TV rotation now has a box under the link, One full round lasts, with the total in minutes and seconds, in plain seconds and the number of pages. It counts only pages that are switched on (and teams that are shown) and updates as you change the list, before saving. Each page inside the rotation now reports the release it was built by; when one comes back newer than the others, the rotator refreshes the other pages at once, one every 4 seconds, instead of waiting for each page's own 5 minute timer. A page that arrives older than a newer one is asked for again after 4 seconds.
+- Request limit: no change per page. The refreshes are spread 4 seconds apart, the same spacing the pages use when the screen first starts.
+- Tests: x_tv_version checks all four pages are refreshed within 16 seconds of the first newer one (it fails on the old rotator); the Admin TV test checks the total matches the summary.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.18 - TV Match Centre: no Message us link
 - Owner report (17-Nov-2026): a "Message us" link showed on the Match Centre on a TV.

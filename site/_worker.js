@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.19 17-Nov-2026 TV rotation: total round time in Admin; pages refresh together once one comes back from a newer release.
 //   v3.37.18 17-Nov-2026 TV Match Centre: the rotator asks for layout=tv so no Message us link shows on a screen.
 //   v3.37.17 17-Nov-2026 Match Centre: the Last result text is centred on its box.
 //   v3.37.16 17-Nov-2026 Usage panel counts only version-tagged points (clean tally); mistyped addresses show a not-found page instead of the default team table.
@@ -279,7 +280,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.18";
+const VERSION = "v3.37.19";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -327,6 +328,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.19 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.19_tv_total_time_version_sync.zip | v3.37.18
 v3.37.18 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.18_tv_match_centre_no_message_link.zip | v3.37.17
 v3.37.17 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.17_last_result_centred.zip | v3.37.16
 v3.37.16 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.16_not_found_page_clean_usage.zip | v3.37.15
@@ -569,6 +571,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.19 - TV rotation: total time in Admin, pages update together after a release
+- Owner requests (17-Nov-2026): the Admin TV rotation page should show how long one full round lasts (for digital signage), and after a release the rotator showed a mixture of old and new pages for several minutes.
+- Changed: Admin, TV rotation now has a box under the link, One full round lasts, with the total in minutes and seconds, in plain seconds and the number of pages. It counts only pages that are switched on (and teams that are shown) and updates as you change the list, before saving. Each page inside the rotation now reports the release it was built by; when one comes back newer than the others, the rotator refreshes the other pages at once, one every 4 seconds, instead of waiting for each page's own 5 minute timer. A page that arrives older than a newer one is asked for again after 4 seconds.
+- Request limit: no change per page. The refreshes are spread 4 seconds apart, the same spacing the pages use when the screen first starts.
+- Tests: x_tv_version checks all four pages are refreshed within 16 seconds of the first newer one (it fails on the old rotator); the Admin TV test checks the total matches the summary.
+- Docs: TV rotation (one rotating link), What's new
 
 v3.37.18 - TV Match Centre: no Message us link
 - Owner report (17-Nov-2026): a "Message us" link showed on the Match Centre on a TV.
@@ -2151,11 +2160,13 @@ const DOC_SECTIONS = [
       "Pages are grouped by team. Each team has a Show switch, so a whole team can be left out without losing its settings.",
       "Add all pages for a team, or use + Add a page to add one at a time. The Match Centre sits under All teams.",
       "Each page has its own on/off switch, an up and down button for the order, a seconds stepper (5 to 120) and Remove. The arrows next to a team move the whole team.",
+      "Under the link, One full round lasts shows the total of every page that is switched on, in minutes and seconds and as plain seconds, so you can set the same display time on a digital signage system. It updates as you change seconds or switch pages, before you save.",
       "Theme chooses dark or light for every page. The optional strip at the bottom shows the page name, dots and a progress line (off by default).",
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
       "Save changes, then press Preview. A hidden team in Our teams is skipped on the TV."
     ] },
     { p: "Opening the link on a phone or small tablet (window narrower than 1280 pixels) shows the screen as a shrunk-down TV: each page is drawn at full TV size and scaled to fit, so you can check the layout, order and timings. The text is small on purpose. On a real TV the screen fills the display as normal." },
+    { p: "After a new release, the screen updates itself: each page refreshes every 5 minutes, and as soon as one page comes back from a newer release the other pages are refreshed within about a quarter of a minute (one every 4 seconds), so the screen is not left showing a mixture of old and new for long." },
     { h: "How it keeps within the 50-call limit" },
     { p: "The rotating page makes no outside calls of its own. Each page inside it is its own request with its own budget, starts a few seconds after the one before, and only fades in once it has settled. A page that fails or never settles is skipped and tried again later, so the screen never shows a half-built page. Each page refreshes itself about every five minutes. Maintenance mode shows the Back soon page instead." },
     { ex: [["Open the TV screen", "/tv"]] }
@@ -2350,6 +2361,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.19", "Admin, TV rotation now shows how long one full round lasts, for setting up digital signage. After a release the pages on a TV screen now refresh together instead of one by one."],
       ["v3.37.18", "The Message us link no longer shows on the Match Centre page of a TV screen."],
       ["v3.37.17", "Match Centre: the Last result text in each team column is now centred on the box, with the team badge at the left edge."],
       ["v3.37.16", "A mistyped address now shows a Page not found page with a link to the welcome page, instead of the default team table. The Usage Pages cut off panel starts a clean tally. On the test site the PIN now lasts 30 minutes from the last visit, so a rotating screen stays signed in."],
@@ -2680,7 +2692,9 @@ function tvScreenPage(plan, dots, theme) {
 var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
 if(!P.length)return;
 var FADE=800,STAG=4000,TMO=30000,REF=300000;
-var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null}}),cur=-1,tm=null;
+var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0;
+// Each page reports the version it was built by. When one comes back newer than the others shown so far, the others are refreshed straight away (one every 4 seconds) so a deploy is not shown as a mixture of old and new for several minutes.
+function vn(s){var a=String(s||"").replace("v","").split(".");return a.length===3?(+a[0])*1e6+(+a[1])*1e3+(+a[2]):0}
 if(D){bt.hidden=false;P.forEach(function(){dt.appendChild(document.createElement("i"))})}
 // On a screen narrower than a TV (a phone or small tablet checking the link) the pages are drawn at a full 1920 x 1080 TV size and shrunk to fit, so they
 // use their TV layout instead of the phone one. A real TV (1280 wide or more) is untouched.
@@ -2699,11 +2713,15 @@ function ready(sl){
   var old=sl.f;sl.f=f;
   if(cur===sl.i){f.className="fr on";if(old)old.className="fr"}
   if(old)setTimeout(function(){try{old.remove()}catch(e){}},FADE+200);
-  setTimeout(function(){mk(sl)},REF+sl.i*15000);
+  sl.v=vn(f.__v);clearTimeout(sl.rt);
+  if(sl.v>TOP){TOP=sl.v;var k=0;S.forEach(function(o){if(o!==sl&&o.f&&o.v<TOP){clearTimeout(o.rt);o.rt=setTimeout(function(){mk(o)},(++k)*STAG)}})}
+  sl.rt=setTimeout(function(){mk(sl)},sl.v<TOP?STAG:REF+sl.i*15000);
   if(cur<0)show(sl.i)
 }
 addEventListener("message",function(e){
-  if(e.data!=="rfu-sr-ready")return;
+  var d=e.data;if(typeof d!=="string")return;
+  if(d.indexOf("rfu-ver|")===0){for(var j=0;j<S.length;j++){var c=S[j].busy;if(c&&c.contentWindow===e.source){c.__v=d.slice(8);return}}return}
+  if(d!=="rfu-sr-ready")return;
   for(var i=0;i<S.length;i++){var b=S[i].busy;if(b&&b.contentWindow===e.source){ready(S[i]);return}}
 });
 function nextReady(from){for(var k=1;k<=S.length;k++){var j=(from+k)%S.length;if(S[j].f)return j}return -1}
@@ -3078,6 +3096,7 @@ ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded 
 </section>
 <section class="sec" id="s-tv" hidden><h1>TV rotation</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview. On a phone the preview shows a shrunk-down TV screen, so you see the TV layout, order and timings.</p>
 <div class="tvl"><div style="flex:1;min-width:220px"><small>Type this into the TV's browser</small><b id="tvlk"></b></div><button type="button" class="tvb" id="tvcp" style="padding:0 16px">Copy link</button><a class="tvpri" id="tvpv" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;padding:0 18px">Preview</a></div>
+<div class="tvl" id="tvtotbox"><div><small>One full round lasts (for digital signage)</small><b id="tvtot"></b></div></div>
 <div class="cd">
 <div class="r"><div><b>Theme</b><small>Dark or light colours for every page on this screen.</small></div>${seg("tvt", s.tv.theme, [["dark", "Dark"], ["light", "Light"]])}</div>
 ${sw("tvd", s.tv.dots, "Show the page name, dots and a progress line", "A small strip at the bottom of the TV showing which page is on and how long is left. Off by default.")}
@@ -3192,7 +3211,9 @@ else if(g.key==="all"){ad.appendChild(tvB("+ Add the Match Centre",null,function
 else if(!g.open){ad.appendChild(tvB("+ Add a page for "+g.name,null,function(){g.open=true},"tvadd"))}
 else{miss.forEach(function(p){ad.appendChild(tvB(TVI.pages[p],"Add "+TVI.pages[p]+" for "+g.name,function(){g.items.push({page:p,secs:20,on:true});g.open=false},"tvadd"))});ad.appendChild(tvB("Cancel",null,function(){g.open=false},"tvx"))}
 card.appendChild(ad);box.appendChild(card)});
-$("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round"}
+$("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round";
+$("tvtot").textContent=n?tvFmt(sec)+" ("+sec+" seconds) · "+n+" page"+(n===1?"":"s"):"Nothing is switched on yet";
+$("tvtotbox").title="Adds up the seconds of every page that is switched on, including changes you have not saved yet"}
 function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){o.items.push({page:it.page,team:g.key,secs:it.secs,on:it.on})})});return o}
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
@@ -8166,7 +8187,7 @@ if(hid){b.style.opacity="0"}
 go();addEventListener("resize",go);addEventListener("orientationchange",function(){setTimeout(go,200)});addEventListener("load",function(){go();setTimeout(function(){go();show()},400)});setTimeout(function(){go();show()},2500);
 })();</script>`;
 const SOFT_SCRIPT = `<script>/*rfu-soft*/(function(){var T0=Date.now(),LAST=0,GAP=0,busy=false,old=null,sr=/[?&]_sr=1(&|$)/.test(location.search);
-if(sr&&top!==self){var n=0;function chk(){var b=document.body;if(document.readyState==="complete"&&b&&!window.__warming&&!b.classList.contains("fitwait")&&getComputedStyle(b).opacity!=="0"){setTimeout(function(){try{parent.postMessage("rfu-sr-ready","*")}catch(e){}},500)}else if(n++<80)setTimeout(chk,250)}addEventListener("load",function(){setTimeout(chk,300)})}
+if(sr&&top!==self){var n=0;function chk(){var b=document.body;if(document.readyState==="complete"&&b&&!window.__warming&&!b.classList.contains("fitwait")&&getComputedStyle(b).opacity!=="0"){setTimeout(function(){try{parent.postMessage("rfu-ver|${VERSION}","*");parent.postMessage("rfu-sr-ready","*")}catch(e){}},500)}else if(n++<80)setTimeout(chk,250)}addEventListener("load",function(){setTimeout(chk,300)})}
 window.rfuSoft=function(){if(sr)return;var now=Date.now();
 if(!matchMedia("(min-width:801px) and (min-height:561px)").matches||!window.postMessage){location.reload();return}
 if(busy)return;if(LAST&&now-LAST<GAP*0.9)return;if(!GAP)GAP=now-T0;

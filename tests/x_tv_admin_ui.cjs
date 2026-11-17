@@ -28,6 +28,7 @@ await grp(2).locator('.tvh input').evaluate(e=>e.click()); // switch Vandals off
 await grp(0).locator('.tvh button').nth(1).click();     // move All teams down
 ck('team moved',(await grp(0).locator('.tn b').innerText())!=='All teams');
 const sum=await p.$eval('#tvsum',e=>e.textContent);ck('summary counts 5 pages',/^5 pages on/.test(sum));
+const tot=await p.$eval('#tvtot',e=>e.textContent);const tm=/\((\d+) seconds\) · 5 pages/.exec(tot),sm=/about (?:(\d+) min )?(\d+) s/.exec(sum);ck('total box shows seconds and pages',!!tm,tot);ck('total box matches the summary',!!(tm&&sm&&Number(tm[1])===Number(sm[1]||0)*60+Number(sm[2])),tot+' | '+sum);ck('total box visible',await p.isVisible('#tvtot'));
 await p.click('#as');await p.waitForTimeout(300);
 ck('posted tv',posted&&posted.tv&&posted.tv.items.length===5&&posted.tv.off.includes(posted.tv.order.find((k,i)=>k===String(posted.tv.order[i])&&posted.tv.off.includes(k))));
 ck('order has all teams',posted&&posted.tv.order.length===5&&posted.tv.order.includes('all'));
