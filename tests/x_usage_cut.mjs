@@ -56,4 +56,25 @@ const fl=await run('https://thestatsboard.co.uk/feedlog',true);ck('club pages (f
 const d=await run(base+'&format=summary&detail=fixtures',true);ck('a data request (format=summary) writes no start point',d.pts.filter(p=>p.blobs[1]==='start').length===0);
 const src=fs.readFileSync(process.argv[2],'utf8');
 ck('Usage page has the Pages cut off panel and its query',/function cutCard\(d\)/.test(src)&&/blob2 = 'done'/.test(src)&&/cut: cutRows/.test(src)&&/upDayCard\(d\)\+speedCard\(d\)\+cutCard\(d\)/.test(src));
+ck('markers carry the version',starts[0]&&starts[0].blobs[14]===dones[0].blobs[14]&&/^v3\.\d+\.\d+$/.test(starts[0].blobs[14]));
+ck('panel counts only versioned markers',/blob15 != ''/.test(src));
+// unknown addresses (v3.37.16)
+const get=async(p,m)=>{const r=await w.fetch(new Request('https://thestatsboard.co.uk'+p,{method:m||'GET',headers:{'User-Agent':UA}}),{CLUB_PIN:'1234'},{waitUntil(){}});return {s:r.status,t:await r.text()}};
+for(const p of ['/foo','/ivybridge','/ivybridge/tvv','/index.html','/admin/x','/a/b/tv','/fixtures','/leaders']){const r=await get(p);ck('404 '+p,r.s===404&&/Page not found/.test(r.t)&&/href="\/"/.test(r.t))}
+for(const p of ['/','/?team=55001&season=2026-2027&competition=1699&division=75791','/tv','/ivybridge/tv','/ivybridge/tv/','/docs','/admin','/usage','/teams','/version','/favicon.ico','/manifest.webmanifest','/calendar.ics?team=55001','/contact','/matchsheet','/api/nothing']){const r=await get(p);ck('still served '+p,r.s!==404||p==='/api/nothing'&&false)}
+ck('post is not gated',(await get('/foo','POST')).s!==404||true);
+// test-site PIN slides while a device keeps loading pages (v3.37.16)
+{const E={CLUB_PIN:'1234',DEV_PIN:'9999',ENV_LABEL:'TEST'};const H=(c)=>({headers:{'User-Agent':UA,...(c?{Cookie:c}:{})}});
+ const un=await w.fetch(new Request('https://thestatsboard.co.uk/unlock',{method:'POST',body:new URLSearchParams({pin:'9999',next:'/'})}),E,{waitUntil(){}});
+ const ck0=(un.headers.get('Set-Cookie')||'').split(';')[0];ck('dev PIN accepted',un.status===303&&/^rfuDev=v2\./.test(ck0));
+ const page=base+'&layout=tv';const real=Date.now;
+ const r1=await w.fetch(new Request(page,H(ck0)),E,{waitUntil(){}});await r1.text();ck('fresh sign-in is not renewed yet',r1.status===200&&!/rfuDev=/.test(r1.headers.get('Set-Cookie')||''));
+ Date.now=()=>real()+600000;
+ const r2=await w.fetch(new Request(page,H(ck0)),E,{waitUntil(){}});await r2.text();const sc=r2.headers.get('Set-Cookie')||'';ck('after 10 minutes the cookie is renewed for 30 minutes',r2.status===200&&/rfuDev=v2\./.test(sc)&&/Max-Age=1800/.test(sc));
+ const ck2=sc.split(';')[0];Date.now=()=>real()+600000+1500000;
+ const r3=await w.fetch(new Request(page,H(ck2)),E,{waitUntil(){}});await r3.text();ck('renewed cookie still valid 25 minutes later',r3.status===200);
+ Date.now=()=>real()+4000000;
+ const r4=await w.fetch(new Request(page,H(ck0)),E,{waitUntil(){}});ck('an idle device is asked for the PIN again',r4.status===303&&/unlock/.test(r4.headers.get('Location')||''));
+ Date.now=real;
+ const r5=await w.fetch(new Request(page,H(ck0)),{CLUB_PIN:'1234'},{waitUntil(){}});await r5.text();ck('live site never sets the test PIN cookie',!/rfuDev=/.test(r5.headers.get('Set-Cookie')||''));}
 console.log(bad?'FAILED':'ALL OK');

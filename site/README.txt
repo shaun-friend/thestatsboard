@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.16 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.16_not_found_page_clean_usage.zip | v3.37.15
 v3.37.15 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.15_cosmetic_centre_glow.zip         | v3.37.14
 v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
 v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
@@ -281,6 +282,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.16 - Usage panel clean tally; mistyped addresses show a not-found page
+- Owner request (17-Nov-2026): the Pages cut off panel mixed rows from three versions and could not be read; a mistyped address always landed on the Ivybridge table.
+- Changed: the start and done points now carry the version that wrote them (last column), and the panel counts only those, so it starts a clean tally with this release. Any address the site does not answer (for example /ivybridge or /ivybridge/tvv) now shows a "Page not found" page with a button to the welcome page (status 404) instead of the default team table. Real addresses, the API, form posts and /<club>/tv are untouched.
+- Also: the test-site PIN now lasts 30 minutes from the last page visit, not 30 minutes from sign-in. A page request with a valid sign-in that has under 25 minutes left gets a fresh 30-minute cookie, so a screen that keeps reloading its pages is not asked for the PIN again, while a device left alone for 30 minutes still is. Deploys never signed anyone out (the session secret is kept in KV); the 30-minute limit was what brought the PIN back. The live site is unaffected.
+- Request limit: no change (no outside requests or cache lookups added).
+- Tests: x_usage_cut now checks the version tag, that the panel counts only tagged points, that mistyped addresses get the not-found page, that the real addresses are still served, and that the test-site PIN renews while a device is active, expires when idle and is never set on the live site.
+- Docs: Setup and deployment, Admin guide, What's new
 
 v3.37.15 - Cosmetic: Match Centre centring, fixtures bar removed, background glow on Match Stats and Leaders
 - Owner request (17-Nov-2026): the "last checked" and "Updated" times had no date, and the pages said "refreshes hourly" although weekday pages are kept all day; Match Centre Last result and Table were left aligned; the colour bar down the left of the TV Fixtures page looked unlike the rest of the site; Match Stats and League Leaders lacked the green background glow the team page has.

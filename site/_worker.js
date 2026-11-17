@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.16 17-Nov-2026 Usage panel counts only version-tagged points (clean tally); mistyped addresses show a not-found page instead of the default team table.
 //   v3.37.15 17-Nov-2026 Cosmetic: Match Centre last result and table centred, fixtures left bar removed, background glow on Match Stats and League Leaders.
 //   v3.37.14 17-Nov-2026 Usage: Pages cut off also marks background rebuilds of a kept copy, which is how most screen pages are rebuilt.
 //   v3.37.13 17-Nov-2026 Usage: Pages cut off no longer counts pages that showed (a finished marker is written as soon as the page is built); club pages are left out.
@@ -276,7 +277,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.15";
+const VERSION = "v3.37.16";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -324,6 +325,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.16 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.16_not_found_page_clean_usage.zip | v3.37.15
 v3.37.15 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.15_cosmetic_centre_glow.zip         | v3.37.14
 v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
 v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
@@ -563,6 +565,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.16 - Usage panel clean tally; mistyped addresses show a not-found page
+- Owner request (17-Nov-2026): the Pages cut off panel mixed rows from three versions and could not be read; a mistyped address always landed on the Ivybridge table.
+- Changed: the start and done points now carry the version that wrote them (last column), and the panel counts only those, so it starts a clean tally with this release. Any address the site does not answer (for example /ivybridge or /ivybridge/tvv) now shows a "Page not found" page with a button to the welcome page (status 404) instead of the default team table. Real addresses, the API, form posts and /<club>/tv are untouched.
+- Also: the test-site PIN now lasts 30 minutes from the last page visit, not 30 minutes from sign-in. A page request with a valid sign-in that has under 25 minutes left gets a fresh 30-minute cookie, so a screen that keeps reloading its pages is not asked for the PIN again, while a device left alone for 30 minutes still is. Deploys never signed anyone out (the session secret is kept in KV); the 30-minute limit was what brought the PIN back. The live site is unaffected.
+- Request limit: no change (no outside requests or cache lookups added).
+- Tests: x_usage_cut now checks the version tag, that the panel counts only tagged points, that mistyped addresses get the not-found page, that the real addresses are still served, and that the test-site PIN renews while a device is active, expires when idle and is never set on the live site.
+- Docs: Setup and deployment, Admin guide, What's new
 
 v3.37.15 - Cosmetic: Match Centre centring, fixtures bar removed, background glow on Match Stats and Leaders
 - Owner request (17-Nov-2026): the "last checked" and "Updated" times had no date, and the pages said "refreshes hourly" although weekday pages are kept all day; Match Centre Last result and Table were left aligned; the colour bar down the left of the TV Fixtures page looked unlike the rest of the site; Match Stats and League Leaders lacked the green background glow the team page has.
@@ -2303,7 +2313,7 @@ const DOC_SECTIONS = [
       "To roll back, upload the previous zip and check /version shows the old number."
     ] },
     { h: "PINs and cookies" },
-    { p: "A correct PIN sets a cookie holding a hash of the PIN: 30 days for the club PIN, 30 minutes for the test site PIN. No cookie is set until someone enters a PIN." },
+    { p: "A correct PIN sets a cookie holding a hash of the PIN: 30 days for the club PIN, 30 minutes for the test site PIN (renewed while the device keeps loading pages, so a rotating screen stays signed in). No cookie is set until someone enters a PIN." },
     { ex: [["Version check", "/version"]] }
   ] },
   { id: "releases", title: "Releases and versions", who: "Site owner", blocks: [
@@ -2321,6 +2331,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.16", "A mistyped address now shows a Page not found page with a link to the welcome page, instead of the default team table. The Usage Pages cut off panel starts a clean tally. On the test site the PIN now lasts 30 minutes from the last visit, so a rotating screen stays signed in."],
       ["v3.37.15", "Looks: the Updated and last checked times now show the day when it is not today (Yesterday 21:03), the misleading \"refreshes hourly\" wording is gone, on the Usage page Teams people look up shows team names again, Match Centre now centres each team's last result and table position, the colour bar is gone from the TV Fixtures page, and Match Stats and League Leaders have the same soft green background as the team page."],
       ["v3.37.14", "Usage page: the Pages cut off panel now also counts pages rebuilt in the background, which is how most screen pages are refreshed."],
       ["v3.37.13", "Usage page: the Pages cut off panel no longer counts pages that did show, and no longer lists club pages such as Feedlog."],
@@ -3585,7 +3596,7 @@ async function usageStart(request, url, what) {
     const st = await siteSettings();
     if (st.features.count === false || (c.kind === "tv" && st.features.screens === false)) return;
     const w = what === "done" ? "done" : "start"; // "done" is written the moment the page is built, before the heavier visit record, so a page that showed is never counted as cut off
-    ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), w, c.view, c.team, "", "", "", "", "", "", "", "", "", w, ""], doubles: [1, 0] });
+    ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), w, c.view, c.team, "", "", "", "", "", "", "", "", "", w, VERSION], doubles: [1, 0] }); // the version is kept in the last column so the Usage panel counts only markers from a release that writes both start and done
   } catch (_) { /* counting never breaks a request */ }
 }
 // v3.28.3: one row per team number. The same team can be recorded with different spellings of its name, or as ours and not ours
@@ -3649,7 +3660,7 @@ async function usageApi(url) {
       usageQuery(`SELECT toDate(timestamp) AS d, blob3 AS type, blob4 AS part, SUM(_sample_interval) AS n, COUNT(DISTINCT blob12) AS sources ${W} AND blob2 = 'sec' GROUP BY d, type, part ORDER BY d LIMIT 500`).catch(() => null),
       usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null),
       // v3.37.12: pages cut off part-way = started minus finished, per page type. Extra: if refused, only this card is lost.
-      usageQuery(`SELECT blob3 AS view, SUM(IF(blob2 = 'start', _sample_interval, 0)) AS started, SUM(IF(blob2 = 'done', _sample_interval, 0)) AS done ${W} AND blob2 IN ('start','done') GROUP BY view ORDER BY started DESC LIMIT 20`).catch(() => null),
+      usageQuery(`SELECT blob3 AS view, SUM(IF(blob2 = 'start', _sample_interval, 0)) AS started, SUM(IF(blob2 = 'done', _sample_interval, 0)) AS done ${W} AND blob2 IN ('start','done') AND blob15 != '' GROUP BY view ORDER BY started DESC LIMIT 20`).catch(() => null),
       usageQuery(`SELECT blob15 AS screen, blob3 AS view, COUNT(DISTINCT blob12) AS devices, SUM(_sample_interval) AS loads, MAX(timestamp) AS last ${W} AND blob2 = 'tv' AND blob15 != '' GROUP BY screen, view ORDER BY loads DESC LIMIT 40`).catch(() => null)
     ]);
     return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, cut: cutRows, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
@@ -3725,7 +3736,7 @@ function cutCard(d){
  var rows=d.cut;
  if(!rows)return'<div class="cd"><h2>Pages cut off</h2><p class="n">This could not be read this time.</p></div>';
  rows=rows.filter(function(r){return Number(r.started)>0});
- var head='<div class="cd"><h2>Pages cut off</h2><p class="n">Each time a page has to be built (not served from the kept copy) it is marked as started, and as finished when it is done. A page that Cloudflare stops part-way, usually Error 1102 because it used too much CPU, is started but never finished. Counting began with v3.37.12, so earlier days show nothing.</p>';
+ var head='<div class="cd"><h2>Pages cut off</h2><p class="n">Each time a page has to be built (not served from the kept copy) it is marked as started, and as finished when it is done. A page that Cloudflare stops part-way, usually Error 1102 because it used too much CPU, is started but never finished. Only builds from v3.37.16 onwards are counted, so a deploy starts a clean tally.</p>';
  if(!rows.length)return head+'<p class="msg mu">No builds recorded yet.</p></div>';
  return head+'<table><tr><td class="mu">Page</td><td class="nu mu" style="width:80px">Started</td><td class="nu mu" style="width:80px">Finished</td><td class="nu mu" style="width:90px">Cut off</td><td class="nu mu" style="width:70px">Share</td></tr>'+rows.map(function(r){var st=Number(r.started)||0,dn=Math.min(Number(r.done)||0,st),cut=Math.max(0,st-dn);return"<tr><td>"+esc(VN[r.view]||SN[r.view]||r.view)+'</td><td class="nu">'+num(st)+'</td><td class="nu">'+num(dn)+'</td><td class="nu">'+num(cut)+'</td><td class="nu">'+(st?Math.round(cut/st*100):0)+"%</td></tr>"}).join("")+"</table></div>"}
 function show(d){
@@ -7839,6 +7850,19 @@ function pinPage(label, message, next, status, action, heading) {
   return new Response(html, { status, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex", "X-Stats-Board-Version": VERSION } });
 }
 const isIconPath = p => p === "/favicon.ico" || p === "/og-image.jpg" || /^\/(icon-192|icon-512|apple-touch-icon)\.png$/.test(p);
+// v3.37.16: the test-site PIN lasts 30 minutes from the last visit instead of 30 minutes from sign-in. A page request made with a valid sign-in that has less than
+// 25 minutes left gets a fresh 30-minute cookie, so a screen that keeps loading pages (the TV rotator reloads each page every 5 minutes) is never asked for the PIN,
+// while a device left alone for 30 minutes still is. Only the test site (a DEV_PIN is set and the label is set); the live site has no such PIN.
+async function devRenewCookie(request, label, env) {
+  try {
+    const pin = env && typeof env.DEV_PIN === "string" ? env.DEV_PIN.trim() : "";
+    if (!label || !pin || request.method !== "GET") return null;
+    const tok = cookieOf(request, PIN_COOKIE), m = /^v2\.(\d{9,11})\./.exec(tok || ""); if (!m) return null;
+    const left = Number(m[1]) - Math.floor(Date.now() / 1000);
+    if (left > 1500 || !(await checkSession("dev", pin, tok))) return null;
+    return `${PIN_COOKIE}=${await makeSession("dev", pin, 1800)}; Path=/; Max-Age=1800; HttpOnly; Secure; SameSite=Lax`;
+  } catch (_) { return null; }
+}
 async function devGate(request, env, label) {
   const pin = env && typeof env.DEV_PIN === "string" ? env.DEV_PIN.trim() : "";
   const url = new URL(request.url);
@@ -7936,6 +7960,16 @@ function lookupCount(request, kind, key) {
   if (!e || now - e.t > LOOKUP_WINDOW_MS) { e = { t: now, set: new Set(), n: 0 }; if (LOOKUP_MEM.size > 3000) LOOKUP_MEM.clear(); LOOKUP_MEM.set(k, e); }
   if (kind === "lookup") e.set.add(key); else e.n++;
   return kind === "lookup" ? e.set.size : e.n;
+}
+// v3.37.16: a mistyped address used to show the default team table. Every address the site really answers is listed here; anything else gets a friendly
+// "page not found" page (status 404) with a link to the welcome page. Only GET and HEAD are checked, so form posts and the API are untouched.
+const KNOWN_PATHS = new Set(["/", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+function unknownPathGate(request) {
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+  const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
+  if (KNOWN_PATHS.has(p) || p.startsWith("/api/") || /^\/[A-Za-z0-9-]{1,40}\/tv$/.test(p)) return null;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Page not found - The Stats Board</title><style>:root{--bg:#080b0d;--fg:#f2f6f4;--mu:#93a59b;--ac:#3fb865}@media(prefers-color-scheme:light){:root{--bg:#eef2ef;--fg:#18221c;--mu:#53665a;--ac:#1b7f3b}}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif;text-align:center}h1{margin:0 0 8px;font-size:26px}p{margin:0 0 22px;color:var(--mu);line-height:1.5}a{display:inline-block;background:var(--ac);color:#06130a;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px}</style></head><body><main><h1>Page not found</h1><p>That address does not match a page on The Stats Board.<br>Check the link, or start from the welcome page.</p><a href="/">Go to the welcome page</a></main></body></html>`;
+  return new Response(request.method === "HEAD" ? null : html, { status: 404, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
 }
 async function addressGate(request) {
   const url = new URL(request.url), q = url.searchParams, plain = (status, text, extra) => new Response(text, { status, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex", ...(extra || {}) } });
@@ -8161,6 +8195,7 @@ export default {
     { const cb = await clubGate(request, env, label); if (cb) return cb; }
     { const mg = await maintenanceGate(request); if (mg) return mg; }
     { const ag = await addressGate(request); if (ag) return ag; }
+    { const ug = unknownPathGate(request); if (ug) return ug; }
     request = withClubName(request); // v3.30.17: after the gates, so the PIN pages' return address does not pick up the filled-in name
     const serve = async () => {
     // v3.30.6: finished team, Match Centre, fixtures and match pages are kept at the edge (see pageState: the rest of the UK day Monday to Friday, 30 minutes at weekends
@@ -8235,6 +8270,8 @@ export default {
     const resp = await serve();
     const ms = Date.now() - t0;
     { const cp = usageRecord(request, new URL(request.url), ms, resp.status, resp.headers.get("X-Page-Cache") === "HIT").catch(() => {}); if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(cp); else await cp; }
-    try { const sh = new Headers(resp.headers); { const u1 = new URL(request.url), v1 = u1.searchParams.get("view") || ""; if (u1.pathname === "/" && (["stack", "fixtures", "match", "opposition", "leaders", "centre"].includes(v1) || (!v1 && u1.searchParams.has("team")))) sh.set("X-Robots-Tag", "noindex"); } sh.set("Server-Timing", "total;dur=" + ms); return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers: sh }); } catch (_) { return resp; }
+    try { const sh = new Headers(resp.headers); { const u1 = new URL(request.url), v1 = u1.searchParams.get("view") || ""; if (u1.pathname === "/" && (["stack", "fixtures", "match", "opposition", "leaders", "centre"].includes(v1) || (!v1 && u1.searchParams.has("team")))) sh.set("X-Robots-Tag", "noindex"); } sh.set("Server-Timing", "total;dur=" + ms);
+      { const rc = await devRenewCookie(request, label, env); if (rc) sh.append("Set-Cookie", rc); }
+      return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers: sh }); } catch (_) { return resp; }
   }
 };
