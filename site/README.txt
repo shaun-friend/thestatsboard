@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.26 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.26_tv_first_slide.zip | v3.37.25
 v3.37.25 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.25_tv_order_timing.zip | v3.37.24
 v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
 v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
@@ -291,6 +292,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.26 - TV rotation always starts on the first slide
+- Owner reports (17-Nov-2026): the screen still started on the 3rd slide, and on a signage playlist it started on slide 6, so it was starting in random places.
+- Cause: v3.37.25 waited only 10 seconds for the first page in the list. The Match Centre (first) is the slowest page to build, often more than 10 seconds when it has to be built fresh, so the screen gave up on it and started with whichever page happened to be ready.
+- Fix: the screen now always begins on the first page in the list and shows the logo until it is ready. Only if that page fails to load (no answer in 30 seconds) does it begin on the first page that is ready, so a broken page cannot hold the screen up.
+- Request limit: no change.
+- Tests: the order test now covers a first page that takes 15 seconds to load and a first page that never loads; the first fails on v3.37.25 with the same symptom (starting on the 2nd page) and passes now. The existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.25 - TV rotation: list order from the first round, steadier timing
 - Owner report (17-Nov-2026): the Match Centre is not always shown the first time round, and the timing seems off, with the rotation going round a few slides before the Match Centre appears.

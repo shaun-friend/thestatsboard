@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.26 17-Nov-2026 TV rotation: always starts on the first page in the list (falls back after 30 seconds if it fails to load).
 //   v3.37.25 17-Nov-2026 TV rotation: pages go round in the list order from the first round (the slow Match Centre is waited for, not skipped); timing no longer drifts.
 //   v3.37.24 17-Nov-2026 TV rotation strip: dots moved to the centre so the Test environment badge no longer covers them.
 //   v3.37.23 17-Nov-2026 TV rotation: a loaded screen reloads itself when its settings or the release change; test badge shown once.
@@ -286,7 +287,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.25";
+const VERSION = "v3.37.26";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -334,6 +335,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.26 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.26_tv_first_slide.zip | v3.37.25
 v3.37.25 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.25_tv_order_timing.zip | v3.37.24
 v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
 v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
@@ -583,6 +585,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.26 - TV rotation always starts on the first slide
+- Owner reports (17-Nov-2026): the screen still started on the 3rd slide, and on a signage playlist it started on slide 6, so it was starting in random places.
+- Cause: v3.37.25 waited only 10 seconds for the first page in the list. The Match Centre (first) is the slowest page to build, often more than 10 seconds when it has to be built fresh, so the screen gave up on it and started with whichever page happened to be ready.
+- Fix: the screen now always begins on the first page in the list and shows the logo until it is ready. Only if that page fails to load (no answer in 30 seconds) does it begin on the first page that is ready, so a broken page cannot hold the screen up.
+- Request limit: no change.
+- Tests: the order test now covers a first page that takes 15 seconds to load and a first page that never loads; the first fails on v3.37.25 with the same symptom (starting on the 2nd page) and passes now. The existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.25 - TV rotation: list order from the first round, steadier timing
 - Owner report (17-Nov-2026): the Match Centre is not always shown the first time round, and the timing seems off, with the rotation going round a few slides before the Match Centre appears.
@@ -2416,6 +2426,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.26", "TV rotation: the screen now always starts on the first slide in the list (it waits for it), instead of on whichever page loaded first."],
       ["v3.37.25", "TV rotation: pages now go round in the order of the list from the very first round (the Match Centre is no longer skipped while it loads), and the timing is steadier."],
       ["v3.37.24", "TV rotation: the dots now sit in the middle of the bottom strip, clear of the test-site badge."],
       ["v3.37.23", "TV rotation: a screen that is already running now notices changes made in Admin, and new releases, and reloads itself within about 2 minutes."],
@@ -2754,7 +2765,7 @@ function tvScreenPage(plan, opt, theme) {
 var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,N=C.n,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
 if(!P.length)return;
 var FADE=800,STAG=4000,TMO=30000,REF=300000;
-var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0,T0=Date.now(),DL=0,WAIT=25000,FIRST=10000;
+var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0,T0=Date.now(),DL=0,WAIT=25000;
 // Each page reports the version it was built by. When one comes back newer than the others shown so far, the others are refreshed straight away (one every 4 seconds) so a deploy is not shown as a mixture of old and new for several minutes.
 function vn(s){var a=String(s||"").replace("v","").split(".");return a.length===3?(+a[0])*1e6+(+a[1])*1e3+(+a[2]):0}
 if(N||D){bt.hidden=false}if(D){P.forEach(function(){dt.appendChild(document.createElement("i"))})}else{dt.hidden=true;document.getElementById("pg").hidden=true}
@@ -2768,7 +2779,7 @@ document.addEventListener("touchstart",function(e){if(e.touches.length>1)e.preve
 function mk(sl){
   if(sl.busy)return;
   var f=document.createElement("iframe");f.className="fr";f.tabIndex=-1;f.setAttribute("aria-hidden","true");f.src=sl.p.u+"&_sr=1";sl.busy=f;st.appendChild(f);
-  f.__to=setTimeout(function(){if(sl.busy!==f)return;sl.busy=null;try{f.remove()}catch(e){}sl.fail++;setTimeout(function(){mk(sl)},Math.min(300000,30000*sl.fail))},TMO)
+  f.__to=setTimeout(function(){if(sl.busy!==f)return;sl.busy=null;try{f.remove()}catch(e){}sl.fail++;if(cur<0&&S[0].fail>0){var j0=nextReady(-1);if(j0>=0)show(j0)}setTimeout(function(){mk(sl)},Math.min(300000,30000*sl.fail))},TMO)
 }
 function ready(sl){
   var f=sl.busy;clearTimeout(f.__to);sl.busy=null;sl.fail=0;
@@ -2778,7 +2789,7 @@ function ready(sl){
   sl.v=vn(f.__v);clearTimeout(sl.rt);
   if(sl.v>TOP){TOP=sl.v;var k=0;S.forEach(function(o){if(o!==sl&&o.f&&o.v<TOP){clearTimeout(o.rt);o.rt=setTimeout(function(){mk(o)},(++k)*STAG)}})}
   sl.rt=setTimeout(function(){mk(sl)},sl.v<TOP?STAG:REF+sl.i*15000);
-  if(cur<0&&(S[0].f||Date.now()-T0>=FIRST))show(nextReady(-1))
+  if(cur<0&&(S[0].f||S[0].fail>0))show(nextReady(-1))
 }
 addEventListener("message",function(e){
   var d=e.data;if(typeof d!=="string")return;
@@ -2787,8 +2798,7 @@ addEventListener("message",function(e){
   for(var i=0;i<S.length;i++){var b=S[i].busy;if(b&&b.contentWindow===e.source){ready(S[i]);return}}
 });
 function nextReady(from){for(var k=1;k<=S.length;k++){var j=(from+k)%S.length;if(S[j].f)return j}return -1}
-// Start: the first page in the list is shown first. If it is not ready within 10 seconds the first one that is ready goes ahead.
-setTimeout(function(){if(cur<0){var j=nextReady(-1);if(j>=0)show(j)}},FIRST);
+// Start: the screen always begins on the first page in the list and shows the logo until it is ready. Only if that page fails to load (no answer in 30 seconds) does it begin on the first page that is ready, so a broken page cannot hold the screen up.
 function show(j){
   if(cur>=0&&S[cur].f&&cur!==j)S[cur].f.className="fr";
   cur=j;S[j].f.className="fr on";ld.hidden=true;
