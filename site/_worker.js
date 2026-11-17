@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.18 17-Nov-2026 TV Match Centre: the rotator asks for layout=tv so no Message us link shows on a screen.
 //   v3.37.17 17-Nov-2026 Match Centre: the Last result text is centred on its box.
 //   v3.37.16 17-Nov-2026 Usage panel counts only version-tagged points (clean tally); mistyped addresses show a not-found page instead of the default team table.
 //   v3.37.15 17-Nov-2026 Cosmetic: Match Centre last result and table centred, fixtures left bar removed, background glow on Match Stats and League Leaders.
@@ -278,7 +279,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.17";
+const VERSION = "v3.37.18";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -326,6 +327,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.18 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.18_tv_match_centre_no_message_link.zip | v3.37.17
 v3.37.17 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.17_last_result_centred.zip | v3.37.16
 v3.37.16 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.16_not_found_page_clean_usage.zip | v3.37.15
 v3.37.15 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.15_cosmetic_centre_glow.zip         | v3.37.14
@@ -567,6 +569,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.18 - TV Match Centre: no Message us link
+- Owner report (17-Nov-2026): a "Message us" link showed on the Match Centre on a TV.
+- Cause: the Match Centre frame of the TV rotator was asked for as a plain Match Centre page (view=stack), which is also what a phone gets, and phones are shown the Message us link. The other TV pages already carry layout=tv, which keeps the link off.
+- Changed: the rotator now asks for the Match Centre with layout=tv as well. The page is otherwise the same (only the home-screen shortcut address inside it differs). Phones and the normal Match Centre link are unchanged.
+- Request limit: no change.
+- Tests: x_usage_cut checks the rotator asks for the Match Centre with layout=tv; the rotation test still passes.
+- Docs: What's new
 
 v3.37.17 - Match Centre: Last result text centred
 - Owner request (17-Nov-2026): on the Match Centre TV columns the Last result text was not centred in its box (the team badge sat beside it and pushed the text off the centre line).
@@ -2340,6 +2350,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.18", "The Message us link no longer shows on the Match Centre page of a TV screen."],
       ["v3.37.17", "Match Centre: the Last result text in each team column is now centred on the box, with the team badge at the left edge."],
       ["v3.37.16", "A mistyped address now shows a Page not found page with a link to the welcome page, instead of the default team table. The Usage Pages cut off panel starts a clean tally. On the test site the PIN now lasts 30 minutes from the last visit, so a rotating screen stays signed in."],
       ["v3.37.15", "Looks: the Updated and last checked times now show the day when it is not today (Yesterday 21:03), the misleading \"refreshes hourly\" wording is gone, on the Usage page Teams people look up shows team names again, Match Centre now centres each team's last result and table position, the colour bar is gone from the TV Fixtures page, and Match Stats and League Leaders have the same soft green background as the team page."],
@@ -2638,7 +2649,7 @@ function tvPlan(s) {
     for (const it of g.items) {
       if (!it.on) continue;
       const q = new URLSearchParams();
-      if (it.page === "centre") q.set("view", "stack");
+      if (it.page === "centre") { q.set("view", "stack"); q.set("layout", "tv"); } // v3.37.18: layout=tv keeps the Message us link off a TV screen (the page is otherwise the same)
       else {
         if (!t) continue;
         if (it.page !== "table") q.set("view", it.page);

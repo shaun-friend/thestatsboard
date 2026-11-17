@@ -77,4 +77,5 @@ ck('post is not gated',(await get('/foo','POST')).s!==404||true);
  const r4=await w.fetch(new Request(page,H(ck0)),E,{waitUntil(){}});ck('an idle device is asked for the PIN again',r4.status===303&&/unlock/.test(r4.headers.get('Location')||''));
  Date.now=real;
  const r5=await w.fetch(new Request(page,H(ck0)),{CLUB_PIN:'1234'},{waitUntil(){}});await r5.text();ck('live site never sets the test PIN cookie',!/rfuDev=/.test(r5.headers.get('Set-Cookie')||''));}
+ck('TV Match Centre frame asks for layout=tv (no Message us link on a screen)',/q\.set\("view", "stack"\); q\.set\("layout", "tv"\)/.test(src));
 console.log(bad?'FAILED':'ALL OK');
