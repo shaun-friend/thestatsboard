@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
 v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
 v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
 v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
@@ -288,6 +289,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.23 - TV rotation reloads itself when something changes; Test environment badge once
+- Owner requests (17-Nov-2026): a screen that is already loaded should notice Admin changes by itself, and the Test environment badge was showing twice.
+- Changed: every 2 minutes the rotator asks for its own address again (one small request, no outside calls). If the pages, seconds, theme, strip options or the release number are different from what it loaded with, it reloads itself, so a change in Admin or a new release shows on the screen within about 2 minutes with nobody touching it. The reload shows the logo screen briefly. A PIN page or an error is ignored (no reload). On the test site the orange Test environment badge was drawn by the rotator and again by each page inside it, now that the pages sit above the bottom strip; the pages inside no longer draw it.
+- Request limit: one small request per screen every 2 minutes, with no outside calls.
+- Tests: new tests for the self reload (unchanged, changed, PIN page) and the badge in a frame; the existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.22 - TV rotation in Admin shows team crests
 - Owner request (17-Nov-2026): use the team crests on the Admin TV rotation page.

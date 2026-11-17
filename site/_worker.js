@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.23 17-Nov-2026 TV rotation: a loaded screen reloads itself when its settings or the release change; test badge shown once.
 //   v3.37.22 17-Nov-2026 Admin, TV rotation: each team shows its crest in its header (badge kept if a crest is missing).
 //   v3.37.21 17-Nov-2026 TV rotation: page name and dots/progress line are separate options; the strip no longer covers the pages.
 //   v3.37.20 17-Nov-2026 Test release for the TV screens (version number only).
@@ -283,7 +284,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.22";
+const VERSION = "v3.37.23";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -331,6 +332,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
 v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
 v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
 v3.37.20 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.20_screen_update_test.zip | v3.37.19
@@ -577,6 +579,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.23 - TV rotation reloads itself when something changes; Test environment badge once
+- Owner requests (17-Nov-2026): a screen that is already loaded should notice Admin changes by itself, and the Test environment badge was showing twice.
+- Changed: every 2 minutes the rotator asks for its own address again (one small request, no outside calls). If the pages, seconds, theme, strip options or the release number are different from what it loaded with, it reloads itself, so a change in Admin or a new release shows on the screen within about 2 minutes with nobody touching it. The reload shows the logo screen briefly. A PIN page or an error is ignored (no reload). On the test site the orange Test environment badge was drawn by the rotator and again by each page inside it, now that the pages sit above the bottom strip; the pages inside no longer draw it.
+- Request limit: one small request per screen every 2 minutes, with no outside calls.
+- Tests: new tests for the self reload (unchanged, changed, PIN page) and the badge in a frame; the existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.22 - TV rotation in Admin shows team crests
 - Owner request (17-Nov-2026): use the team crests on the Admin TV rotation page.
@@ -2388,6 +2397,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.23", "TV rotation: a screen that is already running now notices changes made in Admin, and new releases, and reloads itself within about 2 minutes."],
       ["v3.37.22", "Admin, TV rotation: each team now shows its crest, as on the rest of the site."],
       ["v3.37.21", "TV rotation: the page name and the dots and progress line are now two separate switches in Admin, and the strip sits below the pages so it never covers anything."],
       ["v3.37.20", "Behind the scenes: a test release to check that TV screens update themselves. Nothing looks different except the version number."],
@@ -2765,6 +2775,10 @@ function show(j){
 }
 function adv(){var j=nextReady(cur);if(j<0||j===cur){tm=setTimeout(adv,S[cur].p.s*1000);return}show(j)}
 S.forEach(function(sl,i){setTimeout(function(){mk(sl)},i*STAG)});
+// Every 2 minutes the screen asks for its own address again (this page makes no outside calls, so it is cheap). If the pages, seconds, theme, strip options or release number have changed, it reloads itself so the change shows without anyone touching the screen.
+var SIG=document.getElementById("tvd").textContent;
+function chk(){fetch(location.href,{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.ok?r.text():""}).then(function(t){var a=t.indexOf('id="tvd">');if(a<0)return;a=t.indexOf(">",a)+1;var b=t.indexOf("</scr"+"ipt>",a);if(b>a&&t.slice(a,b)!==SIG)location.reload()}).catch(function(){})}
+setInterval(chk,120000);
 })();</script></body></html>`;
 }
 // Our teams (v3.29): the club's own team list, kept in the settings record. Each entry: team (RFU number), teamName (the RFU's own name),
@@ -8314,7 +8328,7 @@ export default {
       storePage(page, response.status, ph);
       return out; }
     const safe = label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    const banner = `<div role="note" style="position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:2147483647;pointer-events:none;background:#f0a020;color:#1a1200;font:700 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,.35)">${safe} environment</div>`;
+    const banner = `<div role="note" id="rfuEnv" style="position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:2147483647;pointer-events:none;background:#f0a020;color:#1a1200;font:700 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,.35)">${safe} environment</div><script>try{if(window.top!==window.self){var e=document.getElementById("rfuEnv");if(e)e.remove()}}catch(x){}</script>`;
     let html = withStamp(page, powered);
     html = html.replace(/<title>/i, `<title>[${safe}] `).replace(/<body([^>]*)>/i, m => m + banner);
     const headers = new Headers(response.headers);
