@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.27 17-Nov-2026 League Leaders: the team name in bold before the league name under the title (Mobile and TV).
 //   v3.37.26 17-Nov-2026 TV rotation: always starts on the first page in the list (falls back after 30 seconds if it fails to load).
 //   v3.37.25 17-Nov-2026 TV rotation: pages go round in the list order from the first round (the slow Match Centre is waited for, not skipped); timing no longer drifts.
 //   v3.37.24 17-Nov-2026 TV rotation strip: dots moved to the centre so the Test environment badge no longer covers them.
@@ -287,7 +288,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.26";
+const VERSION = "v3.37.27";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -335,6 +336,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.27 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.27_leaders_team.zip | v3.37.26
 v3.37.26 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.26_tv_first_slide.zip | v3.37.25
 v3.37.25 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.25_tv_order_timing.zip | v3.37.24
 v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
@@ -585,6 +587,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.27 - League Leaders shows which team it is for
+- Owner request (17-Nov-2026): the League Leaders page did not say which team it relates to.
+- Changed: the line under League Leaders now starts with the team name in bold, then the league, for example "Ivybridge 1XV · Regional 2 South West". It uses the same friendly name as the other pages (the team name from the feed if no friendly name is set). Mobile and TV. The header still shows the trophy and not the club crest, so nothing implies the club is a leader.
+- Request limit: no change.
+- Tests: new test for the team name in bold on both layouts (fails on the previous release); the existing tests pass.
+- Docs: none - the Documentation does not describe this page's heading.
 
 v3.37.26 - TV rotation always starts on the first slide
 - Owner reports (17-Nov-2026): the screen still started on the 3rd slide, and on a signage playlist it started on slide 6, so it was starting in random places.
@@ -2426,6 +2435,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.27", "League Leaders now says which team it is for: the team name in bold before the league name under the title."],
       ["v3.37.26", "TV rotation: the screen now always starts on the first slide in the list (it waits for it), instead of on whichever page loaded first."],
       ["v3.37.25", "TV rotation: pages now go round in the order of the list from the very first round (the Match Centre is no longer skipped while it loads), and the timing is steadier."],
       ["v3.37.24", "TV rotation: the dots now sit in the middle of the bottom strip, clear of the test-site badge."],
@@ -5910,6 +5920,7 @@ ${themeToggleScript}
       const L = d && d.leaders && Array.isArray(d.leaders.metrics) ? d.leaders : null;
       const title = friendly || (d && d.team) || "League leaders";
       const leagueName = (d && d.league) || "";
+      const teamLine = (friendly || (d && d.team) ? `<b>${e(friendly || d.team)}</b>` + (leagueName ? " &middot; " : "") : "") + e(leagueName);
       const trophy = `<span class="crest hdc trophy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0V3z" fill="#14532d"/><path d="M7 5H3.5v2.2A3.3 3.3 0 0 0 7 10.5V9a1.8 1.8 0 0 1-1.8-1.8V6.5H7zM17 5h3.5v2.2a3.3 3.3 0 0 1-3.5 3.3V9a1.8 1.8 0 0 0 1.8-1.8V6.5H17z" fill="#14532d"/><rect x="10.7" y="13.5" width="2.6" height="4" fill="#14532d"/><rect x="7.5" y="17.5" width="9" height="2.6" rx="1.3" fill="#14532d"/></svg></span>`;
       const crest = (id, name, cls) => `<span class="crest ${cls || "sm"}"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span>`;
       const youTxt = m => m.you ? `${e(title)}: currently <b>${m.you.joint ? "joint " : ""}${e(ordinalOf(m.you.rank))}</b>, ${e(m.you.phrase || m.you.value)}` : "";
@@ -5924,14 +5935,14 @@ ${themeToggleScript}
 ${MENU_CSS}
 ${PAGE_GRAD}
 html,body{height:100%}body{overflow:hidden;padding:2.2vh 2.2vw 3.6vh;display:flex;flex-direction:column}
-.hd{display:flex;align-items:center;justify-content:space-between;gap:2vw;height:9vh}.hl{display:flex;align-items:center;gap:1.6vw;flex:0 0 auto}.hd h1{margin:0;font-size:4.6vh;line-height:1.05;white-space:nowrap}.tn{display:block;font-size:3vh;line-height:1.2;color:#c5d1ca;white-space:nowrap}body.light .tn{color:#33443a}.hd p{margin:0;font-size:2.1vh;line-height:1.3;color:#91a49a;text-align:right;flex:1;min-width:0}.crest.hdc{width:8vh;height:8vh;flex-basis:8vh}.crest.hdc .ini{font-size:2.6vh}.crest.hdc img{padding:.7vh}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:2vw;height:9vh}.hl{display:flex;align-items:center;gap:1.6vw;flex:0 0 auto}.hd h1{margin:0;font-size:4.6vh;line-height:1.05;white-space:nowrap}.tn{display:block;font-size:3vh;line-height:1.2;color:#c5d1ca;white-space:nowrap}body.light .tn{color:#33443a}.tn b{font-weight:800;color:#f5f7f6}body.light .tn b{color:#17211c}.hd p{margin:0;font-size:2.1vh;line-height:1.3;color:#91a49a;text-align:right;flex:1;min-width:0}.crest.hdc{width:8vh;height:8vh;flex-basis:8vh}.crest.hdc .ini{font-size:2.6vh}.crest.hdc img{padding:.7vh}
 .crest.trophy svg{width:62%;height:62%}.lc{background:#111719;border:1px solid #26312d}.lc label{display:block;text-transform:uppercase;letter-spacing:.08em}.lt{display:flex;align-items:center}.lnm{flex:1;min-width:0}.ln{display:block;color:#f5f7f6}body.light .ln{color:#17211c}.lnm small{display:block;color:#91a49a}.lval{font-weight:900;color:#7fd89a}.you{border-top:1px solid #26312d;color:#b4c4bb}.you b{color:#f5f7f6}
 .lg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:2.2vh 2.2vw;flex:1;min-height:0;margin-top:1.6vh}
 .lc{display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:0;overflow:hidden;border-radius:1.6vh;padding:2vh 2vw}.lc label{font-size:2.3vh;margin-bottom:2vh;color:#b8c8bf}.lt{gap:1.4vw}.crest.sm{width:9vh;height:9vh;flex-basis:9vh}.crest.sm .ini{font-size:3vh}.crest.sm img{padding:.8vh}
 .ln{font-size:4vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lnm small{font-size:2.2vh;margin-top:.4vh}.lnm .lnames{font-size:2.3vh;margin-top:.8vh;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.lval{font-size:8vh;line-height:1}.you{margin-top:2.2vh;padding-top:1.8vh;font-size:2.8vh}
 .foot2{position:absolute;left:2.2vw;bottom:1.2vh;font-size:1.8vh;color:#7d8c84}.none.big{font-size:3vh;color:#91a49a;margin:auto}
 ${CARD_CSS.split("}").filter(x => /body\.light/.test(x)).map(x => x + "}").join("")}
-</style></head><body class="${theme}"><div class="hd"><div class="hl">${trophy}<div class="tt"><h1>League Leaders</h1><span class="tn">${e(leagueName)}</span></div></div><p>${note ? e(note) : ""}</p></div>
+</style></head><body class="${theme}"><div class="hd"><div class="hl">${trophy}<div class="tt"><h1>League Leaders</h1><span class="tn">${teamLine}</span></div></div><p>${note ? e(note) : ""}</p></div>
 ${L ? `<div class="lg">${cards}</div>` : none}
 <script>(function(){var MAX=${REFRESH_SECONDS * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
 </body></html>`;
@@ -5942,12 +5953,12 @@ ${L ? `<div class="lg">${cards}</div>` : none}
 <style>
 ${MENU_CSS}
 ${PAGE_GRAD}
-.ph{display:flex;align-items:center;gap:12px;margin:8px 0 6px}.ph h1{margin:0;font-size:21px}.ph .tn{display:block;font-size:16px;color:#c5d1ca;margin-top:2px}body.light .ph .tn{color:#33443a}.crest.hdc{width:52px;height:52px;flex-basis:52px}.crest.hdc .ini{font-size:16px}.crest.hdc img{padding:5px}
+.ph{display:flex;align-items:center;gap:12px;margin:8px 0 6px}.ph h1{margin:0;font-size:21px}.ph .tn{display:block;font-size:16px;color:#c5d1ca;margin-top:2px}body.light .ph .tn{color:#33443a}.ph .tn b{font-weight:800;color:#f5f7f6}body.light .ph .tn b{color:#17211c}.crest.hdc{width:52px;height:52px;flex-basis:52px}.crest.hdc .ini{font-size:16px}.crest.hdc img{padding:5px}
 .crest.trophy svg{width:62%;height:62%}.lcl{display:flex;flex-direction:column;gap:10px;margin-top:14px}.ln{color:#f5f7f6}body.light .ln{color:#17211c}.none{color:#91a49a;font-size:14px;padding:10px 2px}.pl{display:flex;gap:8px}.nt{font-size:12px;color:#7d8c84;margin:12px 2px 0}
 ${CARD_CSS}
 </style></head><body class="${theme}">${themeBoot("true")}<div class="wrap">
 <nav class="mbar"><span class="pl"><a class="pill" href="/?theme=${theme}">&lsaquo; Home</a><a class="pill" href="${e(matchHref)}">Next Match Stats</a></span><button type="button" class="pill tgl">Light mode</button></nav>
-<div class="ph">${trophy}<div><h1>League Leaders</h1><span class="tn">${e(leagueName)}</span></div></div>
+<div class="ph">${trophy}<div><h1>League Leaders</h1><span class="tn">${teamLine}</span></div></div>
 ${L ? `<div class="lcl">${cards}</div>${note ? `<p class="nt">${e(note)}</p>` : ""}` : `<div class="none">${d ? "No games played yet" : "League leaders are not available right now. Please try again in a few minutes."}</div>`}
 <p class="ver">${VERSION_LABEL}</p>
 </div>

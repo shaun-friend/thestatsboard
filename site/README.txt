@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.27 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.27_leaders_team.zip | v3.37.26
 v3.37.26 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.26_tv_first_slide.zip | v3.37.25
 v3.37.25 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.25_tv_order_timing.zip | v3.37.24
 v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
@@ -292,6 +293,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.27 - League Leaders shows which team it is for
+- Owner request (17-Nov-2026): the League Leaders page did not say which team it relates to.
+- Changed: the line under League Leaders now starts with the team name in bold, then the league, for example "Ivybridge 1XV · Regional 2 South West". It uses the same friendly name as the other pages (the team name from the feed if no friendly name is set). Mobile and TV. The header still shows the trophy and not the club crest, so nothing implies the club is a leader.
+- Request limit: no change.
+- Tests: new test for the team name in bold on both layouts (fails on the previous release); the existing tests pass.
+- Docs: none - the Documentation does not describe this page's heading.
 
 v3.37.26 - TV rotation always starts on the first slide
 - Owner reports (17-Nov-2026): the screen still started on the 3rd slide, and on a signage playlist it started on slide 6, so it was starting in random places.

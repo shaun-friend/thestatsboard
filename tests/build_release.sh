@@ -59,6 +59,7 @@ NODE_PATH=$(npm root -g) node x_tv_selfreload.cjs 2>&1 | tail -1 | grep -q "ALL 
 NODE_PATH=$(npm root -g) node x_env_frame.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "ENV BADGE TEST FAILED"; exit 1; }; echo "env badge ok"
 NODE_PATH=$(npm root -g) node x_tv_version.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV VERSION SYNC TEST FAILED"; exit 1; }; echo "tv version sync ok"
 node x_nm_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_nm_check.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV LEAGUE TABLE TEST FAILED"; exit 1; }; echo "tv league table ok"
+node x_leaders_team.mjs "$S/t_worker.mjs" 2>&1 | tail -1 | grep -qE " 0 fail" || { echo "LEADERS TEAM TEST FAILED"; exit 1; }; echo "leaders team ok"
 node x_usage_cut.mjs "$S/t_worker.mjs" 2>&1 | tail -1 | grep -q "ALL OK" || { echo "USAGE CUT TEST FAILED"; exit 1; }; echo "usage cut ok"
 node x_msg_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_msg_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MESSAGE US FOOTER TEST FAILED"; exit 1; }; echo "message us footer ok"
 node x_fxh_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; node x_fxh_check.mjs | tail -1 | grep -q "ALL OK" || { echo "FIXTURES HEADER TEST FAILED"; exit 1; }; NODE_PATH=$(npm root -g) node x_clip_check.cjs w/fx_hdr.html | tail -1 | grep -q "ALL OK" || { echo "FIXTURES HEADER CLIP TEST FAILED"; exit 1; }; echo "fixtures header ok"
