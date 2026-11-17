@@ -3,7 +3,7 @@ const src=process.argv[2];let ok=0,bad=0;const c=(n,x)=>{if(x){ok++}else{bad++;c
 let store={};const kv={get:async(k,o)=>{const v=store[k];if(v==null)return null;return o&&o.type==='json'?JSON.parse(v):v},put:async(k,v)=>{store[k]=v},delete:async k=>{delete store[k]}};
 globalThis.fetch=async()=>({ok:false,status:500,text:async()=>''});
 let n=0;const load=async()=>(await import(src+'?i='+(++n))).default;
-let pts=[];const env={CLUB_PIN:'1',SETTINGS:kv,USAGE:{writeDataPoint:o=>(o.blobs[1]!=='start'&&pts.push(o))}};
+let pts=[];const env={CLUB_PIN:'1',SETTINGS:kv,USAGE:{writeDataPoint:o=>(o.blobs[1]!=='start'&&o.blobs[1]!=='done'&&pts.push(o))}};
 const pend=[];const ctx={waitUntil:p=>pend.push(p)};
 let ck='';const get=async(w,p)=>{const r=await w.fetch(new Request('https://x.co.uk'+p,{headers:{'User-Agent':'Mozilla/5.0',Cookie:ck}}),env,ctx);await Promise.all(pend.splice(0));return r};
 const post=(w,b)=>w.fetch(new Request('https://x.co.uk/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Cookie:ck},body:JSON.stringify(b)}),env,ctx);

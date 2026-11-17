@@ -15,7 +15,7 @@ globalThis.fetch=async(u,o)=>{ if(String(u).includes('analytics_engine/sql')){ca
 let pass=0,fail=0;const ok=(n,c)=>{console.log(c?'PASS':'FAIL',n);c?pass++:fail++};
 const ctx={waitUntil(p){ctx.p.push(p)},p:[]};
 const flush=async()=>{await Promise.all(ctx.p);ctx.p=[]};
-const written=[];const ups=[];const USAGE={writeDataPoint(d){(d.blobs[1]==='up'?ups:d.blobs[1]==='start'?[]:written).push(d)}};
+const written=[];const ups=[];const USAGE={writeDataPoint(d){(d.blobs[1]==='up'?ups:d.blobs[1]==='start'||d.blobs[1]==='done'?[]:written).push(d)}};
 let j4x,kvData=null;const aux={};const kv={async get(k,o){if(k!=='club:ivybridge'){const v=aux[k];return v==null?null:(o&&o.type==='json'?JSON.parse(v):v)}return kvData},async put(k,v){if(k!=='club:ivybridge'){aux[k]=v;return}kvData=JSON.parse(v)},async delete(k){delete aux[k]}};
 const env={CLUB_PIN:'1234',SETTINGS:kv,USAGE,CF_ACCOUNT_ID:'acc1',CF_API_TOKEN:'tok1'};
 const UA='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1';

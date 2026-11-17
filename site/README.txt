@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
 v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
 v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
 v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
@@ -278,6 +279,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.13 - Usage: pages cut off fix
+- Owner report (17-Nov-2026): on the test site the Pages cut off panel showed Match Centre, Fixtures, Match Stats, Leaders and Feedlog as 100% cut off although the pages had shown.
+- Cause: "finished" was taken from the full visit record, which is written after the page is sent, so it was missing for pages that did show; and club pages such as Feedlog are only recorded after sign-in, so they could never count as finished.
+- Changed: a small "done" point is now written the moment the page is built (before the heavier visit record), and "cut off" is started minus done. Club pages (Feedlog, Admin, Usage, Docs) are no longer marked. Counts from v3.37.12 are not comparable and can be ignored.
+- Request limit: still no outside request or cache lookup. Cost: one more small write per page build.
+- Tests: x_usage_cut now also checks the done marker is written once after the start, and that Feedlog gets no start marker.
+- Docs: Admin guide, What's new
 
 v3.37.12 - Usage: pages cut off
 - Owner request (17-Nov-2026): the Cloudflare Metrics page cannot say which page failed with Error 1102, so the site should show it.

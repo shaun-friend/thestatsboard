@@ -49,10 +49,11 @@ const a=await run(base+'&layout=tv',true);const w0=w;const b=await runFresh(base
 const starts=a.pts.filter(p=>p.blobs[1]==='start'),recs=a.pts.filter(p=>p.blobs[1]==='tv'||p.blobs[1]==='page');
 ck('page build writes exactly one start point',starts.length===1);
 ck('start point carries the page type and nothing personal',starts[0]&&starts[0].blobs[2]==='team'&&starts[0].blobs[11]===''&&starts[0].blobs[13]==='start');
-ck('finish record still written once',recs.length===1);
-ck('start is written before the finish',a.pts.findIndex(p=>p.blobs[1]==='start')<a.pts.findIndex(p=>p.blobs[1]!=='start'));
+ck('finish record still written once',recs.length===1);const dones=a.pts.filter(p=>p.blobs[1]==='done');ck('a done marker is written once, after the page is built',dones.length===1&&a.pts.findIndex(p=>p.blobs[1]==='done')>a.pts.findIndex(p=>p.blobs[1]==='start'));
+ck('start is written before the finish',a.pts.findIndex(p=>p.blobs[1]==='start')<a.pts.findIndex(p=>p.blobs[1]==='tv'||p.blobs[1]==='page'));
 ck('start point adds no outside request (same count with and without counting)',a.calls===b.calls&&a.calls>0);
+const fl=await run('https://thestatsboard.co.uk/feedlog',true);ck('club pages (feedlog) get no start marker',fl.pts.filter(p=>p.blobs[1]==='start').length===0);
 const d=await run(base+'&format=summary&detail=fixtures',true);ck('a data request (format=summary) writes no start point',d.pts.filter(p=>p.blobs[1]==='start').length===0);
 const src=fs.readFileSync(process.argv[2],'utf8');
-ck('Usage page has the Pages cut off panel and its query',/function cutCard\(d\)/.test(src)&&/SUM\(IF\(blob2 = 'start'/.test(src)&&/cut: cutRows/.test(src)&&/upDayCard\(d\)\+speedCard\(d\)\+cutCard\(d\)/.test(src));
+ck('Usage page has the Pages cut off panel and its query',/function cutCard\(d\)/.test(src)&&/blob2 = 'done'/.test(src)&&/cut: cutRows/.test(src)&&/upDayCard\(d\)\+speedCard\(d\)\+cutCard\(d\)/.test(src));
 console.log(bad?'FAILED':'ALL OK');

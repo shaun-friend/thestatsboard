@@ -1,7 +1,7 @@
 const src=process.argv[2];let ok=0,bad=0;const c=(n,x)=>{if(x){ok++}else{bad++;console.log('FAIL',n)}};
 const feed=[];globalThis.fetch=async u=>{feed.push(String(u));return {ok:false,status:500,text:async()=>''}};
 let n=0;const load=async()=>(await import(src+'?i='+(++n))).default;
-const rows=[];const USAGE={writeDataPoint:d=>(d.blobs[1]!=='start'&&rows.push(d))};
+const rows=[];const USAGE={writeDataPoint:d=>(d.blobs[1]!=='start'&&d.blobs[1]!=='done'&&rows.push(d))};
 const store={};const kv={get:async(k,o)=>{const v=store[k];if(v==null)return null;return o&&o.type==='json'?JSON.parse(v):v},put:async(k,v)=>{store[k]=v},delete:async k=>{delete store[k]}};
 const env={CLUB_PIN:'pin-1234',SETTINGS:kv,USAGE,PIN_DELAY_MS:'0'};let w=await load();
 const get=(p,ip='1.1.1.1')=>w.fetch(new Request('https://x.co.uk'+p,{headers:{'User-Agent':'Mozilla/5.0','CF-Connecting-IP':ip}}),env,{});

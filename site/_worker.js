@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.13 17-Nov-2026 Usage: Pages cut off no longer counts pages that showed (a finished marker is written as soon as the page is built); club pages are left out.
 //   v3.37.12 17-Nov-2026 Usage: new "Pages cut off" panel (pages started minus finished) to show which pages Cloudflare stops part-way, e.g. Error 1102.
 //   v3.37.11 16-Nov-2026 CPU savings: the TV dashboard no longer works out the Win Predictor or the phone-only panels it does not show.
 //   v3.37.10 16-Nov-2026 CPU savings: match dates are worked out once per page and the London-day formatter is shared (Error 1102 on the free plan); pages use roughly a fifth to a third less working time.
@@ -273,7 +274,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.12";
+const VERSION = "v3.37.13";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -321,6 +322,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
 v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
 v3.37.11 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.11_tv_skips_hidden_work.zip         | v3.37.10
 v3.37.10 | 16-Nov-2026 | RFU_Club_Dashboard_v3.37.10_cpu_savings.zip                | v3.37.9
@@ -557,6 +559,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.13 - Usage: pages cut off fix
+- Owner report (17-Nov-2026): on the test site the Pages cut off panel showed Match Centre, Fixtures, Match Stats, Leaders and Feedlog as 100% cut off although the pages had shown.
+- Cause: "finished" was taken from the full visit record, which is written after the page is sent, so it was missing for pages that did show; and club pages such as Feedlog are only recorded after sign-in, so they could never count as finished.
+- Changed: a small "done" point is now written the moment the page is built (before the heavier visit record), and "cut off" is started minus done. Club pages (Feedlog, Admin, Usage, Docs) are no longer marked. Counts from v3.37.12 are not comparable and can be ignored.
+- Request limit: still no outside request or cache lookup. Cost: one more small write per page build.
+- Tests: x_usage_cut now also checks the done marker is written once after the start, and that Feedlog gets no start marker.
+- Docs: Admin guide, What's new
 
 v3.37.12 - Usage: pages cut off
 - Owner request (17-Nov-2026): the Cloudflare Metrics page cannot say which page failed with Error 1102, so the site should show it.
@@ -2291,6 +2301,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.13", "Usage page: the Pages cut off panel no longer counts pages that did show, and no longer lists club pages such as Feedlog."],
       ["v3.37.12", "Usage page: a new Pages cut off panel shows how many pages were started but never finished, which is how Error 1102 (too much CPU) shows up."],
       ["v3.37.11", "Behind the scenes: the TV screen no longer works out things it does not show (the Win Predictor and phone-only panels), saving server working time. Nothing looks different."],
       ["v3.37.10", "Behind the scenes: pages use less of the server's working time (about a fifth to a third less in tests), to cut the Error 1102 messages on the free plan. Nothing looks different."],
@@ -3544,14 +3555,15 @@ async function usageRecord(request, url, ms, status, hit) {
 // v3.37.12: a page that Cloudflare stops part-way (Error 1102, too much CPU) never reaches usageRecord, so it is invisible. Just before a page is
 // built we write one small "start" point (no hashing, no outside request, not counted against the 50 limit); on the Usage page "started" minus
 // "finished" is the number of pages cut off. Pages served from the kept copy are not marked.
-async function usageStart(request, url) {
+async function usageStart(request, url, what) {
   try {
     const ds = SITE_ENV && SITE_ENV.USAGE;
     if (!ds || typeof ds.writeDataPoint !== "function") return;
-    const c = usageClassify(request, url); if (!c) return;
+    const c = usageClassify(request, url); if (!c || (c.kind !== "page" && c.kind !== "tv")) return; // club pages (feedlog, admin, usage...) are only recorded after sign-in, so they are not tracked here
     const st = await siteSettings();
     if (st.features.count === false || (c.kind === "tv" && st.features.screens === false)) return;
-    ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), "start", c.view, c.team, "", "", "", "", "", "", "", "", "", "start", ""], doubles: [1, 0] });
+    const w = what === "done" ? "done" : "start"; // "done" is written the moment the page is built, before the heavier visit record, so a page that showed is never counted as cut off
+    ds.writeDataPoint({ indexes: [usageScope()], blobs: [usageScope(), w, c.view, c.team, "", "", "", "", "", "", "", "", "", w, ""], doubles: [1, 0] });
   } catch (_) { /* counting never breaks a request */ }
 }
 // v3.28.3: one row per team number. The same team can be recorded with different spellings of its name, or as ours and not ours
@@ -3614,7 +3626,7 @@ async function usageApi(url) {
       usageQuery(`SELECT toDate(timestamp) AS d, blob3 AS type, blob4 AS part, SUM(_sample_interval) AS n, COUNT(DISTINCT blob12) AS sources ${W} AND blob2 = 'sec' GROUP BY d, type, part ORDER BY d LIMIT 500`).catch(() => null),
       usageQuery(`SELECT blob10 AS region, blob9 AS country, SUM(_sample_interval) AS n ${W} AND blob2 = 'sec' GROUP BY region, country ORDER BY n DESC LIMIT 5`).catch(() => null),
       // v3.37.12: pages cut off part-way = started minus finished, per page type. Extra: if refused, only this card is lost.
-      usageQuery(`SELECT blob3 AS view, SUM(IF(blob2 = 'start', _sample_interval, 0)) AS started, SUM(IF(blob2 IN ('page','tv') AND blob14 = 'miss', _sample_interval, 0)) AS done ${W} AND blob2 IN ('start','page','tv') GROUP BY view ORDER BY started DESC LIMIT 20`).catch(() => null),
+      usageQuery(`SELECT blob3 AS view, SUM(IF(blob2 = 'start', _sample_interval, 0)) AS started, SUM(IF(blob2 = 'done', _sample_interval, 0)) AS done ${W} AND blob2 IN ('start','done') GROUP BY view ORDER BY started DESC LIMIT 20`).catch(() => null),
       usageQuery(`SELECT blob15 AS screen, blob3 AS view, COUNT(DISTINCT blob12) AS devices, SUM(_sample_interval) AS loads, MAX(timestamp) AS last ${W} AND blob2 = 'tv' AND blob15 != '' GROUP BY screen, view ORDER BY loads DESC LIMIT 40`).catch(() => null)
     ]);
     return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, cut: cutRows, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
@@ -8185,8 +8197,10 @@ export default {
         }
       } catch (_) { /* miss */ }
     }
-    await usageStart(request, new URL(request.url));
-    return await buildPage();
+    await usageStart(request, new URL(request.url), "start");
+    const built = await buildPage();
+    await usageStart(request, new URL(request.url), "done");
+    return built;
     };
     const resp = await serve();
     const ms = Date.now() - t0;
