@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.15 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.15_cosmetic_centre_glow.zip         | v3.37.14
 v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
 v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
 v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
@@ -280,6 +281,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.15 - Cosmetic: Match Centre centring, fixtures bar removed, background glow on Match Stats and Leaders
+- Owner request (17-Nov-2026): the "last checked" and "Updated" times had no date, and the pages said "refreshes hourly" although weekday pages are kept all day; Match Centre Last result and Table were left aligned; the colour bar down the left of the TV Fixtures page looked unlike the rest of the site; Match Stats and League Leaders lacked the green background glow the team page has.
+- Changed: Match Centre (TV columns) now centres the Last result and the Table position in each team column. The left colour bar is removed from the TV Fixtures page. Match Stats and League Leaders (TV and phone, dark theme) now use the same soft green corner glow as the team page. The Updated / Last updated / last checked times add the day when it is not today ("Yesterday 21:03", "15 Nov 21:03"), and the "refreshes hourly" wording is removed because a kept copy can be up to a day old on weekdays.
+- Also: Usage page, Teams people look up showed only the team number when a lookup that carries no name (the team builder) was the busiest row for that team; a row with a name now wins.
+- Request limit: no change (styling only).
+- Tests: the existing page tests still pass.
+- Docs: What's new
 
 v3.37.14 - Usage: count background rebuilds
 - Owner report (17-Nov-2026): with TV screens rotating for five minutes the Pages cut off counts did not move.

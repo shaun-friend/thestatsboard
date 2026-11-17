@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.15 17-Nov-2026 Cosmetic: Match Centre last result and table centred, fixtures left bar removed, background glow on Match Stats and League Leaders.
 //   v3.37.14 17-Nov-2026 Usage: Pages cut off also marks background rebuilds of a kept copy, which is how most screen pages are rebuilt.
 //   v3.37.13 17-Nov-2026 Usage: Pages cut off no longer counts pages that showed (a finished marker is written as soon as the page is built); club pages are left out.
 //   v3.37.12 17-Nov-2026 Usage: new "Pages cut off" panel (pages started minus finished) to show which pages Cloudflare stops part-way, e.g. Error 1102.
@@ -275,7 +276,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.14";
+const VERSION = "v3.37.15";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -323,6 +324,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.15 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.15_cosmetic_centre_glow.zip         | v3.37.14
 v3.37.14 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.14_usage_count_rebuilds.zip         | v3.37.13
 v3.37.13 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.13_usage_cut_off_fix.zip           | v3.37.12
 v3.37.12 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.12_usage_pages_cut_off.zip         | v3.37.11
@@ -561,6 +563,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.15 - Cosmetic: Match Centre centring, fixtures bar removed, background glow on Match Stats and Leaders
+- Owner request (17-Nov-2026): the "last checked" and "Updated" times had no date, and the pages said "refreshes hourly" although weekday pages are kept all day; Match Centre Last result and Table were left aligned; the colour bar down the left of the TV Fixtures page looked unlike the rest of the site; Match Stats and League Leaders lacked the green background glow the team page has.
+- Changed: Match Centre (TV columns) now centres the Last result and the Table position in each team column. The left colour bar is removed from the TV Fixtures page. Match Stats and League Leaders (TV and phone, dark theme) now use the same soft green corner glow as the team page. The Updated / Last updated / last checked times add the day when it is not today ("Yesterday 21:03", "15 Nov 21:03"), and the "refreshes hourly" wording is removed because a kept copy can be up to a day old on weekdays.
+- Also: Usage page, Teams people look up showed only the team number when a lookup that carries no name (the team builder) was the busiest row for that team; a row with a name now wins.
+- Request limit: no change (styling only).
+- Tests: the existing page tests still pass.
+- Docs: What's new
 
 v3.37.14 - Usage: count background rebuilds
 - Owner report (17-Nov-2026): with TV screens rotating for five minutes the Pages cut off counts did not move.
@@ -2311,6 +2321,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.15", "Looks: the Updated and last checked times now show the day when it is not today (Yesterday 21:03), the misleading \"refreshes hourly\" wording is gone, on the Usage page Teams people look up shows team names again, Match Centre now centres each team's last result and table position, the colour bar is gone from the TV Fixtures page, and Match Stats and League Leaders have the same soft green background as the team page."],
       ["v3.37.14", "Usage page: the Pages cut off panel now also counts pages rebuilt in the background, which is how most screen pages are refreshed."],
       ["v3.37.13", "Usage page: the Pages cut off panel no longer counts pages that did show, and no longer lists club pages such as Feedlog."],
       ["v3.37.12", "Usage page: a new Pages cut off panel shows how many pages were started but never finished, which is how Error 1102 (too much CPU) shows up."],
@@ -3585,13 +3596,14 @@ function mergeTeamRows(rows) {
   for (const r of rows || []) {
     const k = String(r.team || "");
     const n = Number(r.n) || 0;
-    const m = by.get(k) || { team: k, n: 0, own: "0", best: -1 };
+    const m = by.get(k) || { team: k, n: 0, own: "0", best: -1, hasName: false };
     m.n += n;
     if (String(r.own) === "1") m.own = "1";
-    if (n > m.best) { m.best = n; m.name = r.name; m.comp = r.comp; m.div = r.div; m.region = r.region; m.country = r.country; }
+    const has = !!String(r.name || "").trim(); // v3.37.15: a row that carries a team name beats one that does not (builder lookups carry only the number), then the busiest row wins
+    if ((has && !m.hasName) || (has === m.hasName && n > m.best)) { m.best = n; m.hasName = has; m.name = r.name; m.comp = r.comp; m.div = r.div; m.region = r.region; m.country = r.country; }
     by.set(k, m);
   }
-  return [...by.values()].sort((a, b) => b.n - a.n).slice(0, 25).map(({ best, ...r }) => r);
+  return [...by.values()].sort((a, b) => b.n - a.n).slice(0, 25).map(({ best, hasName, ...r }) => r);
 }
 async function usageQuery(sql) {
   const id = SITE_ENV.CF_ACCOUNT_ID, tok = SITE_ENV.CF_API_TOKEN;
@@ -4838,6 +4850,8 @@ async function cachedTextTry(target, accept) {
 let LDN_DTF = null; // v3.37.10: one shared formatter for "which London day is this", instead of building a new one on every call
 const ldnDay = d => (LDN_DTF || (LDN_DTF = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }))).format(d);
 const londonTime = ms => new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
+// v3.37.15: the time a page was built, with the day only when it is not today ("Yesterday 21:03", "15 Nov 21:03"), so an old copy is obvious and the text stays short.
+const londonStamp = ms => { const t = londonTime(ms), d = londonDay(ms), now = Date.now(); if (d === londonDay(now)) return t; if (d === londonDay(now - 864e5)) return "Yesterday " + t; return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Europe/London" }) + " " + t; };
 
 // Light/dark choice on phones is saved in the browser and shared by every page.
 const THEME_KEY = "rfuTheme";
@@ -4847,6 +4861,8 @@ const themeBoot = mq => `<script>(function(){try{var t=localStorage.getItem("${T
 const themeToggleScript = `<script>(function(){function sync(){var l=document.body.classList.contains("light");document.querySelectorAll(".tgl").forEach(function(b){b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="'+(l?"currentColor":"none")+'" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>';b.setAttribute("aria-label",l?"Switch to dark mode":"Switch to light mode");b.title=l?"Switch to dark mode":"Switch to light mode"});var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",l?"#eef2ef":"#080b0d")}sync();document.addEventListener("click",function(ev){var b=ev.target.closest(".tgl");if(!b)return;var t=document.body.classList.contains("light")?"dark":"light";document.body.classList.remove("light","dark"),document.body.classList.add(t);try{localStorage.setItem("${THEME_KEY}",t)}catch(e){}sync()})})();</script>`;
 
 // Shared styles for the menu and link builder pages.
+// v3.37.15: the soft green corner glow the team page uses, now also on Match Stats and League Leaders (dark theme only).
+const PAGE_GRAD = "body:not(.light){background:radial-gradient(ellipse at 12% 0%,#183526 0%,#0b1110 43%,#080b0d 78%)}";
 const MENU_CSS = `*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;background:#080b0d;color:#f5f7f6;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 .wrap{max-width:760px;margin:0 auto}h1{font-size:24px;margin:8px 0 4px}.sub{color:#91a49a;font-size:14px;margin:0 0 18px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -5508,7 +5524,7 @@ const worker = {
 <div class="tm tb">${crest(R.id, R.name, "b", fixedB)}<div class="nm">${e(R.name)}</div><span class="tag">Away</span></div></div>
 ${n.win ? winBarHtml(n.win, { left: "var(--ca)", right: "var(--cb)", fs: "1.1rem" }) : ""}<div class="bars">${bars}</div>
 ${h2hBlock}<div class="ft">${formBlock(L.form)}${formBlock(R.form, "fmr")}</div>
-<div class="upd">${cupMode ? "Form and stats here cover the " + e(d.cupName) + " only &middot; " : ""}${e(d.league || "")} &middot; Season ${e(season)} &middot; Last updated ${e(londonTime(Number(d.updatedAt) || Date.now()))} &middot; refreshes hourly</div>`;
+<div class="upd">${cupMode ? "Form and stats here cover the " + e(d.cupName) + " only &middot; " : ""}${e(d.league || "")} &middot; Season ${e(season)} &middot; Last updated ${e(londonStamp(Number(d.updatedAt) || Date.now()))}</div>`;
       }
       const colourScript = `<script>(function(){var root=document.documentElement;function ink(r,g,b){return (0.2126*r+0.7152*g+0.0722*b)/255>0.55?"#101010":"#ffffff"}
 function hex(c){return "#"+c.map(function(v){return ("0"+Math.round(v).toString(16)).slice(-2)}).join("")}
@@ -5529,6 +5545,7 @@ if(cb){root.style.setProperty("--cb",hex(cb));root.style.setProperty("--kb",ink(
       const css = `:root{--bg:#080b0d;--card:#111719;--bd:#26312d;--tx:#f2f6f4;--mu:#93a59b;--tr:#1a2420;--ca:${colA};--ka:${onColour(colA)};--cb:${colB};--kb:${onColour(colB)}}
 body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--tr:#e3ebe5}
 *{box-sizing:border-box}html{font-size:min(1.05vw,1.9vh)}
+${PAGE_GRAD}
 body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;padding:1rem 1.6rem max(1rem,24px);gap:.7rem}
 .mbar{display:none}.mu{color:var(--mu)}.top,.hd,.ft,.upd,.r,.ttl{flex:none}
 .ttl{text-align:center}.ttl p{margin:.25rem 0 0;color:var(--mu);font-size:1rem}
@@ -5688,7 +5705,6 @@ body.light .fx{background:#fff;border-color:#cbd8ce}body.light .fd{color:#17211c
 ${BANNER_CSS}
 :root{--b1:#3fb865;--b2:#e0b64c;--bg1:#103a25}
 body:not(.light){background:radial-gradient(130vh 80vh at 100% 100%,var(--bg1) 0%,#070d0a 60%)!important}
-body::before{content:"";position:fixed;left:0;top:0;bottom:0;width:.9vw;background:linear-gradient(180deg,var(--b1),var(--b2));z-index:6}
 .ban.next{border-color:var(--b1)}.fx.nx{box-shadow:0 0 0 .35vh var(--b1)}body.light .fx.nx{box-shadow:0 0 0 .35vh var(--b1)}
 .rt{text-align:right;line-height:1.1;flex:0 0 auto}.rt b{display:block;font-size:3.4vh;letter-spacing:.14em;text-transform:uppercase;color:var(--b2)}.rt em{display:block;font-style:normal;font-size:3.6vh;font-weight:800;color:#fff;margin-top:.4vh}.rt span{display:block;font-size:2vh;color:#a9c4b2;margin-top:.3vh}
 body.light .rt b{color:var(--b1)}body.light .rt em{color:#14301e}body.light .rt span{color:#53665a}
@@ -5699,7 +5715,7 @@ ${nt ? tvNoticeHtml(nt, true) : ""}
 ${bannerHtml}
 ${tvBody}
 ${aroundHtml}
-${S.features.checked === false ? "" : `<div class="ftl">Data from the RFU fixtures feed &middot; last checked ${e(londonTime(Number(d && d.updatedAt) || Date.now()))}</div>`}
+${S.features.checked === false ? "" : `<div class="ftl">Data from the RFU fixtures feed &middot; last checked ${e(londonStamp(Number(d && d.updatedAt) || Date.now()))}</div>`}
 ${TV_BRAND_SCRIPT.replace("__OV__", hexParam(url.searchParams.get("colour"))).replace("__ID__", encodeURIComponent(String(team || "")))}
 <script>(function(){var MAX=${pageReloadSeconds() * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
 </body></html>`;
@@ -5768,6 +5784,7 @@ ${themeToggleScript}
         const tv = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>League leaders${leagueName ? " - " + e(leagueName) : ""}</title>
 <style>
 ${MENU_CSS}
+${PAGE_GRAD}
 html,body{height:100%}body{overflow:hidden;padding:2.2vh 2.2vw 3.6vh;display:flex;flex-direction:column}
 .hd{display:flex;align-items:center;justify-content:space-between;gap:2vw;height:9vh}.hl{display:flex;align-items:center;gap:1.6vw;flex:0 0 auto}.hd h1{margin:0;font-size:4.6vh;line-height:1.05;white-space:nowrap}.tn{display:block;font-size:3vh;line-height:1.2;color:#c5d1ca;white-space:nowrap}body.light .tn{color:#33443a}.hd p{margin:0;font-size:2.1vh;line-height:1.3;color:#91a49a;text-align:right;flex:1;min-width:0}.crest.hdc{width:8vh;height:8vh;flex-basis:8vh}.crest.hdc .ini{font-size:2.6vh}.crest.hdc img{padding:.7vh}
 .crest.trophy svg{width:62%;height:62%}.lc{background:#111719;border:1px solid #26312d}.lc label{display:block;text-transform:uppercase;letter-spacing:.08em}.lt{display:flex;align-items:center}.lnm{flex:1;min-width:0}.ln{display:block;color:#f5f7f6}body.light .ln{color:#17211c}.lnm small{display:block;color:#91a49a}.lval{font-weight:900;color:#7fd89a}.you{border-top:1px solid #26312d;color:#b4c4bb}.you b{color:#f5f7f6}
@@ -5786,6 +5803,7 @@ ${L ? `<div class="lg">${cards}</div>` : none}
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>League leaders${leagueName ? " - " + e(leagueName) : ""}</title>
 <style>
 ${MENU_CSS}
+${PAGE_GRAD}
 .ph{display:flex;align-items:center;gap:12px;margin:8px 0 6px}.ph h1{margin:0;font-size:21px}.ph .tn{display:block;font-size:16px;color:#c5d1ca;margin-top:2px}body.light .ph .tn{color:#33443a}.crest.hdc{width:52px;height:52px;flex-basis:52px}.crest.hdc .ini{font-size:16px}.crest.hdc img{padding:5px}
 .crest.trophy svg{width:62%;height:62%}.lcl{display:flex;flex-direction:column;gap:10px;margin-top:14px}.ln{color:#f5f7f6}body.light .ln{color:#17211c}.none{color:#91a49a;font-size:14px;padding:10px 2px}.pl{display:flex;gap:8px}.nt{font-size:12px;color:#7d8c84;margin:12px 2px 0}
 ${CARD_CSS}
@@ -6403,7 +6421,7 @@ ${n.win ? winBarHtml(n.win, mcWin(n.win, n.mineHome, t, idx, false)) : ""}${n.ve
       const refreshScript = warmScript + `<script>(function(){var loaded=Date.now(),MAX=${REFRESH_SECONDS * 1000};if(!window.matchMedia("(max-width:800px)").matches){setTimeout(function(){(window.rfuSoft?rfuSoft():location.reload())},MAX);return}function tryReload(){if(Date.now()-loaded>=MAX&&document.visibilityState==="visible"&&window.scrollY<40)(window.rfuSoft?rfuSoft():location.reload())}setInterval(tryReload,60000);document.addEventListener("visibilitychange",tryReload)})();</script>`;
       // "Updated" is when the RFU data was last pulled (oldest across the teams), not when the page loaded.
       const dataTimes = results.map(r => r.s && Number(r.s.updatedAt)).filter(Boolean);
-      const stamp = londonTime(dataTimes.length ? Math.min(...dataTimes) : Date.now());
+      const stamp = londonStamp(dataTimes.length ? Math.min(...dataTimes) : Date.now());
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><noscript><meta http-equiv="refresh" content="${REFRESH_SECONDS}"></noscript><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><title>${e(clubName)}</title>
 <style>
 :root{--bg:#080b0d;--card:#111719;--bd:#26312d;--tx:#f2f6f4;--mu:#93a59b;--wb:#163d26;--wt:#7fd89a;--lb:#4a1c1c;--lt:#f09595;--db:#46340f;--dt:#fac775;--hb:#1d2b36;--ht:#9ccaf0;--cb:#1b2a23;--ct:#7fd89a}
@@ -6452,7 +6470,8 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .cnx{flex:72 1 0;min-height:0;background:var(--ac);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.5rem;text-align:center;padding:.9rem 1rem;overflow:hidden}.cnx .k,.cnx .k b{color:var(--on)}.cnx .k{opacity:.95;font-size:1.8rem;letter-spacing:.16em}.cnx .cr{width:8rem;height:8rem;flex-basis:8rem;background:rgba(255,255,255,.92)}.cnx .cr .ini{font-size:2.6rem}.cnx .cr img{inset:14%;width:72%;height:72%}
 .cnx .on{font-size:2.9rem;font-weight:800;line-height:1.45;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cnx.e{justify-content:center}.cnx .onw{width:100%;display:flex;align-items:center;justify-content:center}.ly-two .cnx .on{font-size:2.5rem}.ly-two .cnx .onw{min-height:7.25rem}.cnx .nb{margin-top:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:.5rem}.cnx .nw{width:100%;display:flex;justify-content:center}.ly-win .cnx .nw{min-height:5.6rem}.ly-ven .cnx .og{min-height:1.9rem}.ly-clash .cnx .oq{min-height:2rem}.cnx .od{font-size:2.1rem;font-weight:800}.cnx .oc{display:flex;gap:.7rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:1.4rem;font-weight:800}.cnx .oc span{background:var(--on);color:var(--ac);border-radius:.5rem;padding:.15rem .8rem;text-transform:uppercase;letter-spacing:.06em}.cnx .oc i{font-style:normal}.cnx .og,.cnx .oq{max-width:100%;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cnx .og{font-size:1.25rem;font-weight:700}.cnx .oq{font-size:1.3rem;font-weight:800}.bq{color:var(--tx);font-weight:700}
 .clw{flex:28 1 0;min-height:0;display:flex;flex-direction:column}.cls{flex:1;min-height:0;display:flex;align-items:center;gap:1.2rem;padding:.8rem 1.1rem;border-bottom:1px solid var(--bd)}.cls .cr{width:5.6rem;height:5.6rem;flex-basis:5.6rem}.cls .cr .ini{font-size:1.1rem}.ln{min-width:0}.rs{display:flex;align-items:center;gap:.6rem}.dsh{font-style:normal;margin:0 .14em}.rsc{font-size:4rem;font-weight:800;line-height:1}.lo{font-size:1.5rem;line-height:1.5;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
+.ctb{flex:none;padding:1rem 1.1rem 1.1rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;line-height:1.25}
+.cls{justify-content:center}.cls .ln{text-align:center}.cls .rs{justify-content:center}.ctb{justify-content:center}.ps2{font-size:2.4rem;font-weight:800;line-height:1.2}.pt{font-size:1.3rem;font-weight:700}.pd{font-size:1.1rem;color:var(--mu)}
 .rs-a .rw,.rs-b .rw,.rs-c .rw,.rs-d .rw{padding-left:0}.rs-a .rw::before,.rs-b .rw::before,.rs-c .rw::before,.rs-d .rw::before{display:none}
 .rs-a .rw>.bx,.rs-b .rw>.bx,.rs-c .rw>.bx,.rs-d .rw>.bx{border-color:var(--bd)}
 .rs-b .rw>.bx.tbx,.rs-c .rw>.bx.tbx,.rs-d .rw>.bx.tbx{background:var(--card);border-color:var(--bd)}
@@ -6465,7 +6484,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rs-b .tbar{display:block;margin:0;border-radius:0;font-size:1.2rem;padding:.6rem 1.05rem}.rs-b .tbar span{display:block;font-size:.85rem}
 .rs-c .rw{border:.25rem solid var(--ac);padding:0;background:var(--card)}
 .rs-d .stab{display:block;writing-mode:horizontal-tb;transform:none;font-size:1.05rem;padding:.45rem 1.05rem;border-radius:0;text-align:left}}
-</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)} &middot; refreshes every hour</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
+</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)}</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
       return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=60"}});
     }
 
@@ -7672,7 +7691,7 @@ ${mobileCss}
 ${layout === "tv" ? "" : themeBoot(layout === "mobile" ? "true" : 'window.matchMedia("(max-width:700px)").matches')}
 ${layout === "tv" ? "" : `<nav class="mbar"><a href="${esc(pubOrigin + "/?" + new URLSearchParams({theme}).toString())}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>`}
 <div class="topline"><span>Club season dashboard</span><span>England Rugby • Live league data</span></div>
-<header class="clubhead"><div class="crest-wrap">${crest}${crestFallback}</div><div style="min-width:0"><h1 class="club-title">${esc(displayTeamName)}</h1><div class="league">${esc(leagueTitle)}</div></div>${tvPill}<div class="head-right" style="margin-left:auto"><div class="season">${esc(season)}</div><div class="updated">Updated ${esc(londonTime(dataTime))} &middot; refreshes every hour</div></div></header>
+<header class="clubhead"><div class="crest-wrap">${crest}${crestFallback}</div><div style="min-width:0"><h1 class="club-title">${esc(displayTeamName)}</h1><div class="league">${esc(leagueTitle)}</div></div>${tvPill}<div class="head-right" style="margin-left:auto"><div class="season">${esc(season)}</div><div class="updated">Updated ${esc(londonStamp(dataTime))}</div></div></header>
 ${tvDash ? "" : `<section class="stats">
 ${stat("League position",position?`#${position}`:"—",`${table.length} clubs in division`)}
 ${stat("League points",selectedStats.pts,gap ? gap.html : `${gapToTop===0?"Top of the table":`${gapToTop} points off top`}`)}
