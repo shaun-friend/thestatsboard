@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
 v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
 v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
 v3.38.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.38.0_tv_quick_setup.zip | v3.37.27
@@ -295,6 +296,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.2 - Quick setup: a clear message when a code was not picked up
+- Owner request (17-Nov-2026): how to tell a phone user that a code has expired (option 2 chosen: a message on the phone, no new storage writes).
+- Changed: after Send to screen the phone checks every 3 seconds whether the screen collected it. After about 20 seconds without confirmation it shows "Not confirmed yet", the code to check against the screen (482 719 style) and a note that a waiting screen gets a new code every 5 minutes, with an "Enter a different code" button to /pair. It keeps checking for about a minute: if the screen confirms late (the settings store can take up to a minute to show a collected code) the message changes to "Screen linked" and the button goes.
+- Not done (and why): the screen telling the server about each code so the phone could be told at once. That is one settings-store write per code per waiting screen (about 288 a day for a screen left waiting) against 1,000 writes a day on the free plan.
+- Request limit: no change (the same check as before, a little earlier message).
+- Tests: new browser test for the unconfirmed message, the button and the late confirmation; the existing tests pass.
+- Docs: Setting up a clubhouse screen
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.1 - Fewer screen checks, one Usage line per screen
 - Owner request (17-Nov-2026): after reviewing how often screens check in, trim the traffic; and show only the most recent page and contact on Usage, not four rows per screen.

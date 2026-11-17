@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.2 17-Nov-2026 Quick setup: if the screen has not collected a sent code after about 20 seconds the phone says so, shows the code to check and offers Enter a different code.
 //   v3.39.1 17-Nov-2026 Screens: the rotator checks for changes every 5 minutes (was 2); the screen list is cached for 60 seconds; Usage shows one line per named screen.
 //   v3.39.0 17-Nov-2026 Paired screens: each quick-setup screen gets its own random ID; Admin lists them (Paired screens) with Kick out and Remove; a kicked-out screen returns to the setup code.
 //   v3.38.0 17-Nov-2026 TV quick setup: open /setup on a TV, scan the QR code with a phone, sign in with the club PIN and choose what the screen shows. The rotator now passes a screen name to its pages.
@@ -291,7 +292,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.1";
+const VERSION = "v3.39.2";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -338,6 +339,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.2 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.2_code_hint.zip | v3.39.1
 v3.39.1 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.1_screen_checks.zip | v3.39.0
 v3.39.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.0_paired_screens.zip | v3.38.0
 v3.38.0 | 17-Nov-2026 | RFU_Club_Dashboard_v3.38.0_tv_quick_setup.zip | v3.37.27
@@ -592,6 +594,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.2 - Quick setup: a clear message when a code was not picked up
+- Owner request (17-Nov-2026): how to tell a phone user that a code has expired (option 2 chosen: a message on the phone, no new storage writes).
+- Changed: after Send to screen the phone checks every 3 seconds whether the screen collected it. After about 20 seconds without confirmation it shows "Not confirmed yet", the code to check against the screen (482 719 style) and a note that a waiting screen gets a new code every 5 minutes, with an "Enter a different code" button to /pair. It keeps checking for about a minute: if the screen confirms late (the settings store can take up to a minute to show a collected code) the message changes to "Screen linked" and the button goes.
+- Not done (and why): the screen telling the server about each code so the phone could be told at once. That is one settings-store write per code per waiting screen (about 288 a day for a screen left waiting) against 1,000 writes a day on the free plan.
+- Request limit: no change (the same check as before, a little earlier message).
+- Tests: new browser test for the unconfirmed message, the button and the late confirmation; the existing tests pass.
+- Docs: Setting up a clubhouse screen
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.1 - Fewer screen checks, one Usage line per screen
 - Owner request (17-Nov-2026): after reviewing how often screens check in, trim the traffic; and show only the most recent page and contact on Usage, not four rows per screen.
@@ -2233,7 +2244,7 @@ const DOC_SECTIONS = [
       "On the TV open thestatsboard.co.uk/setup. It shows a QR code and a 6-digit code.",
       "Scan the QR code with your phone camera (or go to thestatsboard.co.uk/pair on the phone and type the code) and sign in with the club PIN.",
       "Choose Rotating screen, Match Centre, or One page for one team. Teams come from Admin, Our teams, so add a team there first; a team you have switched off there (hidden from the Match Centre and the rotation) can still be sent to a screen as a single page. You can give the screen a name, which then shows on the Usage page.",
-      "Press Send to screen. The TV picks it up within a few seconds and starts. The phone tells you when it has.",
+      "Press Send to screen. The TV picks it up within a few seconds and starts. The phone tells you when it has; if it has not after about 20 seconds the phone says so, shows the code to check against the screen (a waiting TV gets a new code every 5 minutes) and offers Enter a different code.",
       "The TV remembers its link, so after a restart it starts by itself. If it forgets (some signage players clear their storage on start), set the shown link as the player's start page instead. To pair a screen again, open thestatsboard.co.uk/setup?reset=1 on it."
     ] },
     { p: "Each paired screen gets its own random ID and appears in Admin, Paired screens, with when it was paired and what it shows. Press Kick out (twice, to confirm) to send a screen back to the setup code, for example when a TV is moved or lent. A rotating screen notices within about 5 minutes; Match Centre and single pages at their next refresh (every 10 minutes on match days, hourly otherwise). Remove clears a kicked-out screen from the list. Two screens can have the same name: each shows a short ending (for example Bar k7f2) on the Admin and Usage pages. Screens paired before this release have no ID and cannot be kicked out from Admin." },
@@ -2485,6 +2496,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.2", "Quick setup: if the screen has not picked up what you sent after about 20 seconds (for example its code had run out and refreshed), the phone says \"Not confirmed yet\", shows the code to check against the screen and offers Enter a different code. If the screen picks it up later, it changes to Screen linked."],
       ["v3.39.1", "Screens now check for changes every 5 minutes instead of 2, which halves their traffic. A running rotating screen picks up an Admin change or a kick out within about 5 minutes. The Usage page shows one line per named screen: the page it showed last, its total loads and when it was last seen. The phone address for quick setup is now thestatsboard.co.uk/pair (the old /p still works). Teams for a single-page screen come from Admin, Our teams (add the team there first), and a team switched off there can still be chosen. A waiting TV now gets a new code by itself when the old one runs out."],
       ["v3.39.0", "Paired screens: every screen set up with the quick setup page gets its own ID and appears in Admin, Paired screens. Kick out sends a screen back to the setup code (a rotating screen within about 5 minutes, other pages at their next refresh). Two screens can share a name; each shows a short ending to tell them apart."],
       ["v3.38.0", "TV quick setup: on a new TV open thestatsboard.co.uk/setup, scan the QR code with your phone, sign in with the club PIN and choose what the screen shows (the rotating screen, the Match Centre or one page for one team). Nothing to type on the TV. You can name the screen so it shows by name on the Usage page."],
@@ -8331,14 +8343,14 @@ button{width:100%;font:700 16px Arial,Helvetica,sans-serif;color:#fff;background
 <div id="more" hidden><label class="l" for="tm">Team</label><select id="tm">${tOpts}</select><p style="margin:-6px 0 12px;font-size:12px">Teams come from Admin, Our teams: add a team there first and it appears in this list. A team you have switched off there (hidden from the Match Centre and rotation) can still be sent to a screen as a single page.</p><label class="l" for="pg">Page</label><select id="pg">${pOpts}</select></div>
 <label class="l" for="nm" style="margin-top:6px">Screen name (optional)</label><input id="nm" type="text" maxlength="24" placeholder="e.g. Clubhouse Bar" autocomplete="off"><p style="margin:-6px 0 14px;font-size:12px" id="nh">The Usage page then shows this screen by name, with a short ending to tell screens apart.</p>
 <p class="e" id="er" hidden></p><button id="go">Send to screen</button></div>
-<div id="d" hidden><div class="ok">&#10003;</div><h1 id="dh">Sent</h1><p id="dp"></p></div></div>
+<div id="d" hidden><div class="ok">&#10003;</div><h1 id="dh">Sent</h1><p id="dp"></p><a id="dc" href="/pair" hidden style="display:block;text-align:center;color:#fff;background:#18512f;border-radius:10px;padding:13px;text-decoration:none;font-weight:700;margin-top:14px">Enter a different code</a></div></div>
 <script>(function(){var CODE="${code}",NAMES=${JSON.stringify(names || []).replace(/</g, "\\u003c")};function $(i){return document.getElementById(i)}
 $("nm").oninput=function(){var v=this.value.trim().toLowerCase(),d=false;for(var i=0;i<NAMES.length;i++)if(v&&NAMES[i].toLowerCase()===v)d=true;$("nh").textContent=d?"Another screen already has this name. This one gets its own ending, so you can tell them apart.":"The Usage page then shows this screen by name, with a short ending to tell screens apart."};
 var rs=document.getElementsByName("k");function kind(){for(var i=0;i<rs.length;i++)if(rs[i].checked)return rs[i].value;return ""}
 function sync(){$("more").hidden=kind()!=="page"}for(var i=0;i<rs.length;i++)rs[i].onchange=sync;sync();
 function check(n){fetch("/api/pair?c="+CODE+"&check=1",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
-if(j&&j.waiting){if(n<20){setTimeout(function(){check(n+1)},3000)}else{$("dh").textContent="Waiting for the screen";$("dp").textContent="The screen has not picked it up yet. Check that the code on the screen is "+CODE.slice(0,3)+" "+CODE.slice(3)+". It keeps trying for ${PAIR_TTL / 60} minutes."}}
-else{$("dh").textContent="Screen linked";$("dp").textContent="The screen has picked it up and is starting."}}).catch(function(){})}
+if(j&&j.waiting){if(n<20){setTimeout(function(){check(n+1)},3000)}if(n>=7){$("dh").textContent="Not confirmed yet";$("dp").textContent="The screen has not confirmed it yet. If it has not started within a minute, check that the code on the screen is "+CODE.slice(0,3)+" "+CODE.slice(3)+". A waiting screen gets a new code every ${PAIR_TTL / 60} minutes, so this one may have run out.";$("dc").hidden=false}}
+else{$("dh").textContent="Screen linked";$("dp").textContent="The screen has picked it up and is starting.";$("dc").hidden=true}}).catch(function(){})}
 $("go").onclick=function(){var b=$("go");b.disabled=true;$("er").hidden=true;
 fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({code:CODE,kind:kind(),team:$("tm").value,page:$("pg").value,name:$("nm").value})})
 .then(function(r){return r.json().then(function(j){return{r:r,j:j}})}).then(function(x){

@@ -82,4 +82,19 @@ await tv({},async(p,s)=>{
  await p.clock.runFor(3100);await p.waitForTimeout(40);await p.clock.runFor(3100);await p.waitForTimeout(40);
  ck('reports when the screen has picked it up',(await p.textContent('#dh'))==='Screen linked',await p.textContent('#dh'));
  ck('phone: no script errors',errs.length===0,errs.join('|'));await ctx.close()}
+// 7. Phone: the screen does not collect the code (it may have refreshed): a hint and a way to enter another code; confirmation still wins if it arrives later
+{const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();let chk=0;
+ await p.route('**/*',r=>{const u=new URL(r.request().url());
+  if(u.pathname==='/pair/482719')return r.fulfill({status:200,contentType:'text/html',body:phHtml});
+  if(u.pathname==='/api/pair-send')return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,label:'Match Centre',link:'/x'})});
+  if(u.pathname==='/api/pair'){chk++;return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(chk<14?{ok:false,waiting:true}:{ok:false})})}
+  r.fulfill({status:200,body:''})});
+ await p.clock.install();await p.goto('https://sb.test/pair/482719');await p.click('#go');await p.waitForTimeout(60);
+ ck('before the first check there is no alarm',!(await p.isVisible('#dc')));
+ for(let i=0;i<12;i++){await p.clock.runFor(3000);await p.waitForTimeout(40)}
+ ck('after about 20 seconds unconfirmed: says so and shows the code to check',/Not confirmed yet/.test(await p.textContent('#dh'))&&/482 719/.test(await p.textContent('#dp')),await p.textContent('#dh'));
+ ck('offers Enter a different code (links to /pair)',await p.isVisible('#dc')&&(await p.getAttribute('#dc','href'))==='/pair');
+ for(let i=0;i<12;i++){await p.clock.runFor(3000);await p.waitForTimeout(40)}
+ ck('if confirmation arrives later it changes to Screen linked and the button goes',(await p.textContent('#dh'))==='Screen linked'&&!(await p.isVisible('#dc')),await p.textContent('#dh'));
+ await p.screenshot({path:'w/pair_phone_hint.png'});await ctx.close()}
 await b.close();console.log(bad?'FAILED '+bad:'ALL OK')})();
