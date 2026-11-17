@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
 v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
 v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
 v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
@@ -289,6 +290,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.24 - TV rotation strip: dots in the centre
+- Owner report (17-Nov-2026): the dots could not be seen on the test site.
+- Fix: the orange Test environment badge sits in the bottom right corner above everything and covered the dots, which were also at the right. The dots now sit in the centre of the strip (page name on the left, progress line along the top). The live site has no badge, so nothing else changes there.
+- Request limit: no change.
+- Tests: the existing strip tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.23 - TV rotation reloads itself when something changes; Test environment badge once
 - Owner requests (17-Nov-2026): a screen that is already loaded should notice Admin changes by itself, and the Test environment badge was showing twice.

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.24 17-Nov-2026 TV rotation strip: dots moved to the centre so the Test environment badge no longer covers them.
 //   v3.37.23 17-Nov-2026 TV rotation: a loaded screen reloads itself when its settings or the release change; test badge shown once.
 //   v3.37.22 17-Nov-2026 Admin, TV rotation: each team shows its crest in its header (badge kept if a crest is missing).
 //   v3.37.21 17-Nov-2026 TV rotation: page name and dots/progress line are separate options; the strip no longer covers the pages.
@@ -284,7 +285,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.23";
+const VERSION = "v3.37.24";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -332,6 +333,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
 v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
 v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
 v3.37.21 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.21_tv_strip_options.zip | v3.37.20
@@ -579,6 +581,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.24 - TV rotation strip: dots in the centre
+- Owner report (17-Nov-2026): the dots could not be seen on the test site.
+- Fix: the orange Test environment badge sits in the bottom right corner above everything and covered the dots, which were also at the right. The dots now sit in the centre of the strip (page name on the left, progress line along the top). The live site has no badge, so nothing else changes there.
+- Request limit: no change.
+- Tests: the existing strip tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.23 - TV rotation reloads itself when something changes; Test environment badge once
 - Owner requests (17-Nov-2026): a screen that is already loaded should notice Admin changes by itself, and the Test environment badge was showing twice.
@@ -2397,6 +2406,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.24", "TV rotation: the dots now sit in the middle of the bottom strip, clear of the test-site badge."],
       ["v3.37.23", "TV rotation: a screen that is already running now notices changes made in Admin, and new releases, and reloads itself within about 2 minutes."],
       ["v3.37.22", "Admin, TV rotation: each team now shows its crest, as on the rest of the site."],
       ["v3.37.21", "TV rotation: the page name and the dots and progress line are now two separate switches in Admin, and the strip sits below the pages so it never covers anything."],
@@ -2722,7 +2732,7 @@ function tvScreenPage(plan, opt, theme) {
 #st{position:fixed;inset:0 0 ${strip ? "5vh" : "0"} 0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
 #ld[hidden]{display:none}#ld{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;font-size:3vh;letter-spacing:.08em;text-align:center}#ld img{height:22vh;width:22vh;border-radius:22%;box-shadow:0 1vh 4vh rgba(0,0,0,.35)}#ld b{font-size:4.2vh;letter-spacing:.04em}#ld span{opacity:.7}
 #bt{position:fixed;left:0;right:0;bottom:0;height:5vh;z-index:5;pointer-events:none;background:${bg}}#bt[hidden]{display:none}
-#bi{position:absolute;left:0;right:0;top:.6vh;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:0 2.4vw;font-size:2.2vh}
+#bi{position:absolute;left:0;right:0;top:.6vh;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2vw;padding:0 2.4vw;font-size:2.2vh}#lab{grid-column:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dots{grid-column:2}
 #dots{display:flex;gap:1vh}#dots i{display:block;width:1.3vh;height:1.3vh;border-radius:50%;background:${light ? "#b8c8bd" : "#33433b"}}#dots i.on{background:#4cc36f}
 #pg{position:absolute;left:0;right:0;top:0;height:.6vh;background:${light ? "#dbe6de" : "#17211d"}}#bar{height:100%;width:0;background:#4cc36f}</style></head><body>
 <!-- class="ver" rfu-soft : the pages inside this screen show the version, so no extra stamp or refresh script is added here -->
