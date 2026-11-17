@@ -42,6 +42,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.25 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.25_tv_order_timing.zip | v3.37.24
 v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
 v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
 v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
@@ -290,6 +291,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.25 - TV rotation: list order from the first round, steadier timing
+- Owner report (17-Nov-2026): the Match Centre is not always shown the first time round, and the timing seems off, with the rotation going round a few slides before the Match Centre appears.
+- Cause: the screen started on whichever page was ready first and skipped any page that had not finished loading when its turn came. The Match Centre is the heaviest page and the slowest to load, so it was usually skipped in the first round and only appeared the next time round. Skipped pages also made the first rounds shorter than the total shown in Admin.
+- Fix: the first page in the list is shown first (if it is not ready within 10 seconds the first ready one goes ahead). During the first 25 seconds the screen waits for a page that has not loaded yet instead of skipping it (the page on screen stays a little longer), so the first round follows the list. After that, or for a page that has failed, a page that is not ready is still skipped so the screen never stalls. Each page is also timed from when the previous one was due to end, so small delays no longer add up round after round.
+- Request limit: no change.
+- Tests: new test with the Match Centre as the slowest page (the first round must follow the list and each page must stay its set time); it fails on the previous release. The existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.24 - TV rotation strip: dots in the centre
 - Owner report (17-Nov-2026): the dots could not be seen on the test site.

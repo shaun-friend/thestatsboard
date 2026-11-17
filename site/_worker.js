@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.37.25 17-Nov-2026 TV rotation: pages go round in the list order from the first round (the slow Match Centre is waited for, not skipped); timing no longer drifts.
 //   v3.37.24 17-Nov-2026 TV rotation strip: dots moved to the centre so the Test environment badge no longer covers them.
 //   v3.37.23 17-Nov-2026 TV rotation: a loaded screen reloads itself when its settings or the release change; test badge shown once.
 //   v3.37.22 17-Nov-2026 Admin, TV rotation: each team shows its crest in its header (badge kept if a crest is missing).
@@ -285,7 +286,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.37.24";
+const VERSION = "v3.37.25";
 const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -333,6 +334,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.37.25 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.25_tv_order_timing.zip | v3.37.24
 v3.37.24 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.24_tv_dots_centre.zip | v3.37.23
 v3.37.23 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.23_tv_self_reload.zip | v3.37.22
 v3.37.22 | 17-Nov-2026 | RFU_Club_Dashboard_v3.37.22_tv_admin_crests.zip | v3.37.21
@@ -581,6 +583,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.37.25 - TV rotation: list order from the first round, steadier timing
+- Owner report (17-Nov-2026): the Match Centre is not always shown the first time round, and the timing seems off, with the rotation going round a few slides before the Match Centre appears.
+- Cause: the screen started on whichever page was ready first and skipped any page that had not finished loading when its turn came. The Match Centre is the heaviest page and the slowest to load, so it was usually skipped in the first round and only appeared the next time round. Skipped pages also made the first rounds shorter than the total shown in Admin.
+- Fix: the first page in the list is shown first (if it is not ready within 10 seconds the first ready one goes ahead). During the first 25 seconds the screen waits for a page that has not loaded yet instead of skipping it (the page on screen stays a little longer), so the first round follows the list. After that, or for a page that has failed, a page that is not ready is still skipped so the screen never stalls. Each page is also timed from when the previous one was due to end, so small delays no longer add up round after round.
+- Request limit: no change.
+- Tests: new test with the Match Centre as the slowest page (the first round must follow the list and each page must stay its set time); it fails on the previous release. The existing tests pass.
+- Docs: TV rotation (one rotating link)
 
 v3.37.24 - TV rotation strip: dots in the centre
 - Owner report (17-Nov-2026): the dots could not be seen on the test site.
@@ -2406,6 +2416,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.37.25", "TV rotation: pages now go round in the order of the list from the very first round (the Match Centre is no longer skipped while it loads), and the timing is steadier."],
       ["v3.37.24", "TV rotation: the dots now sit in the middle of the bottom strip, clear of the test-site badge."],
       ["v3.37.23", "TV rotation: a screen that is already running now notices changes made in Admin, and new releases, and reloads itself within about 2 minutes."],
       ["v3.37.22", "Admin, TV rotation: each team now shows its crest, as on the rest of the site."],
@@ -2743,7 +2754,7 @@ function tvScreenPage(plan, opt, theme) {
 var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,N=C.n,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
 if(!P.length)return;
 var FADE=800,STAG=4000,TMO=30000,REF=300000;
-var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0;
+var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0,T0=Date.now(),DL=0,WAIT=25000,FIRST=10000;
 // Each page reports the version it was built by. When one comes back newer than the others shown so far, the others are refreshed straight away (one every 4 seconds) so a deploy is not shown as a mixture of old and new for several minutes.
 function vn(s){var a=String(s||"").replace("v","").split(".");return a.length===3?(+a[0])*1e6+(+a[1])*1e3+(+a[2]):0}
 if(N||D){bt.hidden=false}if(D){P.forEach(function(){dt.appendChild(document.createElement("i"))})}else{dt.hidden=true;document.getElementById("pg").hidden=true}
@@ -2767,7 +2778,7 @@ function ready(sl){
   sl.v=vn(f.__v);clearTimeout(sl.rt);
   if(sl.v>TOP){TOP=sl.v;var k=0;S.forEach(function(o){if(o!==sl&&o.f&&o.v<TOP){clearTimeout(o.rt);o.rt=setTimeout(function(){mk(o)},(++k)*STAG)}})}
   sl.rt=setTimeout(function(){mk(sl)},sl.v<TOP?STAG:REF+sl.i*15000);
-  if(cur<0)show(sl.i)
+  if(cur<0&&(S[0].f||Date.now()-T0>=FIRST))show(nextReady(-1))
 }
 addEventListener("message",function(e){
   var d=e.data;if(typeof d!=="string")return;
@@ -2776,14 +2787,19 @@ addEventListener("message",function(e){
   for(var i=0;i<S.length;i++){var b=S[i].busy;if(b&&b.contentWindow===e.source){ready(S[i]);return}}
 });
 function nextReady(from){for(var k=1;k<=S.length;k++){var j=(from+k)%S.length;if(S[j].f)return j}return -1}
+// Start: the first page in the list is shown first. If it is not ready within 10 seconds the first one that is ready goes ahead.
+setTimeout(function(){if(cur<0){var j=nextReady(-1);if(j>=0)show(j)}},FIRST);
 function show(j){
   if(cur>=0&&S[cur].f&&cur!==j)S[cur].f.className="fr";
   cur=j;S[j].f.className="fr on";ld.hidden=true;
   if(N)lab.textContent=S[j].p.n;if(D){[].forEach.call(dt.children,function(x,k){x.className=k===j?"on":""});
     bar.style.transition="none";bar.style.width="0";void bar.offsetWidth;bar.style.transition="width "+S[j].p.s+"s linear";bar.style.width="100%"}
-  clearTimeout(tm);tm=setTimeout(adv,S[j].p.s*1000)
+  // Each page is timed from when the previous one was due to end, not from when this code happened to run, so small delays do not add up over a round.
+  var now=Date.now();DL=(DL&&now-DL<2000&&now>=DL-2000)?DL+S[j].p.s*1000:now+S[j].p.s*1000;
+  clearTimeout(tm);tm=setTimeout(adv,Math.max(0,DL-now))
 }
-function adv(){var j=nextReady(cur);if(j<0||j===cur){tm=setTimeout(adv,S[cur].p.s*1000);return}show(j)}
+// Pages go round in the order of the list. During the first 25 seconds a page that has not loaded for the first time yet is waited for (the page on screen stays), so the Match Centre is not skipped just because it is the slowest to build. After that, or if a page has failed, it is skipped until it is ready.
+function adv(){var n=S.length,j=-1;for(var k=1;k<=n;k++){var c=(cur+k)%n;if(S[c].f){j=c;break}if(c!==cur&&S[c].fail===0&&Date.now()-T0<WAIT){tm=setTimeout(adv,1000);return}}if(j<0||j===cur){DL=0;tm=setTimeout(adv,S[cur].p.s*1000);return}show(j)}
 S.forEach(function(sl,i){setTimeout(function(){mk(sl)},i*STAG)});
 // Every 2 minutes the screen asks for its own address again (this page makes no outside calls, so it is cheap). If the pages, seconds, theme, strip options or release number have changed, it reloads itself so the change shows without anyone touching the screen.
 var SIG=document.getElementById("tvd").textContent;
