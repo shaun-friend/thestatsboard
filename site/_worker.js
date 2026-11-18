@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.6 18-Nov-2026 League Leaders pages are now kept at the edge like Fixtures and the Match page, so rotating screens stop rebuilding them on every request.
 //   v3.39.5 17-Nov-2026 Quick setup: the TV setup page is fixed to the visible screen (footer no longer lost under the iPad toolbar) and the QR box keeps its size so the page no longer shifts when it reloads.
 //   v3.39.4 17-Nov-2026 Quick setup: the version line is the last thing on the TV setup page, smaller, and cannot overlap anything.
 //   v3.39.3 17-Nov-2026 Quick setup: the TV setup page shows the version and date in a readable footer line.
@@ -295,8 +296,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.5";
-const BUILD_DATE = "17-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.39.6";
+const BUILD_DATE = "18-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -342,6 +343,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
 v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
 v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
 v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
@@ -600,6 +602,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.6 - League Leaders pages are kept at the edge
+- Owner observation (18-Nov-2026): 24 hours after the last PROD deploy, the Usage "Pages cut off" panel showed 623 League Leaders builds and almost nothing for the other rotating pages (Fixtures, Match, team page), although all four pages rotate for three teams.
+- Cause: finished pages are kept at the edge (the rest of the UK day Monday to Friday, 30 minutes at weekends) only for the Match Centre, Fixtures, Match and team pages (and the Welcome page). League Leaders (view=leaders) was not on that list, so it was built from scratch on every request; each rotating screen plays it for every team on every turn.
+- Changed: view=leaders is kept like the other pages. It is built about once per team per day on weekdays (per 30 minutes at weekends), and the kept copy is dropped on a new release or an Admin change (the key holds the version, the team list and the time Admin was saved). A screen name or screen ID (screen=, sid=) does not make a separate copy.
+- Freshness: League Leaders can be up to that old, the same as results on Fixtures and the Match page already can.
+- Request limit: lower. A kept page is served with no outside calls. Leaders was the page doing the most builds, so this should cut the CPU used by rotating screens noticeably; not measured on PROD yet (the owner plans to run a DEV screen for 24 hours to compare).
+- Tests: new test (first request builds, the next one is served from the kept copy even with a screen name and ID, another team builds its own, other views unchanged); it fails on the old code. The existing tests pass.
+- Docs: none - the Documentation does not describe which pages are kept.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.5 - Setup page fits an iPad screen
 - Owner reports (17-Nov-2026, testing on an iPad): the footer had gone completely; and each time the page refreshed (code not used) it dropped down slightly.
@@ -2528,6 +2540,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.6", "League Leaders pages are now kept for reuse, like Fixtures and the Match page, so a rotating screen no longer makes the site rebuild them every time. This takes load off the free Cloudflare limits."],
       ["v3.39.5", "The TV setup page now fits the visible screen on an iPad (the footer was being lost under the browser toolbar) and no longer shifts down slightly each time it refreshes its code."],
       ["v3.39.4", "The version line on the TV setup page is now the last thing on the page, smaller, and sits clear of the countdown line."],
       ["v3.39.3", "The TV setup page now shows the version and date in the footer, large enough to read from across a room."],
@@ -8628,13 +8641,14 @@ export default {
     { const ug = unknownPathGate(request); if (ug) return ug; }
     request = withClubName(request); // v3.30.17: after the gates, so the PIN pages' return address does not pick up the filled-in name
     const serve = async () => {
+    // v3.39.6: League Leaders is kept too (it was the only rotating page built from scratch on every request).
     // v3.30.6: finished team, Match Centre, fixtures and match pages are kept at the edge (see pageState: the rest of the UK day Monday to Friday, 30 minutes at weekends
     // with an older same-day copy shown at once while a new one builds). The key holds the version, the team list and the time Admin was last saved, so a deploy or an Admin change shows at once.
     // Used on DEV too. Never used for the links page or any PIN page.
     let pageKey = null, pageCache = null;
     if (request.method === "GET") {
       const u0 = new URL(request.url), v0 = u0.searchParams.get("view") || "";
-      if (u0.pathname === "/" && !u0.searchParams.has("warm") && (["stack", "fixtures", "match"].includes(v0) || (!v0 && u0.searchParams.has("team")) || !["team", "view", "format", "competition", "division"].some(k => u0.searchParams.has(k)))) { // v3.36.0: the Welcome page too (the bare address)
+      if (u0.pathname === "/" && !u0.searchParams.has("warm") && (["stack", "fixtures", "match", "leaders"].includes(v0) || (!v0 && u0.searchParams.has("team")) || !["team", "view", "format", "competition", "division"].some(k => u0.searchParams.has(k)))) { // v3.36.0: the Welcome page too (the bare address)
         try { pageCache = typeof caches !== "undefined" && caches.default ? caches.default : null; } catch (_) { pageCache = null; }
         if (pageCache) {
           const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP) + "&_sv=" + encodeURIComponent(String((await siteSettings()).savedAt || "")), { method: "GET" });

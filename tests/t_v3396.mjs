@@ -1,0 +1,14 @@
+import fs from 'fs';
+const src=process.argv[2];let ok=0,bad=0;const c=(n,x)=>{if(x){ok++}else{bad++;console.log('FAIL',n)}};
+const J=o=>({ok:true,status:200,text:async()=>JSON.stringify(o)});
+globalThis.fetch=async u=>{const s=String(u);if(s.includes('/seasons'))return J([{name:'2026-2027',startDate:'2026-08-31',endDate:'2027-05-23'}]);if(s.includes('full-matches'))return J({results:[],fixtures:[],leagueTables:[]});return {ok:false,status:500,text:async()=>''}};
+const mod=await import(src);const w=mod.default;
+const stored=new Map();globalThis.caches={default:{match:async r=>{const v=stored.get(r.url);return v?v.clone():undefined},put:async(r,res)=>{stored.set(r.url,res.clone())}}};
+const req=p=>w.fetch(new Request('https://x.co.uk'+p,{headers:{'User-Agent':'Mozilla/5.0','CF-Connecting-IP':'1.1.1.1'}}),{CLUB_PIN:'1'},{waitUntil(p2){return p2}});
+const base='season=2026-2027&competition=1699&division=75791&team=11039&layout=tv&theme=dark';
+let r=await req('/?view=leaders&'+base);c('leaders: first request builds the page',r.status===200&&r.headers.get('X-Page-Cache')!=='HIT');
+await new Promise(r2=>setTimeout(r2,60));
+r=await req('/?view=leaders&'+base+'&screen=Bar%201234&sid=0123456789ab');c('leaders: the next request (a screen with a name and ID) is served from the kept copy',r.headers.get('X-Page-Cache')==='HIT',r.headers.get('X-Page-Cache'));
+r=await req('/?view=leaders&'+base.replace('11039','11063'));c('leaders: another team builds its own page',r.headers.get('X-Page-Cache')!=='HIT');
+r=await req('/?view=table&'+base);c('other views are unchanged (not kept)',r.status===200&&r.headers.get('X-Page-Cache')!=='HIT');
+console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

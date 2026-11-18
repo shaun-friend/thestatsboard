@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
 v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
 v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
 v3.39.3 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.3_setup_version.zip | v3.39.2
@@ -299,6 +300,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.6 - League Leaders pages are kept at the edge
+- Owner observation (18-Nov-2026): 24 hours after the last PROD deploy, the Usage "Pages cut off" panel showed 623 League Leaders builds and almost nothing for the other rotating pages (Fixtures, Match, team page), although all four pages rotate for three teams.
+- Cause: finished pages are kept at the edge (the rest of the UK day Monday to Friday, 30 minutes at weekends) only for the Match Centre, Fixtures, Match and team pages (and the Welcome page). League Leaders (view=leaders) was not on that list, so it was built from scratch on every request; each rotating screen plays it for every team on every turn.
+- Changed: view=leaders is kept like the other pages. It is built about once per team per day on weekdays (per 30 minutes at weekends), and the kept copy is dropped on a new release or an Admin change (the key holds the version, the team list and the time Admin was saved). A screen name or screen ID (screen=, sid=) does not make a separate copy.
+- Freshness: League Leaders can be up to that old, the same as results on Fixtures and the Match page already can.
+- Request limit: lower. A kept page is served with no outside calls. Leaders was the page doing the most builds, so this should cut the CPU used by rotating screens noticeably; not measured on PROD yet (the owner plans to run a DEV screen for 24 hours to compare).
+- Tests: new test (first request builds, the next one is served from the kept copy even with a screen name and ID, another team builds its own, other views unchanged); it fails on the old code. The existing tests pass.
+- Docs: none - the Documentation does not describe which pages are kept.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.5 - Setup page fits an iPad screen
 - Owner reports (17-Nov-2026, testing on an iPad): the footer had gone completely; and each time the page refreshed (code not used) it dropped down slightly.
