@@ -49,8 +49,9 @@ jobs:
           mkdir bundle && cp site/_worker.js site/README.txt site/index.html bundle/
           npx --yes wrangler@4 pages deploy bundle --project-name="$PROJECT" --branch=main --commit-dirty=true
       - name: Tag and publish the GitHub Release
+        continue-on-error: true   # the site is already live; a release problem must not show the deploy as failed
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}   # personal access token: the built-in token cannot create tags here
         run: |
           V=$(grep -m1 -oE 'const VERSION = "[^"]+"' site/_worker.js | cut -d'"' -f2)
           ZIP=$(grep -m1 -E '^v[0-9][^ ]* +\|' site/README.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
