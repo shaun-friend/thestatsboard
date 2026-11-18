@@ -1,0 +1,23 @@
+name: Backfill releases
+
+# Manual, run once. Creates a tag and GitHub Release for every earlier version in the README
+# that has a matching commit. Versions that already have a release are skipped.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Create the releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/backfill_releases.py
