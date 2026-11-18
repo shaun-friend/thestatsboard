@@ -22,10 +22,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "--- who am I allowed to be"; gh api repos/${{ github.repository }} --jq '.permissions'
-          echo "--- list releases"; gh api repos/${{ github.repository }}/releases --jq 'length'
-          echo "--- create tag ref"; gh api -X POST repos/${{ github.repository }}/git/refs -f ref=refs/tags/v3.18.3 -f sha=a6236fcbfab028fdf32b4b34f3cfa16570341574 --jq .ref || true
-          echo "--- create release on the main branch"; gh api -X POST repos/${{ github.repository }}/releases -f tag_name=v3.18.3 -f name=v3.18.3 -f body=test -F make_latest=false --jq .html_url || true
+          R=${{ github.repository }}
+          echo "--- release on the main branch (string flag)"; gh api -X POST repos/$R/releases -f tag_name=diag-test -f target_commitish=main -f name=diag-test -f body=test -f make_latest=false --jq .html_url || true
+          echo "--- release on the first commit"; gh api -X POST repos/$R/releases -f tag_name=diag-test2 -f target_commitish=a6236fcbfab028fdf32b4b34f3cfa16570341574 -f name=diag-test2 -f body=test -f make_latest=false --jq .html_url || true
+          echo "--- tag ref at an old commit"; gh api -X POST repos/$R/git/refs -f ref=refs/tags/diag-test3 -f sha=7a8e316$(git rev-parse 7a8e316 | cut -c8-) --jq .ref || true
+          for t in diag-test diag-test2; do gh release delete $t --cleanup-tag -y 2>/dev/null || true; done
+          gh api -X DELETE repos/$R/git/refs/tags/diag-test3 2>/dev/null || true
       - name: Create the releases
         env:
           GH_TOKEN: ${{ github.token }}
