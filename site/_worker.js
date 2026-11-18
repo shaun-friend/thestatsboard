@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.7 18-Nov-2026 League Leaders shows the club's own teams under their Admin names (the Vandals showed as Ivybridge II).
 //   v3.39.6 18-Nov-2026 League Leaders pages are now kept at the edge like Fixtures and the Match page, so rotating screens stop rebuilding them on every request.
 //   v3.39.5 17-Nov-2026 Quick setup: the TV setup page is fixed to the visible screen (footer no longer lost under the iPad toolbar) and the QR box keeps its size so the page no longer shifts when it reloads.
 //   v3.39.4 17-Nov-2026 Quick setup: the version line is the last thing on the TV setup page, smaller, and cannot overlap anything.
@@ -296,7 +297,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.6";
+const VERSION = "v3.39.7";
 const BUILD_DATE = "18-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -343,6 +344,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
 v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
 v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
 v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
@@ -602,6 +604,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.7 - League Leaders uses the club's team names
+- Owner report (18-Nov-2026): the League Leaders page did not use friendly names; the Vandals showed as "Ivybridge II" under Best attack and the other cards.
+- Cause: the leader cards took the leading club's name straight from the RFU league table. The team's own row on the other pages is shown under its friendly name, but the leaders list never swapped it.
+- Changed: on League Leaders (the TV board, the page and the phone panel) the team being shown uses its friendly name (the name in the link, or the Admin name), and any other club team that leads, or is level, uses its Admin name from Our teams. Rival clubs keep their RFU names. "Rank" lines were already using the friendly name.
+- Not changed: the league table itself and other pages (they already show the friendly name for the team shown).
+- Request limit: no change.
+- Tests: new test (best attack shows The Vandals, not Ivybridge II; works with no name typed; another club team leading shows its Admin name; a rival keeps its RFU name; level leaders listed by Admin name); it fails on the old code. The existing tests pass.
+- Docs: none - the Documentation does not describe how leader names are chosen.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.6 - League Leaders pages are kept at the edge
 - Owner observation (18-Nov-2026): 24 hours after the last PROD deploy, the Usage "Pages cut off" panel showed 623 League Leaders builds and almost nothing for the other rotating pages (Fixtures, Match, team page), although all four pages rotate for three teams.
@@ -2540,6 +2552,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.7", "League Leaders now shows your own teams under the names set in Admin, Our teams. The Vandals appeared as \"Ivybridge II\" under Best attack and the other cards; they now show as The Vandals."],
       ["v3.39.6", "League Leaders pages are now kept for reuse, like Fixtures and the Match page, so a rotating screen no longer makes the site rebuild them every time. This takes load off the free Cloudflare limits."],
       ["v3.39.5", "The TV setup page now fits the visible screen on an iPad (the footer was being lost under the browser toolbar) and no longer shifts down slightly each time it refreshes its code."],
       ["v3.39.4", "The version line on the TV setup page is now the last thing on the page, smaller, and sits clear of the countdown line."],
@@ -4157,7 +4170,9 @@ function highlightsInfo(games) { // games newest first: {mine, opp}
   const best = (f) => { let b = null; for (const x of g) { const m = f(x); if (m > 0 && (!b || m > b.m)) b = { m, x }; } return b ? b.x.mine + "–" + b.x.opp : "—"; };
   return { run, biggestWin: best(x => x.mine - x.opp), worstDefeat: best(x => x.opp - x.mine) };
 }
-function leadersInfo(table, sel) {
+// v3.39.7: the club's own teams show under the names set in Admin (Our teams), as on the other pages: the team being shown under its friendly name, any other club team by its Admin name.
+function leadersInfo(table, sel, ownName) {
+  const nm = t => (sel && t === sel && ownName) ? ownName : ((TEAMS.find(x => String(x.team) === String(t.id)) || {}).name || t.name);
   const rows = (table || []).filter(t => t.p > 0);
   if (!rows.length) return null;
   const defs = [
@@ -4171,7 +4186,7 @@ function leadersInfo(table, sel) {
     const better = (a, b) => d.hi ? a > b : a < b;
     let best = val(rows[0]); for (const t of rows) if (better(val(t), best)) best = val(t);
     const lead = rows.filter(t => val(t) === best);
-    const out = { key: d.key, label: d.label, unit: d.unit, value: d.fmt(best), leaderName: lead.length === 1 ? lead[0].name : lead.length + " clubs level", leaderId: lead.length === 1 ? lead[0].id : "", leaderNames: lead.length > 1 ? (lead.length > 8 ? lead.slice(0, 8).map(t => t.name).concat(["+" + (lead.length - 8) + " more"]) : lead.map(t => t.name)) : [] };
+    const out = { key: d.key, label: d.label, unit: d.unit, value: d.fmt(best), leaderName: lead.length === 1 ? nm(lead[0]) : lead.length + " clubs level", leaderId: lead.length === 1 ? lead[0].id : "", leaderNames: lead.length > 1 ? (lead.length > 8 ? lead.slice(0, 8).map(nm).concat(["+" + (lead.length - 8) + " more"]) : lead.map(nm)) : [] };
     const me = sel && rows.includes(sel) ? sel : null;
     if (me) { const mv = val(me); out.you = { rank: 1 + rows.filter(t => better(val(t), mv)).length, joint: rows.some(t => t !== me && val(t) === mv), value: d.fmt(d.v(me)), phrase: d.phr(d.fmt(d.v(me))) }; }
     return out;
@@ -7182,7 +7197,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       // v3.37.11: the TV layout hides the phone-only panels (In the mix, Around you, Luck check, League leaders) and no longer shows the Win Predictor,
       // so a TV page (no format=...) skips the work for them. Data requests (format=summary) and the phone layouts are unchanged.
       const tvLite = layout === "tv" && !url.searchParams.get("format");
-      const leaders = tvLite ? null : leadersInfo(table, selectedTeam);
+      const leaders = tvLite ? null : leadersInfo(table, selectedTeam, friendlyName);
       const dayL = dd => dd.toLocaleDateString("en-CA", { timeZone: "Europe/London" });
       const playedFx = mm => { const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); return hs !== null && as !== null && !(hs === 0 && as === 0); };
       const ownAround = selectedTeam && !tvLite ? aroundInfo({ table, myId: teamId, todayStr: dayL(new Date()), day: dayL, fixtures: fixtureObjects.map(mm => ({ d: dateOf(mm), hId: teamIdOf(mm.homeTeam), hName: teamNameOf(mm.homeTeam), aId: teamIdOf(mm.awayTeam), aName: teamNameOf(mm.awayTeam), played: playedFx(mm) })) }) : null;

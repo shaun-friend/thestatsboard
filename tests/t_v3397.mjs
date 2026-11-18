@@ -1,0 +1,20 @@
+// v3.39.7: League Leaders shows the club's own teams under their Admin names (the Vandals showed as "Ivybridge II").
+import fs from 'fs';import vm from 'vm';
+const src=fs.readFileSync(process.argv[2],'utf8');let ok=0,bad=0;const c=(n,x,y)=>{if(x){ok++}else{bad++;console.log('FAIL',n,y||'')}};
+const m=/(?:\/\/ v3\.39\.7[^\n]*\n)?function leadersInfo\([\s\S]*?\n}\n/.exec(src);c('leadersInfo found',!!m);
+const TEAMS=[{team:'11039',name:'Ivybridge 1XV'},{team:'11063',name:'The Vandals'}];
+const ctx={TEAMS};vm.createContext(ctx);vm.runInContext(m[0]+';this.f=leadersInfo',ctx);const f=ctx.f;
+const row=(id,name,o)=>Object.assign({id,name,p:10,w:5,d:0,l:5,pf:200,pa:200,pd:0,bp:5,pts:25},o);
+const vand=row('11063','Ivybridge II',{pf:400,pa:100,pd:300,pts:50}),other=row('9','Plymstock',{});
+const t=[vand,other,row('11039','Ivybridge',{pf:300})];
+let L=f(t,vand,'The Vandals');
+const att=L.metrics.find(x=>x.key==='attack');
+c('best attack: the club team shows its friendly name',att.leaderName==='The Vandals',att.leaderName);
+c('all the leader cards use the friendly name',L.metrics.filter(x=>x.leaderName==='Ivybridge II').length===0,JSON.stringify(L.metrics.map(x=>x.leaderName)));
+L=f(t,vand,'');c('no friendly name typed: the Admin name is used',L.metrics.find(x=>x.key==='attack').leaderName==='The Vandals');
+L=f(t,other,'');c('viewing another team: a club team that leads still shows its Admin name',L.metrics.find(x=>x.key==='attack').leaderName==='The Vandals');
+L=f([row('1','Exeter',{pf:900}),other],other,'Plymstock 2nds');c('a rival club keeps its RFU name',L.metrics.find(x=>x.key==='attack').leaderName==='Exeter');
+const lvl=[row('11063','Ivybridge II'),row('11039','Ivybridge'),row('7','Okehampton')];
+L=f(lvl,lvl[0],'The Vandals');const lv=L.metrics.find(x=>x.leaderNames&&x.leaderNames.length);c('level leaders: club teams listed by Admin name',lv&&lv.leaderNames.includes('The Vandals')&&lv.leaderNames.includes('Ivybridge 1XV')&&!lv.leaderNames.includes('Ivybridge II'),JSON.stringify(lv&&lv.leaderNames));
+c('your own rank line is unchanged',!!att.you&&att.you.rank===1);
+console.log(`${ok} passed, ${bad} failed`);process.exit(bad?1:0);

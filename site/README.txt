@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
 v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
 v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
 v3.39.4 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.4_setup_footer.zip | v3.39.3
@@ -300,6 +301,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.7 - League Leaders uses the club's team names
+- Owner report (18-Nov-2026): the League Leaders page did not use friendly names; the Vandals showed as "Ivybridge II" under Best attack and the other cards.
+- Cause: the leader cards took the leading club's name straight from the RFU league table. The team's own row on the other pages is shown under its friendly name, but the leaders list never swapped it.
+- Changed: on League Leaders (the TV board, the page and the phone panel) the team being shown uses its friendly name (the name in the link, or the Admin name), and any other club team that leads, or is level, uses its Admin name from Our teams. Rival clubs keep their RFU names. "Rank" lines were already using the friendly name.
+- Not changed: the league table itself and other pages (they already show the friendly name for the team shown).
+- Request limit: no change.
+- Tests: new test (best attack shows The Vandals, not Ivybridge II; works with no name typed; another club team leading shows its Admin name; a rival keeps its RFU name; level leaders listed by Admin name); it fails on the old code. The existing tests pass.
+- Docs: none - the Documentation does not describe how leader names are chosen.
+- Not promoted: DEV only until the owner says promote.
 
 v3.39.6 - League Leaders pages are kept at the edge
 - Owner observation (18-Nov-2026): 24 hours after the last PROD deploy, the Usage "Pages cut off" panel showed 623 League Leaders builds and almost nothing for the other rotating pages (Fixtures, Match, team page), although all four pages rotate for three teams.
