@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.45.0 19-Nov-2026 TV rotation: days of the week for each page (Mon to Sun buttons, Every day and Weekends presets, UK time); the rotator leaves out pages that are not due today and picks the change up within 2 minutes of midnight.
 //   v3.44.2 19-Nov-2026 Sponsors page: opening a sponsor failed ("Could not read that sponsor") because the site rejects /api/ addresses whose id= is not a number; the sponsor is now asked for with a POST.
 //   v3.44.1 19-Nov-2026 The Player sponsors page is now called Players (Admin, Tools: Sponsors and Players).
 //   v3.44.0 19-Nov-2026 Sponsors page: each sponsor sits on one line (long names shortened) with its player count; tap a sponsor to rename it, see its players, add several players from any team in one go, or take players off.
@@ -314,7 +315,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.44.2";
+const VERSION = "v3.45.0";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -361,6 +362,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
 v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
 v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
 v3.44.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.0_sponsor_players.zip | v3.43.3
@@ -638,6 +640,17 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.45.0 - TV rotation: days of the week
+- Owner request (19-Nov-2026): choose which days of the week a TV page is shown, for example to show the player selection page (planned) only on a match day, Saturday or Sunday.
+- New: under every page in Admin, TV rotation, buttons Mo to Su (green when on) with shortcuts Every day and Weekends. A page limited to some days is left out of the TV on the other days. The days are stored as d (numbers 1 to 7, Monday is 1) on the page, and left out when every day is on, so existing settings are unchanged.
+- Day is the UK day (so 23:30 on a Sunday in summer is still Sunday). The rotator already asks for its own address every 2 minutes, so a screen drops or adds pages within about 2 minutes of midnight. If nothing is due today the screen says so.
+- Changed: One full round lasts (and the summary line) count only the pages due today, and say how many more are on other days.
+- At least one day has to stay on (use the page's switch to stop it altogether).
+- Not changed: single-page links and paired screens (quick setup) always show their page; days apply to the rotating link.
+- Request limit: no change. The day is worked out from the clock, with no outside calls and no extra settings-store reads.
+- Tests: t_v3450 (10 checks: Wednesday, Saturday, Sunday night and summer time, bad values, nothing due, Admin).
+- Docs: TV rotation (one rotating link), What's new
 
 v3.44.2 - Sponsors: opening a sponsor
 - Owner report (19-Nov-2026): adding a player to a sponsor did not work. Tapping a sponsor showed "Could not read that sponsor." and the team list said "No Options".
@@ -2529,6 +2542,7 @@ const DOC_SECTIONS = [
       "Pages are grouped by team. Each team has a Show switch, so a whole team can be left out without losing its settings.",
       "Add all pages for a team, or use + Add a page to add one at a time. The Match Centre sits under All teams.",
       "Each page has its own on/off switch, an up and down button for the order, a seconds stepper (5 to 120) and Remove. The arrows next to a team move the whole team.",
+      "Under each page, the day buttons (Mo to Su) choose the days of the week it is shown; Every day and Weekends are shortcuts. A page left on every day shows every day. The day is the UK day, and the TV drops or brings back pages within about 2 minutes of midnight. At least one day must stay on; to stop a page altogether, use its switch. One full round lasts counts only the pages due today.",
       "Under the link, One full round lasts shows the total of every page that is switched on, in minutes and seconds and as plain seconds, so you can set the same display time on a digital signage system. It updates as you change seconds or switch pages, before you save.",
       "Theme chooses dark or light for every page. Two optional switches add a thin strip along the bottom, below the pages so nothing is covered: Show the page name, and Show dots and a progress line (both off by default).",
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
@@ -2739,6 +2753,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.45.0", "TV rotation: each page can now be limited to certain days of the week (Admin, TV rotation: Mon to Sun buttons under each page, plus Every day and Weekends). The TV leaves a page out on the other days, judged in UK time, and the full-round total counts only today's pages. Pages you do not touch still show every day."],
       ["v3.44.2", "Fix: tapping a sponsor on the Sponsors page now opens it, so you can add players to it."],
       ["v3.44.1", "The Player sponsors page is now simply called Players, next to Sponsors in Admin, Tools."],
       ["v3.44.0", "Sponsors: each sponsor now sits on one line with a count of its players, and long names are shortened. Tap a sponsor to open it: rename it, see who has it, add several players at once (pick a team, tick the players, press Add) or take a player off. Players who already have another sponsor show it, and adding them moves them."],
@@ -3028,7 +3043,7 @@ const SETTINGS_DEFAULT = () => ({
 });
 // v3.37.0: the TV screen. One link, /<club>/tv, rotates the club's TV pages. Each page is a normal TV page in its own frame, so it is
 // its own request with its own 50-call budget; this page makes no outside calls. Settings (tv): items [{page, team, secs, on}] (order
-// inside a team is the list order), order (group keys: "all" for the Match Centre, else a team number), off (group keys switched off),
+// inside a team is the list order; d, optional, the days it is shown: numbers 1 to 7, Monday is 1, left out for every day), order (group keys: "all" for the Match Centre, else a team number), off (group keys switched off),
 // theme, name (page name strip), dots (dots and progress line), auto (add new teams automatically), seen (team numbers known at the last save).
 const TV_PAGES = { centre: "Match Centre", fixtures: "Fixtures board", match: "Next game", table: "League table", leaders: "League Leaders" };
 const TV_TEAM_PAGES = ["fixtures", "match", "table", "leaders"];
@@ -3041,7 +3056,10 @@ function cleanTv(r, ids) {
     if (!TV_PAGES[page] || (page !== "centre" && !idset.has(team))) continue;
     const k = page + "|" + team; if (dup.has(k)) continue; dup.add(k);
     const n = Math.round(Number(x.secs));
-    items.push({ page, team, secs: n >= 5 && n <= 120 ? n : (page === "centre" ? 25 : 20), on: x.on !== false });
+    const it = { page, team, secs: n >= 5 && n <= 120 ? n : (page === "centre" ? 25 : 20), on: x.on !== false };
+    const dd = [...new Set((Array.isArray(x.d) ? x.d : []).map(Number).filter(v => Number.isInteger(v) && v >= 1 && v <= 7))].sort((a, b) => a - b);
+    if (dd.length && dd.length < 7) it.d = dd;
+    items.push(it);
   }
   const keys = ["all", ...ids], order = [];
   for (const k of Array.isArray(r.order) ? r.order : []) { const t = String(k); if (keys.includes(t) && !order.includes(t)) order.push(t); }
@@ -3077,13 +3095,16 @@ function tvPageUrl(page, t, th, screen, withV, sid) {
   q.set("theme", th); if (screen) q.set("screen", screen); if (sid) q.set("sid", sid); if (withV) q.set("_v", VERSION);
   return "/?" + q.toString();
 }
-function tvPlan(s, screen) {
-  const out = [], teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [], th = s.tv.theme;
+// v3.45.0: today's weekday in UK time, Monday = 1 ... Sunday = 7. A page with days (d) is only in the plan on those days.
+const ukDay = dt => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf((dt || new Date()).toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" })) + 1;
+function tvPlan(s, screen, day) {
+  const today = day || ukDay(), out = [], teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [], th = s.tv.theme;
   for (const g of tvGroups(s)) {
     if (!g.on || g.hidden) continue;
     const t = teams.find(x => String(x.team) === g.key);
     for (const it of g.items) {
       if (!it.on) continue;
+      if (Array.isArray(it.d) && !it.d.includes(today)) { out.skipped = (out.skipped || 0) + 1; continue; }
       const u = tvPageUrl(it.page, t, th, screen, true);
       if (!u) continue;
       out.push({ k: it.page, n: TV_PAGES[it.page] + (t ? " · " + (t.name || t.short || "") : ""), u, s: it.secs });
@@ -3104,7 +3125,7 @@ function tvScreenPage(plan, opt, theme) {
 #dots{display:flex;gap:1vh}#dots i{display:block;width:1.3vh;height:1.3vh;border-radius:50%;background:${light ? "#b8c8bd" : "#33433b"}}#dots i.on{background:#4cc36f}
 #pg{position:absolute;left:0;right:0;top:0;height:.6vh;background:${light ? "#dbe6de" : "#17211d"}}#bar{height:100%;width:0;background:#4cc36f}</style></head><body>
 <!-- class="ver" rfu-soft : the pages inside this screen show the version, so no extra stamp or refresh script is added here -->
-<div id="st"></div><div id="ld"><img src="/icon-192.png" alt=""><b>The Stats Board</b><span>${plan.length ? "Loading" : "Nothing is switched on for this screen yet"}</span></div>
+<div id="st"></div><div id="ld"><img src="/icon-192.png" alt=""><b>The Stats Board</b><span>${plan.length ? "Loading" : plan.skipped ? "Nothing is due on this screen today" : "Nothing is switched on for this screen yet"}</span></div>
 <div id="bt" hidden><div id="bi"><span id="lab"></span><span id="dots"></span></div><div id="pg"><div id="bar"></div></div></div>
 <script type="application/json" id="tvd">${data}</script>
 <script>(function(){
@@ -3419,7 +3440,7 @@ function adminPage(theme, isDev, s, kvOk) {
   const seg = (name, cur, opts) => `<div class="seg">${opts.map(o => `<label><input type="radio" name="${name}" value="${o[0]}"${cur === o[0] ? " checked" : ""}><span>${o[1]}</span></label>`).join("")}</div>`;
   const styleOpts = [["info", "Information"], ["warning", "Warning"]];
   const h = s.notices.home, v = s.notices.tv, m = s.maintenance;
-  const tvJson = JSON.stringify({ groups: tvGroups(s).map(g => ({ key: g.key, name: g.name, short: g.short, on: g.on, hidden: g.hidden, items: g.items.map(i => ({ page: i.page, secs: i.secs, on: i.on })) })), ids: (s.club.teams || []).map(t => String(t.team)), slug: CLUB_ID, pages: TV_PAGES }).replace(/</g, "\\u003c");
+  const tvJson = JSON.stringify({ groups: tvGroups(s).map(g => ({ key: g.key, name: g.name, short: g.short, on: g.on, hidden: g.hidden, items: g.items.map(i => ({ page: i.page, secs: i.secs, on: i.on, d: i.d })) })), today: ukDay(), ids: (s.club.teams || []).map(t => String(t.team)), slug: CLUB_ID, pages: TV_PAGES }).replace(/</g, "\\u003c");
   const setup = kvOk ? "" : `<div class="card"><h3>Settings storage is not connected</h3><p class="msg">The site is running on its default settings. To change settings here, connect a KV namespace: in Cloudflare open the Pages project, Settings, Bindings, Add, KV namespace, name the variable <b>SETTINGS</b>, then redeploy. Use a separate namespace for the DEV and PROD projects so test notices never reach the live site.</p></div>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Admin</title>
 <style>
@@ -3444,7 +3465,7 @@ ${MENU_CSS}
 .tvh{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#16221d;border-left:6px solid #3fb26b;flex-wrap:wrap}.tvh .tn{flex:1;min-width:150px}.tvh .tn b{display:block;font-size:18px}.tvh .tn small{color:#91a49a;font-size:13px}.tvsh{color:#91a49a}
 .tvcr{width:38px;height:38px;object-fit:contain;flex:none}
 .tvb2{width:38px;height:38px;border-radius:50%;background:#fff;color:#1f7a45;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
-.tvr{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 28px;border-top:1px solid #1d2925;flex-wrap:wrap}.tvr.off{opacity:.55}.tvr .pn{flex:1;min-width:120px;font-weight:700}.tvm,.tvsc{display:flex;align-items:center;gap:4px}.tvs{min-width:44px;text-align:center;font-weight:700}
+.tvr{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 28px;border-top:1px solid #1d2925;flex-wrap:wrap}.tvr.off{opacity:.55}.tvdy{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:0 14px 8px 28px}.tvdy .tvdl{font-size:12px;color:#91a49a;margin-right:4px;min-width:64px}.tvdb{min-width:36px;min-height:30px;padding:0 6px;border-radius:8px;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;font:700 12px Arial,Helvetica,sans-serif;cursor:pointer}.tvdb.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.tvdb.pre{border-style:dashed;color:#7fd89a}body.light .tvdb{background:#fff;border-color:#c9dccd;color:#14301e}body.light .tvdb.on{background:#1b7f3b;border-color:#1b7f3b;color:#fff}.tvr .pn{flex:1;min-width:120px;font-weight:700}.tvm,.tvsc{display:flex;align-items:center;gap:4px}.tvs{min-width:44px;text-align:center;font-weight:700}
 .tvb{min-width:36px;min-height:38px;border-radius:8px;border:1px solid #3a4a43;background:#16201c;color:#e6efe9;font:inherit;font-size:15px;cursor:pointer}
 .tvx{background:none;border:0;color:#e08a82;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;min-height:38px}
 .tvad{padding:8px 14px 10px 28px;border-top:1px solid #1d2925;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tvnote{color:#a9bab1;font-size:14px;flex:1;min-width:180px}
@@ -3620,12 +3641,18 @@ var TVI=${tvJson};
 function tvE(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 function tvB(txt,label,fn,cls){var b=tvE("button",cls||"tvb",txt);b.type="button";if(label)b.setAttribute("aria-label",label);b.addEventListener("click",function(){fn();tvDraw();md()});return b}
 function tvSw(on,label,fn){var l=tvE("label","tg"),i=document.createElement("input");i.type="checkbox";i.checked=on;i.setAttribute("aria-label",label);i.addEventListener("change",function(){fn(i.checked);tvDraw();md()});l.appendChild(i);l.appendChild(document.createElement("span"));return l}
+var TVDN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function tvDue(it){return!it.d||it.d.indexOf(TVI.today)>=0}
+function tvDaysLabel(it){if(!it.d)return"Every day";if(it.d.join()==="6,7")return"Weekends";return it.d.map(function(x){return TVDN[x-1]}).join(", ")}
+function tvDays(it,pn){var w=tvE("div","tvdy");w.appendChild(tvE("span","tvdl",tvDaysLabel(it)));
+TVDN.forEach(function(nm,i){var d=i+1,on=!it.d||it.d.indexOf(d)>=0,b=tvE("button","tvdb"+(on?" on":""),nm.slice(0,2));b.type="button";b.setAttribute("aria-label",pn+" on "+nm);b.setAttribute("aria-pressed",on?"true":"false");b.addEventListener("click",function(){var cur=it.d?it.d.slice():[1,2,3,4,5,6,7],k=cur.indexOf(d);if(k>=0){if(cur.length===1)return;cur.splice(k,1)}else cur.push(d);cur.sort(function(a,b){return a-b});it.d=cur.length===7?undefined:cur;tvDraw();md()});w.appendChild(b)});
+[["Every day",null],["Weekends",[6,7]]].forEach(function(p){var b=tvE("button","tvdb pre",p[0]);b.type="button";b.addEventListener("click",function(){it.d=p[1]?p[1].slice():undefined;tvDraw();md()});w.appendChild(b)});return w}
 function tvMove(a,i,d){var j=i+d;if(j<0||j>=a.length)return;var x=a[i];a[i]=a[j];a[j]=x}
 function tvFmt(sec){var m=Math.floor(sec/60),s=sec%60;return m?m+" min "+s+" s":s+" s"}
 function tvDraw(){
-var box=$("tvb");box.innerHTML="";var n=0,sec=0;
+var box=$("tvb");box.innerHTML="";var n=0,sec=0,nd=0;
 TVI.groups.forEach(function(g,gi){
-var live=g.on&&!g.hidden,on=0;g.items.forEach(function(it){if(it.on)on++;if(live&&it.on){n++;sec+=it.secs}});
+var live=g.on&&!g.hidden,on=0;g.items.forEach(function(it){if(it.on)on++;if(live&&it.on&&tvDue(it)){n++;sec+=it.secs}if(live&&it.on&&!tvDue(it))nd++});
 var card=tvE("div","tvg"+(live?"":" off")),h=tvE("div","tvh");
 var bd=tvE("span","tvb2",g.short);
 if(/^[0-9]+$/.test(g.key)){var ci=document.createElement("img");ci.className="tvcr";ci.alt="";ci.width=38;ci.height=38;ci.src="/api/crest?id="+g.key;ci.onload=function(){if(bd.parentNode)bd.parentNode.replaceChild(ci,bd)};ci.onerror=function(){ci.onload=null}}
@@ -3642,7 +3669,7 @@ r.appendChild(tvSw(it.on,"Show "+TVI.pages[it.page],function(v){it.on=v}));
 r.appendChild(tvE("span","pn",TVI.pages[it.page]));
 var sc=tvE("span","tvsc");sc.appendChild(tvB("−","Fewer seconds",function(){it.secs=Math.max(5,it.secs-5)}));sc.appendChild(tvE("span","tvs",it.secs+" s"));sc.appendChild(tvB("+","More seconds",function(){it.secs=Math.min(120,it.secs+5)}));r.appendChild(sc);
 r.appendChild(tvB("Remove","Remove "+TVI.pages[it.page],function(){g.items.splice(ii,1)},"tvx"));
-card.appendChild(r)});
+card.appendChild(r);card.appendChild(tvDays(it,TVI.pages[it.page]))});
 var have={};g.items.forEach(function(it){have[it.page]=1});
 var miss=g.key==="all"?(have.centre?[]:["centre"]):["fixtures","match","table","leaders"].filter(function(p){return!have[p]});
 var ad=tvE("div","tvad");
@@ -3652,10 +3679,10 @@ else if(g.key==="all"){ad.appendChild(tvB("+ Add the Match Centre",null,function
 else if(!g.open){ad.appendChild(tvB("+ Add a page for "+g.name,null,function(){g.open=true},"tvadd"))}
 else{miss.forEach(function(p){ad.appendChild(tvB(TVI.pages[p],"Add "+TVI.pages[p]+" for "+g.name,function(){g.items.push({page:p,secs:20,on:true});g.open=false},"tvadd"))});ad.appendChild(tvB("Cancel",null,function(){g.open=false},"tvx"))}
 card.appendChild(ad);box.appendChild(card)});
-$("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round";
-$("tvtot").textContent=n?tvFmt(sec)+" ("+sec+" seconds) · "+n+" page"+(n===1?"":"s"):"Nothing is switched on yet";
+$("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round"+(nd?" today ("+nd+" more on other days)":"");
+$("tvtot").textContent=n?tvFmt(sec)+" ("+sec+" seconds) · "+n+" page"+(n===1?"":"s")+(nd?" today":""):(nd?"Nothing is due today":"Nothing is switched on yet");
 $("tvtotbox").title="Adds up the seconds of every page that is switched on, including changes you have not saved yet"}
-function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){o.items.push({page:it.page,team:g.key,secs:it.secs,on:it.on})})});return o}
+function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){var x={page:it.page,team:g.key,secs:it.secs,on:it.on};if(it.d)x.d=it.d;o.items.push(x)})});return o}
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
 tvDraw();

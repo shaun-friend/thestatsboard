@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
 v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
 v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
 v3.44.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.0_sponsor_players.zip | v3.43.3
@@ -318,6 +319,17 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.45.0 - TV rotation: days of the week
+- Owner request (19-Nov-2026): choose which days of the week a TV page is shown, for example to show the player selection page (planned) only on a match day, Saturday or Sunday.
+- New: under every page in Admin, TV rotation, buttons Mo to Su (green when on) with shortcuts Every day and Weekends. A page limited to some days is left out of the TV on the other days. The days are stored as d (numbers 1 to 7, Monday is 1) on the page, and left out when every day is on, so existing settings are unchanged.
+- Day is the UK day (so 23:30 on a Sunday in summer is still Sunday). The rotator already asks for its own address every 2 minutes, so a screen drops or adds pages within about 2 minutes of midnight. If nothing is due today the screen says so.
+- Changed: One full round lasts (and the summary line) count only the pages due today, and say how many more are on other days.
+- At least one day has to stay on (use the page's switch to stop it altogether).
+- Not changed: single-page links and paired screens (quick setup) always show their page; days apply to the rotating link.
+- Request limit: no change. The day is worked out from the clock, with no outside calls and no extra settings-store reads.
+- Tests: t_v3450 (10 checks: Wednesday, Saturday, Sunday night and summer time, bad values, nothing due, Admin).
+- Docs: TV rotation (one rotating link), What's new
 
 v3.44.2 - Sponsors: opening a sponsor
 - Owner report (19-Nov-2026): adding a player to a sponsor did not work. Tapping a sponsor showed "Could not read that sponsor." and the team list said "No Options".
