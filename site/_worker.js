@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.40.3 19-Nov-2026 Usage: the version line at the bottom now sits at the end of the page instead of floating over the content.
 //   v3.40.2 19-Nov-2026 Usage page, Cloudflare limits: split by settings store (DEV/PROD labels from the optional CF_KV_LABELS) and by site.
 //   v3.40.1 19-Nov-2026 DEV probe: new "ID check" card compares the person numbers on a team sheet with the squad list (testing only).
 //   v3.40.0 19-Nov-2026 Usage page: new "Cloudflare limits" card read straight from Cloudflare (settings store reads, writes, deletes and lists, site requests, requests that did not complete, processing time).
@@ -301,7 +302,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.40.2";
+const VERSION = "v3.40.3";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -348,6 +349,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
 v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
 v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
 v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
@@ -612,6 +614,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.3 - Usage: footer no longer floats over the content
+- Owner report (19-Nov-2026): on the Usage page the version line at the bottom scrolled over the content instead of sitting at the very bottom.
+- Fix: on the Usage page only, the version line is now the last thing on the page (centred, with space above it) instead of being fixed to the screen edge. Other pages are unchanged.
+- Request limit: no change. No outside calls, no settings-store writes.
+- Tests: new test (the Usage page releases the fixed version line; fails on the old code). The existing tests pass.
+- Docs: What's new
 
 v3.40.2 - Usage: Cloudflare limits split by store and site; team names on the Teams card
 - Owner requests (19-Nov-2026): show the Cloudflare limits for DEV and PROD separately, and (PROD v3.39.7) Teams people look up still showed "Team 3314" with no name.
@@ -2595,6 +2604,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.40.3", "Usage page: the version line at the bottom now sits at the end of the page instead of floating over the content."],
       ["v3.40.2", "Usage page: the Cloudflare limits card now splits the settings store by store and the site requests by site (add the optional CF_KV_LABELS variable to name your stores, for example a1b2c3d4=PROD,89ef0123=DEV). Teams people look up now finds a team's name from its other records instead of showing only the number."],
       ["v3.40.1", "Test site only: the RFU testing page has a new ID check card that compares the person numbers on a team sheet with the squad list. It does not change anything on the live site."],
       ["v3.40.0", "Usage page: a new Cloudflare limits card shows Cloudflare's own figures for the free plan - settings store reads, writes, deletes and lists, site requests, requests that did not finish, and processing time - with bars that turn amber and red as a limit gets close."],
@@ -4108,7 +4118,7 @@ ${MENU_CSS}
 .tw{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.tw{grid-template-columns:1fr}}
 table{width:100%;border-collapse:collapse;font-size:14px}td{padding:7px 4px;border-top:1px solid #1f2925}tr:first-child td{border-top:0}td.nu{text-align:right;width:60px;font-variant-numeric:tabular-nums}.mu{color:#91a49a}
 .hl{border-color:rgba(224,182,76,.5)}.msg{color:#c9d4ce;line-height:1.5;font-size:14px}
-</style></head><body class="${t}">${themeBoot("true")}<div class="wrap us"><div class="top"><h1>Usage</h1><span><a class="mb" href="/admin" style="color:#7fd89a;font-size:14px">Admin</a> &nbsp; <a class="mb" href="/club-signout" style="color:#7fd89a;font-size:14px">Sign out</a></span></div>
+#sbv{position:static!important;transform:none!important;display:block;text-align:center;margin:22px 0 10px;white-space:normal!important}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap us"><div class="top"><h1>Usage</h1><span><a class="mb" href="/admin" style="color:#7fd89a;font-size:14px">Admin</a> &nbsp; <a class="mb" href="/club-signout" style="color:#7fd89a;font-size:14px">Sign out</a></span></div>
 <p class="sub">No cookies and no IP addresses are stored. Screens and calendars are counted apart from people, and known robots are left out.</p>
 <div id="o"><p class="msg">Loading&hellip;</p></div></div>
 <script>(function(){

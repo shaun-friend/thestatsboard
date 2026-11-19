@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
 v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
 v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
 v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
@@ -305,6 +306,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.3 - Usage: footer no longer floats over the content
+- Owner report (19-Nov-2026): on the Usage page the version line at the bottom scrolled over the content instead of sitting at the very bottom.
+- Fix: on the Usage page only, the version line is now the last thing on the page (centred, with space above it) instead of being fixed to the screen edge. Other pages are unchanged.
+- Request limit: no change. No outside calls, no settings-store writes.
+- Tests: new test (the Usage page releases the fixed version line; fails on the old code). The existing tests pass.
+- Docs: What's new
 
 v3.40.2 - Usage: Cloudflare limits split by store and site; team names on the Teams card
 - Owner requests (19-Nov-2026): show the Cloudflare limits for DEV and PROD separately, and (PROD v3.39.7) Teams people look up still showed "Team 3314" with no name.
