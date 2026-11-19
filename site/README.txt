@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.46.0_match_day.zip | v3.45.1
 v3.45.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.1_sponsor_tabs.zip | v3.45.0
 v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
 v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
@@ -320,6 +321,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.0 - Match day page
+- Owner request (19-Nov-2026): a page for match day showing the team sheet each team has submitted, with sponsors, so the club can see who is playing, who has a sponsor and who is available to sponsor.
+- New: /matchday (club PIN; Admin, Tools, Match day). Day buttons list the next game days of our teams (up to six); the earliest is chosen. For each team playing that day: the opposition, kick-off and ground, then the submitted sheet in shirt order (1 to 23) with the sponsor, "Available to sponsor", "Name redacted" for names the RFU withholds, * for the club's own name, and New for a player not seen on any earlier sheet this season (only once the season scan has been run for the team). A team with nothing submitted says "No sheet available on GMS yet".
+- Under-18 teams, and any player the RFU marks under 18, show shirt number and position only, with no name or sponsor.
+- Refresh waits 30 seconds between presses; nothing refreshes by itself. Copy list copies one team as text, Copy all copies every team.
+- Request limit: each team is asked for separately (one visit to the site per team), so each has its own 50 calls. A team uses its fixtures (cached), two RFU reads (the match record and the team sheet) and two settings reads (sponsors and the season record). No polling, nothing is written.
+- Tests: t_v3460 (18 checks on the data), x_matchday (browser checks on a phone).
+- Docs: Other addresses, What's new
 
 v3.45.1 - Sponsors and Players: clearer buttons
 - Owner request (19-Nov-2026): the Sponsors and Players links blended into the page.

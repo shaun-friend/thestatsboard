@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.46.0 19-Nov-2026 New page /matchday (club PIN, Admin, Tools, Match day): choose a match day (the next game day is chosen for you) and see each of our teams' submitted team sheet in shirt order with each player's sponsor, who is available to sponsor, withheld names ("Name redacted"), own names (*) and players not seen on a sheet before this season (New), "No sheet available on GMS" when nothing is in, a rate-limited Refresh and a Copy list button. Under-18 sides show no names.
 //   v3.45.1 19-Nov-2026 Sponsors and Players: the two pages are now clear numbered buttons ("1. Sponsors - add and edit the sponsors", "2. Players - give a player a sponsor") instead of plain links. The scan, Clear ticks and Copy from last season now live under a third button, 3. Season set-up. The Add players list shows only players without a sponsor unless you untick a box. The player and sponsor search boxes have an X to clear them, and both pages show a summary of sponsors and sponsored players.
 //   v3.45.0 19-Nov-2026 TV rotation: days of the week for each page (Mon to Sun buttons, Every day and Weekends presets, UK time); the rotator leaves out pages that are not due today and picks the change up within 2 minutes of midnight.
 //   v3.44.2 19-Nov-2026 Sponsors page: opening a sponsor failed ("Could not read that sponsor") because the site rejects /api/ addresses whose id= is not a number; the sponsor is now asked for with a POST.
@@ -316,7 +317,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.45.1";
+const VERSION = "v3.46.0";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -363,6 +364,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.46.0_match_day.zip | v3.45.1
 v3.45.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.1_sponsor_tabs.zip | v3.45.0
 v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
 v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
@@ -642,6 +644,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.0 - Match day page
+- Owner request (19-Nov-2026): a page for match day showing the team sheet each team has submitted, with sponsors, so the club can see who is playing, who has a sponsor and who is available to sponsor.
+- New: /matchday (club PIN; Admin, Tools, Match day). Day buttons list the next game days of our teams (up to six); the earliest is chosen. For each team playing that day: the opposition, kick-off and ground, then the submitted sheet in shirt order (1 to 23) with the sponsor, "Available to sponsor", "Name redacted" for names the RFU withholds, * for the club's own name, and New for a player not seen on any earlier sheet this season (only once the season scan has been run for the team). A team with nothing submitted says "No sheet available on GMS yet".
+- Under-18 teams, and any player the RFU marks under 18, show shirt number and position only, with no name or sponsor.
+- Refresh waits 30 seconds between presses; nothing refreshes by itself. Copy list copies one team as text, Copy all copies every team.
+- Request limit: each team is asked for separately (one visit to the site per team), so each has its own 50 calls. A team uses its fixtures (cached), two RFU reads (the match record and the team sheet) and two settings reads (sponsors and the season record). No polling, nothing is written.
+- Tests: t_v3460 (18 checks on the data), x_matchday (browser checks on a phone).
+- Docs: Other addresses, What's new
 
 v3.45.1 - Sponsors and Players: clearer buttons
 - Owner request (19-Nov-2026): the Sponsors and Players links blended into the page.
@@ -2441,6 +2452,7 @@ const DOCS = [
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
     { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
+    { v: "/matchday", values: "none", where: "Club PIN", what: "Match day: the team sheets our teams have submitted for a chosen match day, in shirt order, with each player's sponsor, who is available to sponsor, withheld names and new players, and a Copy list button.", ex: [["Match day", "/matchday"]] },
     { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
     { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
@@ -2765,6 +2777,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.46.0", "New Match day page (Admin, Tools, Match day, club PIN). Pick a match day and see each team's submitted team sheet in shirt order with each player's sponsor, who is still available to sponsor, names the RFU withholds (Name redacted), the club's own names (*) and players not seen on a sheet before (New). A team with nothing submitted says No sheet available on GMS. Refresh waits 30 seconds between presses, nothing refreshes by itself, and Copy list copies a team (or Copy all every team) as text. Under-18 teams show shirt numbers only."],
       ["v3.45.1", "Sponsors and Players: the two pages are now big numbered buttons with a line saying what each is for (1. Sponsors adds and edits the sponsors, 2. Players gives a player a sponsor), so it is clearer which screen does what. Find this season's players, Clear ticks and Copy from last season have moved to a new third button, 3. Season set-up (used once a season). In a sponsor's Add players list, players who already have a sponsor are now hidden by default (untick the box Only players without a sponsor to change that). The search boxes also have an X to clear the text, and both pages have a summary block: sponsors, sponsored players (a player on two teams counts once) and sponsors with players."],
       ["v3.45.0", "TV rotation: each page can now be limited to certain days of the week (Admin, TV rotation: Mon to Sun buttons under each page, plus Every day and Weekends). The TV leaves a page out on the other days, judged in UK time, and the full-round total counts only today's pages. Pages you do not touch still show every day."],
       ["v3.44.2", "Fix: tapping a sponsor on the Sponsors page now opens it, so you can add players to it."],
@@ -3512,7 +3525,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/matchday">Match day</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3745,7 +3758,7 @@ async function maintenanceGate(request) {
     }
     return maintenancePage(m, true);
   }
-  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
+  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/matchday", "/api/matchday", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
   const st = await siteSettings();
   if (!st.maintenance.on) return null;
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
@@ -3836,6 +3849,110 @@ ${block("Next game", d.next, d.nextG, false)}
 ${block("Last game", d.last, d.lastG, true)}
 <div class="ft">Last checked ${londonTime(Date.now())}. This page refreshes every five minutes. Scorers are only listed for clubs that enter match events, so a side with no events listed has not recorded them.</div>
 </div></body></html>`;
+}
+// ---- Match day page (v3.46.0) -----------------------------------------------------------------------------------
+// For one of our teams and one match day: the team sheet the club has submitted on the RFU system (shirt order), with the sponsor of each player, who is still
+// available to sponsor, names the RFU withholds and players not seen on a sheet before. Club PIN only. The page asks for one team per request (POST), so each
+// team has its own 50-call allowance; nothing is polled and nothing is written.
+async function matchDayApi(request, url, worker) {
+  const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: H });
+  if (request.method !== "POST") return J({ ok: false, error: "Use the Match day page." }, 405);
+  const origin = request.headers.get("Origin");
+  if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
+  let b = null; try { const raw = await request.text(); if (raw.length > 2000) throw new Error("big"); b = JSON.parse(raw); } catch (_) { b = null; }
+  const tm = b && TEAMS.find(x => !x.hidden && String(x.team) === String(b.team));
+  if (!tm) return J({ ok: false, error: "That team is not in Our teams. Reload the page." }, 404);
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(String(b.day || "")) ? String(b.day) : "";
+  const lon = iso => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+  const today = lon(Date.now());
+  let games = [];
+  try {
+    const gq = new URLSearchParams({ season: tm.season || AUTO.season, competition: tm.competition, division: tm.division, team: tm.team, teamName: tm.teamName, friendlyName: tm.name, format: "summary", detail: "fixtures" });
+    const fr = await worker.fetch(new Request(url.origin + "/?" + gq.toString()));
+    if (fr.ok) games = (await fr.json()).games || [];
+  } catch (_) { games = []; }
+  const live = games.filter(g => g && g.iso && g.status !== "void");
+  const days = []; for (const g of live) { const d = lon(g.iso); if (d >= today && !days.some(x => x.d === d) && days.length < 12) days.push({ d, opp: String(g.oppName || ""), home: g.home === true, time: String(g.time || ""), comp: String(g.comp || "") }); }
+  const base = { ok: true, team: String(tm.team), teamName: tm.name, today, days, at: londonTime(Date.now()) };
+  if (!day) return J(base);
+  const g = live.find(x => lon(x.iso) === day && /^\d{1,10}$/.test(String(x.id || "")));
+  if (!g) return J({ ...base, day, game: null });
+  const id = String(g.id);
+  const [mrec, ppl] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matches/" + id), sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id)]);
+  const game = { opp: String(g.oppName || ""), home: g.home === true, time: String(g.time || ""), comp: String(g.comp || ""), venue: String(g.venue || ""), status: String(g.status || "") };
+  if (!mrec || !ppl) return J({ ...base, day, game, sheet: false, unreadable: true, players: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
+  let sponsors = [], rec = null; const kv = kvOf();
+  if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
+  const sname = new Map(sponsors.map(x => [x.id, x.name])), by = {}, seen = new Set(), altOf = {};
+  if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) {
+    const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", nm: "" });
+    if (!h.s && e0.s) h.s = e0.s; if (!h.nm && e0.nm) h.nm = e0.nm; if (e0.ld) seen.add(no);
+    for (const a of (e0.a || [])) altOf[a] = no;
+  }
+  const scanned = !!(rec && rec.g && rec.g[String(tm.team)] > 0);
+  const side = String(g.home === true ? mrec.homeTeamId : mrec.awayTeamId);
+  const list = Array.isArray(ppl.participants) ? ppl.participants : [];
+  const mine = list.filter(p => String(p.teamId) === side);
+  const hideSide = sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName) || sheetHidesNames((mrec.competitionName || "") + " " + (mrec.groupName || ""));
+  if (!(ppl.lineup && mine.length)) return J({ ...base, day, game, sheet: false, players: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
+  const players = mine.map(p => {
+    const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", nm: "" };
+    const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
+    const rfu = withheld ? "" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
+    const hidden = hideSide || p.isU18 === true;
+    const name = hidden ? "" : (h.nm || rfu);
+    const sponsor = hidden ? "" : (sname.get(h.s) || "");
+    return {
+      no: String(p.playingPositionNo || ""), pos: String(p.description || ""), name, hidden,
+      star: !hidden && !!h.nm && h.nm.toLowerCase() !== rfu.toLowerCase(), red: !hidden && !name, sponsor, avail: !hidden && !sponsor,
+      fresh: !hidden && scanned && !!no && !seen.has(key),
+      tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : ""
+    };
+  }).sort((a, b2) => sheetOrder(a.no) - sheetOrder(b2.no));
+  const vis = players.filter(x => !x.hidden);
+  return J({ ...base, day, game, sheet: true, hidden: hideSide, scanned, players, counts: { total: players.length, sponsored: vis.filter(x => x.sponsor).length, avail: vis.filter(x => x.avail).length, redacted: vis.filter(x => x.red).length, fresh: vis.filter(x => x.fresh).length } });
+}
+function matchDayPage(theme, isDev, teams) {
+  const t = theme === "light" ? "light" : "dark";
+  const tl = JSON.stringify(teams.filter(x => !x.hidden).map(x => ({ team: String(x.team), name: x.name }))).replace(/</g, "\\u003c");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Match day</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:10px 0}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2:disabled{opacity:.55;cursor:default}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.dys{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.dy{font:700 14px Arial,Helvetica,sans-serif;border-radius:12px;padding:8px 14px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;text-align:left}.dy small{display:block;font-weight:400;font-size:12px;color:#91a49a}.dy.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.dy.on small{color:#e6fff0}.sub{color:#91a49a;font-size:14px;line-height:1.5;margin:10px 0 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}.tt b{font-size:17px}.tt small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.cn{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.cn span{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;border:1px solid #2c3a34;color:#cfd8d3}.cn .am{color:#f2b866;border-color:#5b4b1a}.pr{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;min-height:42px;padding:4px 0;border-top:1px solid #243a2e}.no{font-weight:700;color:#91a49a}.pn{min-width:0}.pn b{overflow-wrap:anywhere}.pn small{color:#91a49a;margin-left:4px}.nw{font-size:11px;font-weight:700;color:#07100b;background:#7fd89a;border-radius:6px;padding:1px 6px;margin-left:6px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right}.sp.av{color:#f2b866}.sp.rd{color:#91a49a;font-weight:400}.none{color:#91a49a;padding:10px 0;line-height:1.5}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2:empty{display:none}.ver{color:#91a49a;font-size:12px;text-align:center}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .b2,body.light .dy{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .dy.on,body.light .b2.go{background:#2f9d57;color:#fff;border-color:#2f9d57}body.light .pr{border-color:#d9e5dc}body.light .cn span{color:#14301e;border-color:#c9dccd}body.light .sp{color:#1f7a42}body.light .sp.av{color:#9a5b00}
+</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Match day</h1>
+<p class="sub">The team sheets our teams have submitted on the RFU system, in shirt order, with each player's sponsor. Nothing here refreshes by itself.</p>
+<div class="dys" id="dys"></div>
+<div class="rw2" style="margin-top:10px"><button type="button" class="b2" id="rf" disabled>Refresh</button><button type="button" class="b2" id="ca" disabled>Copy all</button></div>
+<div class="msg2" id="ms" role="status"></div>
+<div id="out"></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var T=${tl},info={},sheets={},day="",today="",busy=false,wait=0;
+function $(i){return document.getElementById(i)}
+function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
+function ask(o){return fetch("/api/matchday",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not read the answer."}})}).catch(function(){return{ok:false,error:"Could not reach the site."}})}
+function dl(d,long){var m=String(d).split("-");if(m.length!==3)return d;var x=new Date(Date.UTC(+m[0],+m[1]-1,+m[2],12));return x.toLocaleDateString("en-GB",{weekday:long?"long":"short",day:"numeric",month:"short",timeZone:"UTC"})}
+function days(){var s={};T.forEach(function(t){var r=info[t.team];if(r&&r.ok)r.days.forEach(function(x){(s[x.d]=s[x.d]||[]).push(t.name)})});return Object.keys(s).sort().slice(0,6).map(function(d){return{d:d,n:s[d]}})}
+function drawDays(){var h="";days().forEach(function(x){h+='<button type="button" class="dy'+(x.d===day?" on":"")+'" data-d="'+x.d+'">'+e(dl(x.d))+"<small>"+x.n.length+" team"+(x.n.length===1?"":"s")+"</small></button>"});$("dys").innerHTML=h||""}
+function lines(t,r){var o=[],g=r.game;o.push(t.name+" "+(g.home?"v":"at")+" "+g.opp+" - "+dl(day,true)+(g.time?", "+g.time:""));r.players.forEach(function(p){var n=p.hidden?"":(p.name||"Name redacted")+(p.star?" *":"");o.push(p.no+". "+(p.hidden?p.pos:n)+(p.hidden?"":" - "+(p.sponsor||"Available to sponsor")))});return o.join(String.fromCharCode(10))}
+function card(t){var r=sheets[t.team];if(!r)return'<div class="cd2"><div class="tt"><b>'+e(t.name)+'</b></div><div class="none">Loading...</div></div>';
+if(!r.ok)return'<div class="cd2"><div class="tt"><b>'+e(t.name)+'</b></div><div class="none">'+e(r.error||"Could not read this team.")+"</div></div>";
+if(!r.game)return"";var g=r.game,h='<div class="cd2"><div class="tt"><div><b>'+e(t.name)+" "+(g.home?"v":"at")+" "+e(g.opp)+"</b><small>"+e(g.comp)+(g.time?" &middot; KO "+e(g.time):"")+(g.venue?" &middot; "+e(g.venue):"")+"</small></div>"+(r.sheet?'<button type="button" class="b2 sm" data-c="'+t.team+'">Copy list</button>':"")+"</div>";
+if(!r.sheet){return h+'<div class="none">'+(r.unreadable?"The RFU match record could not be read just now. Try Refresh in a minute.":"No sheet available on GMS yet.")+"</div></div>"}
+var c=r.counts;h+='<div class="cn"><span>'+c.total+" on the sheet</span>"+(r.hidden?"<span>Names hidden (under 18s)</span>":'<span>'+c.sponsored+" sponsored</span><span class=\\"am\\">"+c.avail+" available to sponsor</span>"+(c.redacted?"<span>"+c.redacted+" name redacted</span>":"")+(c.fresh?"<span>"+c.fresh+" new</span>":""))+"</div>";
+r.players.forEach(function(p){var nm=p.hidden?"":(p.name?e(p.name)+(p.star?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>');h+='<div class="pr"><span class="no">'+e(p.no)+'</span><span class="pn"><b>'+nm+"</b><small>"+e(p.pos)+(p.tag?" &middot; "+e(p.tag):"")+"</small>"+(p.fresh?'<span class="nw">New</span>':"")+'</span><span class="sp'+(p.hidden?" rd":p.sponsor?"":" av")+'">'+(p.hidden?"":p.sponsor?e(p.sponsor):"Available to sponsor")+"</span></div>"});
+return h+"</div>"}
+function draw(){drawDays();var h="",any=false,none=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&!r.game){none.push(t.name);return}any=true;h+=card(t)});if(none.length)h+='<p class="sub">No game on '+e(dl(day,true))+" for "+e(none.join(", "))+".</p>";$("out").innerHTML=h||"";$("ca").disabled=!T.some(function(t){var r=sheets[t.team];return r&&r.ok&&r.sheet})}
+function loadDay(d){day=d;sheets={};draw();var n=T.length;T.forEach(function(t){ask({team:t.team,day:d}).then(function(r){if(day!==d)return;sheets[t.team]=r;draw()})})}
+function start(){var n=0;T.forEach(function(t){ask({team:t.team}).then(function(r){info[t.team]=r;if(r&&r.ok&&r.today)today=r.today;if(++n===T.length){var ds=days();if(!ds.length){say("No games found for your teams.");drawDays();return}$("rf").disabled=false;loadDay(ds[0].d)}else drawDays()})})}
+var tick=null;function cool(){wait=30;$("rf").disabled=true;if(tick)clearInterval(tick);tick=setInterval(function(){wait--;if(wait<=0){clearInterval(tick);$("rf").disabled=false;$("rf").textContent="Refresh"}else $("rf").textContent="Refresh ("+wait+")"},1000);$("rf").textContent="Refresh (30)"}
+$("rf").onclick=function(){if(!day||wait>0)return;say("");cool();loadDay(day)};
+function copy(text){var done=function(){say("Copied.","")};try{navigator.clipboard.writeText(text).then(done,function(){fb(text)})}catch(x){fb(text)}}
+function fb(text){var a=document.createElement("textarea");a.value=text;a.setAttribute("readonly","");a.style.cssText="position:fixed;left:0;top:0;opacity:0";document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Copied.")}catch(x){say("Could not copy. Select the names on the screen instead.","er")}document.body.removeChild(a)}
+$("dys").onclick=function(ev){var b=ev.target.closest("button[data-d]");if(b&&b.getAttribute("data-d")!==day)loadDay(b.getAttribute("data-d"))};
+$("out").onclick=function(ev){var b=ev.target.closest("button[data-c]");if(!b)return;var t=T.filter(function(x){return x.team===b.getAttribute("data-c")})[0],r=sheets[t.team];if(t&&r&&r.sheet)copy(lines(t,r))};
+$("ca").onclick=function(){var o=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&r.sheet)o.push(lines(t,r))});if(o.length)copy(o.join(String.fromCharCode(10)+String.fromCharCode(10)))};
+if(!T.length)say("No teams are set up in Admin, Our teams.");else start()})();</script></body></html>`;
 }
 async function adminApi(request, url) {
   const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
@@ -4470,7 +4587,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players" || p === "/matchday") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -6396,6 +6513,11 @@ const worker = {
     if (url.pathname === "/api/inbox") return inboxApi(request, url);
     if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
     if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url, worker);
+    if (url.pathname === "/api/matchday") return matchDayApi(request, url, worker);
+    if (url.pathname.replace(/\/+$/, "") === "/matchday") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(matchDayPage(th, isDev === true, TEAMS), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/sponsor-players") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(sponsorPlayersPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -9087,7 +9209,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/api/sponsor-players" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -9287,7 +9409,7 @@ fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"
 if(x.j&&x.j.ok){$("f").hidden=true;$("d").hidden=false;$("dh").textContent="Sent to the screen";$("dp").textContent=x.j.label+". The screen picks it up within a few seconds.";setTimeout(function(){check(0)},3000)}
 else{b.disabled=false;$("er").textContent=(x.j&&x.j.error)||"Sign in again, then retry.";$("er").hidden=false}}).catch(function(){b.disabled=false;$("er").textContent="No connection. Try again.";$("er").hidden=false})}})()</script></body></html>`;
 }
-const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
 function unknownPathGate(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
@@ -9422,7 +9544,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/matchday" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;
