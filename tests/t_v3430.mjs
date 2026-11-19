@@ -26,6 +26,7 @@ const U=q=>new URL('https://x.test/api/sponsor-players'+(q||''));
 const get=async q=>{const u=U(q);return (await ctx.p(new Request(u),u,worker)).json()};
 const post=async o=>{const u=U();const r=await ctx.p(new Request(u,{method:'POST',body:JSON.stringify(o)}),u,worker);return{s:r.status,j:await r.json()}};
 const sp=async o=>{const u=new URL('https://x.test/api/sponsors');const r=await ctx.s(new Request(u,{method:'POST',body:JSON.stringify(o)}),u);return{s:r.status,j:await r.json()}};
+const sget=async()=>{const u=new URL('https://x.test/api/sponsors');return (await ctx.s(new Request(u),u)).json()};
 const dart=(await sp({act:'add',name:'Dart Motors'})).j.items[0].id;
 const SC={act:'scan',team:'11039',season:'2026-2027',offset:0};
 let j=await get('');
@@ -90,9 +91,20 @@ r=await post({act:'scan',team:'11039',season:'2025-2026',offset:0});c('scan is f
 // next season: nobody current; copy keeps sponsors only
 j=await get('?season=2027-2028');c('next season starts with nobody current',j.rows.every(x=>!x.cur)&&j.played===0);
 r=await post({act:'copy',team:'11039',season:'2027-2028',from:'2026-2027'});j=await get('?season=2027-2028');
-c('copying a season brings sponsored players, and they count as current until unticked',r.j.ok&&j.rows.find(x=>x.no==='1530430').sponsor==='Dart Motors'&&j.rows.find(x=>x.no==='1530430').cur&&!j.rows.find(x=>x.no==='5').cur,JSON.stringify(r.j));
+c('copying a season brings sponsored players, and they count as current until unticked',r.j.ok&&j.rows.find(x=>x.no==='1530430').sponsor==='Dart Motors'&&j.rows.find(x=>x.no==='1530430').cur&&!j.rows.find(x=>x.no==='1704351').cur,JSON.stringify([r.j,j.rows.filter(x=>x.no==='1530430'||x.no==='5')]));
 const k=JSON.parse(store['sponsor-links:2026-2027']);
 c('stored per season with the flag, last game and games played',k.t['11039']['5'].c===1&&k.t['11039']['5'].l===2&&k.g['11039']===1||k.g['11039']>=1,JSON.stringify(k.g));
+// a player on two teams has one sponsor and one own name
+await post({act:'set',team:'11039',season:'2026-2027',no:'2380102',n:'Adam Lilley',nm:'Ads Lilley',s:dart,alt:'',cur:true});
+j=await get('?team=11063');
+c('a sponsor set on one team shows on the other team',by('2380102').sponsor==='Dart Motors'&&by('2380102').nm==='Ads Lilley'&&by('2380102').own,JSON.stringify(by('2380102')));
+c('being sponsored on another team does not make the player current here',!by('2380102').cur);
+await post({act:'set',team:'11063',season:'2026-2027',no:'2380102',n:'Adam Lilley',nm:'Ads Lilley',s:dart,alt:'',cur:true});
+let s2=await sget();const kk=JSON.parse(store['sponsor-links:2026-2027']);const nos=new Set();for(const tk of Object.keys(kk.t))for(const n of Object.keys(kk.t[tk]))if(kk.t[tk][n].s===dart)nos.add(n);
+c('the same player on two teams counts once for the sponsor',s2.use[dart]===nos.size&&nos.has('2380102'),JSON.stringify(s2.use)+[...nos]);
+await post({act:'set',team:'11063',season:'2026-2027',no:'2380102',n:'Adam Lilley',nm:'',s:'',alt:'',cur:true});
+j=await get('?team=11039');
+c('clearing the sponsor on one team clears it for the player everywhere',!by('2380102').sponsor&&!by('2380102').nm,JSON.stringify(by('2380102')));
 // page
 const pg=src.slice(src.indexOf('function sponsorPlayersPage('),e);
 c('page has the tick box, the filter and the scan button',/data-a="cur"/.test(pg)&&/\["cur","Current "/.test(pg)&&/Find this season/.test(pg)&&/Not current/.test(pg));

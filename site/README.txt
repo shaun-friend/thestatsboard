@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.3_one_sponsor_per_player.zip | v3.43.2
 v3.43.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.2_scan_own_team.zip | v3.43.1
 v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
 v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
@@ -314,6 +315,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.3 - Player sponsors: one sponsor per player across teams
+- Owner report (19-Nov-2026): a player on both the 1XV and the Vandals lists showed his sponsor only on the list where it was added.
+- Cause: from v3.42.0 each team's list held its own sponsor and name, so the same person could have a different sponsor on each list.
+- Changed: the sponsor and the club's own name now belong to the player for the season. They show on every team list the player is on and changing them on one list changes them on all. Whether the player is current, and the last-played date, stay per team. Being sponsored on another team does not make a player current on this one. Where two lists already disagree, the list you are viewing wins until you save.
+- Changed: the Sponsors page counts a player on two teams once.
+- Request limit: no change (same settings-store reads).
+- Tests: t_v3430 (39 checks).
+- Docs: Admin guide, What's new
 
 v3.43.2 - Player sponsors: scan only this team's games
 - Owner report (19-Nov-2026): on the Vandals list a player who last played for the 1XV showed as on the Vandals' latest game, so the scan may have read a game that is not the Vandals'.

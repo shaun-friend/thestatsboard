@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.43.3 19-Nov-2026 Player sponsors: a player's sponsor and own name now belong to the player for the season, so they show on every team list the player is on (Current and last played stay per team); the Sponsors page counts a player once.
 //   v3.43.2 19-Nov-2026 Player sponsors: the scan skips games that belong to another team (the RFU side number must match across the team's games), reports them, and a Clear ticks button resets the list.
 //   v3.43.1 19-Nov-2026 Player sponsors: compact phone layout (rows about half the height), last played date and opponent for each player, and a "Games read" list after a scan so the games used can be checked.
 //   v3.43.0 19-Nov-2026 Player sponsors: a Current player tick box with a Current filter (default), a one-off "Find this season's players" scan of the season's team sheets, and a "last on a team sheet" hint. No GMS access is needed.
@@ -310,7 +311,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.43.2";
+const VERSION = "v3.43.3";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -357,6 +358,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.3_one_sponsor_per_player.zip | v3.43.2
 v3.43.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.2_scan_own_team.zip | v3.43.1
 v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
 v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
@@ -630,6 +632,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.3 - Player sponsors: one sponsor per player across teams
+- Owner report (19-Nov-2026): a player on both the 1XV and the Vandals lists showed his sponsor only on the list where it was added.
+- Cause: from v3.42.0 each team's list held its own sponsor and name, so the same person could have a different sponsor on each list.
+- Changed: the sponsor and the club's own name now belong to the player for the season. They show on every team list the player is on and changing them on one list changes them on all. Whether the player is current, and the last-played date, stay per team. Being sponsored on another team does not make a player current on this one. Where two lists already disagree, the list you are viewing wins until you save.
+- Changed: the Sponsors page counts a player on two teams once.
+- Request limit: no change (same settings-store reads).
+- Tests: t_v3430 (39 checks).
+- Docs: Admin guide, What's new
 
 v3.43.2 - Player sponsors: scan only this team's games
 - Owner report (19-Nov-2026): on the Vandals list a player who last played for the 1XV showed as on the Vandals' latest game, so the scan may have read a game that is not the Vandals'.
@@ -2698,6 +2709,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.43.3", "Player sponsors: a player who is on two team lists (for example the 1XV and the Vandals) now has one sponsor and one own name, shown on both lists and changed from either. Whether they are current, and when they last played, are still kept for each team."],
       ["v3.43.2", "Player sponsors: Find this season's players now checks that every game it reads belongs to the team you chose, skips and reports any that do not, and a new Clear ticks button wipes the ticks that nothing else holds up so you can scan again from clean. Players with a sponsor, own name or other number are kept."],
       ["v3.43.1", "Player sponsors: the list is much shorter on a phone (each player takes about half the height), each player shows the date and opponent of the last game they were on a team sheet for, and after Find this season's players a Games read list shows exactly which games were used."],
       ["v3.43.0", "Player sponsors: each player has a Current tick box, and the list shows current players first so the long squad list is cut down. A new Find this season's players button reads this season's team sheets and ticks everyone who has played. Each player also shows how many games ago they were last on a team sheet, so you can spot who has drifted away. Nothing is ticked or unticked behind your back after that."],
@@ -4063,11 +4075,11 @@ async function splinkRead(kv, season) {
 }
 // Who has this sponsor in a season record: "Team: player" lines (names as the club shows them).
 function spUsers(rec, id) {
-  const out = [];
+  const out = [], seen = new Set(); // a player on two teams is one player
   if (!rec) return out;
   for (const team of Object.keys(rec.t)) {
     const tn = (TEAMS.find(x => String(x.team) === team) || {}).name || "Team " + team;
-    for (const no of Object.keys(rec.t[team])) { const e = rec.t[team][no]; if (e.s === id) out.push(tn + ": " + (e.nm || e.n || "no. " + no)); }
+    for (const no of Object.keys(rec.t[team])) { const e = rec.t[team][no]; if (e.s === id && !seen.has(no)) { seen.add(no); out.push(tn + ": " + (e.nm || e.n || "no. " + no)); } }
   }
   return out;
 }
@@ -4114,11 +4126,15 @@ async function sponsorPlayersApi(request, url, worker) {
     let sponsors = [], rec = null;
     try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, q.season); } catch (_) { return J({ ok: false, error: "Could not read the sponsors. Try again." }, 502); }
     const sq = await squadFor(q.team), ent = rec.t[q.team] || {}, nameOf = new Map(sponsors.map(x => [x.id, x.name]));
+    // The sponsor and the club's own name belong to the player for the season, whichever team's list they were set on.
+    const shared = {};
+    for (const tk of Object.keys(rec.t)) if (tk !== q.team) for (const no of Object.keys(rec.t[tk])) { const o = rec.t[tk][no]; if (o.s || o.nm) { const h = shared[no] || (shared[no] = { s: "", nm: "" }); if (!h.s && o.s) h.s = o.s; if (!h.nm && o.nm) h.nm = o.nm; } }
     const rows = playerRows(sq.ok ? sq.list : [], ent).map(r => {
       const x = ent[r.no] || { nm: "", s: "", a: [], c: 0, l: 0 }, gp = (rec.g || {})[q.team] || 0;
-      const sname = nameOf.get(x.s) || "";
-      const own = !!x.nm && x.nm.toLowerCase() !== r.rfu.toLowerCase();
-      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: x.nm, own, sid: sname ? x.s : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1, lastOn: x.ld || "", lastOpp: x.lo || "" };
+      const sh = shared[r.no] || { s: "", nm: "" }, xs = x.s || sh.s, xnm = x.nm || sh.nm;
+      const sname = nameOf.get(xs) || "";
+      const own = !!xnm && xnm.toLowerCase() !== r.rfu.toLowerCase();
+      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: xnm, own, sid: sname ? xs : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1, lastOn: x.ld || "", lastOpp: x.lo || "" };
     });
     rows.sort((a, b) => { const an = a.nm || a.rfu, bn = b.nm || b.rfu; return !an !== !bn ? (an ? -1 : 1) : an.toLowerCase() < bn.toLowerCase() ? -1 : an.toLowerCase() > bn.toLowerCase() ? 1 : 0; });
     return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, played: (rec.g || {})[q.team] || 0, squadError: sq.ok ? "" : sq.error });
@@ -4141,6 +4157,7 @@ async function sponsorPlayersApi(request, url, worker) {
     const alt = [...new Set(String(b.alt == null ? "" : b.alt).replace(/[^0-9]+/g, " ").trim().split(" ").map(personNo).filter(x => x && x !== no))].slice(0, 3);
     for (const a of alt) if (ent[a]) return J({ ok: false, error: "Number " + a + " is already listed as a player. Remove that entry first." }, 409);
     const cur = b.cur === true ? 1 : sid ? 2 : 0, last = ent[no] ? ent[no].l : 0;
+    for (const tk of Object.keys(rec.t)) { const o = tk !== q.team && rec.t[tk][no]; if (o) { if (sid && !o.s && o.c === 0) o.c = 2; o.s = sid; o.nm = nm; if (!o.s && !o.nm && !o.a.length && o.c !== 1) delete rec.t[tk][no]; } }
     if (!nm && !sid && !alt.length && cur !== 1) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt, c: cur, l: last || 0, ld: ent[no] ? ent[no].ld : "", lo: ent[no] ? ent[no].lo : "" }; }
   } else if (b.act === "scan") {
     if (q.season !== seasons.cur) return J({ ok: false, error: "Finding players works for this season only." }, 400);
