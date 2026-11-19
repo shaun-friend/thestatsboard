@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
 v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
 v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
 v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
@@ -309,6 +310,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.42.1 - DEV probe: Spec check card (is there a registered or current flag?)
+- Owner request (19-Nov-2026): the squad list for a team holds 165 people for the 1XV and carries no sign of who is registered or playing now. Before building our own current-player tick box, find out whether the RFU data already has a field for it.
+- New (DEV /probe only, testing, nothing on PROD): a card "Spec check". It reads the RFU API description (api.england-rfu.com/openapi.json) itself and lists every endpoint whose path, summary or tag mentions players, registration, individuals, squads, members, people, eligibility, licences, affiliation or participants, with the parameters it takes and the field names it returns, plus every data type with such a name and its fields, and every field anywhere called status, active, pending, registered or current with the values the description allows. Summary only: no player data is shown.
+- Not changed: every other card, the live site and all screens. The unfinished "find this season's players" idea is parked.
+- Request limit: DEV testing page only, 2 outside calls per press (the squad list and the API description). No settings-store writes.
+- Tests: new test (the description is read from the RFU API address, matching endpoints and types are listed with fields, status, active or pending fields listed with their allowed values, a refused or unreadable description is reported, no player names in the answer). The existing tests pass.
+- Docs: What's new
 
 v3.42.0 - Sponsors, stage 2: a sponsor for each player
 - Owner decisions (19-Nov-2026): each player has one sponsor; many players can share a sponsor; sponsors belong to a season and nothing carries into the next season by itself; the club can give a player its own name (for example Wes for Wesley), shown with a * wherever the name differs from the RFU record; a hidden RFU name shows as "Name redacted" until the club adds its own; teams come from Our teams.

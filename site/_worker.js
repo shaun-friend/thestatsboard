@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.42.1 19-Nov-2026 DEV probe: new "Spec check" card lists every player, registration or person endpoint and field in the RFU API description (testing only).
 //   v3.42.0 19-Nov-2026 Sponsors, stage 2: a sponsor for each player by team and season (Admin, Tools, Player sponsors): the RFU squad list as the player list, the club's own name for a player (marked *), a second RFU number, copy from last season; sponsors in use are protected from removal.
 //   v3.41.0 19-Nov-2026 Sponsors, stage 1: a club-wide sponsor list (add, paste a list, rename, remove) at /sponsors behind the club PIN, kept in its own settings-store key.
 //   v3.40.4 19-Nov-2026 DEV probe: every card has a Copy button that copies its whole result (not just the 6,000 characters shown).
@@ -305,7 +306,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.42.0";
+const VERSION = "v3.42.1";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -352,6 +353,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
 v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
 v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
 v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
@@ -620,6 +622,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.42.1 - DEV probe: Spec check card (is there a registered or current flag?)
+- Owner request (19-Nov-2026): the squad list for a team holds 165 people for the 1XV and carries no sign of who is registered or playing now. Before building our own current-player tick box, find out whether the RFU data already has a field for it.
+- New (DEV /probe only, testing, nothing on PROD): a card "Spec check". It reads the RFU API description (api.england-rfu.com/openapi.json) itself and lists every endpoint whose path, summary or tag mentions players, registration, individuals, squads, members, people, eligibility, licences, affiliation or participants, with the parameters it takes and the field names it returns, plus every data type with such a name and its fields, and every field anywhere called status, active, pending, registered or current with the values the description allows. Summary only: no player data is shown.
+- Not changed: every other card, the live site and all screens. The unfinished "find this season's players" idea is parked.
+- Request limit: DEV testing page only, 2 outside calls per press (the squad list and the API description). No settings-store writes.
+- Tests: new test (the description is read from the RFU API address, matching endpoints and types are listed with fields, status, active or pending fields listed with their allowed values, a refused or unreadable description is reported, no player names in the answer). The existing tests pass.
+- Docs: What's new
 
 v3.42.0 - Sponsors, stage 2: a sponsor for each player
 - Owner decisions (19-Nov-2026): each player has one sponsor; many players can share a sponsor; sponsors belong to a season and nothing carries into the next season by itself; the club can give a player its own name (for example Wes for Wesley), shown with a * wherever the name differs from the RFU record; a hidden RFU name shows as "Name redacted" until the club adds its own; teams come from Our teams.
@@ -2645,6 +2655,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.42.1", "Test site only: the RFU testing page has a new Spec check card that lists what the RFU data says about players and registration. It does not change anything on the live site."],
       ["v3.42.0", "New Player sponsors page (Admin, Tools, Player sponsors): choose a sponsor for each player, by team and season. You can give a player your own name (shown with a *), link a second RFU number, and copy last season's sponsors across when you choose. Removing a sponsor that is in use now asks first."],
       ["v3.41.0", "New Sponsors page (Admin, Tools, Sponsors): keep the club's list of sponsors, adding each one once. This is the first step towards showing each player's sponsor on match day; nothing else changes yet."],
       ["v3.40.4", "Test site only: every card on the RFU testing page has a Copy button that copies its whole result."],
@@ -5331,6 +5342,7 @@ const PROBE_EPS = [
   { k: "matches_all", label: "New 1: all matches for a team in one chosen group (POST matches/all, club-entered data)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: ["{groupId}"], opta: false, gms: true }], need: ["teamId", "groupId"] },
   { k: "matches_all_any", label: "New 2: all matches for a team with no group given (does one call cover every competition?)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: [], opta: false, gms: true }], need: ["teamId"] },
   { k: "gms_people", label: "New 3: who played in a match (GMS match participants; needs a match ID)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId"] },
+  { k: "specplayers", label: "Spec check: every player, registration or person endpoint and field in the RFU API description (needs teamId; summary only)", m: "GET", p: "/players/playersByTeam", q: { teamId: "{teamId}" }, need: ["teamId"], pick: "specPlayers" },
   { k: "idcheck", label: "ID check: do the person numbers on a team sheet match the squad list? (needs teamId and matchId; summary only, no full lists)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId", "teamId"], pick: "idCheck" },
   { k: "gms_events", label: "New 4: tries, conversions and cards in a match (GMS match events; needs a match ID)", m: "GET", p: "/gms/matchevents", q: { matchId: "{matchId}" }, need: ["matchId"] },
   { k: "mc_stats", label: "New 5: match stats for one match (stats/matchCentreStats; usually elite games only)", m: "GET", p: "/stats/matchCentreStats", q: { matchId: "{matchId}" }, need: ["matchId"] },
@@ -5401,6 +5413,33 @@ async function probeRun(url) {
           by.set(k, e);
         }
         out.json = { returned: Array.isArray(j) ? j.length : "not a list", competitions: [...by.values()], firstGame: Array.isArray(j) && j[0] ? j[0] : null };
+      }
+      else if (ep.pick === "specPlayers") {
+        // v3.42.1 (testing only): read the RFU API description (OpenAPI) and list what it says about players, registration and people, to see whether any field says a player is registered or current.
+        const R = /player|registr|individual|squad|member|person|eligib|licen|affiliat|participant/i;
+        let spec = null, specError = "", specBytes = 0;
+        try {
+          const r2 = await fetch("https://api.england-rfu.com/openapi.json", { headers: { "User-Agent": UA, "Accept": "application/json, text/plain, */*" }, signal: AbortSignal.timeout(RFU_TIMEOUT_MS * 2) });
+          const t2 = await r2.text(); specBytes = t2.length; if (!r2.ok) specError = "HTTP " + r2.status; else spec = JSON.parse(t2);
+        } catch (e2) { specError = String(e2 && e2.message || e2).slice(0, 120); }
+        if (!spec) out.json = { specError: specError || "no answer", specBytes };
+        else {
+          const deref = o => { if (o && typeof o.$ref === "string") { let x = spec; for (const k of o.$ref.replace(/^#\//, "").split("/")) x = x && x[k]; return x || {}; } return o || {}; };
+          const propsOf = s0 => { let s1 = deref(s0); if (s1.type === "array" || s1.items) s1 = deref(s1.items); const pr = deref(s1).properties; return pr ? Object.keys(pr).slice(0, 60) : []; };
+          const eps = [];
+          for (const path of Object.keys(spec.paths || {})) for (const m of Object.keys(spec.paths[path] || {})) {
+            const op = spec.paths[path][m]; if (!op || typeof op !== "object" || !/^(get|post|put|patch|delete)$/i.test(m)) continue;
+            const hay = path + " " + (op.summary || "") + " " + (op.operationId || "") + " " + (op.tags || []).join(" ");
+            if (!R.test(hay)) continue;
+            let ret = []; try { const rs = op.responses && (op.responses["200"] || op.responses["201"]); const c = rs && rs.content && (rs.content["application/json"] || Object.values(rs.content)[0]); ret = c && c.schema ? propsOf(c.schema) : []; } catch (_) { ret = []; }
+            eps.push({ method: m.toUpperCase(), path, summary: String(op.summary || "").slice(0, 100), params: (op.parameters || []).map(q0 => { const q1 = deref(q0); return (q1.name || "?") + (q1.in ? " (" + q1.in + ")" : "") + (q1.required ? " required" : ""); }).slice(0, 12), returns: ret });
+          }
+          const schemas = []; const sc = (spec.components && spec.components.schemas) || (spec.definitions) || {};
+          for (const name of Object.keys(sc)) if (R.test(name)) schemas.push({ name, fields: Object.keys(deref(sc[name]).properties || {}).slice(0, 60) });
+          const stat = []; // any field anywhere called status, active, pending or registered, with the values the description allows
+          for (const name of Object.keys(sc)) { const pr = deref(sc[name]).properties || {}; for (const f of Object.keys(pr)) if (/status|active|pending|registered|current/i.test(f)) { const d = deref(pr[f]); stat.push({ type: name, field: f, values: Array.isArray(d.enum) ? d.enum.slice(0, 20) : undefined, kind: d.type || undefined }); } }
+          out.json = { specBytes, title: spec.info && spec.info.title, version: spec.info && spec.info.version, pathsInSpec: Object.keys(spec.paths || {}).length, matchingEndpoints: eps.length, endpoints: eps.slice(0, 60), matchingSchemas: schemas.length, schemas: schemas.slice(0, 40), statusFields: stat.length, statusFieldList: stat.slice(0, 60), howToRead: "Look for a field that says a player is registered, active, current, or has a registration status or expiry. Names like registered, registrationStatus, isActive, status, season, lastPlayed would answer it. statusFieldList shows every field called status, active, pending, registered or current in any type, with the allowed values where the description gives them (look for pending and active)." };
+        }
       }
       else if (ep.pick === "idCheck") {
         // v3.40.1 (testing only): are the person numbers (individualId) on a team sheet the same numbers the squad list (players/playersByTeam) uses?
