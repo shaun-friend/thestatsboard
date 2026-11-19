@@ -15,5 +15,5 @@ ok("ours if any record says so", out[0].own === "1");
 ok("most-used name wins", out[0].name === "Ivybridge");
 ok("a different team number with the same name stays separate", out.some(r => r.team === "888"));
 ok("sorted by count", out[0].n >= out[1].n && out[1].n >= out[2].n);
-ok("api uses the merge and the card shows the number", /others: mergeTeamRows\(others\)/.test(src) && /&middot; no\. /.test(src));
+ok("api uses the merge and the card shows the number", /others: await nameTeamRows\(mergeTeamRows\(others\), W\)/.test(src) && /&middot; no\. /.test(src));
 console.log(`${pass} pass, ${fail} fail`); process.exit(fail ? 1 : 0);

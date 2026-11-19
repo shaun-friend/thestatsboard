@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
 v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
 v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
 v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
@@ -304,6 +305,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.2 - Usage: Cloudflare limits split by store and site; team names on the Teams card
+- Owner requests (19-Nov-2026): show the Cloudflare limits for DEV and PROD separately, and (PROD v3.39.7) Teams people look up still showed "Team 3314" with no name.
+- New: the Cloudflare limits card lists the settings stores one by one (reads, writes, deletes, lists today, busiest first) and the site requests by site, with each site's processing time. Stores show the start of their number; an optional variable CF_KV_LABELS (for example a1b2c3d4=PROD,89ef0123=DEV) puts a name on each. If Cloudflare refuses either split the card keeps the combined figures and says why.
+- Fix: Teams people look up showed only the team number when the team's named records were outside the 30 busiest rows, or the team was only ever opened by a link without a name. A team shown by number alone now takes its name from any other record of that team in the period (or from the Our teams list). A team that has never been opened with a name still shows its number.
+- Request limit: no change to visitors. Usage page only: the Teams card makes one extra analytics question, and only when a team has no name; the Cloudflare limits card still makes about 5 outside calls (cached 5 minutes, Pages split retried without the site when refused). No settings-store writes.
+- Tests: server test extended (store rows, labels, both splits refused, site split), browser test of the card extended, new test for the name fill-in (fails on the old code). The existing tests pass.
+- Docs: Admin guide, Setup and deployment, What's new
 
 v3.40.1 - DEV probe: ID check card
 - Owner request (19-Nov-2026): find out whether the RFU gives a permanent ID for each player, before building a player and sponsor list. First results: the person number on a team sheet (individualId) matched the squad list (players by team) number for two players, but the pasted output was cut at 6,000 characters, so two more could not be checked (one has the same name under a different number).

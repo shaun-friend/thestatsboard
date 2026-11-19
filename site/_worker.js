@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.40.2 19-Nov-2026 Usage page, Cloudflare limits: split by settings store (DEV/PROD labels from the optional CF_KV_LABELS) and by site.
 //   v3.40.1 19-Nov-2026 DEV probe: new "ID check" card compares the person numbers on a team sheet with the squad list (testing only).
 //   v3.40.0 19-Nov-2026 Usage page: new "Cloudflare limits" card read straight from Cloudflare (settings store reads, writes, deletes and lists, site requests, requests that did not complete, processing time).
 //   v3.39.8 19-Nov-2026 Usage page: the League Leaders screen page is named with capital letters, like the other pages.
@@ -300,7 +301,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.40.1";
+const VERSION = "v3.40.2";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -347,6 +348,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
 v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
 v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
 v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
@@ -610,6 +612,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.2 - Usage: Cloudflare limits split by store and site; team names on the Teams card
+- Owner requests (19-Nov-2026): show the Cloudflare limits for DEV and PROD separately, and (PROD v3.39.7) Teams people look up still showed "Team 3314" with no name.
+- New: the Cloudflare limits card lists the settings stores one by one (reads, writes, deletes, lists today, busiest first) and the site requests by site, with each site's processing time. Stores show the start of their number; an optional variable CF_KV_LABELS (for example a1b2c3d4=PROD,89ef0123=DEV) puts a name on each. If Cloudflare refuses either split the card keeps the combined figures and says why.
+- Fix: Teams people look up showed only the team number when the team's named records were outside the 30 busiest rows, or the team was only ever opened by a link without a name. A team shown by number alone now takes its name from any other record of that team in the period (or from the Our teams list). A team that has never been opened with a name still shows its number.
+- Request limit: no change to visitors. Usage page only: the Teams card makes one extra analytics question, and only when a team has no name; the Cloudflare limits card still makes about 5 outside calls (cached 5 minutes, Pages split retried without the site when refused). No settings-store writes.
+- Tests: server test extended (store rows, labels, both splits refused, site split), browser test of the card extended, new test for the name fill-in (fails on the old code). The existing tests pass.
+- Docs: Admin guide, Setup and deployment, What's new
 
 v3.40.1 - DEV probe: ID check card
 - Owner request (19-Nov-2026): find out whether the RFU gives a permanent ID for each player, before building a player and sponsor list. First results: the person number on a team sheet (individualId) matched the squad list (players by team) number for two players, but the pasted output was cut at 6,000 characters, so two more could not be checked (one has the same name under a different number).
@@ -2555,6 +2565,7 @@ const DOC_SECTIONS = [
       ["ENV_LABEL", "Set on the test project only (for example TEST). It marks the site as the test site: a corner badge, the DEV tools, and a PIN."],
       ["DEV_PIN", "The PIN that protects the whole test site. The test site stays locked until it is set."],
       ["USAGE (Analytics Engine binding)", "Counts visits (dataset stats_board_usage). Without it nothing is counted and the Usage page explains what to connect."],
+      ["CF_KV_LABELS", "Optional variable that names your settings stores on the Usage page, Cloudflare limits card: the first 8 characters of each store's ID, an equals sign and a name, separated by commas, for example a1b2c3d4=PROD,89ef0123=DEV."],
       ["CF_ACCOUNT_ID, CF_API_TOKEN", "Secrets that let the Usage page read the counts back, and Cloudflare's own limit figures. The token needs Account Analytics Read only."],
       ["SETTINGS (KV binding)", "The KV namespace for admin settings. Use a different namespace for test and live. Without it the site runs on its defaults and the Admin page says storage is not connected."]
     ] },
@@ -2584,6 +2595,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.40.2", "Usage page: the Cloudflare limits card now splits the settings store by store and the site requests by site (add the optional CF_KV_LABELS variable to name your stores, for example a1b2c3d4=PROD,89ef0123=DEV). Teams people look up now finds a team's name from its other records instead of showing only the number."],
       ["v3.40.1", "Test site only: the RFU testing page has a new ID check card that compares the person numbers on a team sheet with the squad list. It does not change anything on the live site."],
       ["v3.40.0", "Usage page: a new Cloudflare limits card shows Cloudflare's own figures for the free plan - settings store reads, writes, deletes and lists, site requests, requests that did not finish, and processing time - with bars that turn amber and red as a limit gets close."],
       ["v3.39.8", "Usage page: the League Leaders screen page is now named with capital letters in \"What the screens are showing\"."],
@@ -3930,6 +3942,18 @@ function mergeTeamRows(rows) {
   }
   return [...by.values()].sort((a, b) => b.n - a.n).slice(0, 25).map(({ best, hasName, ...r }) => r);
 }
+// v3.40.2: a team shown only by its number gets its name from any other record of that team (the busy-row limit or a lookup without a name can hide it).
+async function nameTeamRows(rows, W) {
+  try {
+    const miss = rows.filter(r => !String(r.name || "").trim() && /^\d{1,12}$/.test(String(r.team || "")));
+    if (!miss.length) return rows;
+    const ids = miss.map(r => "'" + String(r.team) + "'").join(",");
+    const got = await usageQuery(`SELECT blob4 AS team, blob5 AS name, SUM(_sample_interval) AS n ${W} AND blob2 IN ('page','pick','tv') AND blob4 IN (${ids}) AND blob5 != '' GROUP BY team, name ORDER BY n DESC LIMIT 50`);
+    const best = {}; for (const g of got) if (!best[g.team]) best[g.team] = g.name;
+    for (const t of TEAMS) if (!best[String(t.team)]) best[String(t.team)] = t.name;
+    return rows.map(r => (String(r.name || "").trim() || !best[String(r.team)]) ? r : { ...r, name: best[String(r.team)] });
+  } catch (e) { return rows; }
+}
 async function usageQuery(sql) {
   const id = SITE_ENV.CF_ACCOUNT_ID, tok = SITE_ENV.CF_API_TOKEN;
   const r = await fetch("https://api.cloudflare.com/client/v4/accounts/" + encodeURIComponent(id) + "/analytics_engine/sql", { method: "POST", headers: { "Authorization": "Bearer " + tok }, body: sql });
@@ -3977,7 +4001,7 @@ async function usageApi(url) {
       usageQuery(`SELECT blob3 AS view, SUM(IF(blob2 = 'start', _sample_interval, 0)) AS started, SUM(IF(blob2 = 'done', _sample_interval, 0)) AS done ${W} AND blob2 IN ('start','done') AND blob15 != '' GROUP BY view ORDER BY started DESC LIMIT 20`).catch(() => null),
       usageQuery(`SELECT blob15 AS screen, blob3 AS view, COUNT(DISTINCT blob12) AS devices, SUM(_sample_interval) AS loads, MAX(timestamp) AS last ${W} AND blob2 = 'tv' AND blob15 != '' GROUP BY screen, view ORDER BY loads DESC LIMIT 40`).catch(() => null)
     ]);
-    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, cut: cutRows, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
+    return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, cut: cutRows, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: await nameTeamRows(mergeTeamRows(others), W), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
   } catch (e) { return J({ ok: false, error: "Could not read the usage data: " + String(e && e.message || e).slice(0, 120) }, 502); }
 }
 // v3.40.0: Cloudflare's own figures for the free-plan limits (Usage page card "Cloudflare limits").
@@ -4013,23 +4037,46 @@ async function cflLimitsApi(url) {
   const dayOf = t => t.getUTCFullYear() + "-" + pad(t.getUTCMonth() + 1) + "-" + pad(t.getUTCDate());
   const today = dayOf(d0), from = dayOf(new Date(now - 6 * 86400000)), dayStart = today + "T00:00:00Z", nowIso = d0.toISOString().slice(0, 19) + "Z";
   const [kv, pages, workers] = await Promise.all([
-    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){kv:kvOperationsAdaptiveGroups(limit:1000,filter:{date_geq:"${from}",date_leq:"${today}"}){sum{requests} dimensions{date actionType}}}}}`, a => {
-      const rows = Array.isArray(a.kv) ? a.kv : [], todayN = {}, peak = {};
-      for (const r of rows) {
-        const act = String(r.dimensions && r.dimensions.actionType || "").toLowerCase(), n = Number(r.sum && r.sum.requests) || 0, dt = String(r.dimensions && r.dimensions.date || "");
-        if (!act) continue;
-        if (dt === today) todayN[act] = (todayN[act] || 0) + n;
-        const byDay = peak[act] || (peak[act] = {}); byDay[dt] = (byDay[dt] || 0) + n;
-      }
-      const peaks = {}; for (const act of Object.keys(peak)) { let best = { n: 0, date: "" }; for (const dt of Object.keys(peak[act])) if (peak[act][dt] > best.n) best = { n: peak[act][dt], date: dt }; peaks[act] = best; }
-      return { today: todayN, peak: peaks };
-    }),
-    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){p:pagesFunctionsInvocationsAdaptiveGroups(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{status}}}}}`, a => cflInvocations(a.p, null)),
+    cflKv(acc, from, today),
+    cflPages(acc, dayStart, nowIso),
     cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){w:workersInvocationsAdaptive(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{scriptName status}}}}}`, a => cflInvocations(a.w, "scriptName"))
   ]);
   const body = { ok: true, at: d0.toISOString(), free: CFL_FREE, day: today, kv, pages, workers, cached: false };
   CFL_MEM = { at: now, body };
   return J(body);
+}
+// v3.40.2: the settings store figures split by store, and the site request figures split by site. Cloudflare may refuse the
+// extra field, so each question is asked with it first and, if refused, again without it (the card then shows the combined
+// figures only and keeps the reason). CF_KV_LABELS (optional) names the stores, for example "a1b2c3d4=PROD,89ef0123=DEV".
+function cflKvShape(a) {
+  const rows = Array.isArray(a.kv) ? a.kv : [], todayN = {}, peak = {}, stores = {};
+  const today = new Date().toISOString().slice(0, 10);
+  for (const r of rows) {
+    const act = String(r.dimensions && r.dimensions.actionType || "").toLowerCase(), n = Number(r.sum && r.sum.requests) || 0, dt = String(r.dimensions && r.dimensions.date || ""), ns = String(r.dimensions && r.dimensions.namespaceId || "");
+    if (!act) continue;
+    if (dt === today) { todayN[act] = (todayN[act] || 0) + n; if (ns) { const s = stores[ns] || (stores[ns] = {}); s[act] = (s[act] || 0) + n; } }
+    const byDay = peak[act] || (peak[act] = {}); byDay[dt] = (byDay[dt] || 0) + n;
+  }
+  const peaks = {}; for (const act of Object.keys(peak)) { let best = { n: 0, date: "" }; for (const dt of Object.keys(peak[act])) if (peak[act][dt] > best.n) best = { n: peak[act][dt], date: dt }; peaks[act] = best; }
+  const labels = String(SITE_ENV.CF_KV_LABELS || "").split(",").map(x => x.split("=")).filter(x => x.length === 2 && x[0].trim() && x[1].trim()).map(x => [x[0].trim().toLowerCase(), x[1].trim().slice(0, 20)]);
+  const byStore = Object.keys(stores).map(id => ({ id: id.slice(0, 8), label: (labels.find(l => id.toLowerCase().startsWith(l[0])) || [])[1] || "", today: stores[id] })).sort((x, y) => (y.today.read || 0) - (x.today.read || 0)).slice(0, 6);
+  return { today: todayN, peak: peaks, byStore };
+}
+async function cflKv(acc, from, today) {
+  const q = ns => `{viewer{accounts(filter:{accountTag:${acc}}){kv:kvOperationsAdaptiveGroups(limit:1000,filter:{date_geq:"${from}",date_leq:"${today}"}){sum{requests} dimensions{date actionType${ns ? " namespaceId" : ""}}}}}}`;
+  const first = await cflPart(q(true), cflKvShape);
+  if (first.ok) return first;
+  const second = await cflPart(q(false), cflKvShape);
+  if (second.ok) second.splitError = first.error;
+  return second;
+}
+async function cflPages(acc, dayStart, nowIso) {
+  const q = site => `{viewer{accounts(filter:{accountTag:${acc}}){p:pagesFunctionsInvocationsAdaptiveGroups(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{status${site ? " scriptName" : ""}}}}}}`;
+  const first = await cflPart(q(true), a => cflInvocations(a.p, "scriptName"));
+  if (first.ok) return first;
+  const second = await cflPart(q(false), a => cflInvocations(a.p, null));
+  if (second.ok) second.splitError = first.error;
+  return second;
 }
 // Adds up Cloudflare's invocation rows: total requests and errors, requests by status, and the processing time
 // (Cloudflare gives microseconds) of the busiest row, which is the figure that matters for the 10 ms limit.
@@ -4147,18 +4194,23 @@ function show(d){
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}});loadCfl(false)}
 function cflRow(lab,n,lim,note){var p=lim?Math.min(100,n/lim*100):0,col=p>=90?"#d65a4a":p>=70?"#d6a640":"#3f8f62";return'<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>'+lab+'</span><span><b>'+num(n)+'</b> of '+num(lim)+' ('+(p<10?(Math.round(p*10)/10):Math.round(p))+'%)</span></div><div style="height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin-top:5px;overflow:hidden"><div style="height:8px;width:'+Math.max(p>0?2:0,p)+'%;background:'+col+'"></div></div>'+(note?'<div class="mu" style="font-size:12px;margin-top:3px">'+note+'</div>':"")+'</div>'}
 function cflPart(title,p,build){return p.ok?build(p):'<p class="msg"><b>'+title+':</b> Cloudflare would not give this figure ('+esc(p.error||"no reason given")+'). Open "Show what Cloudflare returned" below.</p>'}
+function cflStores(k){var s=k.byStore||[];if(!s.length)return k.splitError?'<p class="mu" style="font-size:12px">Split by store not available: '+esc(k.splitError)+'</p>':'';
+ var unl=s.filter(function(x){return!x.label}).length;
+ var rows=s.map(function(x){var t=x.today||{};return'<tr><td>'+esc(x.label||(x.id+"..."))+'</td><td class="nu">'+num(t.read||0)+'</td><td class="nu">'+num(t.write||0)+'</td><td class="nu">'+num(t["delete"]||0)+'</td><td class="nu">'+num(t.list||0)+'</td></tr>'}).join("");
+ return'<table style="margin-top:6px"><tr><td class="mu">Store, today</td><td class="nu mu">Reads</td><td class="nu mu">Writes</td><td class="nu mu">Deletes</td><td class="nu mu">Lists</td></tr>'+rows+'</table>'+(unl&&s.length>1?'<p class="mu" style="font-size:12px">To name the stores, add a variable CF_KV_LABELS to this site, with each store number followed by its name, for example <b>'+esc(s.slice(0,2).map(function(x,i){return x.id+"="+(i?"DEV":"PROD")}).join(","))+'</b>. Put PROD or DEV against the right number; the store with most reads is usually the live one.</p>':"")}
 function cflCard(c){
  if(c.setup)return'<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Not connected. The two secrets CF_ACCOUNT_ID and CF_API_TOKEN (Account Analytics Read) are needed on this site; they are the same ones the Usage counts use.</p></div>';
  var f=c.free,SN={success:"Worked",clientDisconnected:"Visitor left before the reply",scriptThrewException:"Code error",exceededResources:"Over a resource limit (includes the 10 ms processing limit)",internalError:"Cloudflare internal error",unknown:"Unknown"};
  var kv=cflPart("Settings store",c.kv,function(k){var t=k.today||{},pk=k.peak||{};
   function pkNote(a){var q=pk[a];return q&&q.n?"Busiest day in the last 7: "+num(q.n)+" ("+new Date(q.date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"})+")":""}
-  return cflRow("Reads",t.read||0,f.read,pkNote("read"))+cflRow("Writes",t.write||0,f.write,pkNote("write"))+cflRow("Deletes",t["delete"]||0,f["delete"],pkNote("delete"))+cflRow("Lists",t.list||0,f.list,pkNote("list"))});
+  return cflRow("Reads",t.read||0,f.read,pkNote("read"))+cflRow("Writes",t.write||0,f.write,pkNote("write"))+cflRow("Deletes",t["delete"]||0,f["delete"],pkNote("delete"))+cflRow("Lists",t.list||0,f.list,pkNote("list"))+cflStores(k)});
  var inv=c.pages&&c.pages.ok?c.pages:(c.workers&&c.workers.ok?c.workers:null),src=c.pages&&c.pages.ok?"Pages Functions":"Workers";
  var rq=inv?cflRow("Site requests ("+src+")",inv.requests,f.requests,"Counts page and data requests that run our code. Pictures and other plain files are not counted by Cloudflare here."):cflPart("Requests",c.pages&&!c.pages.ok?c.pages:c.workers,function(){return""});
+ var by="";if(inv){var ss=(inv.scripts||[]).filter(function(s){return s.name});if(ss.length>1)by='<p class="msg"><b>By site:</b> '+ss.map(function(s){return esc(s.name)+" "+num(s.requests)}).join(" &middot; ")+"</p>";else if(c.pages&&c.pages.ok&&c.pages.splitError)by='<p class="mu" style="font-size:12px">Split by site not available: '+esc(c.pages.splitError)+"</p>"}
  var st="";if(inv){var ks=Object.keys(inv.byStatus||{}).filter(function(s){return s!=="success"&&inv.byStatus[s]});st=ks.length?'<p class="msg"><b>Not completed today:</b> '+ks.map(function(s){return esc(SN[s]||s)+" "+num(inv.byStatus[s])}).join(" &middot; ")+"</p>":'<p class="msg">Every request today completed normally.</p>'}
- var cpu="";if(inv){var s0=(inv.scripts||[]).filter(function(s){return s.p50ms||s.p99ms})[0];if(s0)cpu='<p class="msg"><b>Processing time per request'+(s0.name?" ("+esc(s0.name)+")":"")+':</b> typical '+s0.p50ms+' ms, slowest 1 in 100 '+s0.p99ms+' ms. The free plan stops a request at '+f.cpuMs+' ms.</p>'}
+ var cpu="";if(inv){var s0=(inv.scripts||[]).filter(function(s){return s.p50ms||s.p99ms})[0];if(s0)cpu='<p class="msg"><b>Processing time per request'+(s0.name?" ("+esc(s0.name)+")":"")+':</b> typical '+s0.p50ms+' ms, slowest 1 in 100 '+s0.p99ms+' ms. The free plan allows '+f.cpuMs+' ms of processing per request'+(s0.p99ms>f.cpuMs?'; the slowest 1 in 100 is above that':'')+'.</p>'}
  var at=new Date(c.at),hm=at.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
- return'<div class="cd"><h2>Cloudflare limits</h2><p class="n">Straight from Cloudflare, for the whole account (the test and live sites together), counted since midnight UTC (1am UK time in summer), which is when the daily limits restart. Figures can lag by a few minutes. Updated '+hm+(c.cached?" (kept for up to 5 minutes)":"")+'.</p>'+kv+rq+st+cpu+'<p style="margin-top:10px"><button id="cflr" style="padding:8px 16px;border-radius:8px;cursor:pointer">Refresh</button></p><details style="margin-top:8px"><summary class="mu" style="cursor:pointer">Show what Cloudflare returned</summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:260px;overflow:auto">'+esc("Settings store:"+String.fromCharCode(10)+(c.kv.raw||c.kv.error||"")+String.fromCharCode(10,10)+"Pages Functions:"+String.fromCharCode(10)+(c.pages.raw||c.pages.error||"")+String.fromCharCode(10,10)+"Workers:"+String.fromCharCode(10)+(c.workers.raw||c.workers.error||""))+'</pre></details></div>'}
+ return'<div class="cd"><h2>Cloudflare limits</h2><p class="n">Straight from Cloudflare, for the whole account (the test and live sites together), counted since midnight UTC (1am UK time in summer), which is when the daily limits restart. Figures can lag by a few minutes. Updated '+hm+(c.cached?" (kept for up to 5 minutes)":"")+'.</p>'+kv+rq+by+st+cpu+'<p style="margin-top:10px"><button id="cflr" style="padding:8px 16px;border-radius:8px;cursor:pointer">Refresh</button></p><details style="margin-top:8px"><summary class="mu" style="cursor:pointer">Show what Cloudflare returned</summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:260px;overflow:auto">'+esc("Settings store:"+String.fromCharCode(10)+(c.kv.raw||c.kv.error||"")+String.fromCharCode(10,10)+"Pages Functions:"+String.fromCharCode(10)+(c.pages.raw||c.pages.error||"")+String.fromCharCode(10,10)+"Workers:"+String.fromCharCode(10)+(c.workers.raw||c.workers.error||""))+'</pre></details></div>'}
 function loadCfl(fresh){var h=document.getElementById("cfl");if(!h)return;if(!fresh||!h.firstChild)h.innerHTML='<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Asking Cloudflare&hellip;</p></div>';fetch("/api/cflimits"+(fresh?"?fresh=1":""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(c){h.innerHTML=cflCard(c);var b=document.getElementById("cflr");if(b)b.onclick=function(){b.disabled=true;b.textContent="Asking Cloudflare...";loadCfl(true)}}).catch(function(){h.innerHTML='<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Sorry, the Cloudflare figures could not be loaded.</p></div>'})}
 function load(){o.innerHTML='<p class="msg">Loading&hellip;</p>';fetch("/api/usage?days="+days,{cache:"no-store"}).then(function(r){return r.json()}).then(show).catch(function(){o.innerHTML='<div class="cd"><p class="msg">Sorry, the usage data could not be loaded.</p></div>'})}
 load()})();</script></body></html>`;

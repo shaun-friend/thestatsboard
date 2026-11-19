@@ -23,7 +23,7 @@ await run(good(40),async(p,urls)=>{const t=await text(p);
  ck('busiest day note',/Busiest day in the last 7: 9,000/.test(t)&&/Busiest day in the last 7: 300/.test(t));
  ck('requests come from Workers when Pages is refused, with the limit',/Site requests \(Workers\)904 of 100,000/.test(t),t.slice(0,600));
  ck('not-completed requests named in plain words',/Not completed today: Over a resource limit \(includes the 10 ms processing limit\) 4/.test(t),t);
- ck('processing time in ms with the 10 ms limit',/typical 2\.5 ms, slowest 1 in 100 9 ms/.test(t)&&/stops a request at 10 ms/.test(t));
+ ck('processing time in ms with the 10 ms limit',/typical 2\.5 ms, slowest 1 in 100 9 ms/.test(t)&&/allows 10 ms of processing per request/.test(t));
  ck('what Cloudflare returned is available (both answers and the refusal)',/raw-kv/.test(t)&&/raw-workers/.test(t)&&/unknown field/.test(t));
  ck('first load asks without the fresh flag',urls[0]==='');
  const col=await p.evaluate(()=>{var d=[].filter.call(document.querySelectorAll('#cfl div'),function(x){return x.style&&x.style.height==='8px'&&x.style.width&&x.parentNode.style.height==='8px'})[0];return d.style.background||getComputedStyle(d).backgroundColor});
@@ -37,6 +37,16 @@ await run({ok:false,setup:true},async p=>{const t=await text(p);ck('not connecte
 // 4 settings store refused: says so, the rest still shows
 const part=good(5);part.kv={ok:false,error:'not authorized',raw:''};
 await run(part,async p=>{const t=await text(p);ck('refused KV part gives its reason and the rest still shows',/Settings store:.*not authorized/.test(t)&&/Site requests \(Workers\)904/.test(t),t.slice(0,300))});
+// 6 split by store and by site
+const sp=good(5);sp.kv.byStore=[{id:'aaaa1111',label:'PROD',today:{read:1000,write:30,'delete':3,list:0}},{id:'bbbb2222',label:'',today:{read:500,write:10,'delete':0,list:0}}];
+sp.pages={ok:true,requests:4600,errors:0,p50ms:1.8,p99ms:24,scripts:[{name:'irfu-prod',requests:4000,p99ms:24},{name:'irfu-dev',requests:600,p99ms:4}],statuses:[]};
+await run(sp,async p=>{const t=await text(p);
+ ck('store table with the label and the number start',/PROD/.test(t)&&/aaaa1111/.test(t)&&/bbbb2222/.test(t),t.slice(0,700));
+ ck('hint on how to label stores shown for an unlabelled store',/CF_KV_LABELS/.test(t),t.slice(0,700));
+ ck('by site line',/By site/.test(t)&&/irfu-prod/.test(t)&&/irfu-dev/.test(t),t.slice(0,900))});
+// 7 split refused
+const sr=good(5);sr.kv.byStore=[];sr.kv.splitError='unknown field namespaceId';
+await run(sr,async p=>{const t=await text(p);ck('split refused says why',/Split by store not available/.test(t)&&/namespaceId/.test(t),t.slice(0,500))});
 // 5 the whole answer fails
 await run(()=>{return 'not json'},async p=>{const t=await text(p);ck('a broken answer gives a polite message',/could not be loaded|Asking/.test(t)&&!/undefined/.test(t),t)});
 await b.close();console.log(bad?'FAILED '+bad:'ALL OK')})();
