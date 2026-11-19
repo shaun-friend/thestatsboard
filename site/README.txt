@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.45.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.1_sponsor_tabs.zip | v3.45.0
 v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
 v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
 v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
@@ -319,6 +320,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.45.1 - Sponsors and Players: clearer buttons
+- Owner request (19-Nov-2026): the Sponsors and Players links blended into the page.
+- Changed: they are now two big buttons, "1. Sponsors" (add and edit the club's sponsors) and "2. Players" (give a player a sponsor), the current one in green, each with a one-line description. Works in dark and light mode and on a phone.
+- New: an X inside the search boxes (sponsors, players, and the add-players panel) clears the text with one tap.
+- New: a summary block at the top of both pages: number of sponsors, number of sponsored players (all teams this season, a player on two teams counted once) and number of sponsors that have players. No extra storage reads (it uses data the pages already read).
+- Request limit: no change (layout only).
+- Docs: What's new
 
 v3.45.0 - TV rotation: days of the week
 - Owner request (19-Nov-2026): choose which days of the week a TV page is shown, for example to show the player selection page (planned) only on a match day, Saturday or Sunday.
