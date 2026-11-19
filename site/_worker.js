@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.40.1 19-Nov-2026 DEV probe: new "ID check" card compares the person numbers on a team sheet with the squad list (testing only).
 //   v3.40.0 19-Nov-2026 Usage page: new "Cloudflare limits" card read straight from Cloudflare (settings store reads, writes, deletes and lists, site requests, requests that did not complete, processing time).
 //   v3.39.8 19-Nov-2026 Usage page: the League Leaders screen page is named with capital letters, like the other pages.
 //   v3.39.7 18-Nov-2026 League Leaders shows the club's own teams under their Admin names (the Vandals showed as Ivybridge II).
@@ -299,7 +300,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.40.0";
+const VERSION = "v3.40.1";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -346,6 +347,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
 v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
 v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
 v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
@@ -608,6 +610,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.1 - DEV probe: ID check card
+- Owner request (19-Nov-2026): find out whether the RFU gives a permanent ID for each player, before building a player and sponsor list. First results: the person number on a team sheet (individualId) matched the squad list (players by team) number for two players, but the pasted output was cut at 6,000 characters, so two more could not be checked (one has the same name under a different number).
+- New (DEV /probe only, testing, nothing on PROD): a card "ID check" (needs teamId and matchId). It reads the team sheet and the squad list itself and reports, for each side on the sheet: how many people it has, how many person numbers are in the squad list, how many also have the same name, any number with a different name, and any number missing from the squad list together with a same-name entry that has another number (a possible duplicate record). Players whose name is hidden are counted but never named.
+- Not changed: every other card, the live site and all screens.
+- Request limit: DEV testing page only, 2 outside calls per press of the card (team sheet and squad list). No settings-store writes.
+- Tests: new test (both lists asked for, counts, same number with a different name, missing number with a same-name entry, hidden names never printed, needs both IDs, squad list refused). It fails on the old code. The existing tests pass.
+- Docs: What's new
 
 v3.40.0 - Usage: Cloudflare limits card
 - Owner request (19-Nov-2026): see how close the site is to Cloudflare's free-plan limits, read straight from Cloudflare.
@@ -2574,6 +2584,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.40.1", "Test site only: the RFU testing page has a new ID check card that compares the person numbers on a team sheet with the squad list. It does not change anything on the live site."],
       ["v3.40.0", "Usage page: a new Cloudflare limits card shows Cloudflare's own figures for the free plan - settings store reads, writes, deletes and lists, site requests, requests that did not finish, and processing time - with bars that turn amber and red as a limit gets close."],
       ["v3.39.8", "Usage page: the League Leaders screen page is now named with capital letters in \"What the screens are showing\"."],
       ["v3.39.7", "League Leaders now shows your own teams under the names set in Admin, Our teams. The Vandals appeared as \"Ivybridge II\" under Best attack and the other cards; they now show as The Vandals."],
@@ -4945,6 +4956,7 @@ const PROBE_EPS = [
   { k: "matches_all", label: "New 1: all matches for a team in one chosen group (POST matches/all, club-entered data)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: ["{groupId}"], opta: false, gms: true }], need: ["teamId", "groupId"] },
   { k: "matches_all_any", label: "New 2: all matches for a team with no group given (does one call cover every competition?)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: [], opta: false, gms: true }], need: ["teamId"] },
   { k: "gms_people", label: "New 3: who played in a match (GMS match participants; needs a match ID)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId"] },
+  { k: "idcheck", label: "ID check: do the person numbers on a team sheet match the squad list? (needs teamId and matchId; summary only, no full lists)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId", "teamId"], pick: "idCheck" },
   { k: "gms_events", label: "New 4: tries, conversions and cards in a match (GMS match events; needs a match ID)", m: "GET", p: "/gms/matchevents", q: { matchId: "{matchId}" }, need: ["matchId"] },
   { k: "mc_stats", label: "New 5: match stats for one match (stats/matchCentreStats; usually elite games only)", m: "GET", p: "/stats/matchCentreStats", q: { matchId: "{matchId}" }, need: ["matchId"] },
 ];
@@ -5014,6 +5026,36 @@ async function probeRun(url) {
           by.set(k, e);
         }
         out.json = { returned: Array.isArray(j) ? j.length : "not a list", competitions: [...by.values()], firstGame: Array.isArray(j) && j[0] ? j[0] : null };
+      }
+      else if (ep.pick === "idCheck") {
+        // v3.40.1 (testing only): are the person numbers (individualId) on a team sheet the same numbers the squad list (players/playersByTeam) uses?
+        let squad = null, squadError = "";
+        try {
+          const r2 = await fetch(PROBE_BASE + "/players/playersByTeam?teamId=" + encodeURIComponent(v.teamId), { headers: { "User-Agent": UA, "Accept": "application/json, text/plain, */*" }, signal: AbortSignal.timeout(RFU_TIMEOUT_MS) });
+          const t2 = await r2.text(); if (!r2.ok) squadError = "HTTP " + r2.status; else squad = JSON.parse(t2);
+        } catch (e2) { squadError = String(e2 && e2.message || e2).slice(0, 100); }
+        const norm = s => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
+        const list = Array.isArray(squad) ? squad : [];
+        const byId = new Map(list.map(x => [Number(x && x._id), String(x && x.player_name || "")]));
+        const people = Array.isArray(j && j.participants) ? j.participants : [], sides = {};
+        for (const p of people) {
+          const key = String(p.teamId), s = sides[key] || (sides[key] = { teamId: key, club: String(p.clubName || p.teamName || ""), people: 0, noPersonNumber: 0, nameHidden: 0, inSquadList: 0, sameName: 0, differentName: [], notInSquadList: [] });
+          s.people++;
+          const hidden = p.hasDisclosure === true || p.isU18 === true;
+          if (hidden) s.nameHidden++;
+          const id = Number(p.individualId);
+          if (!p.individualId) { s.noPersonNumber++; continue; }
+          const full = [p.firstName, p.lastName].filter(Boolean).join(" ");
+          if (byId.has(id)) {
+            s.inSquadList++;
+            if (hidden) continue;
+            if (norm(byId.get(id)) === norm(full)) s.sameName++; else if (s.differentName.length < 10) s.differentName.push({ personNumber: id, teamSheet: full, squadList: byId.get(id) });
+          } else if (s.notInSquadList.length < 30) {
+            const twins = hidden ? [] : list.filter(x => norm(x && x.player_name) === norm(full)).slice(0, 3).map(x => ({ squadNumber: x._id, name: x.player_name }));
+            s.notInSquadList.push({ personNumber: id, name: hidden ? "(hidden)" : full, sameNameInSquadList: twins });
+          }
+        }
+        out.json = { squadListSize: list.length, squadListHiddenNames: list.filter(x => /^\*+ \*+$/.test(String(x && x.player_name || ""))).length, squadListError: squadError || undefined, participantsOnSheet: people.length, bySide: Object.values(sides), howToRead: "The side whose inSquadList is high is the club of the team ID you typed. notInSquadList with sameNameInSquadList filled in means the same name has a different number in the squad list (possible duplicate record). differentName means the same number is held by a different name." };
       }
       else if (ep.pick === "matchSummary") {
         const flat = a => (Array.isArray(a) ? a : []).flatMap(g => (g && Array.isArray(g.matches)) ? g.matches : (g && g.homeTeam ? [g] : []));

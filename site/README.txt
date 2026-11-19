@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
 v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
 v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
 v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
@@ -303,6 +304,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.1 - DEV probe: ID check card
+- Owner request (19-Nov-2026): find out whether the RFU gives a permanent ID for each player, before building a player and sponsor list. First results: the person number on a team sheet (individualId) matched the squad list (players by team) number for two players, but the pasted output was cut at 6,000 characters, so two more could not be checked (one has the same name under a different number).
+- New (DEV /probe only, testing, nothing on PROD): a card "ID check" (needs teamId and matchId). It reads the team sheet and the squad list itself and reports, for each side on the sheet: how many people it has, how many person numbers are in the squad list, how many also have the same name, any number with a different name, and any number missing from the squad list together with a same-name entry that has another number (a possible duplicate record). Players whose name is hidden are counted but never named.
+- Not changed: every other card, the live site and all screens.
+- Request limit: DEV testing page only, 2 outside calls per press of the card (team sheet and squad list). No settings-store writes.
+- Tests: new test (both lists asked for, counts, same number with a different name, missing number with a same-name entry, hidden names never printed, needs both IDs, squad list refused). It fails on the old code. The existing tests pass.
+- Docs: What's new
 
 v3.40.0 - Usage: Cloudflare limits card
 - Owner request (19-Nov-2026): see how close the site is to Cloudflare's free-plan limits, read straight from Cloudflare.
