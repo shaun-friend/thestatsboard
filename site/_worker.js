@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.42.2 19-Nov-2026 DEV probe: two "Field census" cards (squad list, team sheet) report every field in the real answers with counts and values, to find any registration status (testing only).
 //   v3.42.1 19-Nov-2026 DEV probe: new "Spec check" card lists every player, registration or person endpoint and field in the RFU API description (testing only).
 //   v3.42.0 19-Nov-2026 Sponsors, stage 2: a sponsor for each player by team and season (Admin, Tools, Player sponsors): the RFU squad list as the player list, the club's own name for a player (marked *), a second RFU number, copy from last season; sponsors in use are protected from removal.
 //   v3.41.0 19-Nov-2026 Sponsors, stage 1: a club-wide sponsor list (add, paste a list, rename, remove) at /sponsors behind the club PIN, kept in its own settings-store key.
@@ -306,7 +307,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.42.1";
+const VERSION = "v3.42.2";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -353,6 +354,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
 v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
 v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
 v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
@@ -622,6 +624,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.42.2 - DEV probe: Field census cards
+- Owner request (19-Nov-2026): the Spec check found no status, active, pending or registered field anywhere in the RFU API description (57 endpoints; it does not describe what most answers contain). The owner has been told a pending or active status exists. Look in the real data.
+- New (DEV /probe only, testing, nothing on PROD): two cards. "Field census 1" reads a team's squad list and reports every field with how many entries carry it and, for fields with few different values, those values. "Field census 2" does the same for a match's team sheet (needs a match ID), covering fields such as status, role and disclosure. Both list any field whose name looks like status, active, pending, registration, eligibility, licence or expiry. Names are never shown; fields whose names look like names are reported by count only.
+- Not changed: every other card, the live site and all screens.
+- Request limit: DEV testing page only, 1 outside call per press of each card. No settings-store writes.
+- Tests: new test (counts and values, registration-like fields flagged, names never printed, the sheet version reads the participants). The existing tests pass.
+- Docs: What's new
 
 v3.42.1 - DEV probe: Spec check card (is there a registered or current flag?)
 - Owner request (19-Nov-2026): the squad list for a team holds 165 people for the 1XV and carries no sign of who is registered or playing now. Before building our own current-player tick box, find out whether the RFU data already has a field for it.
@@ -2655,6 +2665,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.42.2", "Test site only: the RFU testing page has two new Field census cards that show every field in the real squad list and team sheet answers, to look for a registration status. They do not change anything on the live site."],
       ["v3.42.1", "Test site only: the RFU testing page has a new Spec check card that lists what the RFU data says about players and registration. It does not change anything on the live site."],
       ["v3.42.0", "New Player sponsors page (Admin, Tools, Player sponsors): choose a sponsor for each player, by team and season. You can give a player your own name (shown with a *), link a second RFU number, and copy last season's sponsors across when you choose. Removing a sponsor that is in use now asks first."],
       ["v3.41.0", "New Sponsors page (Admin, Tools, Sponsors): keep the club's list of sponsors, adding each one once. This is the first step towards showing each player's sponsor on match day; nothing else changes yet."],
@@ -5342,6 +5353,8 @@ const PROBE_EPS = [
   { k: "matches_all", label: "New 1: all matches for a team in one chosen group (POST matches/all, club-entered data)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: ["{groupId}"], opta: false, gms: true }], need: ["teamId", "groupId"] },
   { k: "matches_all_any", label: "New 2: all matches for a team with no group given (does one call cover every competition?)", m: "POST", p: "/fixtures-and-results/matches/all", bodyObj: [{ teamId: "{teamId}", groupIds: [], opta: false, gms: true }], need: ["teamId"] },
   { k: "gms_people", label: "New 3: who played in a match (GMS match participants; needs a match ID)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId"] },
+  { k: "squadcensus", label: "Field census 1: every field in the squad list for a team, with how often each appears and the values of any small set (needs teamId; no names shown)", m: "GET", p: "/players/playersByTeam", q: { teamId: "{teamId}" }, need: ["teamId"], pick: "census" },
+  { k: "sheetcensus", label: "Field census 2: every field on a team sheet (status, role, registration-like fields) with counts and values (needs matchId; no names shown)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId"], pick: "census" },
   { k: "specplayers", label: "Spec check: every player, registration or person endpoint and field in the RFU API description (needs teamId; summary only)", m: "GET", p: "/players/playersByTeam", q: { teamId: "{teamId}" }, need: ["teamId"], pick: "specPlayers" },
   { k: "idcheck", label: "ID check: do the person numbers on a team sheet match the squad list? (needs teamId and matchId; summary only, no full lists)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId", "teamId"], pick: "idCheck" },
   { k: "gms_events", label: "New 4: tries, conversions and cards in a match (GMS match events; needs a match ID)", m: "GET", p: "/gms/matchevents", q: { matchId: "{matchId}" }, need: ["matchId"] },
@@ -5413,6 +5426,19 @@ async function probeRun(url) {
           by.set(k, e);
         }
         out.json = { returned: Array.isArray(j) ? j.length : "not a list", competitions: [...by.values()], firstGame: Array.isArray(j) && j[0] ? j[0] : null };
+      }
+      else if (ep.pick === "census") {
+        // v3.42.2 (testing only): which fields does the real answer carry? Counts how often each field appears and, for fields with few different values, the values. Names are never shown.
+        const arr = Array.isArray(j) ? j : (j && Array.isArray(j.participants) ? j.participants : []);
+        const keys = {};
+        for (const it of arr) if (it && typeof it === "object") for (const k of Object.keys(it)) { const e = keys[k] || (keys[k] = { n: 0, vals: new Map(), kinds: new Set() }); e.n++; const v = it[k]; e.kinds.add(v === null ? "null" : Array.isArray(v) ? "array" : typeof v); if (e.vals.size < 40) { const s = JSON.stringify(v); const key = s && s.length > 80 ? s.slice(0, 80) + "..." : s; e.vals.set(key, (e.vals.get(key) || 0) + 1); } }
+        const nameLike = /name|creator|updater|description/i, report = {}; let hint = [];
+        for (const k of Object.keys(keys)) {
+          const e = keys[k], few = e.vals.size <= 12 && !nameLike.test(k);
+          report[k] = { appears: e.n + " of " + arr.length, kind: [...e.kinds].join("/"), ...(few ? { values: Object.fromEntries(e.vals) } : { differentValues: e.vals.size >= 40 ? "40 or more" : e.vals.size }) };
+          if (/status|active|pending|regist|eligib|current|licen|expir/i.test(k)) hint.push(k);
+        }
+        out.json = { entries: arr.length, fields: Object.keys(keys).length, registrationLikeFields: hint, census: report, howToRead: "Look for a field whose values include pending or active (or registered, lapsed, expired). registrationLikeFields lists any field with a status, active, pending, registration, eligibility, licence or expiry style name. If it is empty, this answer carries no such field." };
       }
       else if (ep.pick === "specPlayers") {
         // v3.42.1 (testing only): read the RFU API description (OpenAPI) and list what it says about players, registration and people, to see whether any field says a player is registered or current.

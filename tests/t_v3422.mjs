@@ -1,0 +1,25 @@
+// v3.40.1: DEV probe "ID check" card compares team-sheet person numbers (individualId) with the squad list (_id).
+const w=(await import(process.argv[2])).default;
+let pass=0,fail=0;const ok=(n,c,x)=>{c?pass++:(fail++,console.log('FAIL',n,x||''))};
+const urls=[];
+const squad=[{_id:1,source:'gms',player_name:'Secret One'},{_id:2,source:'gms',player_name:'Secret Two'},{_id:3,source:'gms',player_name:'******* *******',registrationStatus:'PENDING'},{_id:4,source:'gms',player_name:'Secret Four',registrationStatus:'ACTIVE'}];
+const sheet={participants:[{id:9,status:{},hasDisclosure:false,firstName:'Secret',lastName:'Five',matchRole:{value:'PLAYER'}},{id:10,status:{},hasDisclosure:true,firstName:'Secret',lastName:'Six',matchRole:{value:'PLAYER'}},{id:11,status:{},hasDisclosure:false,firstName:'Secret',lastName:'Seven',matchRole:{value:'COACH'}}]};
+globalThis.fetch=async u=>{u=String(u);urls.push(u);
+ if(/players\/playersByTeam/.test(u))return {ok:true,status:200,headers:new Map(),text:async()=>JSON.stringify(squad)};
+ if(/gms\/matchparticipants/.test(u))return {ok:true,status:200,headers:new Map(),text:async()=>JSON.stringify(sheet)};
+ return {ok:true,status:200,headers:new Map(),text:async()=>'{}'}};
+const ctx={waitUntil(){}};const env={CLUB_PIN:'1',ENV_LABEL:'DEV',DEV_PIN:'1234'};const D='https://dev.thestatsboard.co.uk';let ck=null;
+const get=async p=>{if(!ck){const r=await w.fetch(new Request(D+'/unlock',{method:'POST',body:new URLSearchParams({pin:'1234',next:'/'})}),env,ctx);ck=(r.headers.get('set-cookie')||'').split(';')[0]}return w.fetch(new Request(D+p,{headers:{Cookie:ck}}),env,ctx)};
+let r=await get('/api/probe?ep=squadcensus&teamId=11039');const j=(await r.json()).json||{};
+ok('squad list read once for the team',urls.filter(x=>/playersByTeam\?teamId=11039/.test(x)).length===1);
+ok('entries and fields counted',j.entries===4&&j.fields===4,JSON.stringify(j).slice(0,200));
+ok('how often a field appears',j.census.registrationStatus.appears==='2 of 4'&&j.census._id.appears==='4 of 4');
+ok('values of a small set are listed',JSON.stringify(j.census.registrationStatus.values)===JSON.stringify({'"PENDING"':1,'"ACTIVE"':1})&&JSON.stringify(j.census.source.values)===JSON.stringify({'"gms"':4}),JSON.stringify(j.census));
+ok('a registration-like field is flagged',j.registrationLikeFields.join()==='registrationStatus');
+ok('names are never printed',!JSON.stringify(j).includes('Secret')&&j.census.player_name.values===undefined);
+r=await get('/api/probe?ep=sheetcensus&matchId=1279215');const k=(await r.json()).json||{};
+ok('team sheet read through its participants list',k.entries===3&&k.census.matchRole&&k.census.status.values['{}']===3,JSON.stringify(k).slice(0,300));
+ok('sheet names never printed',!JSON.stringify(k).includes('Secret'));
+ok('no registration-like field on the sheet: the list is empty',Array.isArray(k.registrationLikeFields)&&k.registrationLikeFields.join()==='status',JSON.stringify(k.registrationLikeFields));
+r=await get('/api/probe?ep=squadcensus');const m=await r.json();ok('without a team ID it says what is needed',m.skipped===true&&/teamId/.test(m.error||''));
+console.log(`${pass} passed, ${fail} failed`);process.exit(fail?1:0);

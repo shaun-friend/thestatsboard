@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
 v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
 v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
 v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
@@ -310,6 +311,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.42.2 - DEV probe: Field census cards
+- Owner request (19-Nov-2026): the Spec check found no status, active, pending or registered field anywhere in the RFU API description (57 endpoints; it does not describe what most answers contain). The owner has been told a pending or active status exists. Look in the real data.
+- New (DEV /probe only, testing, nothing on PROD): two cards. "Field census 1" reads a team's squad list and reports every field with how many entries carry it and, for fields with few different values, those values. "Field census 2" does the same for a match's team sheet (needs a match ID), covering fields such as status, role and disclosure. Both list any field whose name looks like status, active, pending, registration, eligibility, licence or expiry. Names are never shown; fields whose names look like names are reported by count only.
+- Not changed: every other card, the live site and all screens.
+- Request limit: DEV testing page only, 1 outside call per press of each card. No settings-store writes.
+- Tests: new test (counts and values, registration-like fields flagged, names never printed, the sheet version reads the participants). The existing tests pass.
+- Docs: What's new
 
 v3.42.1 - DEV probe: Spec check card (is there a registered or current flag?)
 - Owner request (19-Nov-2026): the squad list for a team holds 165 people for the 1XV and carries no sign of who is registered or playing now. Before building our own current-player tick box, find out whether the RFU data already has a field for it.
