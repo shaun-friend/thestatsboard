@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
 v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
 v3.44.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.0_sponsor_players.zip | v3.43.3
 v3.43.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.3_one_sponsor_per_player.zip | v3.43.2
@@ -317,6 +318,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.44.2 - Sponsors: opening a sponsor
+- Owner report (19-Nov-2026): adding a player to a sponsor did not work. Tapping a sponsor showed "Could not read that sponsor." and the team list said "No Options".
+- Cause: the site refuses any /api/ address whose id= is not a number (a guard against odd links), and the sponsor's hidden ID is letters and digits. The tests called the code directly and never went through that guard.
+- Changed: the page now asks for a sponsor's players with a POST (act detail) instead of an address with id=. Nothing else changes.
+- Tests: t_v3430 asks the same way and a new check makes sure no page script puts an id= on an /api/ address.
+- Request limit: no change.
+- Docs: What's new
 
 v3.44.1 - Players page name
 - Owner request (19-Nov-2026): the two pages should be called Sponsors and Players, not Player sponsors.

@@ -106,7 +106,7 @@ await post({act:'set',team:'11063',season:'2026-2027',no:'2380102',n:'Adam Lille
 j=await get('?team=11039');
 c('clearing the sponsor on one team clears it for the player everywhere',!by('2380102').sponsor&&!by('2380102').nm,JSON.stringify(by('2380102')));
 // Sponsors page: add several players to a sponsor, list them, take them off
-const sdet=async id=>{const u=new URL('https://x.test/api/sponsors?id='+id);const r=await ctx.s(new Request(u),u);return{s:r.status,j:await r.json()}};
+const sdet=async id=>{const u=new URL('https://x.test/api/sponsors');const r=await ctx.s(new Request(u,{method:'POST',body:JSON.stringify({act:'detail',id})}),u);return{s:r.status,j:await r.json()}};
 r=await post({act:'assign',team:'11039',season:'2026-2027',s:dart,nos:['1704351','2649651','5','999']});
 c('assign gives the sponsor to the players in the squad list and skips unknown numbers',r.j.ok&&r.j.changed>=1&&r.j.changed<=3,JSON.stringify(r.j));
 let d=await sdet(dart);
@@ -126,4 +126,5 @@ c('page has the tick box, the filter and the scan button',/data-a="cur"/.test(pg
 const sc=/<script>([\s\S]*?)<\/script>/.exec(vm.runInContext('(function(){return '+pg.slice(0,pg.indexOf('\n}\n'))+'\n}\n})()', vm.createContext({MENU_CSS:'',themeBoot:()=>'',themeToggleScript:'',VERSION_LABEL:'v',}))('dark',false,true)||'');
 let okJs=false;try{new vm.Script(sc[1]);okJs=true}catch(x){}
 c('the page script is valid',okJs);
+c('no page script puts an id= on an /api/ address (the site refuses ids that are not numbers)',!/\/api\/[a-z-]+\?[^"']*\bid=/.test(src.slice(src.indexOf('function sponsorsPage('),e)),'');
 console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0)

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.44.2 19-Nov-2026 Sponsors page: opening a sponsor failed ("Could not read that sponsor") because the site rejects /api/ addresses whose id= is not a number; the sponsor is now asked for with a POST.
 //   v3.44.1 19-Nov-2026 The Player sponsors page is now called Players (Admin, Tools: Sponsors and Players).
 //   v3.44.0 19-Nov-2026 Sponsors page: each sponsor sits on one line (long names shortened) with its player count; tap a sponsor to rename it, see its players, add several players from any team in one go, or take players off.
 //   v3.43.3 19-Nov-2026 Player sponsors: a player's sponsor and own name now belong to the player for the season, so they show on every team list the player is on (Current and last played stay per team); the Sponsors page counts a player once.
@@ -313,7 +314,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.44.1";
+const VERSION = "v3.44.2";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -360,6 +361,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.44.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.2_sponsor_open_fix.zip | v3.44.1
 v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
 v3.44.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.0_sponsor_players.zip | v3.43.3
 v3.43.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.3_one_sponsor_per_player.zip | v3.43.2
@@ -636,6 +638,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.44.2 - Sponsors: opening a sponsor
+- Owner report (19-Nov-2026): adding a player to a sponsor did not work. Tapping a sponsor showed "Could not read that sponsor." and the team list said "No Options".
+- Cause: the site refuses any /api/ address whose id= is not a number (a guard against odd links), and the sponsor's hidden ID is letters and digits. The tests called the code directly and never went through that guard.
+- Changed: the page now asks for a sponsor's players with a POST (act detail) instead of an address with id=. Nothing else changes.
+- Tests: t_v3430 asks the same way and a new check makes sure no page script puts an id= on an /api/ address.
+- Request limit: no change.
+- Docs: What's new
 
 v3.44.1 - Players page name
 - Owner request (19-Nov-2026): the two pages should be called Sponsors and Players, not Player sponsors.
@@ -2729,6 +2739,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.44.2", "Fix: tapping a sponsor on the Sponsors page now opens it, so you can add players to it."],
       ["v3.44.1", "The Player sponsors page is now simply called Players, next to Sponsors in Admin, Tools."],
       ["v3.44.0", "Sponsors: each sponsor now sits on one line with a count of its players, and long names are shortened. Tap a sponsor to open it: rename it, see who has it, add several players at once (pick a team, tick the players, press Add) or take a player off. Players who already have another sponsor show it, and adding them moves them."],
       ["v3.43.3", "Player sponsors: a player who is on two team lists (for example the 1XV and the Vandals) now has one sponsor and one own name, shown on both lists and changed from either. Whether they are current, and when they last played, are still kept for each team."],
@@ -3985,16 +3996,17 @@ async function sponsorsApi(request, url) {
   const season = dateSeasonName(todayIso(url, false));
   let rec = null; try { rec = await splinkRead(kv, season); } catch (_) { rec = null; }
   const useOf = id => spUsers(rec, id);
+  // One sponsor's players this season (every team, a player counted once) and the teams to pick players from. Asked for with a POST because the site
+  // rejects any /api/ address whose id= is not a number.
+  const detailOf = pid => {
+    const it = items.find(x => x.id === pid);
+    if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    const players = [], seen = new Set();
+    if (rec) for (const tk of Object.keys(rec.t)) { const tn = (TEAMS.find(x => String(x.team) === tk) || {}).name || "Team " + tk; for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; if (e0.s === pid && !seen.has(no)) { seen.add(no); players.push({ no, name: e0.nm || e0.n || "", team: tn }); } } }
+    players.sort((a, b) => (a.name || "~").toLowerCase() < (b.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (b.name || "~").toLowerCase() ? 1 : 0);
+    return J({ ok: true, id: pid, name: it.name, players, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), season });
+  };
   if (request.method === "GET") {
-    const sp = url.searchParams, pid = String(sp.get("id") || "");
-    if (pid) { // one sponsor's players this season (every team, a player counted once) and the teams to pick players from
-      const it = items.find(x => x.id === pid);
-      if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
-      const players = [], seen = new Set();
-      if (rec) for (const tk of Object.keys(rec.t)) { const tn = (TEAMS.find(x => String(x.team) === tk) || {}).name || "Team " + tk; for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; if (e0.s === pid && !seen.has(no)) { seen.add(no); players.push({ no, name: e0.nm || e0.n || "", team: tn }); } } }
-      players.sort((a, b) => (a.name || "~").toLowerCase() < (b.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (b.name || "~").toLowerCase() ? 1 : 0);
-      return J({ ok: true, id: pid, name: it.name, players, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), season });
-    }
     const use = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use[x.id] = u.length; } return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use, season });
   }
   if (request.method !== "POST") return J({ ok: false, error: "Use the Sponsors page." }, 405);
@@ -4002,6 +4014,7 @@ async function sponsorsApi(request, url) {
   if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
   let b = null; try { b = JSON.parse(await request.text()); } catch (_) { b = null; }
   if (!b || typeof b.act !== "string") return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+  if (b.act === "detail") return detailOf(String(b.id || ""));
   const has = (name, skipId) => items.some(x => x.id !== skipId && x.name.toLowerCase() === name.toLowerCase());
   let added = 0, skipped = 0;
   if (b.act === "add") {
@@ -4070,7 +4083,7 @@ pool.forEach(function(r){if(r.sid===open)return;if(onlyCur&&!r.cur)return;var nm
 h+='<label class="pk"><input type="checkbox" data-no="'+e(r.no)+'"'+(sel[r.no]?" checked":"")+"><span>"+(nm?e(nm)+(r.own?" *":""):'<i style="color:#91a49a">Name redacted</i>')+"<small>"+(r.sid?"now "+e(r.sponsor):"no. "+e(r.no))+"</small></span></label>"});
 el.innerHTML=h||'<p class="sub" style="margin:8px">'+(pool.length?(onlyCur?"No current players to add. Untick Current players only to see everyone.":"No player matches."):"No players found for this team.")+"</p>";
 var c=Object.keys(sel).length;$("aa").textContent=c?"Add "+c+" player"+(c===1?"":"s"):"Add selected";$("aa").disabled=!c}
-function loadDet(id){det=null;pool=null;sel={};fetch("/api/sponsors?id="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read that sponsor.","er");return}if(open!==id)return;det=j;if(!pt||!j.teams.some(function(z){return z.team===pt}))pt=j.teams[0]?j.teams[0].team:"";draw();loadPool()}).catch(function(){say("Could not read that sponsor.","er")})}
+function loadDet(id){det=null;pool=null;sel={};fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({act:"detail",id:id})}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read that sponsor.","er");return}if(open!==id)return;det=j;if(!pt||!j.teams.some(function(z){return z.team===pt}))pt=j.teams[0]?j.teams[0].team:"";draw();loadPool()}).catch(function(){say("Could not read that sponsor.","er")})}
 function loadPool(){pool=null;sel={};var el=$("at");if(el&&pt)el.value=pt;drawPool();if(!pt)return;fetch("/api/sponsor-players?team="+encodeURIComponent(pt)+"&season="+encodeURIComponent(season),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){pool=j&&j.ok?j.rows:[];if(!j||!j.ok)say((j&&j.error)||"Could not read the players.","er");drawPool()}).catch(function(){pool=[];drawPool()})}
 function post2(o,ok){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
 function refresh(msg){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(j&&j.ok){items=j.items;use=j.use||{}}say(msg,"ok");loadDet(open);draw()}).catch(function(){loadDet(open)})}
