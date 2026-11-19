@@ -324,6 +324,8 @@ Earlier versions are described in the notes below. Zips from v22g and earlier we
 v3.45.1 - Sponsors and Players: clearer buttons
 - Owner request (19-Nov-2026): the Sponsors and Players links blended into the page.
 - Changed: they are now two big buttons, "1. Sponsors" (add and edit the club's sponsors) and "2. Players" (give a player a sponsor), the current one in green, each with a one-line description. Works in dark and light mode and on a phone.
+- Changed: Find this season's players, Clear ticks and Copy from last season have moved to a third button, 3. Season set-up, because they are used about once a season. The team and season pickers stay at the top and apply to it too.
+- New: in a sponsor's Add players list, players who already have a sponsor are hidden by default; the box "Only players without a sponsor" can be unticked to see everyone.
 - New: an X inside the search boxes (sponsors, players, and the add-players panel) clears the text with one tap.
 - New: a summary block at the top of both pages: number of sponsors, number of sponsored players (all teams this season, a player on two teams counted once) and number of sponsors that have players. No extra storage reads (it uses data the pages already read).
 - Request limit: no change (layout only).

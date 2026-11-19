@@ -21,9 +21,9 @@ await p.click('button[data-f=av]');x=await p.innerText('#ls');ck('Available filt
 await p.click('button[data-f=all]');
 posts.length=0;await p.locator('input[data-a=cur][data-i="5"]').uncheck();await p.waitForTimeout(300);
 ck('unticking Current sends the change',posts.length===1&&posts[0].act==='set'&&posts[0].no==='5'&&posts[0].cur===false,JSON.stringify(posts));posts.length=0;
-ck('the scan button is offered for this season',await p.locator('#scb').isVisible());
+ck('the scan button is not on the normal players view',!(await p.locator('#scb').isVisible()));await p.click('#t3');await p.waitForTimeout(200);ck('3. Season set-up shows the scan and hides the list',(await p.locator('#scb').isVisible())&&!(await p.locator('#lc').isVisible())&&/Season set-up/.test(await p.innerText('#h1')));
 await p.click('#scb');await p.waitForTimeout(300);
-ck('the scan button asks to read the team sheets from the start',posts.length===1&&posts[0].act==='scan'&&posts[0].offset===0&&posts[0].team==='11039',JSON.stringify(posts));posts.length=0;
+ck('the scan button asks to read the team sheets from the start',posts.length===1&&posts[0].act==='scan'&&posts[0].offset===0&&posts[0].team==='11039',JSON.stringify(posts));posts.length=0;await p.click('#t2');await p.waitForTimeout(200);
 await p.fill('#fq','lilley');x=await p.innerText('#ls');ck('search finds a player',/Adam Lilley/.test(x)&&!/Aled/.test(x));await p.fill('#fq','');
 await p.locator('button[data-a=edit][data-i="5"]').click();
 ck('edit box has the three fields',await p.locator('#en').count()===1&&await p.locator('#es').count()===1&&await p.locator('#ea').count()===1);
@@ -31,7 +31,7 @@ await p.fill('#en','Alun Price');await p.selectOption('#es','bbbb2222');await p.
 const sv=posts[0];ck('save sends team, season, number, name and sponsor',sv&&sv.act==='set'&&sv.no==='5'&&sv.nm==='Alun Price'&&sv.s==='bbbb2222'&&sv.team==='11039'&&sv.season==='2026-2027',JSON.stringify(sv));
 await p.selectOption('#se','2027-2028');await p.waitForTimeout(300);ck('changing season asks for that season',/season=2027-2028/.test(calls[calls.length-1]),calls.join());
 await p.selectOption('#tm','11063');await p.waitForTimeout(300);ck('changing team asks for that team',/team=11063/.test(calls[calls.length-1]));
-const cp=await p.locator('#cpb');ck('copy button offers last season',/Copy from 2026-2027/.test(await cp.innerText()));
+await p.click('#t3');await p.waitForTimeout(200);const cp=await p.locator('#cpb');ck('copy button offers last season',/Copy from 2026-2027/.test(await cp.innerText()));
 await cp.click();ck('copy asks first',/Yes, copy from/.test(await cp.innerText()));
 await cp.click();await p.waitForTimeout(300);ck('copy sends the request',posts.some(o=>o.act==='copy'&&o.from==='2026-2027'),JSON.stringify(posts));
 await p.selectOption('#se','2025-2026');await p.waitForTimeout(300);ck('no copy button on the oldest season',await p.locator('#cpb').isHidden());

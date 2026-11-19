@@ -30,7 +30,7 @@ await p.click('button[data-a=open] >> nth=0');await p.waitForTimeout(400);
 ck('tapping a sponsor opens its players',/players with this sponsor/i.test(await t())&&/Wes Vermigle/.test(await t())&&/Name redacted/.test(await t()),await t());
 const rh=await p.evaluate(()=>Math.round(document.querySelectorAll('.sr')[1].getBoundingClientRect().height));ck('each sponsor sits on one line',rh<=56,String(rh));
 const lis=await p.evaluate(()=>document.querySelectorAll('.sr').length);ck('every sponsor has a row',lis===3,String(lis));
-ck('players to add exclude non-current and show the sponsor they have now',/Aled Price/.test(await p.innerText('#pl'))&&!/Zed Retired/.test(await p.innerText('#pl'))&&/now Smith Plumbing/.test(await p.innerText('#pl')),await p.innerText('#pl'));
+ck('players to add hide non-current and anyone who already has a sponsor',/Aled Price/.test(await p.innerText('#pl'))&&!/Zed Retired/.test(await p.innerText('#pl'))&&!/now Smith Plumbing/.test(await p.innerText('#pl')),await p.innerText('#pl'));await p.uncheck('#af');ck('unticking Only players without a sponsor shows the sponsor they have now',/now Smith Plumbing/.test(await p.innerText('#pl')));await p.check('#af');
 await p.uncheck('#ac');ck('untick Current players only shows everyone',/Zed Retired/.test(await p.innerText('#pl')));await p.check('#ac');
 ck('add button is off until someone is ticked',await p.locator('#aa').isDisabled());
 await p.check('input[data-no="5"]');ck('add button counts the ticks',/Add 1 player/.test(await p.innerText('#aa')));
