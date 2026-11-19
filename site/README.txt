@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
 v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
 v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
 v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
@@ -307,6 +308,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.41.0 - Sponsors, stage 1: the sponsor list
+- Owner request (19-Nov-2026): start the player sponsors feature. Agreed design: sponsors are added once for the club (each with a hidden ID), many players can share a sponsor, each player has one sponsor per season (nothing carries into the next season by itself), teams come from Our teams, and the match-day page is chosen by day and shows only teams with a submitted sheet. Staged build; this is stage 1. Later, club officials may get their own sign-in; these pages sit behind the club PIN until then.
+- New: Sponsors page (/sponsors, Admin, Tools, Sponsors). Add a sponsor, Paste a list (one per line, duplicates skipped), Rename, Remove (press twice), search. Up to 300 sponsors; names up to 60 characters; the same name cannot be added twice (capital letters ignored).
+- Storage: its own settings-store key ("sponsors"), apart from the settings record, so it can grow without touching settings. Each sponsor has a hidden 8-character ID.
+- Not yet built: choosing sponsors for players, seasons, the match-day page.
+- Request limit: no change for visitors or screens. The Sponsors page is one settings-store read to open and one read plus one write for each change (a pasted list is one change). No outside calls.
+- Tests: new test (empty list, add, duplicate refused, paste with duplicates, rename, remove, wrong origin refused, cleaning of stored data). It fails on the old code. The existing tests pass.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.40.4 - DEV probe: Copy button on every card
 - Owner request (19-Nov-2026): a Copy to clipboard button against each probe result, so results can be pasted without selecting text.

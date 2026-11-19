@@ -1,0 +1,14 @@
+import fs from 'fs';
+const w=(await import(process.argv[2])).default;
+const store={};const kv={async get(k,o){const v=store[k];return v==null?null:(o&&o.type==='json'?JSON.parse(v):v)},async put(k,v){store[k]=v}};
+const env={CLUB_PIN:'1234',SETTINGS:kv,USAGE:{writeDataPoint(){}}},ctx={waitUntil(){}};const O='https://thestatsboard.co.uk';
+let r=await w.fetch(new Request(O+'/sponsors'),env,ctx);
+const gated=r.status===303||r.status===401||r.status===200&&/PIN/.test(await r.clone().text());
+const gateOk=(r.status===303&&/club-unlock/.test(r.headers.get('location')||''));
+r=await w.fetch(new Request(O+'/api/sponsors'),env,ctx);const apiGate=r.status===303||r.status===401;
+r=await w.fetch(new Request(O+'/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1234',next:'/sponsors'})}),env,ctx);
+const ck=(r.headers.get('set-cookie')||'').split(';')[0];
+r=await w.fetch(new Request(O+'/sponsors',{headers:{Cookie:ck}}),env,ctx);
+fs.writeFileSync('w/sponsors_page.html',await r.text());
+fs.writeFileSync('w/sponsors_gate.json',JSON.stringify({gateOk,apiGate,ck}));
+console.log('page written; gate',gateOk,apiGate);

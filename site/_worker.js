@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.41.0 19-Nov-2026 Sponsors, stage 1: a club-wide sponsor list (add, paste a list, rename, remove) at /sponsors behind the club PIN, kept in its own settings-store key.
 //   v3.40.4 19-Nov-2026 DEV probe: every card has a Copy button that copies its whole result (not just the 6,000 characters shown).
 //   v3.40.3 19-Nov-2026 Usage: the version line at the bottom now sits at the end of the page instead of floating over the content.
 //   v3.40.2 19-Nov-2026 Usage page, Cloudflare limits: split by settings store (DEV/PROD labels from the optional CF_KV_LABELS) and by site.
@@ -303,7 +304,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.40.4";
+const VERSION = "v3.41.0";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -350,6 +351,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
 v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
 v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
 v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
@@ -616,6 +618,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.41.0 - Sponsors, stage 1: the sponsor list
+- Owner request (19-Nov-2026): start the player sponsors feature. Agreed design: sponsors are added once for the club (each with a hidden ID), many players can share a sponsor, each player has one sponsor per season (nothing carries into the next season by itself), teams come from Our teams, and the match-day page is chosen by day and shows only teams with a submitted sheet. Staged build; this is stage 1. Later, club officials may get their own sign-in; these pages sit behind the club PIN until then.
+- New: Sponsors page (/sponsors, Admin, Tools, Sponsors). Add a sponsor, Paste a list (one per line, duplicates skipped), Rename, Remove (press twice), search. Up to 300 sponsors; names up to 60 characters; the same name cannot be added twice (capital letters ignored).
+- Storage: its own settings-store key ("sponsors"), apart from the settings record, so it can grow without touching settings. Each sponsor has a hidden 8-character ID.
+- Not yet built: choosing sponsors for players, seasons, the match-day page.
+- Request limit: no change for visitors or screens. The Sponsors page is one settings-store read to open and one read plus one write for each change (a pasted list is one change). No outside calls.
+- Tests: new test (empty list, add, duplicate refused, paste with duplicates, rename, remove, wrong origin refused, cleaning of stored data). It fails on the old code. The existing tests pass.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.40.4 - DEV probe: Copy button on every card
 - Owner request (19-Nov-2026): a Copy to clipboard button against each probe result, so results can be pasted without selecting text.
@@ -2300,6 +2311,7 @@ const DOCS = [
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
     { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
+    { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
     { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
     { v: "/admin", values: "none", where: "Club PIN", what: "The admin page: homepage and TV notices, and switches for screen features. Settings are stored per club in Cloudflare KV (the SETTINGS binding).", ex: [["Admin", "/admin"]] },
     { v: "/unlock, /club-unlock", values: "pin, next", where: "PIN pages", what: "The DEV PIN page and the club PIN page. Redirects here automatically.", ex: [] }
@@ -2456,6 +2468,11 @@ const DOC_SECTIONS = [
       "TV screen notice: a one-line strip on TV screens (the Fixtures board, the Match Centre and other layout=tv pages). Text up to 120 characters; keep it short. The normal phone pages do not show it (the Match Centre does, because it is a screen).",
       "Style: Information (blue) or Warning (amber). Hide automatically after: an optional date (UK time) after which the notice stops showing.",
       "Applies to (TV notice): Club teams only (the default), All screens, or Chosen teams. Club teams only means the teams on the club's Links page, so another club's screen never shows it."
+    ] },
+    { h: "Sponsors" },
+    { ul: [
+      "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
+      "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Linking sponsors to players, season by season, comes in the next stages."
     ] },
     { h: "Inbox" },
     { ul: [
@@ -2614,6 +2631,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.41.0", "New Sponsors page (Admin, Tools, Sponsors): keep the club's list of sponsors, adding each one once. This is the first step towards showing each player's sponsor on match day; nothing else changes yet."],
       ["v3.40.4", "Test site only: every card on the RFU testing page has a Copy button that copies its whole result."],
       ["v3.40.3", "Usage page: the version line at the bottom now sits at the end of the page instead of floating over the content."],
       ["v3.40.2", "Usage page: the Cloudflare limits card now splits the settings store by store and the site requests by site (add the optional CF_KV_LABELS variable to name your stores, for example a1b2c3d4=PROD,89ef0123=DEV). Teams people look up now finds a team's name from its other records instead of showing only the number."],
@@ -3342,7 +3360,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3569,7 +3587,7 @@ async function maintenanceGate(request) {
     }
     return maintenancePage(m, true);
   }
-  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
+  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
   const st = await siteSettings();
   if (!st.maintenance.on) return null;
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
@@ -3827,6 +3845,105 @@ function reason(){var c=f.querySelector("input[name=r]:checked");return c?c.valu
 f.addEventListener("submit",function(){var m=document.getElementById("mm"),b=document.getElementById("mg");m.textContent="";var t=document.getElementById("mt").value.trim();if(t.length<3){m.textContent="Please write a message first.";return}
 b.disabled=true;fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason:reason(),text:t,email:document.getElementById("me").value,website:document.getElementById("mw").value,t0:T0,touch:(navigator.maxTouchPoints||0)>1,from:FROM||document.referrer})}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;if(j&&j.ok){document.getElementById("fm").hidden=true;document.getElementById("ok").hidden=false;window.scrollTo(0,0)}else{m.textContent=(j&&j.error)||"Sorry, that did not send. Please try again."}}).catch(function(){b.disabled=false;m.textContent="Sorry, that did not send. Check your connection."})})})();</script></body></html>`;
 }
+// v3.41.0: Sponsors (stage 1 of player sponsors). The club's sponsor list, kept in its own settings-store key ("sponsors"), apart from the settings record.
+// Each sponsor has a hidden ID (8 hex characters) so a rename never breaks a later link to a player. Behind the club PIN; one settings-store read per
+// page load and one read plus one write per change. No outside calls. Later stages link sponsors to players, season by season.
+const SPONSOR_KEY = "sponsors", SPONSOR_MAX = 300;
+const sponsorName = v => String(v == null ? "" : v).replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
+function cleanSponsors(v) {
+  const out = [], seen = new Set();
+  for (const r of (v && Array.isArray(v.items) ? v.items : [])) {
+    const id = String(r && r.id || ""), name = sponsorName(r && r.name);
+    if (!/^[0-9a-f]{8}$/.test(id) || !name || seen.has(id)) continue;
+    seen.add(id); out.push({ id, name });
+    if (out.length >= SPONSOR_MAX) break;
+  }
+  return out;
+}
+const sponsorSorted = items => items.slice().sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
+function newSponsorId(items) {
+  for (;;) {
+    const a = crypto.getRandomValues(new Uint32Array(1))[0].toString(16).padStart(8, "0");
+    if (!items.some(x => x.id === a)) return a;
+  }
+}
+async function sponsorsApi(request, url) {
+  const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: H });
+  const kv = kvOf();
+  if (!kv) return J({ ok: false, error: "Settings storage is not connected (no SETTINGS binding)." }, 503);
+  let items = [];
+  try { items = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); } catch (_) { return J({ ok: false, error: "Could not read the sponsors. Try again." }, 502); }
+  if (request.method === "GET") return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX });
+  if (request.method !== "POST") return J({ ok: false, error: "Use the Sponsors page." }, 405);
+  const origin = request.headers.get("Origin");
+  if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
+  let b = null; try { b = JSON.parse(await request.text()); } catch (_) { b = null; }
+  if (!b || typeof b.act !== "string") return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+  const has = (name, skipId) => items.some(x => x.id !== skipId && x.name.toLowerCase() === name.toLowerCase());
+  let added = 0, skipped = 0;
+  if (b.act === "add") {
+    const name = sponsorName(b.name);
+    if (!name) return J({ ok: false, error: "Type the sponsor's name first." }, 400);
+    if (has(name)) return J({ ok: false, error: name + " is already in the list." }, 409);
+    if (items.length >= SPONSOR_MAX) return J({ ok: false, error: "The list is full (" + SPONSOR_MAX + " sponsors)." }, 400);
+    items.push({ id: newSponsorId(items), name }); added = 1;
+  } else if (b.act === "bulk") {
+    const lines = String(b.text || "").slice(0, 20000).split("\n");
+    for (const ln of lines) {
+      const name = sponsorName(ln);
+      if (!name) continue;
+      if (has(name) || items.length >= SPONSOR_MAX) { skipped++; continue; }
+      items.push({ id: newSponsorId(items), name }); added++;
+    }
+    if (!added && !skipped) return J({ ok: false, error: "Paste one sponsor per line." }, 400);
+  } else if (b.act === "rename") {
+    const name = sponsorName(b.name), it = items.find(x => x.id === String(b.id || ""));
+    if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    if (!name) return J({ ok: false, error: "Type the sponsor's name first." }, 400);
+    if (has(name, it.id)) return J({ ok: false, error: name + " is already in the list." }, 409);
+    it.name = name;
+  } else if (b.act === "remove") {
+    const n = items.length; items = items.filter(x => x.id !== String(b.id || ""));
+    if (items.length === n) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+  } else return J({ ok: false, error: "Unknown action." }, 400);
+  try { await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
+  return J({ ok: true, items: sponsorSorted(items), added, skipped, max: SPONSOR_MAX });
+}
+function sponsorsPage(theme, isDev, hasKv) {
+  const t = theme === "light" ? "light" : "dark";
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Sponsors</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li{border-color:#dbe8de}
+</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Sponsors</h1><p class="sub" id="sub" style="margin:4px 0 0">${hasKv ? "Add each sponsor once for the club. Later you will choose them for players, season by season. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
+<div class="cd2"><div class="rw2"><input class="in2" id="nm" maxlength="60" placeholder="Sponsor name" autocomplete="off"><button type="button" class="b2 go" id="ad">Add</button></div>
+<details style="margin-top:10px"><summary>Paste a list</summary><p class="sub" style="margin:8px 0">One sponsor per line. Names already in the list are skipped.</p><textarea class="in2" id="bk" placeholder="Dart Motors"></textarea><div class="rw2" style="margin-top:8px"><button type="button" class="b2 go" id="ab">Add all</button></div></details></div>
+<div class="msg2" id="ms" role="status"></div>
+<div class="cd2"><div class="rw2" style="margin-bottom:6px"><input class="in2" id="fq" placeholder="Search sponsors" autocomplete="off"><small id="ct" style="color:#91a49a"></small></div><div id="ls"></div></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var items=[],max=300,edit="",armed="",busy=false;
+function $(i){return document.getElementById(i)}
+function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
+function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;items.forEach(function(x){if(q&&x.name.toLowerCase().indexOf(q)<0)return;n++;
+if(edit===x.id){h+='<div class="li"><input class="in2" id="ei" maxlength="60" value="'+e(x.name)+'"><div class="ac2"><button type="button" class="b2 go" data-a="save" data-i="'+x.id+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
+else if(armed===x.id){h+='<div class="li"><div><b>'+e(x.name)+'</b><small>Remove this sponsor?</small></div><div class="ac2"><button type="button" class="b2 rm" data-a="yes" data-i="'+x.id+'">Yes, remove</button><button type="button" class="b2" data-a="cancel">No</button></div></div>'}
+else{h+='<div class="li"><b>'+e(x.name)+'</b><div class="ac2"><button type="button" class="b2" data-a="edit" data-i="'+x.id+'">Rename</button><button type="button" class="b2 rm" data-a="rm" data-i="'+x.id+'">Remove</button></div></div>'}});
+$("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(items.length?"No sponsor matches that search.":"No sponsors yet. Add the first one above.")+"</p>";
+$("ct").textContent=items.length+" of "+max;var ei=$("ei");if(ei){ei.focus();ei.select()}}
+function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}items=j.items;edit="";armed="";draw();ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
+function load(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the sponsors.","er");return}items=j.items;max=j.max||max;draw()}).catch(function(){say("Could not read the sponsors.","er")})}
+$("ad").onclick=function(){var v=$("nm").value;post({act:"add",name:v},function(){$("nm").value="";say("Added.","ok");$("nm").focus()})};
+$("nm").onkeydown=function(ev){if(ev.key==="Enter")$("ad").click()};
+$("ab").onclick=function(){post({act:"bulk",text:$("bk").value},function(j){$("bk").value="";say("Added "+j.added+(j.skipped?", skipped "+j.skipped+" already in the list":"")+".","ok")})};
+$("fq").oninput=draw;
+$("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
+if(a==="edit"){edit=i;armed="";draw()}else if(a==="cancel"){edit="";armed="";draw()}else if(a==="rm"){armed=i;edit="";draw()}
+else if(a==="save"){post({act:"rename",id:i,name:$("ei").value},function(){say("Renamed.","ok")})}
+else if(a==="yes"){post({act:"remove",id:i},function(){say("Removed.","ok")})}};
+load();
+})();</script></body></html>`;
+}
 function inboxPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   const tags = JSON.stringify(MSG_TAGS);
@@ -3882,7 +3999,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -5762,6 +5879,11 @@ const worker = {
     if (url.pathname === "/api/cflimits") return cflLimitsApi(url);
     if (url.pathname === "/api/contact") return contactApi(request, url);
     if (url.pathname === "/api/inbox") return inboxApi(request, url);
+    if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
+    if (url.pathname.replace(/\/+$/, "") === "/sponsors") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(sponsorsPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/contact") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(contactPage(th, isDev === true, url.searchParams.get("from") || "", (await siteSettings()).features.contact !== false, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -8445,7 +8567,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -8645,7 +8767,7 @@ fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"
 if(x.j&&x.j.ok){$("f").hidden=true;$("d").hidden=false;$("dh").textContent="Sent to the screen";$("dp").textContent=x.j.label+". The screen picks it up within a few seconds.";setTimeout(function(){check(0)},3000)}
 else{b.disabled=false;$("er").textContent=(x.j&&x.j.error)||"Sign in again, then retry.";$("er").hidden=false}}).catch(function(){b.disabled=false;$("er").textContent="No connection. Try again.";$("er").hidden=false})}})()</script></body></html>`;
 }
-const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
 function unknownPathGate(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
@@ -8780,7 +8902,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;
