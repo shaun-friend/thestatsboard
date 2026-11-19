@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.2_scan_own_team.zip | v3.43.1
 v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
 v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
 v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
@@ -313,6 +314,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.2 - Player sponsors: scan only this team's games
+- Owner report (19-Nov-2026): on the Vandals list a player who last played for the 1XV showed as on the Vandals' latest game, so the scan may have read a game that is not the Vandals'.
+- Changed: the scan now learns the RFU's own number for our side from the first games it reads and keeps it. A sheet whose side has a different number belongs to another team and is skipped (shown as "another team's game, skipped" in Games read and counted in the message). Nobody is ticked from a skipped sheet.
+- New: Clear ticks (two presses). It removes the players who are only there because of a tick (no sponsor, own name or other number) and the last-played details; sponsored players stay and count as current. Use it before scanning again to clean a list the earlier scan filled wrongly.
+- Request limit: no change (the side number comes from the sheets already being read).
+- Tests: t_v3430 (35 checks).
+- Docs: Admin guide, What's new
 
 v3.43.1 - Player sponsors: phone layout and last-played check
 - Owner report (19-Nov-2026): on a phone the player rows were tall with a lot of empty space, and on the Vandals list a player who last played for the 1XV showed as on the latest game.

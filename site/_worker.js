@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.43.2 19-Nov-2026 Player sponsors: the scan skips games that belong to another team (the RFU side number must match across the team's games), reports them, and a Clear ticks button resets the list.
 //   v3.43.1 19-Nov-2026 Player sponsors: compact phone layout (rows about half the height), last played date and opponent for each player, and a "Games read" list after a scan so the games used can be checked.
 //   v3.43.0 19-Nov-2026 Player sponsors: a Current player tick box with a Current filter (default), a one-off "Find this season's players" scan of the season's team sheets, and a "last on a team sheet" hint. No GMS access is needed.
 //   v3.42.2 19-Nov-2026 DEV probe: two "Field census" cards (squad list, team sheet) report every field in the real answers with counts and values, to find any registration status (testing only).
@@ -309,7 +310,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.43.1";
+const VERSION = "v3.43.2";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -356,6 +357,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.2_scan_own_team.zip | v3.43.1
 v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
 v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
 v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
@@ -628,6 +630,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.2 - Player sponsors: scan only this team's games
+- Owner report (19-Nov-2026): on the Vandals list a player who last played for the 1XV showed as on the Vandals' latest game, so the scan may have read a game that is not the Vandals'.
+- Changed: the scan now learns the RFU's own number for our side from the first games it reads and keeps it. A sheet whose side has a different number belongs to another team and is skipped (shown as "another team's game, skipped" in Games read and counted in the message). Nobody is ticked from a skipped sheet.
+- New: Clear ticks (two presses). It removes the players who are only there because of a tick (no sponsor, own name or other number) and the last-played details; sponsored players stay and count as current. Use it before scanning again to clean a list the earlier scan filled wrongly.
+- Request limit: no change (the side number comes from the sheets already being read).
+- Tests: t_v3430 (35 checks).
+- Docs: Admin guide, What's new
 
 v3.43.1 - Player sponsors: phone layout and last-played check
 - Owner report (19-Nov-2026): on a phone the player rows were tall with a lot of empty space, and on the Vandals list a player who last played for the 1XV showed as on the latest game.
@@ -2688,6 +2698,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.43.2", "Player sponsors: Find this season's players now checks that every game it reads belongs to the team you chose, skips and reports any that do not, and a new Clear ticks button wipes the ticks that nothing else holds up so you can scan again from clean. Players with a sponsor, own name or other number are kept."],
       ["v3.43.1", "Player sponsors: the list is much shorter on a phone (each player takes about half the height), each player shows the date and opponent of the last game they were on a team sheet for, and after Find this season's players a Games read list shows exactly which games were used."],
       ["v3.43.0", "Player sponsors: each player has a Current tick box, and the list shows current players first so the long squad list is cut down. A new Find this season's players button reads this season's team sheets and ticks everyone who has played. Each player also shows how many games ago they were last on a team sheet, so you can spot who has drifted away. Nothing is ticked or unticked behind your back after that."],
       ["v3.42.2", "Test site only: the RFU testing page has two new Field census cards that show every field in the real squad list and team sheet answers, to look for a registration status. They do not change anything on the live site."],
@@ -4040,10 +4051,12 @@ function cleanLinks(v) {
   }
   const g = {}, sg = v && v.g && typeof v.g === "object" ? v.g : {};
   for (const team of Object.keys(t)) { const n = parseInt(sg[team], 10); if (n > 0) g[team] = Math.min(200, n); }
-  return { v: 1, t, g };
+  const i = {}, si = v && v.i && typeof v.i === "object" ? v.i : {};
+  for (const team of Object.keys(t)) if (/^\d{1,10}$/.test(String(si[team] || ""))) i[team] = String(si[team]);
+  return { v: 1, t, g, i };
 }
 const isCurrent = e => !!e && (e.c === 1 || (e.c === 0 && !!e.s));
-const recJson = rec => JSON.stringify({ v: 1, t: rec.t, g: rec.g || {}, savedAt: new Date().toISOString() });
+const recJson = rec => JSON.stringify({ v: 1, t: rec.t, g: rec.g || {}, i: rec.i || {}, savedAt: new Date().toISOString() });
 async function splinkRead(kv, season) {
   if (!ADDR_RULES.season(String(season || ""))) return cleanLinks(null);
   return cleanLinks(await kv.get(SPLINK_PREFIX + season, { type: "json" }));
@@ -4146,16 +4159,27 @@ async function sponsorPlayersApi(request, url, worker) {
     const altOf = {}; for (const no of Object.keys(ent)) for (const a of ent[no].a) altOf[a] = no;
     let missed = 0, added = 0, marked = 0, touched = false;
     const gmap = new Map(games.map(g => [String(g.id), g])), seenGames = [];
-    for (let si = 0; si < sheets.length; si++) {
-      const sh = sheets[si], ord = off + si + 1, gg = gmap.get(batch[si]) || {};
-      const gd = String(gg.iso || "").slice(0, 10), go = sponsorName(gg.oppName).slice(0, 24);
-      seenGames.push({ d: gd, o: go });
+    // Our side of each sheet is the side with most of the squad list. The RFU's own number for that side must also be the same in every game of this team (learned from
+    // the first batch and kept): a sheet whose side has another number belongs to a different team's game and is skipped, not counted.
+    const found = sheets.map(sh => {
       const list = Array.isArray(sh && sh.participants) ? sh.participants : null;
-      if (!list) { missed++; continue; }
+      if (!list) return null;
       const sides = {}; for (const p of list) (sides[String(p.teamId)] || (sides[String(p.teamId)] = [])).push(p);
-      let best = null, bestN = -1;
-      for (const k of Object.keys(sides)) { const n = sides[k].filter(p => inSquad.has(personNo(p.individualId))).length; if (n > bestN) { bestN = n; best = sides[k]; } }
-      if (!best || (inSquad.size && bestN < 1)) { missed++; continue; }
+      let key = "", best = null, bestN = -1;
+      for (const k of Object.keys(sides)) { const n = sides[k].filter(p => inSquad.has(personNo(p.individualId))).length; if (n > bestN) { bestN = n; best = sides[k]; key = k; } }
+      return !best || (inSquad.size && bestN < 1) ? null : { key, best };
+    });
+    rec.i = rec.i || {};
+    if (off === 0) { const cnt = {}; for (const f of found) if (f && personNo(f.key)) cnt[f.key] = (cnt[f.key] || 0) + 1; const top = Object.keys(cnt).sort((x, y) => cnt[y] - cnt[x])[0]; if (top && rec.i[q.team] !== top) { rec.i[q.team] = top; touched = true; } }
+    const expect = rec.i[q.team] || "";
+    let other = 0;
+    for (let si = 0; si < sheets.length; si++) {
+      const ord = off + si + 1, gg = gmap.get(batch[si]) || {}, f = found[si];
+      const gd = String(gg.iso || "").slice(0, 10), go = sponsorName(gg.oppName).slice(0, 24);
+      if (!f) { seenGames.push({ d: gd, o: go }); missed++; continue; }
+      if (expect && f.key !== expect) { seenGames.push({ d: gd, o: go, x: 1 }); other++; continue; }
+      seenGames.push({ d: gd, o: go });
+      const best = f.best;
       for (const p of best) {
         let no = personNo(p.individualId); if (!no) continue;
         no = altOf[no] || no;
@@ -4167,7 +4191,13 @@ async function sponsorPlayersApi(request, url, worker) {
     }
     rec.g = rec.g || {}; if (rec.g[q.team] !== ids.length) { rec.g[q.team] = ids.length; touched = true; }
     if (touched) { try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); } }
-    return J({ ok: true, total: ids.length, next: off + batch.length >= ids.length ? null : off + batch.length, read: batch.length - missed, missed, marked, added, games: seenGames });
+    return J({ ok: true, total: ids.length, next: off + batch.length >= ids.length ? null : off + batch.length, read: batch.length - missed - other, missed, other, marked, added, games: seenGames });
+  } else if (b.act === "reset") {
+    // Clears the Current ticks that nothing else holds up (no sponsor, own name or other number) and the last-played details; sponsored players stay current.
+    let cleared = 0;
+    for (const no of Object.keys(ent)) { const e0 = ent[no]; if (!e0.nm && !e0.s && !e0.a.length) { delete ent[no]; cleared++; } else { e0.c = e0.c === 2 ? 2 : 0; e0.l = 0; e0.ld = ""; e0.lo = ""; } }
+    if (rec.g) delete rec.g[q.team]; if (rec.i) delete rec.i[q.team];
+    copied = cleared;
   } else if (b.act === "copy") {
     const from = String(b.from || "");
     if (![seasons.prev, seasons.cur, seasons.next].includes(from) || from === q.season) return J({ ok: false, error: "Choose another season to copy from." }, 400);
@@ -4189,7 +4219,7 @@ function sponsorPlayersPage(theme, isDev, hasKv) {
 <p class="sub" style="margin:10px 0 0">${hasKv ? "One sponsor per player. Sponsors belong to the season shown and do not carry into the next one by themselves." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div></div>
 <div class="msg2" id="ms" role="status"></div>
-<div class="cd2" id="sc" hidden><div class="rw2"><button type="button" class="b2 go" id="scb">Find this season's players</button><span class="sub" style="flex:1;min-width:150px;margin:0;font-size:13px">Ticks everyone on this team's submitted team sheets this season. Never unticks anyone.</span></div><details class="gl" id="gl" hidden><summary id="gs"></summary><div id="gd"></div></details></div>
+<div class="cd2" id="sc" hidden><div class="rw2"><button type="button" class="b2 go" id="scb">Find this season's players</button><button type="button" class="b2 sm" id="rsb">Clear ticks</button><span class="sub" style="flex:1;min-width:150px;margin:0;font-size:13px">Ticks everyone on this team's submitted team sheets this season. Never unticks anyone.</span></div><details class="gl" id="gl" hidden><summary id="gs"></summary><div id="gd"></div></details></div>
 <div class="cd2"><div class="rw2" style="margin-bottom:8px"><input class="in2" id="fq" placeholder="Search players" autocomplete="off"></div><div class="rw2" id="ch" style="margin-bottom:6px"></div><div id="ls"></div></div>
 <div class="rw2" id="cp" hidden><button type="button" class="b2" id="cpb"></button></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
@@ -4211,7 +4241,7 @@ if(edit===r.no){h+=editBox(r);return}
 h+='<div class="li'+(r.sid||!r.cur?"":" av")+'"><div class="lm"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div class="ln"><span class="sp'+(r.sid?"":(r.cur?" av":" nc"))+'">'+(r.sid?e(r.sponsor):(r.cur?"Available to sponsor":"Not current"))+'</span><label class="tk"><input type="checkbox" data-a="cur" data-i="'+r.no+'"'+(r.cur?" checked":"")+'> Current</label></div></div><button type="button" class="b2 sm" data-a="edit" data-i="'+r.no+'">Edit</button></div>'});
 $("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(D.rows.length?(flt==="cur"&&!q?"No current players yet. "+(D.season===D.seasons.cur?"Press Find this season's players, or choose All and tick them.":"Choose All and tick them."):"No player matches."):(D.squadError||"No players found for this team."))+"</p>";
 if(D.squadError&&D.rows.length)say(D.squadError+" Showing saved players only.","er");
-$("sc").hidden=D.season!==D.seasons.cur;var fr=before(),cp=$("cp");cp.hidden=false;$("cpb").textContent=copyArm?"Yes, copy from "+fr:"Copy from "+fr;$("cpb").style.display=fr?"":"none"}
+$("sc").hidden=D.season!==D.seasons.cur;rsArm=false;$("rsb").textContent="Clear ticks";var fr=before(),cp=$("cp");cp.hidden=false;$("cpb").textContent=copyArm?"Yes, copy from "+fr:"Copy from "+fr;$("cpb").style.display=fr?"":"none"}
 function before(){var L=[D.seasons.prev,D.seasons.cur,D.seasons.next],i=L.indexOf(D.season);return i>0?L[i-1]:""}
 function fill(){var t="",s="";D.teams.forEach(function(x){t+='<option value="'+x.team+'"'+(x.team===D.team?" selected":"")+">"+e(x.name)+"</option>"});[D.seasons.prev,D.seasons.cur,D.seasons.next].forEach(function(x){s+='<option value="'+x+'"'+(x===D.season?" selected":"")+">"+x+(x===D.seasons.cur?" (now)":"")+"</option>"});$("tm").innerHTML=t;$("se").innerHTML=s}
 function load(team,season){edit="";copyArm=false;fetch("/api/sponsor-players?team="+encodeURIComponent(team||"")+"&season="+encodeURIComponent(season||""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}D=j;if(first){flt=j.rows.some(function(r){return r.cur})?"cur":"all";first=false}say(pend,pend?"ok":"");pend="";fill();draw()}).catch(function(){say("Could not read the players.","er")})}
@@ -4223,9 +4253,10 @@ $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var 
 if(a==="edit"){edit=i;draw();var n=$("en");if(n)n.focus()}else if(a==="cancel"){edit="";draw()}
 else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,alt:$("ea").value,cur:$("ec").checked},function(){pend="Saved.";load(D.team,D.season)})}};
 $("ls").onchange=function(ev){var c=ev.target;if(!c||c.getAttribute("data-a")!=="cur")return;var i=c.getAttribute("data-i"),r=D.rows.filter(function(x){return x.no===i})[0];if(!r)return;post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:r.nm,s:r.sid,alt:r.alt.join(","),cur:c.checked},function(){pend=c.checked?"Marked as a current player.":"Marked as not current.";load(D.team,D.season)},function(){load(D.team,D.season)})};
-var gl=[];function showGames(){var d=$("gl");if(!gl.length){d.hidden=true;return}d.hidden=false;$("gs").textContent="Games read: "+gl.length+" (check these are this team's)";$("gd").innerHTML=gl.map(function(g){return e((g.d?dm(g.d):"?")+(g.o?" v "+g.o:""))}).join("<br>")}
-function scan(off,mk,ad,ms){scanning=true;$("scb").disabled=true;post({act:"scan",team:D.team,season:D.season,offset:off},function(j){mk+=j.marked;ad+=j.added;ms+=j.missed;gl=gl.concat(j.games||[]);showGames();if(j.next!=null){say("Read "+j.next+" of "+j.total+" games...");scan(j.next,mk,ad,ms);return}scanning=false;$("scb").disabled=false;if(mk&&flt==="all")flt="cur";pend="Done. "+j.total+" game"+(j.total===1?"":"s")+" checked, "+mk+" player"+(mk===1?"":"s")+" newly ticked as current"+(ad?" ("+ad+" new to the list)":"")+(ms?". "+ms+" sheet"+(ms===1?"":"s")+" could not be read, so press the button again to retry those":"")+".";load(D.team,D.season)},function(){scanning=false;$("scb").disabled=false})}
-$("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");gl=[];scan(0,0,0,0)};
+var gl=[];function showGames(){var d=$("gl");if(!gl.length){d.hidden=true;return}d.hidden=false;$("gs").textContent="Games read: "+gl.length+" (check these are this team's)";$("gd").innerHTML=gl.map(function(g){return e((g.d?dm(g.d):"?")+(g.o?" v "+g.o:"")+(g.x?" (another team's game, skipped)":""))}).join("<br>")}
+function scan(off,mk,ad,ms,ot){scanning=true;$("scb").disabled=true;post({act:"scan",team:D.team,season:D.season,offset:off},function(j){mk+=j.marked;ad+=j.added;ms+=j.missed;ot+=j.other||0;gl=gl.concat(j.games||[]);showGames();if(j.next!=null){say("Read "+j.next+" of "+j.total+" games...");scan(j.next,mk,ad,ms,ot);return}scanning=false;$("scb").disabled=false;if(mk&&flt==="all")flt="cur";pend="Done. "+j.total+" game"+(j.total===1?"":"s")+" checked, "+mk+" player"+(mk===1?"":"s")+" newly ticked as current"+(ad?" ("+ad+" new to the list)":"")+(ot?". "+ot+" game"+(ot===1?"":"s")+" belonged to another team and "+(ot===1?"was":"were")+" skipped":"")+(ms?". "+ms+" sheet"+(ms===1?"":"s")+" could not be read, so press the button again to retry those":"")+".";load(D.team,D.season)},function(){scanning=false;$("scb").disabled=false})}
+$("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");gl=[];scan(0,0,0,0,0)};
+var rsArm=false;$("rsb").onclick=function(){if(scanning)return;if(!rsArm){rsArm=true;$("rsb").textContent="Yes, clear ticks";return}rsArm=false;$("rsb").textContent="Clear ticks";post({act:"reset",team:D.team,season:D.season},function(j){gl=[];showGames();pend="Cleared "+j.copied+" player"+(j.copied===1?"":"s")+" from this list. Players with a sponsor, own name or other number are kept and still count as current.";load(D.team,D.season)})};
 load("","");
 })();</script></body></html>`;
 }

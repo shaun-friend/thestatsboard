@@ -67,6 +67,20 @@ c('a long season is read in batches of 8 with the next place given',r.j.ok&&r.j.
 sheetCalls=[];r=await post({act:'scan',team:'11063',season:'2026-2027',offset:8});
 c('the last batch ends the scan',r.j.ok&&r.j.next===null&&sheetCalls.length===2,JSON.stringify(r.j));
 j=await get('?team=11063');c('the other team has its own current players and games played',j.played===10&&j.rows.some(x=>x.cur));
+// a game that belongs to another team is skipped
+SHEETS['301']=[P(5,'Aled','Price',7000),P(1704351,'Harry','Newman-Wild',7000),P(903,'O','One',OPP)];
+SHEETS['302']=[P(5,'Aled','Price',7000),P(904,'O','Two',OPP)];
+SHEETS['303']=[P(1530430,'Wesley','Vermigle',8595),P(905,'O','Three',OPP)];
+games=[{id:'301',status:'done',iso:'2026-09-05T14:00:00Z',oppName:'A'},{id:'302',status:'done',iso:'2026-09-19T14:00:00Z',oppName:'B'},{id:'303',status:'done',iso:'2026-10-24T14:00:00Z',oppName:'C'}];
+await post({act:'reset',team:'11063',season:'2026-2027'});
+r=await post({act:'scan',team:'11063',season:'2026-2027',offset:0});j=await get('?team=11063');
+c('a sheet from another team is skipped and counted',r.j.ok&&r.j.other===1&&r.j.read===2&&r.j.games[2].x===1,JSON.stringify(r.j));
+c('players on the other team sheet are not ticked here',!j.rows.find(x=>x.no==='1530430'||false)||!j.rows.find(x=>x.no==='1530430').cur,JSON.stringify(j.rows.filter(x=>x.cur).map(x=>x.no)));
+c('players from this team are ticked',j.rows.find(x=>x.no==='5').cur&&j.rows.find(x=>x.no==='1704351').cur);
+// reset
+await post({act:'set',team:'11063',season:'2026-2027',no:'5',n:'Aled Price',nm:'',s:dart,alt:'',cur:true});
+r=await post({act:'reset',team:'11063',season:'2026-2027'});j=await get('?team=11063');
+c('clearing ticks removes unsponsored players but keeps sponsored ones current',r.j.ok&&r.j.copied>=1&&j.rows.find(x=>x.no==='5').cur&&!j.rows.find(x=>x.no==='1704351').cur&&j.rows.find(x=>x.no==='5').lastOn==='',JSON.stringify(r.j));
 // unreadable sheets
 games=[{id:'101',status:'done',iso:'2026-09-05T14:00:00Z'},{id:'102',status:'done',iso:'2026-09-19T14:00:00Z'}];sheetMiss=new Set(['102']);
 r=await post(SC);c('a sheet that cannot be read is counted, not fatal',r.j.ok&&r.j.missed===1&&r.j.read===1,JSON.stringify(r.j));sheetMiss=new Set();
