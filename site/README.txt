@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
 v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
 v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
 v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
@@ -306,6 +307,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.4 - DEV probe: Copy button on every card
+- Owner request (19-Nov-2026): a Copy to clipboard button against each probe result, so results can be pasted without selecting text.
+- New (DEV /probe only, testing, nothing on PROD): each card has a Copy button next to Run. It copies the card's whole result, including the part beyond the 6,000 characters shown on screen (pasted results were being cut at that length). The button says Copied for a moment; if the browser refuses clipboard access it falls back to selecting the text.
+- Not changed: Copy all results (still a short sample of each card), every other page and the live site.
+- Request limit: no change. No outside calls, no settings-store writes.
+- Tests: new test (every card has a Copy button, it copies the full result, fallback present). It fails on the old code. The existing tests pass.
+- Docs: What's new
 
 v3.40.3 - Usage: footer no longer floats over the content
 - Owner report (19-Nov-2026): on the Usage page the version line at the bottom scrolled over the content instead of sitting at the very bottom.

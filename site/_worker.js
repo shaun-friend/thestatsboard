@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.40.4 19-Nov-2026 DEV probe: every card has a Copy button that copies its whole result (not just the 6,000 characters shown).
 //   v3.40.3 19-Nov-2026 Usage: the version line at the bottom now sits at the end of the page instead of floating over the content.
 //   v3.40.2 19-Nov-2026 Usage page, Cloudflare limits: split by settings store (DEV/PROD labels from the optional CF_KV_LABELS) and by site.
 //   v3.40.1 19-Nov-2026 DEV probe: new "ID check" card compares the person numbers on a team sheet with the squad list (testing only).
@@ -302,7 +303,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.40.3";
+const VERSION = "v3.40.4";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -349,6 +350,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
 v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
 v3.40.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.2_cloudflare_split.zip | v3.40.1
 v3.40.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.1_probe_id_check.zip | v3.40.0
@@ -614,6 +616,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.4 - DEV probe: Copy button on every card
+- Owner request (19-Nov-2026): a Copy to clipboard button against each probe result, so results can be pasted without selecting text.
+- New (DEV /probe only, testing, nothing on PROD): each card has a Copy button next to Run. It copies the card's whole result, including the part beyond the 6,000 characters shown on screen (pasted results were being cut at that length). The button says Copied for a moment; if the browser refuses clipboard access it falls back to selecting the text.
+- Not changed: Copy all results (still a short sample of each card), every other page and the live site.
+- Request limit: no change. No outside calls, no settings-store writes.
+- Tests: new test (every card has a Copy button, it copies the full result, fallback present). It fails on the old code. The existing tests pass.
+- Docs: What's new
 
 v3.40.3 - Usage: footer no longer floats over the content
 - Owner report (19-Nov-2026): on the Usage page the version line at the bottom scrolled over the content instead of sitting at the very bottom.
@@ -2604,6 +2614,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.40.4", "Test site only: every card on the RFU testing page has a Copy button that copies its whole result."],
       ["v3.40.3", "Usage page: the version line at the bottom now sits at the end of the page instead of floating over the content."],
       ["v3.40.2", "Usage page: the Cloudflare limits card now splits the settings store by store and the site requests by site (add the optional CF_KV_LABELS variable to name your stores, for example a1b2c3d4=PROD,89ef0123=DEV). Teams people look up now finds a team's name from its other records instead of showing only the number."],
       ["v3.40.1", "Test site only: the RFU testing page has a new ID check card that compares the person numbers on a team sheet with the squad list. It does not change anything on the live site."],
@@ -5160,8 +5171,9 @@ function card(ep){var id="c_"+ep.k,c=$(id);if(!c){c=document.createElement("div"
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function draw(ep,r){var c=card(ep),cls=r.skipped?"skip":(r.ok?"ok":"bad"),st=r.skipped?"skipped":(r.status?r.status:"error");
 var body=r.json!==undefined?JSON.stringify(r.json,null,1):(r.text||"");
-c.innerHTML='<div class="h"><b>'+esc(ep.label)+'</b><span><span class="pill '+cls+'">'+st+'</span> '+(r.ms!=null?r.ms+" ms":"")+(r.bytes!=null?" · "+r.bytes+" bytes":"")+' <button data-k="'+ep.k+'">Run</button></span></div><div class="m">'+ep.m+" "+esc(r.url||ep.p)+(r.requestBody?" body "+esc(JSON.stringify(r.requestBody)):"")+'</div>'+(r.error?'<div class="k">'+esc(r.error)+'</div>':"")+(r.challenge?'<div class="k">The RFU robot check page came back instead of data.</div>':"")+(r.json!==undefined?'<div class="k">'+esc(shape(r.json))+'</div>':"")+(body?'<pre>'+esc(body.slice(0,6000))+(body.length>6000?"\\n... ("+body.length+" characters in total)":"")+'</pre>':"");
-c.querySelector("button").onclick=function(){run(ep)}}
+c.innerHTML='<div class="h"><b>'+esc(ep.label)+'</b><span><span class="pill '+cls+'">'+st+'</span> '+(r.ms!=null?r.ms+" ms":"")+(r.bytes!=null?" · "+r.bytes+" bytes":"")+' <button data-k="'+ep.k+'">Run</button> <button data-cp="'+ep.k+'">Copy</button></span></div><div class="m">'+ep.m+" "+esc(r.url||ep.p)+(r.requestBody?" body "+esc(JSON.stringify(r.requestBody)):"")+'</div>'+(r.error?'<div class="k">'+esc(r.error)+'</div>':"")+(r.challenge?'<div class="k">The RFU robot check page came back instead of data.</div>':"")+(r.json!==undefined?'<div class="k">'+esc(shape(r.json))+'</div>':"")+(body?'<pre>'+esc(body.slice(0,6000))+(body.length>6000?"\\n... ("+body.length+" characters in total)":"")+'</pre>':"");
+c.querySelector("button").onclick=function(){run(ep)};var cb=c.querySelector("[data-cp]");cb.onclick=function(){copyText(body||JSON.stringify(r),cb)}}
+function copyText(t,b){var old=b.textContent;function ok(m){b.textContent=m;setTimeout(function(){b.textContent=old},1500)}function fb(){try{var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();var d=document.execCommand("copy");document.body.removeChild(a);ok(d?"Copied":"Could not copy")}catch(e){ok("Could not copy")}}try{navigator.clipboard.writeText(t).then(function(){ok("Copied")},fb)}catch(e){fb()}}
 function run(ep){var c=card(ep);c.innerHTML='<div class="h"><b>'+esc(ep.label)+'</b><span class="pill">running</span></div>';return fetch("/api/probe?"+qs(ep.k),{cache:"no-store"}).then(function(r){return r.json()}).then(function(r){R[ep.k]=r;if(ep.k==="nextmatch_all"&&!val("matchId")){try{var fm=r.json.firstGame.matches[0];if(fm&&fm.id)$("f_matchId").value=fm.id}catch(x){}}draw(ep,r)}).catch(function(e){var r={error:String(e)};R[ep.k]=r;draw(ep,r)})}
 function all(){$("st").textContent="Running...";var i=0;(function next(){if(i>=EPS.length){$("st").textContent="Done";return}run(EPS[i++]).then(next)})()}
 $("all").onclick=all;
