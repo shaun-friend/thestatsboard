@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.43.0 19-Nov-2026 Player sponsors: a Current player tick box with a Current filter (default), a one-off "Find this season's players" scan of the season's team sheets, and a "last on a team sheet" hint. No GMS access is needed.
 //   v3.42.2 19-Nov-2026 DEV probe: two "Field census" cards (squad list, team sheet) report every field in the real answers with counts and values, to find any registration status (testing only).
 //   v3.42.1 19-Nov-2026 DEV probe: new "Spec check" card lists every player, registration or person endpoint and field in the RFU API description (testing only).
 //   v3.42.0 19-Nov-2026 Sponsors, stage 2: a sponsor for each player by team and season (Admin, Tools, Player sponsors): the RFU squad list as the player list, the club's own name for a player (marked *), a second RFU number, copy from last season; sponsors in use are protected from removal.
@@ -307,7 +308,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.42.2";
+const VERSION = "v3.43.0";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -354,6 +355,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
 v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
 v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
 v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
@@ -624,6 +626,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.0 - Player sponsors: current players
+- Owner request (19-Nov-2026): the squad list is far too long (165 names for the 1XV) and the owner does not pick the squad. GMS registration data is not in the public RFU data and the owner has no GMS access, so "current" is kept by the club.
+- New: a Current player tick box on every player. The list opens on Current (or on All when nobody is ticked yet) with chips Current, All, Available to sponsor (current players without a sponsor) and Own name *. Players who are not current show "Not current" instead of "Available to sponsor".
+- New: Find this season's players button (this season only). It reads the team's submitted team sheets, 8 at a time, picks our side by matching the squad list, and ticks everyone who has played, adding anyone missing from the squad list. It adds and ticks; it never unticks, and it skips anyone the club has unticked on purpose. Hidden names are stored blank. Sheets that cannot be read are counted and the button can be pressed again.
+- New: each player shows "last on a team sheet: latest game / N games ago", from the scan, to spot players who have drifted away.
+- Rules: a player with a sponsor counts as current until unticked (so sponsors set before this release stay visible). A new season starts with nobody current; "Copy from the season before" brings sponsored players across, who then count as current until unticked.
+- Request limit: nothing changes for visitors or screens. The scan is run by hand: each batch is about 2 settings-store reads, 1 write, the fixtures list (usually from the kept copy), the squad list (kept six hours) and up to 8 team sheets (each kept two minutes), and the site's own budget stops it before the 50 limit (anything cut off is counted as "could not be read").
+- Tests: t_v3430 (29 checks).
+- Docs: Admin guide, What's new
 
 v3.42.2 - DEV probe: Field census cards
 - Owner request (19-Nov-2026): the Spec check found no status, active, pending or registered field anywhere in the RFU API description (57 endpoints; it does not describe what most answers contain). The owner has been told a pending or active status exists. Look in the real data.
@@ -2505,7 +2517,7 @@ const DOC_SECTIONS = [
     { ul: [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
       "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
-      "Player sponsors (Admin, Tools, Player sponsors, or the Players tab): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person.",
+      "Player sponsors (Admin, Tools, Player sponsors, or the Players tab): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
     ] },
     { h: "Inbox" },
@@ -2665,6 +2677,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.43.0", "Player sponsors: each player has a Current tick box, and the list shows current players first so the long squad list is cut down. A new Find this season's players button reads this season's team sheets and ticks everyone who has played. Each player also shows how many games ago they were last on a team sheet, so you can spot who has drifted away. Nothing is ticked or unticked behind your back after that."],
       ["v3.42.2", "Test site only: the RFU testing page has two new Field census cards that show every field in the real squad list and team sheet answers, to look for a registration status. They do not change anything on the live site."],
       ["v3.42.1", "Test site only: the RFU testing page has a new Spec check card that lists what the RFU data says about players and registration. It does not change anything on the live site."],
       ["v3.42.0", "New Player sponsors page (Admin, Tools, Player sponsors): choose a sponsor for each player, by team and season. You can give a player your own name (shown with a *), link a second RFU number, and copy last season's sponsors across when you choose. Removing a sponsor that is in use now asks first."],
@@ -3991,8 +4004,9 @@ load();
 // v3.42.0: Sponsors, stage 2: a sponsor for each player, by team and season. One settings-store key per season ("sponsor-links:2026-2027") holds every team's
 // players (keyed by the RFU person number), so a new season starts empty and nothing carries over by itself. Each entry: n (RFU name when saved), nm (the club's own
 // name for the player, optional), s (sponsor ID, one per player), a (other RFU numbers that are the same person). The player list comes from the RFU squad list
-// (players/playersByTeam, kept six hours). Behind the club PIN. Open: 2 settings-store reads + 1 outside call (usually from the stored copy). Change: 1 read + 1 write.
-const SPLINK_PREFIX = "sponsor-links:", SPLINK_MAX = 250;
+// (players/playersByTeam, kept six hours). v3.43.0: c is the Current player flag (1 current, 2 deliberately not current, 0 or missing: current only while the player has a sponsor), l is the
+// number of the latest played game the player was on a team sheet for, and g[team] is how many games had been played when the list was last scanned. Behind the club PIN. Open: 2 settings-store reads + 1 outside call (usually from the stored copy). Change: 1 read + 1 write.
+const SPLINK_PREFIX = "sponsor-links:", SPLINK_MAX = 250, SCAN_BATCH = 8;
 const personNo = v => /^\d{1,10}$/.test(String(v == null ? "" : v)) ? String(v) : "";
 function cleanLinks(v) {
   const t = {};
@@ -4005,13 +4019,18 @@ function cleanLinks(v) {
       const r = src[team][no] || {};
       const nm = sponsorName(r.nm), s = /^[0-9a-f]{8}$/.test(String(r.s || "")) ? String(r.s) : "";
       const a = [...new Set((Array.isArray(r.a) ? r.a : []).map(personNo).filter(x => x && x !== no))].slice(0, 3);
-      if (!nm && !s && !a.length) continue;
-      out[no] = { n: sponsorName(r.n), nm, s, a };
+      const c = r.c === 2 ? 2 : r.c ? 1 : 0, l = Math.max(0, Math.min(200, parseInt(r.l, 10) || 0));
+      if (!nm && !s && !a.length && c !== 1) continue;
+      out[no] = { n: sponsorName(r.n), nm, s, a, c, l };
     }
     if (Object.keys(out).length) t[team] = out;
   }
-  return { v: 1, t };
+  const g = {}, sg = v && v.g && typeof v.g === "object" ? v.g : {};
+  for (const team of Object.keys(t)) { const n = parseInt(sg[team], 10); if (n > 0) g[team] = Math.min(200, n); }
+  return { v: 1, t, g };
 }
+const isCurrent = e => !!e && (e.c === 1 || (e.c === 0 && !!e.s));
+const recJson = rec => JSON.stringify({ v: 1, t: rec.t, g: rec.g || {}, savedAt: new Date().toISOString() });
 async function splinkRead(kv, season) {
   if (!ADDR_RULES.season(String(season || ""))) return cleanLinks(null);
   return cleanLinks(await kv.get(SPLINK_PREFIX + season, { type: "json" }));
@@ -4048,7 +4067,7 @@ function playerRows(squad, entries) {
   for (const no of Object.keys(e)) if (!seen.has(no)) rows.push({ no, rfu: e[no].n || "", hidden: !e[no].n, left: true });
   return rows;
 }
-async function sponsorPlayersApi(request, url) {
+async function sponsorPlayersApi(request, url, worker) {
   const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
   const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: H });
   const kv = kvOf();
@@ -4070,13 +4089,13 @@ async function sponsorPlayersApi(request, url) {
     try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, q.season); } catch (_) { return J({ ok: false, error: "Could not read the sponsors. Try again." }, 502); }
     const sq = await squadFor(q.team), ent = rec.t[q.team] || {}, nameOf = new Map(sponsors.map(x => [x.id, x.name]));
     const rows = playerRows(sq.ok ? sq.list : [], ent).map(r => {
-      const x = ent[r.no] || { nm: "", s: "", a: [] };
+      const x = ent[r.no] || { nm: "", s: "", a: [], c: 0, l: 0 }, gp = (rec.g || {})[q.team] || 0;
       const sname = nameOf.get(x.s) || "";
       const own = !!x.nm && x.nm.toLowerCase() !== r.rfu.toLowerCase();
-      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: x.nm, own, sid: sname ? x.s : "", sponsor: sname, alt: x.a };
+      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: x.nm, own, sid: sname ? x.s : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1 };
     });
     rows.sort((a, b) => { const an = a.nm || a.rfu, bn = b.nm || b.rfu; return !an !== !bn ? (an ? -1 : 1) : an.toLowerCase() < bn.toLowerCase() ? -1 : an.toLowerCase() > bn.toLowerCase() ? 1 : 0; });
-    return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, squadError: sq.ok ? "" : sq.error });
+    return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, played: (rec.g || {})[q.team] || 0, squadError: sq.ok ? "" : sq.error });
   }
   if (request.method !== "POST") return J({ ok: false, error: "Use the Player sponsors page." }, 405);
   const origin = request.headers.get("Origin");
@@ -4095,59 +4114,100 @@ async function sponsorPlayersApi(request, url) {
     if (sid && !sponsors.some(x => x.id === sid)) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
     const alt = [...new Set(String(b.alt == null ? "" : b.alt).replace(/[^0-9]+/g, " ").trim().split(" ").map(personNo).filter(x => x && x !== no))].slice(0, 3);
     for (const a of alt) if (ent[a]) return J({ ok: false, error: "Number " + a + " is already listed as a player. Remove that entry first." }, 409);
-    if (!nm && !sid && !alt.length) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt }; }
+    const cur = b.cur === true ? 1 : sid ? 2 : 0, last = ent[no] ? ent[no].l : 0;
+    if (!nm && !sid && !alt.length && cur !== 1) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt, c: cur, l: last || 0 }; }
+  } else if (b.act === "scan") {
+    if (q.season !== seasons.cur) return J({ ok: false, error: "Finding players works for this season only." }, 400);
+    const tm = TEAMS.find(x => String(x.team) === q.team), off = Math.max(0, Math.min(500, parseInt(b.offset, 10) || 0));
+    let games = [];
+    try {
+      const gq = new URLSearchParams({ season: q.season, competition: tm.competition, division: tm.division, team: tm.team, teamName: tm.teamName, friendlyName: tm.name, format: "summary", detail: "fixtures" });
+      const fr = await worker.fetch(new Request(url.origin + "/?" + gq.toString()));
+      if (fr.ok) games = (await fr.json()).games || [];
+    } catch (_) { games = []; }
+    const ids = games.filter(g => g.status === "done" && !g.wo && /^\d{1,10}$/.test(String(g.id || ""))).sort((a, b) => String(a.iso || "") < String(b.iso || "") ? -1 : String(a.iso || "") > String(b.iso || "") ? 1 : 0).map(g => String(g.id));
+    if (!ids.length) return J({ ok: false, error: "No played games were found for " + q.teamName + " this season." }, 404);
+    const batch = ids.slice(off, off + SCAN_BATCH), sq = await squadFor(q.team), inSquad = new Set((sq.ok ? sq.list : []).map(x => x.no));
+    const hideTeam = sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName);
+    const sheets = await Promise.all(batch.map(id => sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id)));
+    const altOf = {}; for (const no of Object.keys(ent)) for (const a of ent[no].a) altOf[a] = no;
+    let missed = 0, added = 0, marked = 0, touched = false;
+    for (let si = 0; si < sheets.length; si++) {
+      const sh = sheets[si], ord = off + si + 1;
+      const list = Array.isArray(sh && sh.participants) ? sh.participants : null;
+      if (!list) { missed++; continue; }
+      const sides = {}; for (const p of list) (sides[String(p.teamId)] || (sides[String(p.teamId)] = [])).push(p);
+      let best = null, bestN = -1;
+      for (const k of Object.keys(sides)) { const n = sides[k].filter(p => inSquad.has(personNo(p.individualId))).length; if (n > bestN) { bestN = n; best = sides[k]; } }
+      if (!best || (inSquad.size && bestN < 1)) { missed++; continue; }
+      for (const p of best) {
+        let no = personNo(p.individualId); if (!no) continue;
+        no = altOf[no] || no;
+        const hidden = hideTeam || p.isU18 === true || p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
+        const name = hidden ? "" : sponsorName([p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" "));
+        if (!ent[no]) { if (Object.keys(ent).length >= SPLINK_MAX) continue; ent[no] = { n: name, nm: "", s: "", a: [], c: 1, l: ord }; added++; marked++; touched = true; }
+        else if (ent[no].c !== 2) { if (!isCurrent(ent[no])) marked++; ent[no].c = 1; if (!ent[no].n) ent[no].n = name; if ((ent[no].l || 0) < ord) ent[no].l = ord; touched = true; }
+      }
+    }
+    rec.g = rec.g || {}; if (rec.g[q.team] !== ids.length) { rec.g[q.team] = ids.length; touched = true; }
+    if (touched) { try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); } }
+    return J({ ok: true, total: ids.length, next: off + batch.length >= ids.length ? null : off + batch.length, read: batch.length - missed, missed, marked, added });
   } else if (b.act === "copy") {
     const from = String(b.from || "");
     if (![seasons.prev, seasons.cur, seasons.next].includes(from) || from === q.season) return J({ ok: false, error: "Choose another season to copy from." }, 400);
     let old = null; try { old = await splinkRead(kv, from); } catch (_) { return J({ ok: false, error: "Could not read that season. Try again." }, 502); }
     const oe = old.t[q.team] || {};
-    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], a: oe[no].a.slice() }; copied++; } }
+    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], a: oe[no].a.slice(), c: 0, l: 0 }; copied++; } }
     if (!copied) return J({ ok: false, error: "Nothing to copy from " + from + " for " + q.teamName + "." }, 404);
   } else return J({ ok: false, error: "Unknown action." }, 400);
   if (!Object.keys(ent).length) delete rec.t[q.team];
-  try { await kv.put(SPLINK_PREFIX + q.season, JSON.stringify({ v: 1, t: rec.t, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
+  try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
   return J({ ok: true, copied });
 }
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Player sponsors</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right}.sp.av{color:#f2b866}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right}.sp.av{color:#f2b866}.sp.nc{color:#91a49a;font-weight:400}.tk{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:7px;min-height:36px;cursor:pointer}.tk input{width:20px;height:20px;margin:0}body.light .tk{color:#14301e}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
 <h1>Player sponsors</h1><div class="tb"><a href="/sponsors">Sponsors</a><a href="/sponsor-players" class="on">Players</a></div>
 <p class="sub" style="margin:10px 0 0">${hasKv ? "One sponsor per player. Sponsors belong to the season shown and do not carry into the next one by themselves." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div><p class="sub" style="margin:8px 0 0">Teams come from Our teams. The player list is the RFU squad list for the team.</p></div>
 <div class="msg2" id="ms" role="status"></div>
+<div class="cd2" id="sc" hidden><div class="rw2"><button type="button" class="b2 go" id="scb">Find this season's players</button></div><p class="sub" style="margin:8px 0 0">Reads this team's submitted team sheets for the season, a few at a time, and ticks everyone who has played as a current player. It adds and ticks players; it never unticks anyone.</p></div>
 <div class="cd2"><div class="rw2" style="margin-bottom:8px"><input class="in2" id="fq" placeholder="Search players" autocomplete="off"></div><div class="rw2" id="ch" style="margin-bottom:6px"></div><div id="ls"></div></div>
 <div class="rw2" id="cp" hidden><button type="button" class="b2" id="cpb"></button></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
-<script>(function(){var D=null,edit="",flt="all",busy=false,copyArm=false;
+<script>(function(){var D=null,edit="",flt="all",busy=false,copyArm=false,first=true,pend="",scanning=false;
 function $(i){return document.getElementById(i)}
 function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
 function shown(r){return r.nm||r.rfu}
 function label(r){var n=shown(r);return n?e(n)+(r.own?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>'}
-function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name hidden"));else if(r.hidden&&!r.nm)p.push("The RFU has hidden this name");p.push("RFU no. "+r.no);if(r.alt.length)p.push("also "+r.alt.join(", "));if(r.left)p.push("not in the RFU squad list now");return p.join(" · ")}
-function counts(){var a=0,o=0;D.rows.forEach(function(r){if(!r.sid)a++;if(r.own)o++});return{a:a,o:o}}
-function chips(){var c=counts();var h="";[["all","All "+D.rows.length],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
+function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name hidden"));else if(r.hidden&&!r.nm)p.push("The RFU has hidden this name");p.push("RFU no. "+r.no);if(r.alt.length)p.push("also "+r.alt.join(", "));if(r.left)p.push("not in the RFU squad list now");if(r.last>=0)p.push("last on a team sheet: "+(r.last===0?"latest game":r.last+" game"+(r.last===1?"":"s")+" ago"));return p.join(" · ")}
+function counts(){var a=0,o=0,c=0;D.rows.forEach(function(r){if(r.cur)c++;if(r.cur&&!r.sid)a++;if(r.own)o++});return{a:a,o:o,c:c}}
+function chips(){var c=counts();var h="";[["cur","Current "+c.c],["all","All "+D.rows.length],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
 function editBox(r){var o='<option value="">Available to sponsor</option>';D.sponsors.forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===r.sid?" selected":"")+">"+e(s.name)+"</option>"});
-return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><label for="en">Name we use</label><input class="in2" id="en" maxlength="60" style="width:100%" value="'+e(r.nm)+'" placeholder="'+e(r.rfu||"Name redacted")+'"><small>Shown on match-day lists with a * when it differs from the RFU record. Leave it empty to use the RFU name.</small></div><div><label for="es">Sponsor</label><select class="in2" id="es">'+o+'</select></div><div><label for="ea">Other RFU numbers for this player</label><input class="in2" id="ea" style="width:100%" value="'+e(r.alt.join(", "))+'" placeholder="None"><small>Only if the RFU holds two records for one person. Either number then finds this player.</small></div><div class="rw2"><button type="button" class="b2 go" data-a="save" data-i="'+r.no+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
+return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><label for="en">Name we use</label><input class="in2" id="en" maxlength="60" style="width:100%" value="'+e(r.nm)+'" placeholder="'+e(r.rfu||"Name redacted")+'"><small>Shown on match-day lists with a * when it differs from the RFU record. Leave it empty to use the RFU name.</small></div><div><label for="es">Sponsor</label><select class="in2" id="es">'+o+'</select></div><div><label for="ea">Other RFU numbers for this player</label><input class="in2" id="ea" style="width:100%" value="'+e(r.alt.join(", "))+'" placeholder="None"><small>Only if the RFU holds two records for one person. Either number then finds this player.</small></div><div><label class="tk" style="text-transform:none;letter-spacing:0;font-size:15px;margin:0"><input type="checkbox" id="ec"'+(r.cur?" checked":"")+'> Current player</label><small>Current players are the ones listed on the match-day page. A player with a sponsor counts as current until you untick them.</small></div><div class="rw2"><button type="button" class="b2 go" data-a="save" data-i="'+r.no+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
 function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;chips();
-D.rows.forEach(function(r){if(flt==="av"&&r.sid)return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
+D.rows.forEach(function(r){if(flt==="cur"&&!r.cur)return;if(flt==="av"&&(r.sid||!r.cur))return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
 if(edit===r.no){h+=editBox(r);return}
-h+='<div class="li'+(r.sid?"":" av")+'"><div><b>'+label(r)+"</b><small>"+e(sub(r))+'</small></div><div class="ac2"><span class="sp'+(r.sid?"":" av")+'">'+(r.sid?e(r.sponsor):"Available to sponsor")+'</span><button type="button" class="b2" data-a="edit" data-i="'+r.no+'">Edit</button></div></div>'});
-$("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(D.rows.length?"No player matches.":(D.squadError||"No players found for this team."))+"</p>";
+h+='<div class="li'+(r.sid||!r.cur?"":" av")+'"><div><b>'+label(r)+"</b><small>"+e(sub(r))+'</small></div><div class="ac2"><span class="sp'+(r.sid?"":(r.cur?" av":" nc"))+'">'+(r.sid?e(r.sponsor):(r.cur?"Available to sponsor":"Not current"))+'</span><label class="tk"><input type="checkbox" data-a="cur" data-i="'+r.no+'"'+(r.cur?" checked":"")+'> Current</label><button type="button" class="b2" data-a="edit" data-i="'+r.no+'">Edit</button></div></div>'});
+$("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(D.rows.length?(flt==="cur"&&!q?"No current players yet. "+(D.season===D.seasons.cur?"Press Find this season's players, or choose All and tick them.":"Choose All and tick them."):"No player matches."):(D.squadError||"No players found for this team."))+"</p>";
 if(D.squadError&&D.rows.length)say(D.squadError+" Showing saved players only.","er");
-var fr=before(),cp=$("cp");cp.hidden=false;$("cpb").textContent=copyArm?"Yes, copy from "+fr:"Copy from "+fr;$("cpb").style.display=fr?"":"none"}
+$("sc").hidden=D.season!==D.seasons.cur;var fr=before(),cp=$("cp");cp.hidden=false;$("cpb").textContent=copyArm?"Yes, copy from "+fr:"Copy from "+fr;$("cpb").style.display=fr?"":"none"}
 function before(){var L=[D.seasons.prev,D.seasons.cur,D.seasons.next],i=L.indexOf(D.season);return i>0?L[i-1]:""}
 function fill(){var t="",s="";D.teams.forEach(function(x){t+='<option value="'+x.team+'"'+(x.team===D.team?" selected":"")+">"+e(x.name)+"</option>"});[D.seasons.prev,D.seasons.cur,D.seasons.next].forEach(function(x){s+='<option value="'+x+'"'+(x===D.season?" selected":"")+">"+x+(x===D.seasons.cur?" (this season)":"")+"</option>"});$("tm").innerHTML=t;$("se").innerHTML=s}
-function load(team,season){edit="";copyArm=false;fetch("/api/sponsor-players?team="+encodeURIComponent(team||"")+"&season="+encodeURIComponent(season||""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}D=j;say("");fill();draw()}).catch(function(){say("Could not read the players.","er")})}
-function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
-$("tm").onchange=function(){load($("tm").value,$("se").value)};$("se").onchange=function(){load($("tm").value,$("se").value)};$("fq").oninput=draw;
+function load(team,season){edit="";copyArm=false;fetch("/api/sponsor-players?team="+encodeURIComponent(team||"")+"&season="+encodeURIComponent(season||""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}D=j;if(first){flt=j.rows.some(function(r){return r.cur})?"cur":"all";first=false}say(pend,pend?"ok":"");pend="";fill();draw()}).catch(function(){say("Could not read the players.","er")})}
+function post(o,ok,bad){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");if(bad)bad();return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er");if(bad)bad()})}
+$("tm").onchange=function(){first=true;load($("tm").value,$("se").value)};$("se").onchange=function(){first=true;load($("tm").value,$("se").value)};$("fq").oninput=draw;
 $("ch").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;flt=b.getAttribute("data-f");draw()};
 $("cpb").onclick=function(){if(!copyArm){copyArm=true;draw();return}var fr=before();post({act:"copy",team:D.team,season:D.season,from:fr},function(j){say("Copied "+j.copied+" player"+(j.copied===1?"":"s")+" from "+fr+".","ok");load(D.team,D.season)})};
 $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
 if(a==="edit"){edit=i;draw();var n=$("en");if(n)n.focus()}else if(a==="cancel"){edit="";draw()}
-else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,alt:$("ea").value},function(){say("Saved.","ok");load(D.team,D.season)})}};
+else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,alt:$("ea").value,cur:$("ec").checked},function(){pend="Saved.";load(D.team,D.season)})}};
+$("ls").onchange=function(ev){var c=ev.target;if(!c||c.getAttribute("data-a")!=="cur")return;var i=c.getAttribute("data-i"),r=D.rows.filter(function(x){return x.no===i})[0];if(!r)return;post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:r.nm,s:r.sid,alt:r.alt.join(","),cur:c.checked},function(){pend=c.checked?"Marked as a current player.":"Marked as not current.";load(D.team,D.season)},function(){load(D.team,D.season)})};
+function scan(off,mk,ad,ms){scanning=true;$("scb").disabled=true;post({act:"scan",team:D.team,season:D.season,offset:off},function(j){mk+=j.marked;ad+=j.added;ms+=j.missed;if(j.next!=null){say("Read "+j.next+" of "+j.total+" games...");scan(j.next,mk,ad,ms);return}scanning=false;$("scb").disabled=false;if(mk&&flt==="all")flt="cur";pend="Done. "+j.total+" game"+(j.total===1?"":"s")+" checked, "+mk+" player"+(mk===1?"":"s")+" newly ticked as current"+(ad?" ("+ad+" new to the list)":"")+(ms?". "+ms+" sheet"+(ms===1?"":"s")+" could not be read, so press the button again to retry those":"")+".";load(D.team,D.season)},function(){scanning=false;$("scb").disabled=false})}
+$("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");scan(0,0,0,0)};
 load("","");
 })();</script></body></html>`;
 }
@@ -6131,7 +6191,7 @@ const worker = {
     if (url.pathname === "/api/contact") return contactApi(request, url);
     if (url.pathname === "/api/inbox") return inboxApi(request, url);
     if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
-    if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url);
+    if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url, worker);
     if (url.pathname.replace(/\/+$/, "") === "/sponsor-players") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(sponsorPlayersPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });

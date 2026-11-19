@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
 v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
 v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
 v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
@@ -311,6 +312,16 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.0 - Player sponsors: current players
+- Owner request (19-Nov-2026): the squad list is far too long (165 names for the 1XV) and the owner does not pick the squad. GMS registration data is not in the public RFU data and the owner has no GMS access, so "current" is kept by the club.
+- New: a Current player tick box on every player. The list opens on Current (or on All when nobody is ticked yet) with chips Current, All, Available to sponsor (current players without a sponsor) and Own name *. Players who are not current show "Not current" instead of "Available to sponsor".
+- New: Find this season's players button (this season only). It reads the team's submitted team sheets, 8 at a time, picks our side by matching the squad list, and ticks everyone who has played, adding anyone missing from the squad list. It adds and ticks; it never unticks, and it skips anyone the club has unticked on purpose. Hidden names are stored blank. Sheets that cannot be read are counted and the button can be pressed again.
+- New: each player shows "last on a team sheet: latest game / N games ago", from the scan, to spot players who have drifted away.
+- Rules: a player with a sponsor counts as current until unticked (so sponsors set before this release stay visible). A new season starts with nobody current; "Copy from the season before" brings sponsored players across, who then count as current until unticked.
+- Request limit: nothing changes for visitors or screens. The scan is run by hand: each batch is about 2 settings-store reads, 1 write, the fixtures list (usually from the kept copy), the squad list (kept six hours) and up to 8 team sheets (each kept two minutes), and the site's own budget stops it before the 50 limit (anything cut off is counted as "could not be read").
+- Tests: t_v3430 (29 checks).
+- Docs: Admin guide, What's new
 
 v3.42.2 - DEV probe: Field census cards
 - Owner request (19-Nov-2026): the Spec check found no status, active, pending or registered field anywhere in the RFU API description (57 endpoints; it does not describe what most answers contain). The owner has been told a pending or active status exists. Look in the real data.
