@@ -44,8 +44,8 @@ r=await post({act:'copy',team:'11039',season:'2027-2028',from:'2026-2027'});c('c
 await post({act:'set',team:'11039',season:'2027-2028',no:'1530430',n:'W',nm:'',s:dart,alt:''});
 r=await post({act:'copy',team:'11039',season:'2027-2028',from:'2026-2027'});c('copying again never overwrites what is there',r.s===404||!r.j.ok||r.j.copied===0);
 j=await get('?team=11039&season=2027-2028');c('the copied season keeps its own sponsor choice',j.rows.find(x=>x.no==='1530430').sponsor==='Dart Motors');
-j=await get('?team=11063&season=2026-2027');c('another team has its own list and no players of the first',j.ok&&j.rows.every(x=>!x.sid));
-r=await post({act:'set',team:'11063',season:'2026-2027',no:'1530430',n:'W',nm:'',s:dart,alt:''});c('the same person number can be saved for another team',r.j.ok);
+j=await get('?team=11063&season=2026-2027');c('another team shows a player\'s sponsor from the first team and nobody else has one',j.ok&&j.rows.every(x=>!x.sid||['1530430','5','1313523'].includes(x.no)));
+r=await post({act:'set',team:'11063',season:'2026-2027',no:'1704351',n:'H',nm:'',s:dart,alt:''});c('a player can be saved on another team',r.j.ok);
 j=await get('?team=124080');c('a team that is hidden is not accepted',!j.ok);
 j=await get('?team=999');c('a team not in Our teams is refused',!j.ok);
 j=await get('?season=2030-2031');c('a season outside the three shown is refused',!j.ok);
