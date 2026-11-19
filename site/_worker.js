@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.43.1 19-Nov-2026 Player sponsors: compact phone layout (rows about half the height), last played date and opponent for each player, and a "Games read" list after a scan so the games used can be checked.
 //   v3.43.0 19-Nov-2026 Player sponsors: a Current player tick box with a Current filter (default), a one-off "Find this season's players" scan of the season's team sheets, and a "last on a team sheet" hint. No GMS access is needed.
 //   v3.42.2 19-Nov-2026 DEV probe: two "Field census" cards (squad list, team sheet) report every field in the real answers with counts and values, to find any registration status (testing only).
 //   v3.42.1 19-Nov-2026 DEV probe: new "Spec check" card lists every player, registration or person endpoint and field in the RFU API description (testing only).
@@ -308,7 +309,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.43.0";
+const VERSION = "v3.43.1";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -355,6 +356,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
 v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
 v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
 v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
@@ -626,6 +628,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.1 - Player sponsors: phone layout and last-played check
+- Owner report (19-Nov-2026): on a phone the player rows were tall with a lot of empty space, and on the Vandals list a player who last played for the 1XV showed as on the latest game.
+- Changed: each player is now a compact block (name, details, sponsor and Current tick on one line, Edit beside it), the cards above the list are tighter and the empty message bar no longer takes room. A row is about half the height.
+- New: each player shows the date and opponent of the last game they were on a team sheet for, and after Find this season's players a "Games read" list shows every game the scan used for that team, so a wrong game list is easy to spot. Press the scan button again to fill in dates for players ticked by the first scan.
+- Open question: the Vandals squad list holds 178 players, so the RFU list for a side looks club-wide. The Games read list will show whether the games read are the Vandals' own.
+- Request limit: no change.
+- Tests: t_v3430 (31 checks), x_splayers.
+- Docs: Admin guide, What's new
 
 v3.43.0 - Player sponsors: current players
 - Owner request (19-Nov-2026): the squad list is far too long (165 names for the 1XV) and the owner does not pick the squad. GMS registration data is not in the public RFU data and the owner has no GMS access, so "current" is kept by the club.
@@ -2677,6 +2688,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.43.1", "Player sponsors: the list is much shorter on a phone (each player takes about half the height), each player shows the date and opponent of the last game they were on a team sheet for, and after Find this season's players a Games read list shows exactly which games were used."],
       ["v3.43.0", "Player sponsors: each player has a Current tick box, and the list shows current players first so the long squad list is cut down. A new Find this season's players button reads this season's team sheets and ticks everyone who has played. Each player also shows how many games ago they were last on a team sheet, so you can spot who has drifted away. Nothing is ticked or unticked behind your back after that."],
       ["v3.42.2", "Test site only: the RFU testing page has two new Field census cards that show every field in the real squad list and team sheet answers, to look for a registration status. They do not change anything on the live site."],
       ["v3.42.1", "Test site only: the RFU testing page has a new Spec check card that lists what the RFU data says about players and registration. It does not change anything on the live site."],
@@ -3970,7 +3982,7 @@ async function sponsorsApi(request, url) {
 function sponsorsPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Sponsors</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li{border-color:#dbe8de}
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li{border-color:#dbe8de}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
 <h1>Sponsors</h1><div class="tb"><a href="/sponsors" class="on">Sponsors</a><a href="/sponsor-players">Players</a></div><p class="sub" id="sub" style="margin:10px 0 0">${hasKv ? "Add each sponsor once for the club. Later you will choose them for players, season by season. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><input class="in2" id="nm" maxlength="60" placeholder="Sponsor name" autocomplete="off"><button type="button" class="b2 go" id="ad">Add</button></div>
@@ -4020,8 +4032,9 @@ function cleanLinks(v) {
       const nm = sponsorName(r.nm), s = /^[0-9a-f]{8}$/.test(String(r.s || "")) ? String(r.s) : "";
       const a = [...new Set((Array.isArray(r.a) ? r.a : []).map(personNo).filter(x => x && x !== no))].slice(0, 3);
       const c = r.c === 2 ? 2 : r.c ? 1 : 0, l = Math.max(0, Math.min(200, parseInt(r.l, 10) || 0));
+      const ld = /^\d{4}-\d{2}-\d{2}$/.test(String(r.ld || "")) ? String(r.ld) : "", lo = ld ? sponsorName(r.lo).slice(0, 24) : "";
       if (!nm && !s && !a.length && c !== 1) continue;
-      out[no] = { n: sponsorName(r.n), nm, s, a, c, l };
+      out[no] = { n: sponsorName(r.n), nm, s, a, c, l, ld, lo };
     }
     if (Object.keys(out).length) t[team] = out;
   }
@@ -4092,7 +4105,7 @@ async function sponsorPlayersApi(request, url, worker) {
       const x = ent[r.no] || { nm: "", s: "", a: [], c: 0, l: 0 }, gp = (rec.g || {})[q.team] || 0;
       const sname = nameOf.get(x.s) || "";
       const own = !!x.nm && x.nm.toLowerCase() !== r.rfu.toLowerCase();
-      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: x.nm, own, sid: sname ? x.s : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1 };
+      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: x.nm, own, sid: sname ? x.s : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1, lastOn: x.ld || "", lastOpp: x.lo || "" };
     });
     rows.sort((a, b) => { const an = a.nm || a.rfu, bn = b.nm || b.rfu; return !an !== !bn ? (an ? -1 : 1) : an.toLowerCase() < bn.toLowerCase() ? -1 : an.toLowerCase() > bn.toLowerCase() ? 1 : 0; });
     return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, played: (rec.g || {})[q.team] || 0, squadError: sq.ok ? "" : sq.error });
@@ -4115,7 +4128,7 @@ async function sponsorPlayersApi(request, url, worker) {
     const alt = [...new Set(String(b.alt == null ? "" : b.alt).replace(/[^0-9]+/g, " ").trim().split(" ").map(personNo).filter(x => x && x !== no))].slice(0, 3);
     for (const a of alt) if (ent[a]) return J({ ok: false, error: "Number " + a + " is already listed as a player. Remove that entry first." }, 409);
     const cur = b.cur === true ? 1 : sid ? 2 : 0, last = ent[no] ? ent[no].l : 0;
-    if (!nm && !sid && !alt.length && cur !== 1) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt, c: cur, l: last || 0 }; }
+    if (!nm && !sid && !alt.length && cur !== 1) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt, c: cur, l: last || 0, ld: ent[no] ? ent[no].ld : "", lo: ent[no] ? ent[no].lo : "" }; }
   } else if (b.act === "scan") {
     if (q.season !== seasons.cur) return J({ ok: false, error: "Finding players works for this season only." }, 400);
     const tm = TEAMS.find(x => String(x.team) === q.team), off = Math.max(0, Math.min(500, parseInt(b.offset, 10) || 0));
@@ -4132,8 +4145,11 @@ async function sponsorPlayersApi(request, url, worker) {
     const sheets = await Promise.all(batch.map(id => sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id)));
     const altOf = {}; for (const no of Object.keys(ent)) for (const a of ent[no].a) altOf[a] = no;
     let missed = 0, added = 0, marked = 0, touched = false;
+    const gmap = new Map(games.map(g => [String(g.id), g])), seenGames = [];
     for (let si = 0; si < sheets.length; si++) {
-      const sh = sheets[si], ord = off + si + 1;
+      const sh = sheets[si], ord = off + si + 1, gg = gmap.get(batch[si]) || {};
+      const gd = String(gg.iso || "").slice(0, 10), go = sponsorName(gg.oppName).slice(0, 24);
+      seenGames.push({ d: gd, o: go });
       const list = Array.isArray(sh && sh.participants) ? sh.participants : null;
       if (!list) { missed++; continue; }
       const sides = {}; for (const p of list) (sides[String(p.teamId)] || (sides[String(p.teamId)] = [])).push(p);
@@ -4145,19 +4161,19 @@ async function sponsorPlayersApi(request, url, worker) {
         no = altOf[no] || no;
         const hidden = hideTeam || p.isU18 === true || p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
         const name = hidden ? "" : sponsorName([p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" "));
-        if (!ent[no]) { if (Object.keys(ent).length >= SPLINK_MAX) continue; ent[no] = { n: name, nm: "", s: "", a: [], c: 1, l: ord }; added++; marked++; touched = true; }
-        else if (ent[no].c !== 2) { if (!isCurrent(ent[no])) marked++; ent[no].c = 1; if (!ent[no].n) ent[no].n = name; if ((ent[no].l || 0) < ord) ent[no].l = ord; touched = true; }
+        if (!ent[no]) { if (Object.keys(ent).length >= SPLINK_MAX) continue; ent[no] = { n: name, nm: "", s: "", a: [], c: 1, l: ord, ld: gd, lo: go }; added++; marked++; touched = true; }
+        else if (ent[no].c !== 2) { if (!isCurrent(ent[no])) marked++; ent[no].c = 1; if (!ent[no].n) ent[no].n = name; if ((ent[no].l || 0) < ord || !ent[no].ld) { ent[no].l = ord; ent[no].ld = gd; ent[no].lo = go; } touched = true; }
       }
     }
     rec.g = rec.g || {}; if (rec.g[q.team] !== ids.length) { rec.g[q.team] = ids.length; touched = true; }
     if (touched) { try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); } }
-    return J({ ok: true, total: ids.length, next: off + batch.length >= ids.length ? null : off + batch.length, read: batch.length - missed, missed, marked, added });
+    return J({ ok: true, total: ids.length, next: off + batch.length >= ids.length ? null : off + batch.length, read: batch.length - missed, missed, marked, added, games: seenGames });
   } else if (b.act === "copy") {
     const from = String(b.from || "");
     if (![seasons.prev, seasons.cur, seasons.next].includes(from) || from === q.season) return J({ ok: false, error: "Choose another season to copy from." }, 400);
     let old = null; try { old = await splinkRead(kv, from); } catch (_) { return J({ ok: false, error: "Could not read that season. Try again." }, 502); }
     const oe = old.t[q.team] || {};
-    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], a: oe[no].a.slice(), c: 0, l: 0 }; copied++; } }
+    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], a: oe[no].a.slice(), c: 0, l: 0, ld: "", lo: "" }; copied++; } }
     if (!copied) return J({ ok: false, error: "Nothing to copy from " + from + " for " + q.teamName + "." }, 404);
   } else return J({ ok: false, error: "Unknown action." }, 400);
   if (!Object.keys(ent).length) delete rec.t[q.team];
@@ -4167,13 +4183,13 @@ async function sponsorPlayersApi(request, url, worker) {
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Player sponsors</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right}.sp.av{color:#f2b866}.sp.nc{color:#91a49a;font-weight:400}.tk{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:7px;min-height:36px;cursor:pointer}.tk input{width:20px;height:20px;margin:0}body.light .tk{color:#14301e}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}.li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #243a2e}.lm{min-width:0;flex:1}.ln{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:2px}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.msg2:empty{display:none}.gl{font-size:12px;color:#91a49a;margin:6px 0 0;line-height:1.5}.gl summary{cursor:pointer;color:#7fd89a;font-weight:700}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.sp{font-size:13px;font-weight:700;color:#7fdc9a}.sp.av{color:#f2b866}.sp.nc{color:#91a49a;font-weight:400}.tk{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:6px;min-height:32px;cursor:pointer}.tk input{width:20px;height:20px;margin:0}body.light .tk{color:#14301e}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
 <h1>Player sponsors</h1><div class="tb"><a href="/sponsors">Sponsors</a><a href="/sponsor-players" class="on">Players</a></div>
 <p class="sub" style="margin:10px 0 0">${hasKv ? "One sponsor per player. Sponsors belong to the season shown and do not carry into the next one by themselves." : "No settings storage is connected, so sponsors cannot be kept."}</p>
-<div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div><p class="sub" style="margin:8px 0 0">Teams come from Our teams. The player list is the RFU squad list for the team.</p></div>
+<div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div></div>
 <div class="msg2" id="ms" role="status"></div>
-<div class="cd2" id="sc" hidden><div class="rw2"><button type="button" class="b2 go" id="scb">Find this season's players</button></div><p class="sub" style="margin:8px 0 0">Reads this team's submitted team sheets for the season, a few at a time, and ticks everyone who has played as a current player. It adds and ticks players; it never unticks anyone.</p></div>
+<div class="cd2" id="sc" hidden><div class="rw2"><button type="button" class="b2 go" id="scb">Find this season's players</button><span class="sub" style="flex:1;min-width:150px;margin:0;font-size:13px">Ticks everyone on this team's submitted team sheets this season. Never unticks anyone.</span></div><details class="gl" id="gl" hidden><summary id="gs"></summary><div id="gd"></div></details></div>
 <div class="cd2"><div class="rw2" style="margin-bottom:8px"><input class="in2" id="fq" placeholder="Search players" autocomplete="off"></div><div class="rw2" id="ch" style="margin-bottom:6px"></div><div id="ls"></div></div>
 <div class="rw2" id="cp" hidden><button type="button" class="b2" id="cpb"></button></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
@@ -4183,7 +4199,8 @@ function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"
 function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
 function shown(r){return r.nm||r.rfu}
 function label(r){var n=shown(r);return n?e(n)+(r.own?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>'}
-function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name hidden"));else if(r.hidden&&!r.nm)p.push("The RFU has hidden this name");p.push("RFU no. "+r.no);if(r.alt.length)p.push("also "+r.alt.join(", "));if(r.left)p.push("not in the RFU squad list now");if(r.last>=0)p.push("last on a team sheet: "+(r.last===0?"latest game":r.last+" game"+(r.last===1?"":"s")+" ago"));return p.join(" · ")}
+function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name hidden"));else if(r.hidden&&!r.nm)p.push("The RFU has hidden this name");p.push("no. "+r.no);if(r.alt.length)p.push("also "+r.alt.join(", "));if(r.left)p.push("not in the RFU squad list now");if(r.lastOn)p.push("last on a sheet "+dm(r.lastOn)+(r.lastOpp?" v "+r.lastOpp:"")+(r.last>0?" ("+r.last+" game"+(r.last===1?"":"s")+" ago)":""));else if(r.last>=0)p.push("last on a sheet: "+(r.last===0?"latest game":r.last+" game"+(r.last===1?"":"s")+" ago"));return p.join(" · ")}
+function dm(d){var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],x=String(d).split("-");return x.length===3?(+x[2])+" "+m[+x[1]-1]:d}
 function counts(){var a=0,o=0,c=0;D.rows.forEach(function(r){if(r.cur)c++;if(r.cur&&!r.sid)a++;if(r.own)o++});return{a:a,o:o,c:c}}
 function chips(){var c=counts();var h="";[["cur","Current "+c.c],["all","All "+D.rows.length],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
 function editBox(r){var o='<option value="">Available to sponsor</option>';D.sponsors.forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===r.sid?" selected":"")+">"+e(s.name)+"</option>"});
@@ -4191,12 +4208,12 @@ return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><lab
 function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;chips();
 D.rows.forEach(function(r){if(flt==="cur"&&!r.cur)return;if(flt==="av"&&(r.sid||!r.cur))return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
 if(edit===r.no){h+=editBox(r);return}
-h+='<div class="li'+(r.sid||!r.cur?"":" av")+'"><div><b>'+label(r)+"</b><small>"+e(sub(r))+'</small></div><div class="ac2"><span class="sp'+(r.sid?"":(r.cur?" av":" nc"))+'">'+(r.sid?e(r.sponsor):(r.cur?"Available to sponsor":"Not current"))+'</span><label class="tk"><input type="checkbox" data-a="cur" data-i="'+r.no+'"'+(r.cur?" checked":"")+'> Current</label><button type="button" class="b2" data-a="edit" data-i="'+r.no+'">Edit</button></div></div>'});
+h+='<div class="li'+(r.sid||!r.cur?"":" av")+'"><div class="lm"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div class="ln"><span class="sp'+(r.sid?"":(r.cur?" av":" nc"))+'">'+(r.sid?e(r.sponsor):(r.cur?"Available to sponsor":"Not current"))+'</span><label class="tk"><input type="checkbox" data-a="cur" data-i="'+r.no+'"'+(r.cur?" checked":"")+'> Current</label></div></div><button type="button" class="b2 sm" data-a="edit" data-i="'+r.no+'">Edit</button></div>'});
 $("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(D.rows.length?(flt==="cur"&&!q?"No current players yet. "+(D.season===D.seasons.cur?"Press Find this season's players, or choose All and tick them.":"Choose All and tick them."):"No player matches."):(D.squadError||"No players found for this team."))+"</p>";
 if(D.squadError&&D.rows.length)say(D.squadError+" Showing saved players only.","er");
 $("sc").hidden=D.season!==D.seasons.cur;var fr=before(),cp=$("cp");cp.hidden=false;$("cpb").textContent=copyArm?"Yes, copy from "+fr:"Copy from "+fr;$("cpb").style.display=fr?"":"none"}
 function before(){var L=[D.seasons.prev,D.seasons.cur,D.seasons.next],i=L.indexOf(D.season);return i>0?L[i-1]:""}
-function fill(){var t="",s="";D.teams.forEach(function(x){t+='<option value="'+x.team+'"'+(x.team===D.team?" selected":"")+">"+e(x.name)+"</option>"});[D.seasons.prev,D.seasons.cur,D.seasons.next].forEach(function(x){s+='<option value="'+x+'"'+(x===D.season?" selected":"")+">"+x+(x===D.seasons.cur?" (this season)":"")+"</option>"});$("tm").innerHTML=t;$("se").innerHTML=s}
+function fill(){var t="",s="";D.teams.forEach(function(x){t+='<option value="'+x.team+'"'+(x.team===D.team?" selected":"")+">"+e(x.name)+"</option>"});[D.seasons.prev,D.seasons.cur,D.seasons.next].forEach(function(x){s+='<option value="'+x+'"'+(x===D.season?" selected":"")+">"+x+(x===D.seasons.cur?" (now)":"")+"</option>"});$("tm").innerHTML=t;$("se").innerHTML=s}
 function load(team,season){edit="";copyArm=false;fetch("/api/sponsor-players?team="+encodeURIComponent(team||"")+"&season="+encodeURIComponent(season||""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}D=j;if(first){flt=j.rows.some(function(r){return r.cur})?"cur":"all";first=false}say(pend,pend?"ok":"");pend="";fill();draw()}).catch(function(){say("Could not read the players.","er")})}
 function post(o,ok,bad){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");if(bad)bad();return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er");if(bad)bad()})}
 $("tm").onchange=function(){first=true;load($("tm").value,$("se").value)};$("se").onchange=function(){first=true;load($("tm").value,$("se").value)};$("fq").oninput=draw;
@@ -4206,8 +4223,9 @@ $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var 
 if(a==="edit"){edit=i;draw();var n=$("en");if(n)n.focus()}else if(a==="cancel"){edit="";draw()}
 else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,alt:$("ea").value,cur:$("ec").checked},function(){pend="Saved.";load(D.team,D.season)})}};
 $("ls").onchange=function(ev){var c=ev.target;if(!c||c.getAttribute("data-a")!=="cur")return;var i=c.getAttribute("data-i"),r=D.rows.filter(function(x){return x.no===i})[0];if(!r)return;post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:r.nm,s:r.sid,alt:r.alt.join(","),cur:c.checked},function(){pend=c.checked?"Marked as a current player.":"Marked as not current.";load(D.team,D.season)},function(){load(D.team,D.season)})};
-function scan(off,mk,ad,ms){scanning=true;$("scb").disabled=true;post({act:"scan",team:D.team,season:D.season,offset:off},function(j){mk+=j.marked;ad+=j.added;ms+=j.missed;if(j.next!=null){say("Read "+j.next+" of "+j.total+" games...");scan(j.next,mk,ad,ms);return}scanning=false;$("scb").disabled=false;if(mk&&flt==="all")flt="cur";pend="Done. "+j.total+" game"+(j.total===1?"":"s")+" checked, "+mk+" player"+(mk===1?"":"s")+" newly ticked as current"+(ad?" ("+ad+" new to the list)":"")+(ms?". "+ms+" sheet"+(ms===1?"":"s")+" could not be read, so press the button again to retry those":"")+".";load(D.team,D.season)},function(){scanning=false;$("scb").disabled=false})}
-$("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");scan(0,0,0,0)};
+var gl=[];function showGames(){var d=$("gl");if(!gl.length){d.hidden=true;return}d.hidden=false;$("gs").textContent="Games read: "+gl.length+" (check these are this team's)";$("gd").innerHTML=gl.map(function(g){return e((g.d?dm(g.d):"?")+(g.o?" v "+g.o:""))}).join("<br>")}
+function scan(off,mk,ad,ms){scanning=true;$("scb").disabled=true;post({act:"scan",team:D.team,season:D.season,offset:off},function(j){mk+=j.marked;ad+=j.added;ms+=j.missed;gl=gl.concat(j.games||[]);showGames();if(j.next!=null){say("Read "+j.next+" of "+j.total+" games...");scan(j.next,mk,ad,ms);return}scanning=false;$("scb").disabled=false;if(mk&&flt==="all")flt="cur";pend="Done. "+j.total+" game"+(j.total===1?"":"s")+" checked, "+mk+" player"+(mk===1?"":"s")+" newly ticked as current"+(ad?" ("+ad+" new to the list)":"")+(ms?". "+ms+" sheet"+(ms===1?"":"s")+" could not be read, so press the button again to retry those":"")+".";load(D.team,D.season)},function(){scanning=false;$("scb").disabled=false})}
+$("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");gl=[];scan(0,0,0,0)};
 load("","");
 })();</script></body></html>`;
 }

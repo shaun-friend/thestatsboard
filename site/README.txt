@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
 v3.43.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.0_current_players.zip | v3.42.2
 v3.42.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.2_probe_census.zip | v3.42.1
 v3.42.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.1_probe_spec_check.zip | v3.42.0
@@ -312,6 +313,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.43.1 - Player sponsors: phone layout and last-played check
+- Owner report (19-Nov-2026): on a phone the player rows were tall with a lot of empty space, and on the Vandals list a player who last played for the 1XV showed as on the latest game.
+- Changed: each player is now a compact block (name, details, sponsor and Current tick on one line, Edit beside it), the cards above the list are tighter and the empty message bar no longer takes room. A row is about half the height.
+- New: each player shows the date and opponent of the last game they were on a team sheet for, and after Find this season's players a "Games read" list shows every game the scan used for that team, so a wrong game list is easy to spot. Press the scan button again to fill in dates for players ticked by the first scan.
+- Open question: the Vandals squad list holds 178 players, so the RFU list for a side looks club-wide. The Games read list will show whether the games read are the Vandals' own.
+- Request limit: no change.
+- Tests: t_v3430 (31 checks), x_splayers.
+- Docs: Admin guide, What's new
 
 v3.43.0 - Player sponsors: current players
 - Owner request (19-Nov-2026): the squad list is far too long (165 names for the 1XV) and the owner does not pick the squad. GMS registration data is not in the public RFU data and the owner has no GMS access, so "current" is kept by the club.

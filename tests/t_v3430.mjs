@@ -12,7 +12,7 @@ const SHEETS={
  '101':[P(1530430,'Wesley','Vermigle',OUR),P(1704351,'Harry','Newman-Wild',OUR),P(2649651,'Ben','Hidden',OUR,{hasDisclosure:true}),P(5,'Aled','Price',OUR),P(900,'Other','Man',OPP)],
  '102':[P(1530430,'Wesley','Vermigle',OUR),P(5,'Aled','Price',OUR),P(901,'Other','Two',OPP)],
  '103':[P(1530430,'Wesley','Vermigle',OUR),P(777,'New','Lad',OUR),P(1313523,'Adam','Lilley',OUR),P(902,'Other','Three',OPP)]};
-let games=[{id:'103',status:'done',iso:'2026-10-24T14:00:00Z'},{id:'101',status:'done',iso:'2026-09-05T14:00:00Z'},{id:'102',status:'done',iso:'2026-09-19T14:00:00Z'},{id:'104',status:'upcoming',iso:'2026-12-05T14:00:00Z'},{id:'105',status:'done',wo:true,iso:'2026-11-01T14:00:00Z'}];
+let games=[{id:'103',status:'done',iso:'2026-10-24T14:00:00Z',oppName:'Okehampton'},{id:'101',status:'done',iso:'2026-09-05T14:00:00Z',oppName:'Exmouth'},{id:'102',status:'done',iso:'2026-09-19T14:00:00Z',oppName:'Plympton'},{id:'104',status:'upcoming',iso:'2026-12-05T14:00:00Z'},{id:'105',status:'done',wo:true,iso:'2026-11-01T14:00:00Z'}];
 let sheetMiss=new Set(),sheetCalls=[];
 const ctx={Response,URL,URLSearchParams,Request,JSON,String,Array,Set,Map,Object,Number,Math,parseInt,Promise,Uint32Array,crypto:globalThis.crypto,Date,kvOf:()=>kv,siteSettings:async()=>({}),
  TEAMS:[{team:'11039',name:'Ivybridge 1XV',competition:'1',division:'2',teamName:'Ivybridge',league:'L'},{team:'11063',name:'The Vandals',competition:'1',division:'3',teamName:'Vandals',league:'L'}],
@@ -45,6 +45,8 @@ c('the second record of a player who did not play is not current',by('2380102')&
 c('a player not in the RFU squad list is added with the sheet name',by('777').left&&by('777').rfu==='New Lad'&&by('777').cur);
 c('a hidden player is added without a name',by('2649651').hidden&&by('2649651').rfu==='');
 c('games played is stored and last-on-a-sheet is worked out',j.played===3&&by('1530430').last===0&&by('5').last===1&&by('1704351').last===2&&by('777').last===0,JSON.stringify(j.rows.map(x=>[x.no,x.last])));
+c('last game date and opponent are kept for each player',by('1530430').lastOn==='2026-10-24'&&by('1530430').lastOpp==='Okehampton'&&by('1704351').lastOn==='2026-09-05'&&by('1704351').lastOpp==='Exmouth'&&by('5').lastOpp==='Plympton',JSON.stringify(j.rows.map(x=>[x.no,x.lastOn,x.lastOpp])));
+c('the scan lists the games it read',Array.isArray(r.j.games)&&r.j.games.length===3&&r.j.games[0].o==='Exmouth'&&r.j.games[2].d==='2026-10-24',JSON.stringify(r.j.games));
 c('the sponsor already set is kept',by('1530430').sponsor==='Dart Motors');
 // scanning again changes nothing important
 p0=puts;r=await post(SC);c('scanning again marks nobody new',r.j.ok&&r.j.marked===0&&r.j.added===0,JSON.stringify(r.j));
