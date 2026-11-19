@@ -15,6 +15,8 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.44.1 19-Nov-2026 The Player sponsors page is now called Players (Admin, Tools: Sponsors and Players).
+//   v3.44.0 19-Nov-2026 Sponsors page: each sponsor sits on one line (long names shortened) with its player count; tap a sponsor to rename it, see its players, add several players from any team in one go, or take players off.
 //   v3.43.3 19-Nov-2026 Player sponsors: a player's sponsor and own name now belong to the player for the season, so they show on every team list the player is on (Current and last played stay per team); the Sponsors page counts a player once.
 //   v3.43.2 19-Nov-2026 Player sponsors: the scan skips games that belong to another team (the RFU side number must match across the team's games), reports them, and a Clear ticks button resets the list.
 //   v3.43.1 19-Nov-2026 Player sponsors: compact phone layout (rows about half the height), last played date and opponent for each player, and a "Games read" list after a scan so the games used can be checked.
@@ -311,7 +313,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.43.3";
+const VERSION = "v3.44.1";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -358,6 +360,8 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
+v3.44.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.0_sponsor_players.zip | v3.43.3
 v3.43.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.3_one_sponsor_per_player.zip | v3.43.2
 v3.43.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.2_scan_own_team.zip | v3.43.1
 v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
@@ -632,6 +636,22 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.44.1 - Players page name
+- Owner request (19-Nov-2026): the two pages should be called Sponsors and Players, not Player sponsors.
+- Changed: the Admin link, page title, heading, and the Admin guide and Other addresses text now say Players. The address (/sponsor-players) is unchanged. Earlier release notes keep the old name.
+- Request limit: no change.
+- Tests: full build.
+- Docs: Admin guide, Other addresses, What's new
+
+v3.44.0 - Sponsors: tidy list and add players from the sponsor
+- Owner request (19-Nov-2026): sponsors should sit neatly on one line, and it should be possible to pick a sponsor and add its players, which is easier when a sponsor has several.
+- Changed: each sponsor is one row (name shortened with ... if long, a count of its players, and an arrow). Tapping a row opens it; tapping again closes it.
+- New, inside an open sponsor: Rename; the players who have it this season (every team, a player once, with the team and RFU number, and Remove); Add players (choose a team, search, tick the players, press Add). The add list shows current players by default, with a tick box to show everyone, and shows who already has another sponsor (adding moves them). Remove sponsor is at the bottom, with the same "in use" warning as before.
+- Changed: the add and remove use the same player records as the Players page, so the sponsor and name stay one per player across teams.
+- Request limit: no change for visitors. Opening a sponsor is 2 settings-store reads and 1 outside call (the squad list, usually from the kept copy).
+- Tests: t_v3430 (49 checks), x_sponsors browser test.
+- Docs: Admin guide, What's new
 
 v3.43.3 - Player sponsors: one sponsor per player across teams
 - Owner report (19-Nov-2026): a player on both the 1XV and the Vandals lists showed his sponsor only on the list where it was added.
@@ -2386,7 +2406,7 @@ const DOCS = [
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
     { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
-    { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Player sponsors: a sponsor for each player, by team and season (stage 2 of player sponsors).", ex: [["Player sponsors", "/sponsor-players"]] },
+    { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
     { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
     { v: "/admin", values: "none", where: "Club PIN", what: "The admin page: homepage and TV notices, and switches for screen features. Settings are stored per club in Cloudflare KV (the SETTINGS binding).", ex: [["Admin", "/admin"]] },
@@ -2549,7 +2569,7 @@ const DOC_SECTIONS = [
     { ul: [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
       "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
-      "Player sponsors (Admin, Tools, Player sponsors, or the Players tab): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
+      "Players (Admin, Tools, Players, or the Players tab on the Sponsors page): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. On the Sponsors page you can also tap a sponsor and add several players to it at once. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
     ] },
     { h: "Inbox" },
@@ -2709,6 +2729,8 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.44.1", "The Player sponsors page is now simply called Players, next to Sponsors in Admin, Tools."],
+      ["v3.44.0", "Sponsors: each sponsor now sits on one line with a count of its players, and long names are shortened. Tap a sponsor to open it: rename it, see who has it, add several players at once (pick a team, tick the players, press Add) or take a player off. Players who already have another sponsor show it, and adding them moves them."],
       ["v3.43.3", "Player sponsors: a player who is on two team lists (for example the 1XV and the Vandals) now has one sponsor and one own name, shown on both lists and changed from either. Whether they are current, and when they last played, are still kept for each team."],
       ["v3.43.2", "Player sponsors: Find this season's players now checks that every game it reads belongs to the team you chose, skips and reports any that do not, and a new Clear ticks button wipes the ticks that nothing else holds up so you can scan again from clean. Players with a sponsor, own name or other number are kept."],
       ["v3.43.1", "Player sponsors: the list is much shorter on a phone (each player takes about half the height), each player shows the date and opponent of the last game they were on a team sheet for, and after Find this season's players a Games read list shows exactly which games were used."],
@@ -3445,7 +3467,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Player sponsors</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3963,7 +3985,18 @@ async function sponsorsApi(request, url) {
   const season = dateSeasonName(todayIso(url, false));
   let rec = null; try { rec = await splinkRead(kv, season); } catch (_) { rec = null; }
   const useOf = id => spUsers(rec, id);
-  if (request.method === "GET") { const use = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use[x.id] = u.length; } return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use, season }); }
+  if (request.method === "GET") {
+    const sp = url.searchParams, pid = String(sp.get("id") || "");
+    if (pid) { // one sponsor's players this season (every team, a player counted once) and the teams to pick players from
+      const it = items.find(x => x.id === pid);
+      if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+      const players = [], seen = new Set();
+      if (rec) for (const tk of Object.keys(rec.t)) { const tn = (TEAMS.find(x => String(x.team) === tk) || {}).name || "Team " + tk; for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; if (e0.s === pid && !seen.has(no)) { seen.add(no); players.push({ no, name: e0.nm || e0.n || "", team: tn }); } } }
+      players.sort((a, b) => (a.name || "~").toLowerCase() < (b.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (b.name || "~").toLowerCase() ? 1 : 0);
+      return J({ ok: true, id: pid, name: it.name, players, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), season });
+    }
+    const use = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use[x.id] = u.length; } return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use, season });
+  }
   if (request.method !== "POST") return J({ ok: false, error: "Use the Sponsors page." }, 405);
   const origin = request.headers.get("Origin");
   if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
@@ -4005,34 +4038,57 @@ async function sponsorsApi(request, url) {
 function sponsorsPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Sponsors</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li{border-color:#dbe8de}
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sr{display:flex;align-items:center;gap:10px;width:100%;padding:10px 4px;background:none;border:0;border-bottom:1px solid #243a2e;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:48px}.sr b{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sr .bd{font-size:12px;font-weight:700;border-radius:99px;padding:3px 9px;background:#1a2a22;color:#7fdc9a;flex:none}.sr .cv{color:#91a49a;flex:none;font-size:18px;width:14px;text-align:center}.pn{background:#0f1517;border:1px solid #26312d;border-radius:12px;padding:10px;margin:4px 0 10px}.sec{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;margin:12px 0 6px}.pr{display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid #243a2e}.pr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}.pr small,.pk small{color:#91a49a;font-size:12px;margin-left:6px}.pl{max-height:320px;overflow:auto;border:1px solid #26312d;border-radius:10px;margin-top:8px}.pk{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #243a2e;font-size:15px;cursor:pointer}.pk:last-child{border-bottom:0}.pk input{width:20px;height:20px;flex:none;margin:0}.pk span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.b2.sm{padding:6px 12px;min-height:36px;font-size:13px}.tk2{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:6px;min-height:32px}.tk2 input{width:18px;height:18px;margin:0}select.in2{min-width:150px}.b2:disabled{opacity:.5;cursor:default}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2:empty{display:none}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li,body.light .sr,body.light .pr,body.light .pk{border-color:#dbe8de}body.light .pn{background:#f4f8f5;border-color:#c9dccd}body.light .pl{border-color:#c9dccd}body.light .sr .bd{background:#e1f3e6;color:#1b6b3a}body.light .tk2{color:#14301e}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Sponsors</h1><div class="tb"><a href="/sponsors" class="on">Sponsors</a><a href="/sponsor-players">Players</a></div><p class="sub" id="sub" style="margin:10px 0 0">${hasKv ? "Add each sponsor once for the club. Later you will choose them for players, season by season. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
+<h1>Sponsors</h1><div class="tb"><a href="/sponsors" class="on">Sponsors</a><a href="/sponsor-players">Players</a></div><p class="sub" id="sub" style="margin:10px 0 0">${hasKv ? "Add each sponsor once for the club, then tap a sponsor to add its players. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><input class="in2" id="nm" maxlength="60" placeholder="Sponsor name" autocomplete="off"><button type="button" class="b2 go" id="ad">Add</button></div>
 <details style="margin-top:10px"><summary>Paste a list</summary><p class="sub" style="margin:8px 0">One sponsor per line. Names already in the list are skipped.</p><textarea class="in2" id="bk" placeholder="Dart Motors"></textarea><div class="rw2" style="margin-top:8px"><button type="button" class="b2 go" id="ab">Add all</button></div></details></div>
 <div class="msg2" id="ms" role="status"></div>
 <div class="cd2"><div class="rw2" style="margin-bottom:6px"><input class="in2" id="fq" placeholder="Search sponsors" autocomplete="off"><small id="ct" style="color:#91a49a"></small></div><div id="ls"></div></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
-<script>(function(){var items=[],use={},season="",why=[],max=300,edit="",armed="",busy=false;
+<script>(function(){var items=[],use={},season="",why=[],max=300,open="",armed="",busy=false,det=null,pool=null,sel={},pt="",onlyCur=true;
 function $(i){return document.getElementById(i)}
 function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
-function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;items.forEach(function(x){if(q&&x.name.toLowerCase().indexOf(q)<0)return;n++;
-if(edit===x.id){h+='<div class="li"><input class="in2" id="ei" maxlength="60" value="'+e(x.name)+'"><div class="ac2"><button type="button" class="b2 go" data-a="save" data-i="'+x.id+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
-else if(armed===x.id){h+='<div class="li"><div><b>'+e(x.name)+'</b><small>'+(why.length?"Used in "+season+" by "+why.join("; ")+". They will become Available to sponsor.":"Remove this sponsor?")+'</small></div><div class="ac2"><button type="button" class="b2 rm" data-a="yes" data-i="'+x.id+'">'+(why.length?"Yes, remove anyway":"Yes, remove")+'</button><button type="button" class="b2" data-a="cancel">No</button></div></div>'}
-else{h+='<div class="li"><div><b>'+e(x.name)+'</b>'+(use[x.id]?'<small>used by '+use[x.id]+' player'+(use[x.id]===1?"":"s")+' in '+e(season)+'</small>':"")+'</div><div class="ac2"><button type="button" class="b2" data-a="edit" data-i="'+x.id+'">Rename</button><button type="button" class="b2 rm" data-a="rm" data-i="'+x.id+'">Remove</button></div></div>'}});
+function sh(n,m){n=String(n||"");return n.length>m?n.slice(0,m-1)+"…":n}
+function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;items.forEach(function(x){if(q&&x.name.toLowerCase().indexOf(q)<0)return;n++;var op=open===x.id;
+h+='<button type="button" class="sr" data-a="open" data-i="'+x.id+'"><b>'+e(x.name)+'</b>'+(use[x.id]?'<span class="bd">'+use[x.id]+"</span>":"")+'<span class="cv">'+(op?"⌄":"›")+"</span></button>";
+if(op)h+=panel(x)});
 $("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(items.length?"No sponsor matches that search.":"No sponsors yet. Add the first one above.")+"</p>";
-$("ct").textContent=items.length+" of "+max;var ei=$("ei");if(ei){ei.focus();ei.select()}}
-function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(j&&j.inUse){why=j.inUse;armed=o.id;edit="";say("");draw();return}if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}items=j.items;use=j.use||{};season=j.season||season;why=[];edit="";armed="";draw();ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
+$("ct").textContent=items.length+" of "+max;if(open){drawPlayers();drawPool()}}
+function panel(x){var t="";(det&&det.teams||[]).forEach(function(z){t+='<option value="'+z.team+'"'+(z.team===pt?" selected":"")+">"+e(z.name)+"</option>"});
+var rm=armed===x.id?'<span class="sub" style="font-size:13px;margin-right:6px">'+(why.length?"In use by "+why.length+" player"+(why.length===1?"":"s")+". They will become Available to sponsor.":"Remove this sponsor?")+'</span><button type="button" class="b2 sm rm" data-a="yes" data-i="'+x.id+'">'+(why.length?"Yes, remove anyway":"Yes, remove")+'</button><button type="button" class="b2 sm" data-a="no">No</button>':'<button type="button" class="b2 sm rm" data-a="rm" data-i="'+x.id+'">Remove sponsor</button>';
+return '<div class="pn"><div class="rw2"><input class="in2" id="ei" maxlength="60" value="'+e(x.name)+'" aria-label="Sponsor name"><button type="button" class="b2 sm" data-a="save" data-i="'+x.id+'">Rename</button></div>'
++'<div class="sec">Players with this sponsor in '+e(season)+'</div><div id="pp"><p class="sub" style="margin:4px 0">Loading...</p></div>'
++'<div class="sec">Add players</div><div class="rw2"><select class="in2" id="at" aria-label="Team">'+t+'</select><input class="in2" id="aq" placeholder="Search players" autocomplete="off"></div><label class="tk2" style="margin-top:6px"><input type="checkbox" id="ac"'+(onlyCur?" checked":"")+'> Current players only</label><div class="pl" id="pl"><p class="sub" style="margin:8px">Loading...</p></div><div class="rw2" style="margin-top:8px"><button type="button" class="b2 go" id="aa" data-a="addp">Add selected</button></div>'
++'<div class="rw2" style="margin-top:12px;justify-content:flex-end">'+rm+"</div></div>"}
+function drawPlayers(){var el=$("pp");if(!el)return;if(!det||det.id!==open){el.innerHTML='<p class="sub" style="margin:4px 0">Loading...</p>';return}
+el.innerHTML=det.players.length?det.players.map(function(p){return'<div class="pr"><span>'+(p.name?e(p.name):'<i style="color:#91a49a">Name redacted</i>')+"<small>"+e(p.team)+" · no. "+e(p.no)+'</small></span><button type="button" class="b2 sm rm" data-a="drop" data-i="'+e(p.no)+'">Remove</button></div>'}).join(""):'<p class="sub" style="margin:4px 0">No players yet.</p>'}
+function drawPool(){var el=$("pl");if(!el)return;if(!pool){el.innerHTML='<p class="sub" style="margin:8px">Loading...</p>';return}
+var q=($("aq")?$("aq").value:"").trim().toLowerCase(),h="",n=0;
+pool.forEach(function(r){if(r.sid===open)return;if(onlyCur&&!r.cur)return;var nm=r.nm||r.rfu;if(q&&(nm+" "+r.no).toLowerCase().indexOf(q)<0)return;n++;if(n>150)return;
+h+='<label class="pk"><input type="checkbox" data-no="'+e(r.no)+'"'+(sel[r.no]?" checked":"")+"><span>"+(nm?e(nm)+(r.own?" *":""):'<i style="color:#91a49a">Name redacted</i>')+"<small>"+(r.sid?"now "+e(r.sponsor):"no. "+e(r.no))+"</small></span></label>"});
+el.innerHTML=h||'<p class="sub" style="margin:8px">'+(pool.length?(onlyCur?"No current players to add. Untick Current players only to see everyone.":"No player matches."):"No players found for this team.")+"</p>";
+var c=Object.keys(sel).length;$("aa").textContent=c?"Add "+c+" player"+(c===1?"":"s"):"Add selected";$("aa").disabled=!c}
+function loadDet(id){det=null;pool=null;sel={};fetch("/api/sponsors?id="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read that sponsor.","er");return}if(open!==id)return;det=j;if(!pt||!j.teams.some(function(z){return z.team===pt}))pt=j.teams[0]?j.teams[0].team:"";draw();loadPool()}).catch(function(){say("Could not read that sponsor.","er")})}
+function loadPool(){pool=null;sel={};var el=$("at");if(el&&pt)el.value=pt;drawPool();if(!pt)return;fetch("/api/sponsor-players?team="+encodeURIComponent(pt)+"&season="+encodeURIComponent(season),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){pool=j&&j.ok?j.rows:[];if(!j||!j.ok)say((j&&j.error)||"Could not read the players.","er");drawPool()}).catch(function(){pool=[];drawPool()})}
+function post2(o,ok){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
+function refresh(msg){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(j&&j.ok){items=j.items;use=j.use||{}}say(msg,"ok");loadDet(open);draw()}).catch(function(){loadDet(open)})}
+function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(j&&j.inUse){why=j.inUse;armed=o.id;say("");draw();return}if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}items=j.items;use=j.use||{};season=j.season||season;why=[];armed="";if(o.act==="remove")open="";draw();ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
 function load(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the sponsors.","er");return}items=j.items;use=j.use||{};season=j.season||"";max=j.max||max;draw()}).catch(function(){say("Could not read the sponsors.","er")})}
 $("ad").onclick=function(){var v=$("nm").value;post({act:"add",name:v},function(){$("nm").value="";say("Added.","ok");$("nm").focus()})};
 $("nm").onkeydown=function(ev){if(ev.key==="Enter")$("ad").click()};
 $("ab").onclick=function(){post({act:"bulk",text:$("bk").value},function(j){$("bk").value="";say("Added "+j.added+(j.skipped?", skipped "+j.skipped+" already in the list":"")+".","ok")})};
 $("fq").oninput=draw;
+$("ls").onchange=function(ev){var c=ev.target;if(c.id==="at"){pt=c.value;loadPool();return}if(c.id==="ac"){onlyCur=c.checked;drawPool();return}var no=c.getAttribute&&c.getAttribute("data-no");if(no){if(c.checked)sel[no]=1;else delete sel[no];drawPool()}};
+$("ls").oninput=function(ev){if(ev.target.id==="aq")drawPool()};
 $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
-if(a==="edit"){edit=i;armed="";why=[];draw()}else if(a==="cancel"){edit="";armed="";why=[];draw()}else if(a==="rm"){armed=i;edit="";why=[];draw()}
-else if(a==="save"){post({act:"rename",id:i,name:$("ei").value},function(){say("Renamed.","ok")})}
-else if(a==="yes"){post({act:"remove",id:i,force:why.length>0},function(){say("Removed.","ok")})}};
+if(a==="open"){if(open===i){open="";armed="";why=[];draw();return}open=i;armed="";why=[];det=null;pool=null;sel={};draw();loadDet(i)}
+else if(a==="rm"){armed=i;why=[];draw()}else if(a==="no"){armed="";why=[];draw()}
+else if(a==="save"){post({act:"rename",id:i,name:$("ei").value},function(){say("Renamed.","ok");loadDet(open);draw()})}
+else if(a==="yes"){post({act:"remove",id:i,force:why.length>0},function(){say("Removed.","ok")})}
+else if(a==="drop"){post2({act:"assign",team:pt,season:season,s:"",nos:[i]},function(){refresh("Removed from "+(det?det.name:"the sponsor")+".")})}
+else if(a==="addp"){var nos=Object.keys(sel);if(!nos.length)return;post2({act:"assign",team:pt,season:season,s:open,nos:nos},function(j){refresh("Added "+j.changed+" player"+(j.changed===1?"":"s")+".")})}};
 load();
 })();</script></body></html>`;
 }
@@ -4139,7 +4195,7 @@ async function sponsorPlayersApi(request, url, worker) {
     rows.sort((a, b) => { const an = a.nm || a.rfu, bn = b.nm || b.rfu; return !an !== !bn ? (an ? -1 : 1) : an.toLowerCase() < bn.toLowerCase() ? -1 : an.toLowerCase() > bn.toLowerCase() ? 1 : 0; });
     return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, played: (rec.g || {})[q.team] || 0, squadError: sq.ok ? "" : sq.error });
   }
-  if (request.method !== "POST") return J({ ok: false, error: "Use the Player sponsors page." }, 405);
+  if (request.method !== "POST") return J({ ok: false, error: "Use the Players page." }, 405);
   const origin = request.headers.get("Origin");
   if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
   let b = null; try { b = JSON.parse(await request.text()); } catch (_) { b = null; }
@@ -4148,7 +4204,7 @@ async function sponsorPlayersApi(request, url, worker) {
   let rec = null, sponsors = [];
   try { rec = await splinkRead(kv, q.season); sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); } catch (_) { return J({ ok: false, error: "Could not read the saved sponsors. Try again." }, 502); }
   const ent = rec.t[q.team] || (rec.t[q.team] = {});
-  let copied = 0;
+  let copied = 0, changed = 0;
   if (b.act === "set") {
     const no = personNo(b.no);
     if (!no) return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
@@ -4215,6 +4271,23 @@ async function sponsorPlayersApi(request, url, worker) {
     for (const no of Object.keys(ent)) { const e0 = ent[no]; if (!e0.nm && !e0.s && !e0.a.length) { delete ent[no]; cleared++; } else { e0.c = e0.c === 2 ? 2 : 0; e0.l = 0; e0.ld = ""; e0.lo = ""; } }
     if (rec.g) delete rec.g[q.team]; if (rec.i) delete rec.i[q.team];
     copied = cleared;
+  } else if (b.act === "assign") {
+    // From the Sponsors page: give several players one sponsor (s) or take the sponsor off them (s empty, every team).
+    const sid = String(b.s || ""), nos = [...new Set((Array.isArray(b.nos) ? b.nos : []).map(personNo).filter(Boolean))].slice(0, 80);
+    if (!nos.length) return J({ ok: false, error: "Choose at least one player." }, 400);
+    if (sid && !sponsors.some(x => x.id === sid)) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    if (!sid) {
+      for (const no of nos) for (const tk of Object.keys(rec.t)) { const o = rec.t[tk][no]; if (o && o.s) { o.s = ""; changed++; if (!o.nm && !o.a.length && o.c !== 1) delete rec.t[tk][no]; } }
+    } else {
+      const sq = await squadFor(q.team), known = new Map((sq.ok ? sq.list : []).map(x => [x.no, x]));
+      for (const no of nos) {
+        const kn = known.get(no);
+        if (!ent[no]) { if (!kn || Object.keys(ent).length >= SPLINK_MAX) continue; ent[no] = { n: kn.hidden ? "" : kn.name, nm: "", s: "", a: [], c: 0, l: 0, ld: "", lo: "" }; }
+        if (ent[no].s !== sid) changed++;
+        ent[no].s = sid;
+        for (const tk of Object.keys(rec.t)) { const o = tk !== q.team && rec.t[tk][no]; if (o) { if (!o.s && o.c === 0) o.c = 2; o.s = sid; } }
+      }
+    }
   } else if (b.act === "copy") {
     const from = String(b.from || "");
     if (![seasons.prev, seasons.cur, seasons.next].includes(from) || from === q.season) return J({ ok: false, error: "Choose another season to copy from." }, 400);
@@ -4225,14 +4298,14 @@ async function sponsorPlayersApi(request, url, worker) {
   } else return J({ ok: false, error: "Unknown action." }, 400);
   if (!Object.keys(ent).length) delete rec.t[q.team];
   try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
-  return J({ ok: true, copied });
+  return J({ ok: true, copied, changed });
 }
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Player sponsors</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Players</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}.li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #243a2e}.lm{min-width:0;flex:1}.ln{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:2px}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.msg2:empty{display:none}.gl{font-size:12px;color:#91a49a;margin:6px 0 0;line-height:1.5}.gl summary{cursor:pointer;color:#7fd89a;font-weight:700}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.sp{font-size:13px;font-weight:700;color:#7fdc9a}.sp.av{color:#f2b866}.sp.nc{color:#91a49a;font-weight:400}.tk{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:6px;min-height:32px;cursor:pointer}.tk input{width:20px;height:20px;margin:0}body.light .tk{color:#14301e}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Player sponsors</h1><div class="tb"><a href="/sponsors">Sponsors</a><a href="/sponsor-players" class="on">Players</a></div>
+<h1>Players</h1><div class="tb"><a href="/sponsors">Sponsors</a><a href="/sponsor-players" class="on">Players</a></div>
 <p class="sub" style="margin:10px 0 0">${hasKv ? "One sponsor per player. Sponsors belong to the season shown and do not carry into the next one by themselves." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div></div>
 <div class="msg2" id="ms" role="status"></div>

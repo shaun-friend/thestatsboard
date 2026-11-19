@@ -105,6 +105,21 @@ c('the same player on two teams counts once for the sponsor',s2.use[dart]===nos.
 await post({act:'set',team:'11063',season:'2026-2027',no:'2380102',n:'Adam Lilley',nm:'',s:'',alt:'',cur:true});
 j=await get('?team=11039');
 c('clearing the sponsor on one team clears it for the player everywhere',!by('2380102').sponsor&&!by('2380102').nm,JSON.stringify(by('2380102')));
+// Sponsors page: add several players to a sponsor, list them, take them off
+const sdet=async id=>{const u=new URL('https://x.test/api/sponsors?id='+id);const r=await ctx.s(new Request(u),u);return{s:r.status,j:await r.json()}};
+r=await post({act:'assign',team:'11039',season:'2026-2027',s:dart,nos:['1704351','2649651','5','999']});
+c('assign gives the sponsor to the players in the squad list and skips unknown numbers',r.j.ok&&r.j.changed>=1&&r.j.changed<=3,JSON.stringify(r.j));
+let d=await sdet(dart);
+c('the sponsor lists its players once each with the team',d.j.ok&&['1704351','2649651','5'].every(n=>d.j.players.some(p=>p.no===n))&&!d.j.players.some(p=>p.no==='999')&&d.j.players.every(p=>p.team),JSON.stringify(d.j.players));
+c('a hidden RFU name is listed without a name',d.j.players.find(p=>p.no==='2649651').name==='');
+c('the teams to pick from are the shown teams',d.j.teams.length===2&&d.j.season==='2026-2027');
+j=await get('');c('assigned players are current and sponsored on the list',by('1704351').sponsor==='Dart Motors'&&by('1704351').cur);
+r=await post({act:'assign',team:'11039',season:'2026-2027',s:'',nos:['1704351','5']});j=await get('');
+c('taking the sponsor off clears it',r.j.ok&&!by('1704351').sponsor&&!by('5').sponsor,JSON.stringify(r.j));
+d=await sdet(dart);c('and they leave the sponsor list',!d.j.players.some(p=>p.no==='1704351'||p.no==='5'));
+r=await post({act:'assign',team:'11039',season:'2026-2027',s:'deadbeef',nos:['5']});c('an unknown sponsor is refused',r.s===404);
+r=await post({act:'assign',team:'11039',season:'2026-2027',s:dart,nos:[]});c('choosing nobody is refused',r.s===400);
+d=await sdet('deadbeef');c('an unknown sponsor has no detail',d.s===404);
 // page
 const pg=src.slice(src.indexOf('function sponsorPlayersPage('),e);
 c('page has the tick box, the filter and the scan button',/data-a="cur"/.test(pg)&&/\["cur","Current "/.test(pg)&&/Find this season/.test(pg)&&/Not current/.test(pg));

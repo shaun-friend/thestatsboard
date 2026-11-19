@@ -41,6 +41,8 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.44.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.1_players_name.zip | v3.44.0
+v3.44.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.44.0_sponsor_players.zip | v3.43.3
 v3.43.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.3_one_sponsor_per_player.zip | v3.43.2
 v3.43.2 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.2_scan_own_team.zip | v3.43.1
 v3.43.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.43.1_players_compact.zip | v3.43.0
@@ -315,6 +317,22 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.44.1 - Players page name
+- Owner request (19-Nov-2026): the two pages should be called Sponsors and Players, not Player sponsors.
+- Changed: the Admin link, page title, heading, and the Admin guide and Other addresses text now say Players. The address (/sponsor-players) is unchanged. Earlier release notes keep the old name.
+- Request limit: no change.
+- Tests: full build.
+- Docs: Admin guide, Other addresses, What's new
+
+v3.44.0 - Sponsors: tidy list and add players from the sponsor
+- Owner request (19-Nov-2026): sponsors should sit neatly on one line, and it should be possible to pick a sponsor and add its players, which is easier when a sponsor has several.
+- Changed: each sponsor is one row (name shortened with ... if long, a count of its players, and an arrow). Tapping a row opens it; tapping again closes it.
+- New, inside an open sponsor: Rename; the players who have it this season (every team, a player once, with the team and RFU number, and Remove); Add players (choose a team, search, tick the players, press Add). The add list shows current players by default, with a tick box to show everyone, and shows who already has another sponsor (adding moves them). Remove sponsor is at the bottom, with the same "in use" warning as before.
+- Changed: the add and remove use the same player records as the Players page, so the sponsor and name stay one per player across teams.
+- Request limit: no change for visitors. Opening a sponsor is 2 settings-store reads and 1 outside call (the squad list, usually from the kept copy).
+- Tests: t_v3430 (49 checks), x_sponsors browser test.
+- Docs: Admin guide, What's new
 
 v3.43.3 - Player sponsors: one sponsor per player across teams
 - Owner report (19-Nov-2026): a player on both the 1XV and the Vandals lists showed his sponsor only on the list where it was added.
