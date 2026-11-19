@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
 v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
 v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
 v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
@@ -302,6 +303,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.0 - Usage: Cloudflare limits card
+- Owner request (19-Nov-2026): see how close the site is to Cloudflare's free-plan limits, read straight from Cloudflare.
+- New: the Usage page has a Cloudflare limits card, loaded after the rest of the page. It asks Cloudflare's own analytics (the same CF_ACCOUNT_ID and CF_API_TOKEN secrets, Account Analytics Read, so nothing new to set up) and shows, for the whole account (test and live together) since midnight UTC: settings store reads, writes, deletes and lists against the free limits (100,000 reads, 1,000 writes, deletes and lists a day) with the busiest day of the last 7; site requests against 100,000 a day; requests that did not complete (named in plain words, including "over a resource limit", which covers the 10 ms processing limit); and typical and slowest processing time against the 10 ms limit. Bars turn amber at 70% and red at 90%.
+- How: three separate questions to Cloudflare (settings store, Pages Functions, Workers), so if Cloudflare refuses one, only that part says so and gives the reason. The answer is kept in memory for 5 minutes (Refresh asks again after a minute). "Show what Cloudflare returned" lists the exact answers or refusals, for checking against Cloudflare's own dashboard. Without the two secrets the card says Not connected.
+- Needs checking on DEV: the Pages Functions question uses a dataset name I could not confirm from Cloudflare's documentation, and processing time is assumed to be in microseconds. If either is wrong the card says so and the raw answer shows what to change.
+- Request limit: a separate request made by the Usage page itself (club PIN only), at most once every 5 minutes per server, making 3 outside calls. No other page is touched and nothing is added to any visitor's page or screen. No settings-store writes.
+- Tests: new server test (questions asked, figures added up, busiest day, refused part kept apart, 5-minute memory, token never returned, Cloudflare down) and a browser test (card, bars, amber/red, refused part, Refresh, Not connected, broken answer). Both fail on the old code. The existing tests pass.
+- Docs: Admin guide, Setup and deployment, What's new
 
 v3.39.8 - Usage: League Leaders named with capitals
 - Owner report (19-Nov-2026): on the Usage page, under "What the screens are showing", League Leaders was the only page without a capital first letter ("leaders").

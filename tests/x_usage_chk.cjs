@@ -4,6 +4,7 @@ for(const days of [1,7,30]){
  const p=await b.newPage({viewport:{width:1200,height:900}});
  p.on('pageerror',e=>{console.log('PAGEERROR',e.message);bad++});
  await p.route('https://x.test/usage',r=>r.fulfill({contentType:'text/html',body:fs.readFileSync('w/usage_page.html','utf8')}));
+ await p.route('**/api/cflimits*',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({ok:false,setup:true})}));
  await p.route('**/api/usage*',r=>{const d=Number(new URL(r.request().url()).searchParams.get('days'))||7;r.fulfill({contentType:'application/json',body:JSON.stringify(api[d]||api[7])})});
  await p.goto('https://x.test/usage',{waitUntil:'load'});await p.waitForTimeout(500);await p.click('.rng button[data-d="'+days+'"]');await p.waitForTimeout(500);
  const t=await p.innerText('body');

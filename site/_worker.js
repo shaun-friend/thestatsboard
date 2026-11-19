@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.40.0 19-Nov-2026 Usage page: new "Cloudflare limits" card read straight from Cloudflare (settings store reads, writes, deletes and lists, site requests, requests that did not complete, processing time).
 //   v3.39.8 19-Nov-2026 Usage page: the League Leaders screen page is named with capital letters, like the other pages.
 //   v3.39.7 18-Nov-2026 League Leaders shows the club's own teams under their Admin names (the Vandals showed as Ivybridge II).
 //   v3.39.6 18-Nov-2026 League Leaders pages are now kept at the edge like Fixtures and the Match page, so rotating screens stop rebuilding them on every request.
@@ -298,7 +299,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.8";
+const VERSION = "v3.40.0";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -345,6 +346,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.40.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.0_cloudflare_limits.zip | v3.39.8
 v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
 v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
 v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
@@ -606,6 +608,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.40.0 - Usage: Cloudflare limits card
+- Owner request (19-Nov-2026): see how close the site is to Cloudflare's free-plan limits, read straight from Cloudflare.
+- New: the Usage page has a Cloudflare limits card, loaded after the rest of the page. It asks Cloudflare's own analytics (the same CF_ACCOUNT_ID and CF_API_TOKEN secrets, Account Analytics Read, so nothing new to set up) and shows, for the whole account (test and live together) since midnight UTC: settings store reads, writes, deletes and lists against the free limits (100,000 reads, 1,000 writes, deletes and lists a day) with the busiest day of the last 7; site requests against 100,000 a day; requests that did not complete (named in plain words, including "over a resource limit", which covers the 10 ms processing limit); and typical and slowest processing time against the 10 ms limit. Bars turn amber at 70% and red at 90%.
+- How: three separate questions to Cloudflare (settings store, Pages Functions, Workers), so if Cloudflare refuses one, only that part says so and gives the reason. The answer is kept in memory for 5 minutes (Refresh asks again after a minute). "Show what Cloudflare returned" lists the exact answers or refusals, for checking against Cloudflare's own dashboard. Without the two secrets the card says Not connected.
+- Needs checking on DEV: the Pages Functions question uses a dataset name I could not confirm from Cloudflare's documentation, and processing time is assumed to be in microseconds. If either is wrong the card says so and the raw answer shows what to change.
+- Request limit: a separate request made by the Usage page itself (club PIN only), at most once every 5 minutes per server, making 3 outside calls. No other page is touched and nothing is added to any visitor's page or screen. No settings-store writes.
+- Tests: new server test (questions asked, figures added up, busiest day, refused part kept apart, 5-minute memory, token never returned, Cloudflare down) and a browser test (card, bars, amber/red, refused part, Refresh, Not connected, broken answer). Both fail on the old code. The existing tests pass.
+- Docs: Admin guide, Setup and deployment, What's new
 
 v3.39.8 - Usage: League Leaders named with capitals
 - Owner report (19-Nov-2026): on the Usage page, under "What the screens are showing", League Leaders was the only page without a capital first letter ("leaders").
@@ -2444,6 +2455,7 @@ const DOC_SECTIONS = [
     { h: "Usage and visit counting" },
     { p: "The Usage page (/usage, club PIN) shows people per day, what they look at, which of the club's teams are viewed, which other teams are viewed (and the league and county), the device split, what the clubhouse screens are showing, how often the club pages were opened, wrong PIN entries, a Speed panel (how long pages took to build and how long outside fetches took), a Pages cut off panel (pages Cloudflare stopped part-way, usually Error 1102 for too much CPU, shown as started minus finished), and how close the site is to Cloudflare's free daily request limit. A person counts once a day, so the totals are person-days. TV screens and calendar feeds are counted separately so an hourly refresh does not look like a crowd. The Reporting section of the Admin page has a Count visits switch, a Count clubhouse screen loads switch (off means TV screens are not counted at all and the screens chart stays empty) and the default period the Usage page opens on (7, 14, 30 or 90 days)." },
     { p: "Set up once per project: in Cloudflare open the Pages project, Settings, Bindings, Add, Analytics Engine, variable name USAGE, dataset stats_board_usage, then redeploy. To read the numbers back add two secrets, CF_ACCOUNT_ID (your account ID) and CF_API_TOKEN (an API token with Account Analytics Read). Use a separate dataset name for test if you want the two kept apart. Optionally add USAGE_SALT, a long random text, for the daily one-way code (the club PIN is used if it is missing). Nothing is counted until the binding exists." },
+    { p: "The same two secrets also let the Usage page show a Cloudflare limits card with Cloudflare's own figures for the whole account (test and live sites together), counted since midnight UTC when the daily limits restart: settings store reads, writes, deletes and lists against the free limits, site requests against 100,000 a day, requests that did not complete (including those stopped by the 10 ms processing limit), and typical and slowest processing time. Bars turn amber at 70% and red at 90%. Cloudflare's figures can lag by a few minutes, and the page keeps them for up to 5 minutes (Refresh asks again after a minute). If a figure is missing, Show what Cloudflare returned lists the exact answer or refusal. Nothing extra needs setting up." },
     { ex: [["Admin page", "/admin"], ["Usage page", "/usage"]] }
   ] },
   { id: "usagedata", title: "Usage data columns", who: "Site owner", blocks: [
@@ -2533,7 +2545,7 @@ const DOC_SECTIONS = [
       ["ENV_LABEL", "Set on the test project only (for example TEST). It marks the site as the test site: a corner badge, the DEV tools, and a PIN."],
       ["DEV_PIN", "The PIN that protects the whole test site. The test site stays locked until it is set."],
       ["USAGE (Analytics Engine binding)", "Counts visits (dataset stats_board_usage). Without it nothing is counted and the Usage page explains what to connect."],
-      ["CF_ACCOUNT_ID, CF_API_TOKEN", "Secrets that let the Usage page read the counts back. The token needs Account Analytics Read only."],
+      ["CF_ACCOUNT_ID, CF_API_TOKEN", "Secrets that let the Usage page read the counts back, and Cloudflare's own limit figures. The token needs Account Analytics Read only."],
       ["SETTINGS (KV binding)", "The KV namespace for admin settings. Use a different namespace for test and live. Without it the site runs on its defaults and the Admin page says storage is not connected."]
     ] },
     { h: "Deploying" },
@@ -2562,6 +2574,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.40.0", "Usage page: a new Cloudflare limits card shows Cloudflare's own figures for the free plan - settings store reads, writes, deletes and lists, site requests, requests that did not finish, and processing time - with bars that turn amber and red as a limit gets close."],
       ["v3.39.8", "Usage page: the League Leaders screen page is now named with capital letters in \"What the screens are showing\"."],
       ["v3.39.7", "League Leaders now shows your own teams under the names set in Admin, Our teams. The Vandals appeared as \"Ivybridge II\" under Best attack and the other cards; they now show as The Vandals."],
       ["v3.39.6", "League Leaders pages are now kept for reuse, like Fixtures and the Match page, so a rotating screen no longer makes the site rebuild them every time. This takes load off the free Cloudflare limits."],
@@ -3956,6 +3969,74 @@ async function usageApi(url) {
     return J({ ok: true, days, limitBasis: dayStart ? "utcday" : "rolling", screensOn: st.features.screens !== false, countOn: st.features.count !== false, tvDay, tvPages, clubPg, pinDay, pinWhere, secDay, secWhere, screens: scr, cut: cutRows, speed: { pages: spPages, up: spUp, day: spDay }, perDay, tot, pages, teams, devs, others: mergeTeamRows(others), srch, today: today[0] ? Number(today[0].n) || 0 : 0, teamsKnown: TEAMS.map(t => ({ id: String(t.team), name: t.name })) });
   } catch (e) { return J({ ok: false, error: "Could not read the usage data: " + String(e && e.message || e).slice(0, 120) }, 502); }
 }
+// v3.40.0: Cloudflare's own figures for the free-plan limits (Usage page card "Cloudflare limits").
+// Uses the same CF_ACCOUNT_ID and CF_API_TOKEN secrets as the Usage counts (Account Analytics Read) and asks Cloudflare's
+// GraphQL analytics. Three separate questions (settings store, Pages Functions, Workers) so a refusal loses only its own part.
+// The answer is kept in memory for 5 minutes, so opening the Usage page does not ask Cloudflare every time. Club PIN only.
+const CFL_FREE = { read: 100000, write: 1000, delete: 1000, list: 1000, requests: 100000, cpuMs: 10 };
+const CFL_KEEP_MS = 300000, CFL_MIN_GAP_MS = 60000;
+let CFL_MEM = null;
+async function cflGraphql(query) {
+  const r = await fetch("https://api.cloudflare.com/client/v4/graphql", { method: "POST", headers: { "Authorization": "Bearer " + SITE_ENV.CF_API_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ query }), signal: AbortSignal.timeout(7000) });
+  const text = await r.text();
+  let j = null; try { j = JSON.parse(text); } catch (_) { /* not JSON */ }
+  if (!r.ok && !j) throw new Error("Cloudflare returned HTTP " + r.status);
+  return { j, text: text.length > 3500 ? text.slice(0, 3500) + " ...(cut)" : text };
+}
+function cflErr(j) { return j && Array.isArray(j.errors) && j.errors.length ? String(j.errors[0].message || "refused").slice(0, 200) : ""; }
+async function cflPart(query, shape) {
+  try {
+    const { j, text } = await cflGraphql(query);
+    const err = cflErr(j), acc = j && j.data && j.data.viewer && j.data.viewer.accounts && j.data.viewer.accounts[0];
+    if (err || !acc) return { ok: false, error: err || "Cloudflare returned no data for this account", raw: text };
+    return Object.assign({ ok: true, raw: text }, shape(acc));
+  } catch (e) { return { ok: false, error: String(e && e.message || e).slice(0, 160), raw: "" }; }
+}
+async function cflLimitsApi(url) {
+  const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  const J = o => new Response(JSON.stringify(o), { headers: H });
+  if (!SITE_ENV.CF_ACCOUNT_ID || !SITE_ENV.CF_API_TOKEN) return J({ ok: false, setup: true });
+  const sp = url.searchParams, now = Date.now(), wantFresh = sp.get("fresh") === "1";
+  if (CFL_MEM && now - CFL_MEM.at < (wantFresh ? CFL_MIN_GAP_MS : CFL_KEEP_MS)) return J(Object.assign({}, CFL_MEM.body, { cached: true }));
+  const acc = JSON.stringify(String(SITE_ENV.CF_ACCOUNT_ID)), d0 = new Date(now), pad = n => String(n).padStart(2, "0");
+  const dayOf = t => t.getUTCFullYear() + "-" + pad(t.getUTCMonth() + 1) + "-" + pad(t.getUTCDate());
+  const today = dayOf(d0), from = dayOf(new Date(now - 6 * 86400000)), dayStart = today + "T00:00:00Z", nowIso = d0.toISOString().slice(0, 19) + "Z";
+  const [kv, pages, workers] = await Promise.all([
+    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){kv:kvOperationsAdaptiveGroups(limit:1000,filter:{date_geq:"${from}",date_leq:"${today}"}){sum{requests} dimensions{date actionType}}}}}`, a => {
+      const rows = Array.isArray(a.kv) ? a.kv : [], todayN = {}, peak = {};
+      for (const r of rows) {
+        const act = String(r.dimensions && r.dimensions.actionType || "").toLowerCase(), n = Number(r.sum && r.sum.requests) || 0, dt = String(r.dimensions && r.dimensions.date || "");
+        if (!act) continue;
+        if (dt === today) todayN[act] = (todayN[act] || 0) + n;
+        const byDay = peak[act] || (peak[act] = {}); byDay[dt] = (byDay[dt] || 0) + n;
+      }
+      const peaks = {}; for (const act of Object.keys(peak)) { let best = { n: 0, date: "" }; for (const dt of Object.keys(peak[act])) if (peak[act][dt] > best.n) best = { n: peak[act][dt], date: dt }; peaks[act] = best; }
+      return { today: todayN, peak: peaks };
+    }),
+    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){p:pagesFunctionsInvocationsAdaptiveGroups(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{status}}}}}`, a => cflInvocations(a.p, null)),
+    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){w:workersInvocationsAdaptive(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{scriptName status}}}}}`, a => cflInvocations(a.w, "scriptName"))
+  ]);
+  const body = { ok: true, at: d0.toISOString(), free: CFL_FREE, day: today, kv, pages, workers, cached: false };
+  CFL_MEM = { at: now, body };
+  return J(body);
+}
+// Adds up Cloudflare's invocation rows: total requests and errors, requests by status, and the processing time
+// (Cloudflare gives microseconds) of the busiest row, which is the figure that matters for the 10 ms limit.
+function cflInvocations(rows, scriptKey) {
+  const list = Array.isArray(rows) ? rows : [], byStatus = {}, scripts = {};
+  let requests = 0, errors = 0, subrequests = 0;
+  for (const r of list) {
+    const n = Number(r.sum && r.sum.requests) || 0, st = String(r.dimensions && r.dimensions.status || "unknown");
+    requests += n; errors += Number(r.sum && r.sum.errors) || 0; subrequests += Number(r.sum && r.sum.subrequests) || 0;
+    byStatus[st] = (byStatus[st] || 0) + n;
+    const nm = scriptKey ? String(r.dimensions && r.dimensions[scriptKey] || "") : "";
+    const s = scripts[nm] || (scripts[nm] = { name: nm, requests: 0, p50: 0, p99: 0, top: 0 });
+    s.requests += n;
+    if (n > s.top) { s.top = n; s.p50 = Number(r.quantiles && r.quantiles.cpuTimeP50) || 0; s.p99 = Number(r.quantiles && r.quantiles.cpuTimeP99) || 0; }
+  }
+  const top = Object.values(scripts).sort((x, y) => y.requests - x.requests).slice(0, 4).map(s => ({ name: s.name, requests: s.requests, p50ms: Math.round(s.p50 / 100) / 10, p99ms: Math.round(s.p99 / 100) / 10 }));
+  return { requests, errors, subrequests, byStatus, scripts: top };
+}
 function usagePage(theme, isDev, defDays) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Usage</title>
@@ -4051,8 +4132,23 @@ function show(d){
  '<div class="cd hl"><h2>Teams people look up</h2><p class="n">Every team opened on a phone, tablet or computer, or picked in the link builder, whether or not it is in our list (ours are marked). TV screens are not counted here. Only the team, league ids and county are kept. Searches: '+num((d.srch.filter(function(r){return r.kind==="search"})[0]||{}).n)+", teams picked from a search: "+num((d.srch.filter(function(r){return r.kind==="pick"})[0]||{}).n)+". Typed search text is never stored.</p>"+
  rows(d.others,function(r){return"<tr><td>"+esc(r.name||("Team "+r.team))+(String(r.own)==="1"?' <span class="mu">&middot; ours</span>':"")+' <span class="mu">&middot; no. '+esc(r.team)+'</span>'+'</td><td class="mu">'+esc(r.comp?"comp "+r.comp+(r.div?" / "+r.div:""):"")+'</td><td class="mu">'+esc(r.region||r.country||"")+'</td><td class="nu">'+num(r.n)+"</td></tr>"})+"</div>"+
  clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+cutCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
- '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div>";
- [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}})}
+ '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div><div id=cfl></div>";
+ [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}});loadCfl(false)}
+function cflRow(lab,n,lim,note){var p=lim?Math.min(100,n/lim*100):0,col=p>=90?"#d65a4a":p>=70?"#d6a640":"#3f8f62";return'<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>'+lab+'</span><span><b>'+num(n)+'</b> of '+num(lim)+' ('+(p<10?(Math.round(p*10)/10):Math.round(p))+'%)</span></div><div style="height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin-top:5px;overflow:hidden"><div style="height:8px;width:'+Math.max(p>0?2:0,p)+'%;background:'+col+'"></div></div>'+(note?'<div class="mu" style="font-size:12px;margin-top:3px">'+note+'</div>':"")+'</div>'}
+function cflPart(title,p,build){return p.ok?build(p):'<p class="msg"><b>'+title+':</b> Cloudflare would not give this figure ('+esc(p.error||"no reason given")+'). Open "Show what Cloudflare returned" below.</p>'}
+function cflCard(c){
+ if(c.setup)return'<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Not connected. The two secrets CF_ACCOUNT_ID and CF_API_TOKEN (Account Analytics Read) are needed on this site; they are the same ones the Usage counts use.</p></div>';
+ var f=c.free,SN={success:"Worked",clientDisconnected:"Visitor left before the reply",scriptThrewException:"Code error",exceededResources:"Over a resource limit (includes the 10 ms processing limit)",internalError:"Cloudflare internal error",unknown:"Unknown"};
+ var kv=cflPart("Settings store",c.kv,function(k){var t=k.today||{},pk=k.peak||{};
+  function pkNote(a){var q=pk[a];return q&&q.n?"Busiest day in the last 7: "+num(q.n)+" ("+new Date(q.date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"})+")":""}
+  return cflRow("Reads",t.read||0,f.read,pkNote("read"))+cflRow("Writes",t.write||0,f.write,pkNote("write"))+cflRow("Deletes",t["delete"]||0,f["delete"],pkNote("delete"))+cflRow("Lists",t.list||0,f.list,pkNote("list"))});
+ var inv=c.pages&&c.pages.ok?c.pages:(c.workers&&c.workers.ok?c.workers:null),src=c.pages&&c.pages.ok?"Pages Functions":"Workers";
+ var rq=inv?cflRow("Site requests ("+src+")",inv.requests,f.requests,"Counts page and data requests that run our code. Pictures and other plain files are not counted by Cloudflare here."):cflPart("Requests",c.pages&&!c.pages.ok?c.pages:c.workers,function(){return""});
+ var st="";if(inv){var ks=Object.keys(inv.byStatus||{}).filter(function(s){return s!=="success"&&inv.byStatus[s]});st=ks.length?'<p class="msg"><b>Not completed today:</b> '+ks.map(function(s){return esc(SN[s]||s)+" "+num(inv.byStatus[s])}).join(" &middot; ")+"</p>":'<p class="msg">Every request today completed normally.</p>'}
+ var cpu="";if(inv){var s0=(inv.scripts||[]).filter(function(s){return s.p50ms||s.p99ms})[0];if(s0)cpu='<p class="msg"><b>Processing time per request'+(s0.name?" ("+esc(s0.name)+")":"")+':</b> typical '+s0.p50ms+' ms, slowest 1 in 100 '+s0.p99ms+' ms. The free plan stops a request at '+f.cpuMs+' ms.</p>'}
+ var at=new Date(c.at),hm=at.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+ return'<div class="cd"><h2>Cloudflare limits</h2><p class="n">Straight from Cloudflare, for the whole account (the test and live sites together), counted since midnight UTC (1am UK time in summer), which is when the daily limits restart. Figures can lag by a few minutes. Updated '+hm+(c.cached?" (kept for up to 5 minutes)":"")+'.</p>'+kv+rq+st+cpu+'<p style="margin-top:10px"><button id="cflr" style="padding:8px 16px;border-radius:8px;cursor:pointer">Refresh</button></p><details style="margin-top:8px"><summary class="mu" style="cursor:pointer">Show what Cloudflare returned</summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:260px;overflow:auto">'+esc("Settings store:"+String.fromCharCode(10)+(c.kv.raw||c.kv.error||"")+String.fromCharCode(10,10)+"Pages Functions:"+String.fromCharCode(10)+(c.pages.raw||c.pages.error||"")+String.fromCharCode(10,10)+"Workers:"+String.fromCharCode(10)+(c.workers.raw||c.workers.error||""))+'</pre></details></div>'}
+function loadCfl(fresh){var h=document.getElementById("cfl");if(!h)return;if(!fresh||!h.firstChild)h.innerHTML='<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Asking Cloudflare&hellip;</p></div>';fetch("/api/cflimits"+(fresh?"?fresh=1":""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(c){h.innerHTML=cflCard(c);var b=document.getElementById("cflr");if(b)b.onclick=function(){b.disabled=true;b.textContent="Asking Cloudflare...";loadCfl(true)}}).catch(function(){h.innerHTML='<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Sorry, the Cloudflare figures could not be loaded.</p></div>'})}
 function load(){o.innerHTML='<p class="msg">Loading&hellip;</p>';fetch("/api/usage?days="+days,{cache:"no-store"}).then(function(r){return r.json()}).then(show).catch(function(){o.innerHTML='<div class="cd"><p class="msg">Sorry, the usage data could not be loaded.</p></div>'})}
 load()})();</script></body></html>`;
 }
@@ -5547,6 +5643,7 @@ const worker = {
     // Admin page and its save endpoint (club PIN protected by clubGate, never cached, not indexed).
     if (url.pathname === "/api/admin") return adminApi(request, url);
     if (url.pathname === "/api/usage") return usageApi(url);
+    if (url.pathname === "/api/cflimits") return cflLimitsApi(url);
     if (url.pathname === "/api/contact") return contactApi(request, url);
     if (url.pathname === "/api/inbox") return inboxApi(request, url);
     if (url.pathname.replace(/\/+$/, "") === "/contact") {
@@ -8232,7 +8329,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/inbox" || path === "/api/inbox" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
