@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.39.8 19-Nov-2026 Usage page: the League Leaders screen page is named with capital letters, like the other pages.
 //   v3.39.7 18-Nov-2026 League Leaders shows the club's own teams under their Admin names (the Vandals showed as Ivybridge II).
 //   v3.39.6 18-Nov-2026 League Leaders pages are now kept at the edge like Fixtures and the Match page, so rotating screens stop rebuilding them on every request.
 //   v3.39.5 17-Nov-2026 Quick setup: the TV setup page is fixed to the visible screen (footer no longer lost under the iPad toolbar) and the QR box keeps its size so the page no longer shifts when it reloads.
@@ -297,8 +298,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.39.7";
-const BUILD_DATE = "18-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.39.8";
+const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -344,6 +345,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
 v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
 v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
 v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
@@ -604,6 +606,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.8 - Usage: League Leaders named with capitals
+- Owner report (19-Nov-2026): on the Usage page, under "What the screens are showing", League Leaders was the only page without a capital first letter ("leaders").
+- Cause: the page names on that list come from a small table, and League Leaders had no entry, so the raw word from the log was shown.
+- Changed: League Leaders (and League table, which had the same gap) now have proper names in that table. Nothing else on the Usage page changes.
+- Request limit: no change.
+- Tests: new test (every page the screens can show has a proper name, starting with a capital); it fails on the old code. The existing tests pass.
+- Docs: none - the Documentation does not list these page names.
 
 v3.39.7 - League Leaders uses the club's team names
 - Owner report (18-Nov-2026): the League Leaders page did not use friendly names; the Vandals showed as "Ivybridge II" under Best attack and the other cards.
@@ -2552,6 +2562,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.39.8", "Usage page: the League Leaders screen page is now named with capital letters in \"What the screens are showing\"."],
       ["v3.39.7", "League Leaders now shows your own teams under the names set in Admin, Our teams. The Vandals appeared as \"Ivybridge II\" under Best attack and the other cards; they now show as The Vandals."],
       ["v3.39.6", "League Leaders pages are now kept for reuse, like Fixtures and the Match page, so a rotating screen no longer makes the site rebuild them every time. This takes load off the free Cloudflare limits."],
       ["v3.39.5", "The TV setup page now fits the visible screen on an iPad (the footer was being lost under the browser toolbar) and no longer shifts down slightly each time it refreshes its code."],
@@ -3967,7 +3978,7 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return
 function num(x){return Number(x||0).toLocaleString("en-GB")}
 function rows(a,fn){return a.length?"<table>"+a.map(fn).join("")+"</table>":'<p class="msg mu">Nothing yet.</p>'}
 var VN={team:"Team dashboard",home:"Welcome page",fixtures:"Fixtures",match:"Match Stats",opposition:"Opposition Report",stack:"Match Centre",builder:"Link builder",docs:"Documentation"};
-var SN={stack:"Match Centre",fixtures:"Fixtures board",match:"Match Stats",opposition:"Opposition Report",team:"Team dashboard (TV layout)",home:"Welcome page"};
+var SN={stack:"Match Centre",fixtures:"Fixtures board",match:"Match Stats",opposition:"Opposition Report",team:"Team dashboard (TV layout)",home:"Welcome page",leaders:"League Leaders",table:"League table"};
 function screensCard(d){
  if(!d.screensOn&&!(d.tvPages||[]).length)return"";
  var m={};(d.tvPages||[]).forEach(function(r){var key=r.view+"|"+(r.known==="1"?r.team:r.name||r.team);var o2=m[key]||(m[key]={view:r.view,known:r.known==="1",team:r.team,name:r.name,loads:0,screens:0});o2.loads+=Number(r.loads);o2.screens=Math.max(o2.screens,Number(r.screens))});

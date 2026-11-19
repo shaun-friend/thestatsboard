@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.39.8 | 19-Nov-2026 | RFU_Club_Dashboard_v3.39.8_usage_leaders_label.zip | v3.39.7
 v3.39.7 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.7_leaders_names.zip | v3.39.6
 v3.39.6 | 18-Nov-2026 | RFU_Club_Dashboard_v3.39.6_leaders_kept.zip | v3.39.5
 v3.39.5 | 17-Nov-2026 | RFU_Club_Dashboard_v3.39.5_setup_ipad.zip | v3.39.4
@@ -301,6 +302,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.39.8 - Usage: League Leaders named with capitals
+- Owner report (19-Nov-2026): on the Usage page, under "What the screens are showing", League Leaders was the only page without a capital first letter ("leaders").
+- Cause: the page names on that list come from a small table, and League Leaders had no entry, so the raw word from the log was shown.
+- Changed: League Leaders (and League table, which had the same gap) now have proper names in that table. Nothing else on the Usage page changes.
+- Request limit: no change.
+- Tests: new test (every page the screens can show has a proper name, starting with a capital); it fails on the old code. The existing tests pass.
+- Docs: none - the Documentation does not list these page names.
 
 v3.39.7 - League Leaders uses the club's team names
 - Owner report (18-Nov-2026): the League Leaders page did not use friendly names; the Vandals showed as "Ivybridge II" under Best attack and the other cards.
