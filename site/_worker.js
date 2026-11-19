@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.42.0 19-Nov-2026 Sponsors, stage 2: a sponsor for each player by team and season (Admin, Tools, Player sponsors): the RFU squad list as the player list, the club's own name for a player (marked *), a second RFU number, copy from last season; sponsors in use are protected from removal.
 //   v3.41.0 19-Nov-2026 Sponsors, stage 1: a club-wide sponsor list (add, paste a list, rename, remove) at /sponsors behind the club PIN, kept in its own settings-store key.
 //   v3.40.4 19-Nov-2026 DEV probe: every card has a Copy button that copies its whole result (not just the 6,000 characters shown).
 //   v3.40.3 19-Nov-2026 Usage: the version line at the bottom now sits at the end of the page instead of floating over the content.
@@ -304,7 +305,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.41.0";
+const VERSION = "v3.42.0";
 const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -351,6 +352,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
 v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
 v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
 v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
@@ -618,6 +620,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.42.0 - Sponsors, stage 2: a sponsor for each player
+- Owner decisions (19-Nov-2026): each player has one sponsor; many players can share a sponsor; sponsors belong to a season and nothing carries into the next season by itself; the club can give a player its own name (for example Wes for Wesley), shown with a * wherever the name differs from the RFU record; a hidden RFU name shows as "Name redacted" until the club adds its own; teams come from Our teams.
+- New: Player sponsors page (/sponsor-players, Admin, Tools, Player sponsors, and a Players tab beside Sponsors). Choose a team (from Our teams) and a season (last, this, next). The player list is the RFU squad list for the team. For each player: Edit sets the name we use, the sponsor (or Available to sponsor), and any other RFU number for the same person (the two records then show as one player). Filters: All, Available to sponsor, Own name *. Search. Copy from the season before copies a team's players and sponsors across on purpose, never over what is already set.
+- Storage: one settings-store key for each season ("sponsor-links:2026-2027") holding every team's players by RFU person number, so a new season starts empty. Only players with something set are stored (name, sponsor, other numbers); the squad list is not copied.
+- Sponsors page: shows how many players use each sponsor this season; removing a sponsor that is in use shows who will lose it and asks again.
+- Request limit: no change for visitors or screens. Opening the Player sponsors page is 2 settings-store reads and 1 outside call for the squad list (kept six hours, so usually from the stored copy); each change is one read and one write. The Sponsors page adds one settings-store read.
+- Tests: new server test (35 checks: players, own names, second numbers, seasons, copy, other teams, refused inputs, protected removal, squad list refused) and a browser test of the page. They fail on the old code. The existing tests pass.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.41.0 - Sponsors, stage 1: the sponsor list
 - Owner request (19-Nov-2026): start the player sponsors feature. Agreed design: sponsors are added once for the club (each with a hidden ID), many players can share a sponsor, each player has one sponsor per season (nothing carries into the next season by itself), teams come from Our teams, and the match-day page is chosen by day and shows only teams with a submitted sheet. Staged build; this is stage 1. Later, club officials may get their own sign-in; these pages sit behind the club PIN until then.
@@ -2311,6 +2322,7 @@ const DOCS = [
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
     { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
+    { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Player sponsors: a sponsor for each player, by team and season (stage 2 of player sponsors).", ex: [["Player sponsors", "/sponsor-players"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
     { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
     { v: "/admin", values: "none", where: "Club PIN", what: "The admin page: homepage and TV notices, and switches for screen features. Settings are stored per club in Cloudflare KV (the SETTINGS binding).", ex: [["Admin", "/admin"]] },
@@ -2472,7 +2484,9 @@ const DOC_SECTIONS = [
     { h: "Sponsors" },
     { ul: [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
-      "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Linking sponsors to players, season by season, comes in the next stages."
+      "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
+      "Player sponsors (Admin, Tools, Player sponsors, or the Players tab): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person.",
+      "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
     ] },
     { h: "Inbox" },
     { ul: [
@@ -2631,6 +2645,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.42.0", "New Player sponsors page (Admin, Tools, Player sponsors): choose a sponsor for each player, by team and season. You can give a player your own name (shown with a *), link a second RFU number, and copy last season's sponsors across when you choose. Removing a sponsor that is in use now asks first."],
       ["v3.41.0", "New Sponsors page (Admin, Tools, Sponsors): keep the club's list of sponsors, adding each one once. This is the first step towards showing each player's sponsor on match day; nothing else changes yet."],
       ["v3.40.4", "Test site only: every card on the RFU testing page has a Copy button that copies its whole result."],
       ["v3.40.3", "Usage page: the version line at the bottom now sits at the end of the page instead of floating over the content."],
@@ -3360,7 +3375,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Player sponsors</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3587,7 +3602,7 @@ async function maintenanceGate(request) {
     }
     return maintenancePage(m, true);
   }
-  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
+  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
   const st = await siteSettings();
   if (!st.maintenance.on) return null;
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
@@ -3874,7 +3889,11 @@ async function sponsorsApi(request, url) {
   if (!kv) return J({ ok: false, error: "Settings storage is not connected (no SETTINGS binding)." }, 503);
   let items = [];
   try { items = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); } catch (_) { return J({ ok: false, error: "Could not read the sponsors. Try again." }, 502); }
-  if (request.method === "GET") return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX });
+  await siteSettings();
+  const season = dateSeasonName(todayIso(url, false));
+  let rec = null; try { rec = await splinkRead(kv, season); } catch (_) { rec = null; }
+  const useOf = id => spUsers(rec, id);
+  if (request.method === "GET") { const use = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use[x.id] = u.length; } return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use, season }); }
   if (request.method !== "POST") return J({ ok: false, error: "Use the Sponsors page." }, 405);
   const origin = request.headers.get("Origin");
   if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
@@ -3904,44 +3923,210 @@ async function sponsorsApi(request, url) {
     if (has(name, it.id)) return J({ ok: false, error: name + " is already in the list." }, 409);
     it.name = name;
   } else if (b.act === "remove") {
-    const n = items.length; items = items.filter(x => x.id !== String(b.id || ""));
+    const rid = String(b.id || ""), users = useOf(rid);
+    if (users.length && b.force !== true) return J({ ok: false, inUse: users.slice(0, 12), count: users.length, error: "Used by " + users.length + " player" + (users.length === 1 ? "" : "s") + " in " + season + "." }, 409);
+    const n = items.length; items = items.filter(x => x.id !== rid);
     if (items.length === n) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
   } else return J({ ok: false, error: "Unknown action." }, 400);
   try { await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
-  return J({ ok: true, items: sponsorSorted(items), added, skipped, max: SPONSOR_MAX });
+  const use2 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use2[x.id] = u.length; }
+  return J({ ok: true, items: sponsorSorted(items), added, skipped, max: SPONSOR_MAX, use: use2, season });
 }
 function sponsorsPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Sponsors</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li{border-color:#dbe8de}
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li{border-color:#dbe8de}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Sponsors</h1><p class="sub" id="sub" style="margin:4px 0 0">${hasKv ? "Add each sponsor once for the club. Later you will choose them for players, season by season. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
+<h1>Sponsors</h1><div class="tb"><a href="/sponsors" class="on">Sponsors</a><a href="/sponsor-players">Players</a></div><p class="sub" id="sub" style="margin:10px 0 0">${hasKv ? "Add each sponsor once for the club. Later you will choose them for players, season by season. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><input class="in2" id="nm" maxlength="60" placeholder="Sponsor name" autocomplete="off"><button type="button" class="b2 go" id="ad">Add</button></div>
 <details style="margin-top:10px"><summary>Paste a list</summary><p class="sub" style="margin:8px 0">One sponsor per line. Names already in the list are skipped.</p><textarea class="in2" id="bk" placeholder="Dart Motors"></textarea><div class="rw2" style="margin-top:8px"><button type="button" class="b2 go" id="ab">Add all</button></div></details></div>
 <div class="msg2" id="ms" role="status"></div>
 <div class="cd2"><div class="rw2" style="margin-bottom:6px"><input class="in2" id="fq" placeholder="Search sponsors" autocomplete="off"><small id="ct" style="color:#91a49a"></small></div><div id="ls"></div></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
-<script>(function(){var items=[],max=300,edit="",armed="",busy=false;
+<script>(function(){var items=[],use={},season="",why=[],max=300,edit="",armed="",busy=false;
 function $(i){return document.getElementById(i)}
 function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
 function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;items.forEach(function(x){if(q&&x.name.toLowerCase().indexOf(q)<0)return;n++;
 if(edit===x.id){h+='<div class="li"><input class="in2" id="ei" maxlength="60" value="'+e(x.name)+'"><div class="ac2"><button type="button" class="b2 go" data-a="save" data-i="'+x.id+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
-else if(armed===x.id){h+='<div class="li"><div><b>'+e(x.name)+'</b><small>Remove this sponsor?</small></div><div class="ac2"><button type="button" class="b2 rm" data-a="yes" data-i="'+x.id+'">Yes, remove</button><button type="button" class="b2" data-a="cancel">No</button></div></div>'}
-else{h+='<div class="li"><b>'+e(x.name)+'</b><div class="ac2"><button type="button" class="b2" data-a="edit" data-i="'+x.id+'">Rename</button><button type="button" class="b2 rm" data-a="rm" data-i="'+x.id+'">Remove</button></div></div>'}});
+else if(armed===x.id){h+='<div class="li"><div><b>'+e(x.name)+'</b><small>'+(why.length?"Used in "+season+" by "+why.join("; ")+". They will become Available to sponsor.":"Remove this sponsor?")+'</small></div><div class="ac2"><button type="button" class="b2 rm" data-a="yes" data-i="'+x.id+'">'+(why.length?"Yes, remove anyway":"Yes, remove")+'</button><button type="button" class="b2" data-a="cancel">No</button></div></div>'}
+else{h+='<div class="li"><div><b>'+e(x.name)+'</b>'+(use[x.id]?'<small>used by '+use[x.id]+' player'+(use[x.id]===1?"":"s")+' in '+e(season)+'</small>':"")+'</div><div class="ac2"><button type="button" class="b2" data-a="edit" data-i="'+x.id+'">Rename</button><button type="button" class="b2 rm" data-a="rm" data-i="'+x.id+'">Remove</button></div></div>'}});
 $("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(items.length?"No sponsor matches that search.":"No sponsors yet. Add the first one above.")+"</p>";
 $("ct").textContent=items.length+" of "+max;var ei=$("ei");if(ei){ei.focus();ei.select()}}
-function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}items=j.items;edit="";armed="";draw();ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
-function load(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the sponsors.","er");return}items=j.items;max=j.max||max;draw()}).catch(function(){say("Could not read the sponsors.","er")})}
+function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(j&&j.inUse){why=j.inUse;armed=o.id;edit="";say("");draw();return}if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}items=j.items;use=j.use||{};season=j.season||season;why=[];edit="";armed="";draw();ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
+function load(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the sponsors.","er");return}items=j.items;use=j.use||{};season=j.season||"";max=j.max||max;draw()}).catch(function(){say("Could not read the sponsors.","er")})}
 $("ad").onclick=function(){var v=$("nm").value;post({act:"add",name:v},function(){$("nm").value="";say("Added.","ok");$("nm").focus()})};
 $("nm").onkeydown=function(ev){if(ev.key==="Enter")$("ad").click()};
 $("ab").onclick=function(){post({act:"bulk",text:$("bk").value},function(j){$("bk").value="";say("Added "+j.added+(j.skipped?", skipped "+j.skipped+" already in the list":"")+".","ok")})};
 $("fq").oninput=draw;
 $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
-if(a==="edit"){edit=i;armed="";draw()}else if(a==="cancel"){edit="";armed="";draw()}else if(a==="rm"){armed=i;edit="";draw()}
+if(a==="edit"){edit=i;armed="";why=[];draw()}else if(a==="cancel"){edit="";armed="";why=[];draw()}else if(a==="rm"){armed=i;edit="";why=[];draw()}
 else if(a==="save"){post({act:"rename",id:i,name:$("ei").value},function(){say("Renamed.","ok")})}
-else if(a==="yes"){post({act:"remove",id:i},function(){say("Removed.","ok")})}};
+else if(a==="yes"){post({act:"remove",id:i,force:why.length>0},function(){say("Removed.","ok")})}};
 load();
+})();</script></body></html>`;
+}
+// v3.42.0: Sponsors, stage 2: a sponsor for each player, by team and season. One settings-store key per season ("sponsor-links:2026-2027") holds every team's
+// players (keyed by the RFU person number), so a new season starts empty and nothing carries over by itself. Each entry: n (RFU name when saved), nm (the club's own
+// name for the player, optional), s (sponsor ID, one per player), a (other RFU numbers that are the same person). The player list comes from the RFU squad list
+// (players/playersByTeam, kept six hours). Behind the club PIN. Open: 2 settings-store reads + 1 outside call (usually from the stored copy). Change: 1 read + 1 write.
+const SPLINK_PREFIX = "sponsor-links:", SPLINK_MAX = 250;
+const personNo = v => /^\d{1,10}$/.test(String(v == null ? "" : v)) ? String(v) : "";
+function cleanLinks(v) {
+  const t = {};
+  const src = v && v.t && typeof v.t === "object" ? v.t : {};
+  for (const team of Object.keys(src)) {
+    if (!/^\d{1,8}$/.test(team) || !src[team] || typeof src[team] !== "object") continue;
+    const out = {};
+    for (const no of Object.keys(src[team])) {
+      if (!personNo(no) || Object.keys(out).length >= SPLINK_MAX) continue;
+      const r = src[team][no] || {};
+      const nm = sponsorName(r.nm), s = /^[0-9a-f]{8}$/.test(String(r.s || "")) ? String(r.s) : "";
+      const a = [...new Set((Array.isArray(r.a) ? r.a : []).map(personNo).filter(x => x && x !== no))].slice(0, 3);
+      if (!nm && !s && !a.length) continue;
+      out[no] = { n: sponsorName(r.n), nm, s, a };
+    }
+    if (Object.keys(out).length) t[team] = out;
+  }
+  return { v: 1, t };
+}
+async function splinkRead(kv, season) {
+  if (!ADDR_RULES.season(String(season || ""))) return cleanLinks(null);
+  return cleanLinks(await kv.get(SPLINK_PREFIX + season, { type: "json" }));
+}
+// Who has this sponsor in a season record: "Team: player" lines (names as the club shows them).
+function spUsers(rec, id) {
+  const out = [];
+  if (!rec) return out;
+  for (const team of Object.keys(rec.t)) {
+    const tn = (TEAMS.find(x => String(x.team) === team) || {}).name || "Team " + team;
+    for (const no of Object.keys(rec.t[team])) { const e = rec.t[team][no]; if (e.s === id) out.push(tn + ": " + (e.nm || e.n || "no. " + no)); }
+  }
+  return out;
+}
+async function squadFor(team) {
+  try {
+    const r = await cachedText("https://cluster.england-rfu.com/players/playersByTeam?teamId=" + encodeURIComponent(team), "application/json");
+    if (!r || !r.ok) return { ok: false, error: r && r.budget ? "The site is busy; try again in a minute." : "The RFU list could not be read just now." };
+    const j = JSON.parse(r.text);
+    if (!Array.isArray(j)) return { ok: false, error: "The RFU list came back in a form we do not know." };
+    const list = [];
+    for (const p of j) { const no = personNo(p && p._id), nm = String(p && p.player_name || "").replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, 60); if (no) list.push({ no, name: nm, hidden: !nm || /^[*\s]+$/.test(nm) }); }
+    return { ok: true, list };
+  } catch (_) { return { ok: false, error: "The RFU list could not be read just now." }; }
+}
+function playerRows(squad, entries) {
+  const e = entries || {}, altOf = {};
+  for (const no of Object.keys(e)) for (const a of e[no].a) altOf[a] = no;
+  const rows = [], seen = new Set();
+  for (const p of squad || []) {
+    if (altOf[p.no]) continue; // another number of a player already listed
+    seen.add(p.no); rows.push({ no: p.no, rfu: p.hidden ? "" : p.name, hidden: p.hidden, left: false });
+  }
+  for (const no of Object.keys(e)) if (!seen.has(no)) rows.push({ no, rfu: e[no].n || "", hidden: !e[no].n, left: true });
+  return rows;
+}
+async function sponsorPlayersApi(request, url) {
+  const H = { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+  const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: H });
+  const kv = kvOf();
+  if (!kv) return J({ ok: false, error: "Settings storage is not connected (no SETTINGS binding)." }, 503);
+  await siteSettings();
+  const cur = dateSeasonName(todayIso(url, false)), y = +cur.slice(0, 4), seasons = { prev: seasonName(y - 1), cur, next: seasonName(y + 1) };
+  const teams = TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name }));
+  const sp = url.searchParams;
+  const read = (obj, post) => {
+    const team = String(post ? obj.team : sp.get("team") || ""), season = String((post ? obj.season : sp.get("season")) || cur);
+    if (![seasons.prev, seasons.cur, seasons.next].includes(season)) return { err: J({ ok: false, error: "Choose one of the seasons shown." }, 400) };
+    const tm = teams.find(t => t.team === (team || (teams[0] && teams[0].team)));
+    if (!tm) return { err: J({ ok: false, error: "That team is not in Our teams." }, 400) };
+    return { team: tm.team, teamName: tm.name, season };
+  };
+  if (request.method === "GET") {
+    const q = read({}, false); if (q.err) return q.err;
+    let sponsors = [], rec = null;
+    try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, q.season); } catch (_) { return J({ ok: false, error: "Could not read the sponsors. Try again." }, 502); }
+    const sq = await squadFor(q.team), ent = rec.t[q.team] || {}, nameOf = new Map(sponsors.map(x => [x.id, x.name]));
+    const rows = playerRows(sq.ok ? sq.list : [], ent).map(r => {
+      const x = ent[r.no] || { nm: "", s: "", a: [] };
+      const sname = nameOf.get(x.s) || "";
+      const own = !!x.nm && x.nm.toLowerCase() !== r.rfu.toLowerCase();
+      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: x.nm, own, sid: sname ? x.s : "", sponsor: sname, alt: x.a };
+    });
+    rows.sort((a, b) => { const an = a.nm || a.rfu, bn = b.nm || b.rfu; return !an !== !bn ? (an ? -1 : 1) : an.toLowerCase() < bn.toLowerCase() ? -1 : an.toLowerCase() > bn.toLowerCase() ? 1 : 0; });
+    return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, squadError: sq.ok ? "" : sq.error });
+  }
+  if (request.method !== "POST") return J({ ok: false, error: "Use the Player sponsors page." }, 405);
+  const origin = request.headers.get("Origin");
+  if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
+  let b = null; try { b = JSON.parse(await request.text()); } catch (_) { b = null; }
+  if (!b || typeof b.act !== "string") return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+  const q = read(b, true); if (q.err) return q.err;
+  let rec = null, sponsors = [];
+  try { rec = await splinkRead(kv, q.season); sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); } catch (_) { return J({ ok: false, error: "Could not read the saved sponsors. Try again." }, 502); }
+  const ent = rec.t[q.team] || (rec.t[q.team] = {});
+  let copied = 0;
+  if (b.act === "set") {
+    const no = personNo(b.no);
+    if (!no) return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+    const sid = String(b.s || ""), nm = sponsorName(b.nm);
+    if (sid && !sponsors.some(x => x.id === sid)) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    const alt = [...new Set(String(b.alt == null ? "" : b.alt).replace(/[^0-9]+/g, " ").trim().split(" ").map(personNo).filter(x => x && x !== no))].slice(0, 3);
+    for (const a of alt) if (ent[a]) return J({ ok: false, error: "Number " + a + " is already listed as a player. Remove that entry first." }, 409);
+    if (!nm && !sid && !alt.length) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt }; }
+  } else if (b.act === "copy") {
+    const from = String(b.from || "");
+    if (![seasons.prev, seasons.cur, seasons.next].includes(from) || from === q.season) return J({ ok: false, error: "Choose another season to copy from." }, 400);
+    let old = null; try { old = await splinkRead(kv, from); } catch (_) { return J({ ok: false, error: "Could not read that season. Try again." }, 502); }
+    const oe = old.t[q.team] || {};
+    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], a: oe[no].a.slice() }; copied++; } }
+    if (!copied) return J({ ok: false, error: "Nothing to copy from " + from + " for " + q.teamName + "." }, 404);
+  } else return J({ ok: false, error: "Unknown action." }, 400);
+  if (!Object.keys(ent).length) delete rec.t[q.team];
+  try { await kv.put(SPLINK_PREFIX + q.season, JSON.stringify({ v: 1, t: rec.t, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
+  return J({ ok: true, copied });
+}
+function sponsorPlayersPage(theme, isDev, hasKv) {
+  const t = theme === "light" ? "light" : "dark";
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Player sponsors</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px;margin:12px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.tb{display:flex;gap:14px;margin:10px 0 0}.tb a{color:#7fd89a;font-weight:700;font-size:15px;text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.tb a.on{border-bottom-color:#7fd89a;color:#f2f6f4}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right}.sp.av{color:#f2b866}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{min-height:20px;font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
+</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Player sponsors</h1><div class="tb"><a href="/sponsors">Sponsors</a><a href="/sponsor-players" class="on">Players</a></div>
+<p class="sub" style="margin:10px 0 0">${hasKv ? "One sponsor per player. Sponsors belong to the season shown and do not carry into the next one by themselves." : "No settings storage is connected, so sponsors cannot be kept."}</p>
+<div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div><p class="sub" style="margin:8px 0 0">Teams come from Our teams. The player list is the RFU squad list for the team.</p></div>
+<div class="msg2" id="ms" role="status"></div>
+<div class="cd2"><div class="rw2" style="margin-bottom:8px"><input class="in2" id="fq" placeholder="Search players" autocomplete="off"></div><div class="rw2" id="ch" style="margin-bottom:6px"></div><div id="ls"></div></div>
+<div class="rw2" id="cp" hidden><button type="button" class="b2" id="cpb"></button></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var D=null,edit="",flt="all",busy=false,copyArm=false;
+function $(i){return document.getElementById(i)}
+function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
+function shown(r){return r.nm||r.rfu}
+function label(r){var n=shown(r);return n?e(n)+(r.own?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>'}
+function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name hidden"));else if(r.hidden&&!r.nm)p.push("The RFU has hidden this name");p.push("RFU no. "+r.no);if(r.alt.length)p.push("also "+r.alt.join(", "));if(r.left)p.push("not in the RFU squad list now");return p.join(" · ")}
+function counts(){var a=0,o=0;D.rows.forEach(function(r){if(!r.sid)a++;if(r.own)o++});return{a:a,o:o}}
+function chips(){var c=counts();var h="";[["all","All "+D.rows.length],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
+function editBox(r){var o='<option value="">Available to sponsor</option>';D.sponsors.forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===r.sid?" selected":"")+">"+e(s.name)+"</option>"});
+return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><label for="en">Name we use</label><input class="in2" id="en" maxlength="60" style="width:100%" value="'+e(r.nm)+'" placeholder="'+e(r.rfu||"Name redacted")+'"><small>Shown on match-day lists with a * when it differs from the RFU record. Leave it empty to use the RFU name.</small></div><div><label for="es">Sponsor</label><select class="in2" id="es">'+o+'</select></div><div><label for="ea">Other RFU numbers for this player</label><input class="in2" id="ea" style="width:100%" value="'+e(r.alt.join(", "))+'" placeholder="None"><small>Only if the RFU holds two records for one person. Either number then finds this player.</small></div><div class="rw2"><button type="button" class="b2 go" data-a="save" data-i="'+r.no+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
+function draw(){var q=$("fq").value.trim().toLowerCase(),h="",n=0;chips();
+D.rows.forEach(function(r){if(flt==="av"&&r.sid)return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
+if(edit===r.no){h+=editBox(r);return}
+h+='<div class="li'+(r.sid?"":" av")+'"><div><b>'+label(r)+"</b><small>"+e(sub(r))+'</small></div><div class="ac2"><span class="sp'+(r.sid?"":" av")+'">'+(r.sid?e(r.sponsor):"Available to sponsor")+'</span><button type="button" class="b2" data-a="edit" data-i="'+r.no+'">Edit</button></div></div>'});
+$("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(D.rows.length?"No player matches.":(D.squadError||"No players found for this team."))+"</p>";
+if(D.squadError&&D.rows.length)say(D.squadError+" Showing saved players only.","er");
+var fr=before(),cp=$("cp");cp.hidden=false;$("cpb").textContent=copyArm?"Yes, copy from "+fr:"Copy from "+fr;$("cpb").style.display=fr?"":"none"}
+function before(){var L=[D.seasons.prev,D.seasons.cur,D.seasons.next],i=L.indexOf(D.season);return i>0?L[i-1]:""}
+function fill(){var t="",s="";D.teams.forEach(function(x){t+='<option value="'+x.team+'"'+(x.team===D.team?" selected":"")+">"+e(x.name)+"</option>"});[D.seasons.prev,D.seasons.cur,D.seasons.next].forEach(function(x){s+='<option value="'+x+'"'+(x===D.season?" selected":"")+">"+x+(x===D.seasons.cur?" (this season)":"")+"</option>"});$("tm").innerHTML=t;$("se").innerHTML=s}
+function load(team,season){edit="";copyArm=false;fetch("/api/sponsor-players?team="+encodeURIComponent(team||"")+"&season="+encodeURIComponent(season||""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}D=j;say("");fill();draw()}).catch(function(){say("Could not read the players.","er")})}
+function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
+$("tm").onchange=function(){load($("tm").value,$("se").value)};$("se").onchange=function(){load($("tm").value,$("se").value)};$("fq").oninput=draw;
+$("ch").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;flt=b.getAttribute("data-f");draw()};
+$("cpb").onclick=function(){if(!copyArm){copyArm=true;draw();return}var fr=before();post({act:"copy",team:D.team,season:D.season,from:fr},function(j){say("Copied "+j.copied+" player"+(j.copied===1?"":"s")+" from "+fr+".","ok");load(D.team,D.season)})};
+$("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
+if(a==="edit"){edit=i;draw();var n=$("en");if(n)n.focus()}else if(a==="cancel"){edit="";draw()}
+else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,alt:$("ea").value},function(){say("Saved.","ok");load(D.team,D.season)})}};
+load("","");
 })();</script></body></html>`;
 }
 function inboxPage(theme, isDev, hasKv) {
@@ -3999,7 +4184,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -5325,6 +5510,7 @@ function ttlFor(key) {
   if (/cluster\.england-rfu\.com\/gms\/matches\/\d+$/.test(key)) return 24 * 3600;
   if (/cluster\.england-rfu\.com\/fixtures-and-results\/nextmatch\?.*count=60/.test(key)) return 3 * 3600;
   if (/cluster\.england-rfu\.com\/teams\/\d+$/.test(key)) return 7 * 86400;
+  if (/cluster\.england-rfu\.com\/players\/playersByTeam\?teamId=\d+$/.test(key)) return 6 * 3600; // v3.42.0: the squad list for Player sponsors
   if (/cluster\.england-rfu\.com\/gms\/match(participants|events)\?/.test(key)) return 120; // team sheets and scorers (admin match sheet): kept two minutes
   if (/englandrugby\.com\/api\/fixtures-and-result\/(teamSelect|competitionSelect)/.test(key)) return 12 * 3600;
   if (/englandrugby\.com\/fixtures-and-results\/search-results\?team=\d+&season=[^&]+$/.test(key)) return 12 * 3600;
@@ -5880,6 +6066,11 @@ const worker = {
     if (url.pathname === "/api/contact") return contactApi(request, url);
     if (url.pathname === "/api/inbox") return inboxApi(request, url);
     if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
+    if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url);
+    if (url.pathname.replace(/\/+$/, "") === "/sponsor-players") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(sponsorPlayersPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/sponsors") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(sponsorsPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -8567,7 +8758,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/api/sponsor-players" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -8767,7 +8958,7 @@ fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"
 if(x.j&&x.j.ok){$("f").hidden=true;$("d").hidden=false;$("dh").textContent="Sent to the screen";$("dp").textContent=x.j.label+". The screen picks it up within a few seconds.";setTimeout(function(){check(0)},3000)}
 else{b.disabled=false;$("er").textContent=(x.j&&x.j.error)||"Sign in again, then retry.";$("er").hidden=false}}).catch(function(){b.disabled=false;$("er").textContent="No connection. Try again.";$("er").hidden=false})}})()</script></body></html>`;
 }
-const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
 function unknownPathGate(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
@@ -8902,7 +9093,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;

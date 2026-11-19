@@ -1,0 +1,35 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{let f=0;const ck=(n,o,d)=>{console.log((o?'ok  ':'FAIL')+' '+n+(o?'':' '+(d||'')));if(!o)f++};
+ck('page and API are behind the club PIN',JSON.parse(fs.readFileSync('w/splayers_gate.json','utf8')).g);
+const html=fs.readFileSync('w/splayers_page.html','utf8');
+const b=await chromium.launch();const p=await b.newPage({viewport:{width:400,height:900}});const errs=[];p.on('pageerror',e=>errs.push(String(e)));
+const rows=()=>[{no:'1530430',rfu:'Wesley Vermigle',hidden:false,left:false,nm:'Wes Vermigle',own:true,sid:'aaaa1111',sponsor:'Smith Plumbing',alt:[]},{no:'5',rfu:'Aled Price',hidden:false,left:false,nm:'',own:false,sid:'',sponsor:'',alt:[]},{no:'2649651',rfu:'',hidden:true,left:false,nm:'',own:false,sid:'',sponsor:'',alt:[]},{no:'1313523',rfu:'Adam Lilley',hidden:false,left:false,nm:'',own:false,sid:'bbbb2222',sponsor:'Dart Motors',alt:['2380102']}];
+let calls=[],posts=[];
+await p.route('**/*',r=>{const u=new URL(r.request().url());
+ if(u.pathname==='/sponsor-players')return r.fulfill({status:200,contentType:'text/html',body:html});
+ if(u.pathname==='/api/sponsor-players'){if(r.request().method()==='GET'){calls.push(u.search);return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,teams:[{team:'11039',name:'Ivybridge 1XV'},{team:'11063',name:'The Vandals'}],team:u.searchParams.get('team')||'11039',season:u.searchParams.get('season')||'2026-2027',seasons:{prev:'2025-2026',cur:'2026-2027',next:'2027-2028'},sponsors:[{id:'aaaa1111',name:'Smith Plumbing'},{id:'bbbb2222',name:'Dart Motors'}],rows:rows(),squadError:''})})}
+  posts.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,copied:3})})}
+ r.fulfill({status:200,body:'{}'})});
+await p.goto('https://thestatsboard.co.uk/sponsor-players');await p.waitForTimeout(400);
+const t=()=>p.innerText('body');let x=await t();
+ck('own name shows with a *',/Wes Vermigle \*/.test(x)&&/RFU: Wesley Vermigle/.test(x),x.slice(0,500));
+ck('hidden name shows as Name redacted',/Name redacted/.test(x)&&/The RFU has hidden this name/.test(x));
+ck('unsponsored players say Available to sponsor',(x.match(/Available to sponsor/g)||[]).length>=2);
+ck('second RFU number shown',/also 2380102/.test(x));
+ck('counts on the filters',/Available to sponsor 2/.test(x)&&/Own name \* 1/.test(x)&&/All 4/.test(x),x.slice(0,300));
+await p.click('button[data-f=av]');x=await p.innerText('#ls');ck('Available filter lists only unsponsored',/Aled Price/.test(x)&&!/Smith Plumbing/.test(x));
+await p.click('button[data-f=all]');
+await p.fill('#fq','lilley');x=await p.innerText('#ls');ck('search finds a player',/Adam Lilley/.test(x)&&!/Aled/.test(x));await p.fill('#fq','');
+await p.locator('button[data-a=edit][data-i="5"]').click();
+ck('edit box has the three fields',await p.locator('#en').count()===1&&await p.locator('#es').count()===1&&await p.locator('#ea').count()===1);
+await p.fill('#en','Alun Price');await p.selectOption('#es','bbbb2222');await p.click('button[data-a=save]');await p.waitForTimeout(300);
+const sv=posts[0];ck('save sends team, season, number, name and sponsor',sv&&sv.act==='set'&&sv.no==='5'&&sv.nm==='Alun Price'&&sv.s==='bbbb2222'&&sv.team==='11039'&&sv.season==='2026-2027',JSON.stringify(sv));
+await p.selectOption('#se','2027-2028');await p.waitForTimeout(300);ck('changing season asks for that season',/season=2027-2028/.test(calls[calls.length-1]),calls.join());
+await p.selectOption('#tm','11063');await p.waitForTimeout(300);ck('changing team asks for that team',/team=11063/.test(calls[calls.length-1]));
+const cp=await p.locator('#cpb');ck('copy button offers last season',/Copy from 2026-2027/.test(await cp.innerText()));
+await cp.click();ck('copy asks first',/Yes, copy from/.test(await cp.innerText()));
+await cp.click();await p.waitForTimeout(300);ck('copy sends the request',posts.some(o=>o.act==='copy'&&o.from==='2026-2027'),JSON.stringify(posts));
+await p.selectOption('#se','2025-2026');await p.waitForTimeout(300);ck('no copy button on the oldest season',await p.locator('#cpb').isHidden());
+ck('no script errors',errs.length===0,errs.join(';'));
+ck('fits a phone',!(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)));
+await b.close();console.log(f?'FAILED '+f:'ALL OK');process.exit(f?1:0)})();

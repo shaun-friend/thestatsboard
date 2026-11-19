@@ -1,13 +1,13 @@
 // v3.41.0: Sponsors stage 1 (club sponsor list API and page)
 import fs from 'fs';import vm from 'vm';
 const src=fs.readFileSync(process.argv[2],'utf8');
-const a=src.indexOf('const SPONSOR_KEY');const b=src.indexOf('function sponsorsPage(');
+const a=src.indexOf('const SPONSOR_KEY');const b=src.indexOf('function sponsorsPage(');const bEnd=src.indexOf('function inboxPage(');
 if(a<0||b<0){console.log('FAIL code not found');process.exit(1)}
 let pass=0,fail=0;const c=(n,ok,d)=>{if(ok)pass++;else{fail++;console.log('FAIL',n,d||'')}};
 const store={};let puts=0,gets=0;
 const kv={get:async k=>{gets++;return store[k]?JSON.parse(store[k]):null},put:async(k,v)=>{puts++;store[k]=v}};
-const ctx={Response,URL,JSON,String,Array,Set,Uint32Array,crypto:globalThis.crypto,Date,kvOf:()=>kv};
-vm.createContext(ctx);vm.runInContext(src.slice(a,b)+';this.api=sponsorsApi;this.clean=cleanSponsors',ctx);
+const ctx={Response,URL,JSON,String,Array,Set,Map,Object,Number,Uint32Array,crypto:globalThis.crypto,Date,kvOf:()=>kv,siteSettings:async()=>({}),TEAMS:[{team:'11039',name:'Ivybridge 1XV'}],ADDR_RULES:{season:v=>/^20\d\d-20\d\d$/.test(v)},dateSeasonName:()=>'2026-2027',todayIso:()=>'2026-11-19',seasonName:y=>y+'-'+(y+1),cachedText:async()=>({ok:true,text:'[]'})};
+vm.createContext(ctx);vm.runInContext(src.slice(a,bEnd)+';this.api=sponsorsApi;this.clean=cleanSponsors',ctx);
 const U=new URL('https://x.test/api/sponsors');
 const post=async(o,origin)=>{const h={};if(origin)h.Origin=origin;const r=await ctx.api(new Request(U,{method:'POST',body:JSON.stringify(o),headers:h}),U);return{s:r.status,j:await r.json()}};
 const get=async()=>{const r=await ctx.api(new Request(U),U);return r.json()};
@@ -33,6 +33,6 @@ c('stored data is cleaned on the way in',ctx.clean({items:[{id:'abc',name:'x'},{
 const bigText=Array.from({length:400},(_,i)=>'S'+i).join('\n');store.sponsors=JSON.stringify({v:1,items:[]});r=await post({act:'bulk',text:bigText});
 c('list stops at 300 sponsors',r.j.items.length===300&&r.j.skipped===100,String(r.j.items&&r.j.items.length));
 c('page is behind the club PIN and linked from Admin',/path === "\/sponsors"/.test(src)&&/<a href="\/sponsors">Sponsors<\/a>/.test(src));
-const pg=src.slice(b,src.indexOf('function inboxPage('));
+const pg=src.slice(b,src.indexOf('// v3.42.0: Sponsors, stage 2'));
 c('page has no outside calls and uses only the sponsors API',!/https?:\/\//.test(pg.replace(/<meta[^>]*>/g,''))&&/\/api\/sponsors/.test(pg));
 console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0)

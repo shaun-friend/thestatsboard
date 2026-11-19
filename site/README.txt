@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.42.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.42.0_player_sponsors.zip | v3.41.0
 v3.41.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.41.0_sponsors_list.zip | v3.40.4
 v3.40.4 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.4_probe_copy.zip | v3.40.3
 v3.40.3 | 19-Nov-2026 | RFU_Club_Dashboard_v3.40.3_usage_footer.zip | v3.40.2
@@ -308,6 +309,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.42.0 - Sponsors, stage 2: a sponsor for each player
+- Owner decisions (19-Nov-2026): each player has one sponsor; many players can share a sponsor; sponsors belong to a season and nothing carries into the next season by itself; the club can give a player its own name (for example Wes for Wesley), shown with a * wherever the name differs from the RFU record; a hidden RFU name shows as "Name redacted" until the club adds its own; teams come from Our teams.
+- New: Player sponsors page (/sponsor-players, Admin, Tools, Player sponsors, and a Players tab beside Sponsors). Choose a team (from Our teams) and a season (last, this, next). The player list is the RFU squad list for the team. For each player: Edit sets the name we use, the sponsor (or Available to sponsor), and any other RFU number for the same person (the two records then show as one player). Filters: All, Available to sponsor, Own name *. Search. Copy from the season before copies a team's players and sponsors across on purpose, never over what is already set.
+- Storage: one settings-store key for each season ("sponsor-links:2026-2027") holding every team's players by RFU person number, so a new season starts empty. Only players with something set are stored (name, sponsor, other numbers); the squad list is not copied.
+- Sponsors page: shows how many players use each sponsor this season; removing a sponsor that is in use shows who will lose it and asks again.
+- Request limit: no change for visitors or screens. Opening the Player sponsors page is 2 settings-store reads and 1 outside call for the squad list (kept six hours, so usually from the stored copy); each change is one read and one write. The Sponsors page adds one settings-store read.
+- Tests: new server test (35 checks: players, own names, second numbers, seasons, copy, other teams, refused inputs, protected removal, squad list refused) and a browser test of the page. They fail on the old code. The existing tests pass.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.41.0 - Sponsors, stage 1: the sponsor list
 - Owner request (19-Nov-2026): start the player sponsors feature. Agreed design: sponsors are added once for the club (each with a hidden ID), many players can share a sponsor, each player has one sponsor per season (nothing carries into the next season by itself), teams come from Our teams, and the match-day page is chosen by day and shows only teams with a submitted sheet. Staged build; this is stage 1. Later, club officials may get their own sign-in; these pages sit behind the club PIN until then.
