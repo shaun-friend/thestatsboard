@@ -17,8 +17,8 @@ c('unsaved marker after a change',await p.isVisible('#sbar')&&await p.isVisible(
 await p.screenshot({path:__dirname+'/x_admin_desktop.png'});
 // every setting id still exists exactly once
 for(const id of ['hon','ht','hu','ton','tt','tu','fa','fw','fc','fp','fo','fb','fv','fs','mon','mpun','mex','mpin','as','am']){c('id '+id,(await p.$$('#'+id)).length===1)}
-c('sections hold the right controls',await p.$('#s-screens #fa')&&await p.$('#s-data #fb')&&await p.$('#s-privacy #fv')&&await p.$('#s-status #mon')&&await p.$('#s-notices #ht')&&await p.$('#s-access input[name="sd"]')&&await p.$('#s-match a[href="/matchsheet"]'));
-c('tools links present',(await p.$$eval('.adn a',a=>a.map(x=>x.getAttribute('href')))).filter(h=>['/usage','/docs','/matchsheet','/?view=teams'].includes(h)).length===4&&!(await p.$$eval('.adn a',a=>a.some(x=>x.getAttribute('href')==='/release-notes'))));
+c('sections hold the right controls',await p.$('#s-screens #fa')&&await p.$('#s-data #fb')&&await p.$('#s-privacy #fv')&&await p.$('#s-status #mon')&&await p.$('#s-notices #ht')&&await p.$('#s-access input[name="sd"]')&&await p.$('#s-match a[href="/matchday"]'));
+c('tools links present',(await p.$$eval('.adn a',a=>a.map(x=>x.getAttribute('href')))).filter(h=>['/usage','/docs','/matchday','/?view=teams'].includes(h)).length===4&&!(await p.$$eval('.adn a',a=>a.some(x=>x.getAttribute('href')==='/release-notes'))));
 await p.close();
 // phone
 ({p,errs}=await open(390,844));

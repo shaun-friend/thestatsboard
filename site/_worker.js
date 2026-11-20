@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.47.0 20-Nov-2026 Match day and the Match sheet are one page: each team card on Match day switches between Our team, Opposition (their sheet, names as the RFU gives them, no sponsors) and Scoring (score and scorers for played games). /matchsheet now opens Match day and its Admin links are gone.
 //   v3.46.6 20-Nov-2026 Match day: the playing position is no longer shown (captain and vice captain still are) and each shirt number sits in a small shirt in the team's colour from Our teams.
 //   v3.46.5 20-Nov-2026 Match day: asks the fixtures list for the current season (as the Players scan does) instead of the season saved on the team, and the no-games message also shows the season asked for and the answer code.
 //   v3.46.4 20-Nov-2026 Match day: when no game days are found the page now says, for each team, how many games the fixtures list gave or the error it hit.
@@ -323,7 +324,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.46.6";
+const VERSION = "v3.47.0";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -370,6 +371,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.47.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.0_match_day_combined.zip | v3.46.6
 v3.46.6 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.6_match_day_shirts.zip | v3.46.5
 v3.46.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.5_match_day_season.zip | v3.46.4
 v3.46.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.4_match_day_diag.zip | v3.46.3
@@ -656,6 +658,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.47.0 - Match day and Match sheet combined
+- Owner request (20-Nov-2026): fold the Match sheet page into Match day so there is one page.
+- Changed: each team card on Match day has a three-way switch. Our team is the existing sheet with sponsors. Opposition is the other side's sheet in shirt order (names as the RFU gives them, "Name withheld" kept, no sponsors, no names for under-18 sides). Scoring shows the score and the tries and conversions with the minute and player, for games played (only clubs that enter match events have scorers).
+- Removed: the old Match sheet page. /matchsheet (behind the club PIN as before) now goes to Match day, so bookmarks still work. The Admin Tools link and the Admin Match day box now point to Match day. The old "next game and last game for one team" view is replaced by the arrows (the last 7 days and the coming game days).
+- Request limit: one extra RFU read (the scoring) only when the chosen day is today or earlier, kept two minutes. Otherwise unchanged.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.46.6 - Match day: shirts, no positions
 - Owner request (20-Nov-2026): the position (for example Tighthead Prop) is not needed; put the number in a small shirt in the team's colour.
@@ -2545,7 +2554,7 @@ const DOC_SECTIONS = [
       ["Opposition report", "A phone page about the next opponent: this game, their form, you against them, and their season."],
       ["League leaders", "Who leads the league in the main statistics, with where your team sits."],
       ["Match Centre", "All of a club's teams on one screen: last game and next game for each. Made for a clubhouse TV (view=stack), in a Modern or Classic layout chosen in Admin."],
-      ["Match sheet", "Team sheets and scorers for each team's next and last game. Admin only (club PIN); under-18 names are never shown."],
+      ["Match day", "Each team's submitted sheet for a chosen day with sponsors, the opposition sheet and the scoring. Admin only (club PIN); under-18 names are never shown."],
       ["Admin", "Notices, screen switches, data sources, counting, sign-in length and maintenance mode, in sections. Club PIN."],
       ["Links page", "Every link for the club's teams, ready to copy or share. Club PIN."],
       ["Link builder", "Builds the same links for any team listed on englandrugby.com. Open to anyone."],
@@ -2640,12 +2649,12 @@ const DOC_SECTIONS = [
       ["Our teams", "Your teams: friendly name, colour, league and order, used across the whole site."],
       ["Messages", "The homepage notice and the TV screen notice."],
       ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
-      ["Match day", "The Match sheet (team sheets and scorers)."],
+      ["Match day", "A link to the Match day page (team sheets, sponsors, opposition and scoring)."],
       ["Site status", "Maintenance mode and its pun lines."],
       ["Data sources", "The England Rugby website back-up switch."],
       ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
       ["Access", "How long a PIN sign-in lasts."],
-      ["Tools", "Links to Team links, Usage, Match sheet, Win Predictor check and Documentation (and Release notes and the Probe page on the test site)."]
+      ["Tools", "Links to Team links, Usage, Players, Match day, Win Predictor check and Documentation (and Release notes and the Probe page on the test site)."]
     ] },
     { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
     { h: "Our teams" },
@@ -2692,7 +2701,7 @@ const DOC_SECTIONS = [
       ["Win Predictor on the next game", "A percentage chance for each side, shown as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Off by default. Read the Win Predictor check page first. How it works is in the Win Predictor section."]
     ] },
     { h: "Match day" },
-    { p: "The Match sheet (/matchsheet, club PIN) shows, for each team, the next game and the last game with both team sheets (shirt number, position, captain and vice captain) and, for the last game, the scoring with the minute and player. If no sheet has been entered it says so. Under-18 teams are always shown without names, whatever the feed holds." },
+    { p: "Match day (/matchday, club PIN) shows, for a chosen day, each of your teams' submitted team sheet in shirt order with each player's sponsor, who is available to sponsor, names the RFU withholds, and new players. Each team card switches between Our team, Opposition (their sheet, names as the RFU gives them) and Scoring (the score and the tries and conversions with the minute and player, for clubs that enter match events). Use the arrows to move between game days. Under-18 teams are always shown without names. The old Match sheet address (/matchsheet) now opens Match day." },
     { h: "Data sources" },
     { p: "England Rugby website as a back-up (on by default): when the RFU data service has no league table, ground or team list, the site asks the englandrugby.com website instead. Turn it off to use the data service only; anything it cannot supply is then left blank and nothing is fetched from the website. Before turning it off check the RFU web page row on the Usage page, which shows how often the back-up was used." },
     { h: "Site status and maintenance mode" },
@@ -2830,6 +2839,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.47.0", "The Match sheet is now part of Match day. Each team card switches between Our team (sponsors, available players), Opposition (the other side's sheet, no sponsors) and Scoring (the score and who scored, once the game is played). The old Match sheet link opens Match day."],
       ["v3.46.6", "Match day: the playing position is gone (captain and vice captain still show), and each shirt number now sits in a small shirt in the team's own colour, the same colour the team has elsewhere on the site."],
       ["v3.46.5", "Match day: fix for no games being found. It now asks for the current season, the same way the Players scan does. If it still finds nothing, the message shows the season asked for and the answer code."],
       ["v3.46.4", "Match day: if no game days are found, the page now says for each team how many games the fixtures list gave or what went wrong, so the cause can be read from the screen."],
@@ -3584,7 +3594,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/matchsheet">Match sheet</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/matchday">Match day</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/matchday">Match day</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3652,7 +3662,7 @@ function load(){fetch("/api/screens",{cache:"no-store",credentials:"same-origin"
 load();addEventListener("hashchange",function(){if(location.hash==="#paired")load()})})()</script></section>
 <section class="sec" id="s-match" hidden><h1>Match day</h1><p class="sub">Tools for match days.</p>
 <div class="cd">
-<div class="nb"><div class="nh"><div><b>Match sheet</b><small>Team sheets and scorers for each team's next and last game, for admins only. Under-18 teams are always shown without names. <a href="/matchsheet" target="_blank" rel="noopener" style="color:#7fd89a">Open the match sheet</a></small></div></div></div>
+<div class="nb"><div class="nh"><div><b>Match day</b><small>Each team's submitted team sheet for a chosen day with sponsors, the opposition sheet and the scoring, for admins only. Under-18 teams are always shown without names. <a href="/matchday" target="_blank" rel="noopener" style="color:#7fd89a">Open Match day</a></small></div></div></div>
 </div>
 </section>
 <section class="sec" id="s-data" hidden><h1>Data sources</h1><p class="sub">Where the site gets its information.</p>
@@ -3838,81 +3848,6 @@ async function sheetJson(target) {
   try { const r = await cachedText(target, "application/json"); return r.ok ? JSON.parse(r.text) : null; } catch (_) { return null; }
 }
 function sheetOrder(no) { const n = String(no || ""); return /^\d+$/.test(n) ? +n : /^S\d+$/i.test(n) ? 15 + +n.slice(1) : 99; }
-async function matchSheetFor(g, hideTeam) {
-  const id = String(g.id || "");
-  if (!/^\d{1,10}$/.test(id)) return null;
-  const [rec, ppl, evs] = await Promise.all([
-    sheetJson("https://cluster.england-rfu.com/gms/matches/" + id),
-    sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id),
-    sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + id)
-  ]);
-  if (!rec) return { g, error: true };
-  const hideSide = hideTeam || sheetHidesNames((rec.competitionName || "") + " " + (rec.groupName || ""));
-  const sideName = { [rec.homeTeamId]: rec.homeClubName || rec.homeTeamName || "Home", [rec.awayTeamId]: rec.awayClubName || rec.awayTeamName || "Away" };
-  const nameOf = (p, hide) => hide || p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "Name withheld" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
-  const list = Array.isArray(ppl && ppl.participants) ? ppl.participants : [];
-  const mk = teamId => list.filter(p => String(p.teamId) === String(teamId)).map(p => ({
-    pid: p.id, no: String(p.playingPositionNo || ""), pos: String(p.description || ""), name: nameOf(p, hideSide), hidden: !!(hideSide || p.isU18 === true),
-    started: p.startedMatch !== false,
-    tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : ""
-  })).sort((a, b) => sheetOrder(a.no) - sheetOrder(b.no));
-  const home = mk(rec.homeTeamId), away = mk(rec.awayTeamId);
-  const byPid = new Map(list.map(p => [p.id, p]));
-  const events = (Array.isArray(evs) ? evs : []).filter(x => x && x.eventType && /SCORE|CARD|SUB/i.test(String(x.eventType.value || ""))).map(x => {
-    const sub = String((x.eventSubType && x.eventSubType.value) || "");
-    const what = /SCORETRY$/.test(sub) ? "Try" : /SCORECONV_MISS$/.test(sub) ? "Conversion missed" : /SCORECONV$/.test(sub) ? "Conversion" : String((x.eventSubType && x.eventSubType.display) || (x.eventType && x.eventType.display) || "Event");
-    const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18 };
-    return { min: Number(x.duration) || 0, what, kind: /^Try$/.test(what) ? "try" : /^Conversion$/.test(what) ? "conv" : "other", team: sideName[x.teamId] || String(x.teamName || ""), no: String(x.playingPosition || ""), name: nameOf(pl, hideSide) };
-  }).sort((a, b) => a.min - b.min);
-  const hs = Number(rec.homeFullTimeScore), as = Number(rec.awayFullTimeScore);
-  return {
-    g, ok: true, hideSide, homeName: rec.homeClubName || rec.homeTeamName || "Home", awayName: rec.awayClubName || rec.awayTeamName || "Away",
-    score: Number.isFinite(hs) && Number.isFinite(as) && rec.homeFullTimeScore !== null && rec.awayFullTimeScore !== null ? hs + "–" + as : "",
-    submitted: !!(ppl && ppl.lineup) && (home.length + away.length) > 0, home, away, events
-  };
-}
-function matchSheetPage(theme, isDev, teams, sel, d) {
-  const t = theme === "light" ? "light" : "dark", ee = noticeEsc;
-  const tm = teams[sel];
-  const tab = (x, i) => `<a class="tab${i === sel ? " on" : ""}" href="/matchsheet?t=${i}${t === "light" ? "&theme=light" : ""}">${ee(teamShort(x))}${sheetHidesNames(x.name + " " + x.league + " " + x.teamName) ? ' <small>names hidden</small>' : ""}</a>`;
-  const squad = (name, rows, hasSheet, who) => `<div class="sq"><div class="sqh">${ee(name)}</div>${rows.length ? rows.map(r => `<div class="pr"><span class="no">${ee(r.no)}</span><span class="pn"><b>${ee(r.name)}</b>${r.name ? " " : ""}<small>${ee(r.pos)}</small></span><span class="tg2">${ee(r.tag)}</span></div>`).join("") : `<div class="none">${ee(who)} sheet not in yet.</div>`}</div>`;
-  const status = m => !m ? "" : m.submitted ? `<span class="chip ok">Sheets in</span>` : `<span class="chip">Not submitted yet</span>`;
-  const head = (kind, m, g) => `<div class="kk">${kind}${g && g.dateLabel ? " &middot; " + ee(g.dateLabel) : ""}${g && g.comp ? " &middot; " + ee(g.comp) : ""}</div><div class="ti">${m && m.ok ? ee(m.homeName) + (m.score ? " " + ee(m.score) + " " : " v ") + ee(m.awayName) : g ? "v " + ee(g.oppName) : ""}</div>`;
-  const block = (kind, m, g, withEvents) => {
-    if (!g) return `<section class="card"><div class="kk">${kind}</div><div class="none">No ${kind.toLowerCase()} found in this season's fixtures.</div></section>`;
-    if (!m || m.error) return `<section class="card">${head(kind, m, g)}<div class="none">The RFU match record could not be read just now. This page tries again on every refresh.</div></section>`;
-    const sheets = m.submitted
-      ? `<div class="sqs">${squad(m.homeName, m.home, m.submitted, m.homeName)}${squad(m.awayName, m.away, m.submitted, m.awayName)}</div>`
-      : `<div class="wait"><span class="dot"></span><div><b>Team sheet not submitted yet</b><small>Clubs usually enter sheets one to two days before kick-off, and the opposition's sometimes on the morning of the game. This page checks every few minutes.</small></div></div>`;
-    const ev = withEvents && m.events.length ? `<div class="kk" style="margin-top:14px">Scoring &middot; events recorded by the clubs that enter them</div><div class="evs">${m.events.map(x => `<div class="ev"><span class="mn">${x.min}'</span><span class="${x.kind}">${ee(x.what)}</span><span class="who">${ee(x.team)}${x.no ? " &middot; " + ee(x.no) : ""}${x.name ? " &middot; " + ee(x.name) : ""}</span></div>`).join("")}</div>` : "";
-    return `<section class="card"><div class="top">${head(kind, m, g)}${status(m)}</div>${sheets}${ev}</section>`;
-  };
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta http-equiv="refresh" content="300"><title>Match sheet</title>
-<style>
-:root{--bg:#080b0d;--card:#111719;--bd:#26312d;--tx:#f2f6f4;--mu:#9fb0a8;--ac:#4fc27d;--am:#e8c26a;--in:#0c1113}
-body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--ac:#1d6b3a;--am:#7a4d06;--in:#f3f7f4}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px 32px}
-.wrap{max-width:1100px;margin:0 auto}h1{margin:.2em 0 .5em;font-size:1.9rem}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
-.tab{min-height:44px;display:flex;align-items:center;gap:6px;padding:0 16px;border-radius:10px;border:1px solid var(--bd);color:var(--tx);text-decoration:none;font-weight:600}.tab.on{background:var(--ac);border-color:var(--ac);color:#07100b;font-weight:700}.tab small{color:var(--mu);font-weight:400}.tab.on small{color:#07100b}
-.note{border-radius:12px;background:#1d1a0c;border:1px solid #5b4b1a;color:#e8c26a;padding:12px 16px;font-size:.95rem;line-height:1.5;margin-bottom:14px}body.light .note{background:#fbecc8;border-color:#e0c06a;color:#7a4d06}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin-bottom:14px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.kk{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);font-weight:700}.ti{font-size:1.5rem;font-weight:800;line-height:1.4;margin:.15em 0 .4em}
-.chip{border:1px solid var(--bd);border-radius:6px;padding:3px 10px;font-weight:700;font-size:.85rem;color:var(--mu)}.chip.ok{background:var(--ac);border-color:var(--ac);color:#07100b}
-.wait{display:flex;gap:12px;align-items:flex-start;background:var(--in);border-radius:12px;padding:14px;margin-top:8px}.wait b{display:block}.wait small{display:block;color:var(--mu);line-height:1.5;margin-top:4px}.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--mu);flex:none;margin-top:4px}
-.sqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:8px}.sqh{font-weight:800;padding-bottom:8px;border-bottom:2px solid var(--ac)}
-.pr{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;min-height:32px;border-bottom:1px solid var(--bd);font-size:.95rem}.no{font-weight:700;color:var(--mu)}.pn small{color:var(--mu)}.tg2{font-size:.8rem;font-weight:700;color:var(--am)}
-.none{color:var(--mu);padding:10px 0;line-height:1.5}
-.evs{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 28px}.ev{display:grid;grid-template-columns:44px 140px 1fr;gap:8px;align-items:center;min-height:34px;border-bottom:1px solid var(--bd);font-size:.92rem}.mn{font-weight:700;color:var(--mu)}.try{font-weight:700;color:var(--ac)}.conv{font-weight:700;color:var(--am)}.other{font-weight:700;color:var(--mu)}.who{color:var(--tx)}
-.ft{color:var(--mu);font-size:.85rem;margin-top:10px;line-height:1.5}
-</style></head><body class="${t}"><div class="wrap">
-<a href="/admin" style="color:#7fd89a;font-weight:700;font-size:14px;text-decoration:none;display:inline-block;margin:2px 0 6px">&lsaquo; Admin</a><h1>Match sheet</h1>
-<div class="tabs">${teams.map(tab).join("")}</div>
-<div class="note">Admin only. Player names never appear on a public screen, a TV board or any link without the club PIN. Under-18 teams and any player the RFU marks as under 18 are shown by shirt number and position only. "Name withheld" is shown exactly as the RFU supplies it.</div>
-${block("Next game", d.next, d.nextG, false)}
-${block("Last game", d.last, d.lastG, true)}
-<div class="ft">Last checked ${londonTime(Date.now())}. This page refreshes every five minutes. Scorers are only listed for clubs that enter match events, so a side with no events listed has not recorded them.</div>
-</div></body></html>`;
-}
 // ---- Match day page (v3.46.0) -----------------------------------------------------------------------------------
 // For one of our teams and one match day: the team sheet the club has submitted on the RFU system (shirt order), with the sponsor of each player, who is still
 // available to sponsor, names the RFU withholds and players not seen on a sheet before. Club PIN only. The page asks for one team per request (POST), so each
@@ -3945,9 +3880,9 @@ async function matchDayApi(request, url, worker) {
   const g = live.find(x => lon(x.iso) === day && /^\d{1,10}$/.test(String(x.id || "")));
   if (!g) return J({ ...base, day, game: null });
   const id = String(g.id);
-  const [mrec, ppl] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matches/" + id), sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id)]);
+  const [mrec, ppl, evs] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matches/" + id), sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id), day <= today ? sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + id) : null]);
   const game = { opp: String(g.oppName || ""), home: g.home === true, time: String(g.time || ""), comp: String(g.comp || ""), venue: String(g.venue || ""), status: String(g.status || "") };
-  if (!mrec || !ppl) return J({ ...base, day, game, sheet: false, unreadable: true, players: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
+  if (!mrec || !ppl) return J({ ...base, day, game, sheet: false, unreadable: true, players: [], opp: { name: game.opp, players: [] }, score: "", events: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
   let sponsors = [], rec = null; const kv = kvOf();
   if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
   const sname = new Map(sponsors.map(x => [x.id, x.name])), by = {}, seen = new Set(), altOf = {};
@@ -3968,7 +3903,20 @@ async function matchDayApi(request, url, worker) {
   }
   const dbg = { people: list.length, lineup: !!ppl.lineup, sides: [...new Set(list.map(p => String(p.teamId)))].slice(0, 4), ours: side };
   const hideSide = sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName) || sheetHidesNames((mrec.competitionName || "") + " " + (mrec.groupName || ""));
-  if (!mine.length) return J({ ...base, day, game, sheet: false, dbg, players: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
+  // The other side's sheet (names as the RFU gives them, no sponsors) and the scoring, as the old Match sheet page showed them.
+  const nameOf = (p, hide) => hide || p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "Name withheld" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
+  const oppName = String((g.home === true ? (mrec.awayClubName || mrec.awayTeamName) : (mrec.homeClubName || mrec.homeTeamName)) || game.opp);
+  const opp = { name: oppName, hidden: hideSide, players: list.filter(p => !mine.includes(p)).map(p => ({ no: String(p.playingPositionNo || ""), name: nameOf(p, hideSide), hidden: !!(hideSide || p.isU18 === true), tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" })).sort((a, b2) => sheetOrder(a.no) - sheetOrder(b2.no)) };
+  const hs = Number(mrec.homeFullTimeScore), as = Number(mrec.awayFullTimeScore);
+  const score = Number.isFinite(hs) && Number.isFinite(as) && mrec.homeFullTimeScore !== null && mrec.awayFullTimeScore !== null ? { home: String(mrec.homeClubName || mrec.homeTeamName || "Home"), away: String(mrec.awayClubName || mrec.awayTeamName || "Away"), hs, as } : "";
+  const sideName = { [mrec.homeTeamId]: String(mrec.homeClubName || mrec.homeTeamName || "Home"), [mrec.awayTeamId]: String(mrec.awayClubName || mrec.awayTeamName || "Away") }, byPid = new Map(list.map(p => [p.id, p]));
+  const events = (Array.isArray(evs) ? evs : []).filter(x => x && x.eventType && /SCORE|CARD|SUB/i.test(String(x.eventType.value || ""))).map(x => {
+    const sub = String((x.eventSubType && x.eventSubType.value) || "");
+    const what = /SCORETRY$/.test(sub) ? "Try" : /SCORECONV_MISS$/.test(sub) ? "Conversion missed" : /SCORECONV$/.test(sub) ? "Conversion" : String((x.eventSubType && x.eventSubType.display) || (x.eventType && x.eventType.display) || "Event");
+    const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18 };
+    return { min: Number(x.duration) || 0, what, kind: /^Try$/.test(what) ? "try" : /^Conversion$/.test(what) ? "conv" : "other", team: sideName[x.teamId] || String(x.teamName || ""), no: String(x.playingPosition || ""), name: nameOf(pl, hideSide) };
+  }).sort((a, b2) => a.min - b2.min);
+  if (!mine.length) return J({ ...base, day, game, sheet: false, dbg, players: [], opp, score, events, counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
   const players = mine.map(p => {
     const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", nm: "" };
     const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
@@ -3984,13 +3932,13 @@ async function matchDayApi(request, url, worker) {
     };
   }).sort((a, b2) => sheetOrder(a.no) - sheetOrder(b2.no));
   const vis = players.filter(x => !x.hidden);
-  return J({ ...base, day, game, sheet: true, provisional: !ppl.lineup, dbg, hidden: hideSide, scanned, players, counts: { total: players.length, sponsored: vis.filter(x => x.sponsor).length, avail: vis.filter(x => x.avail).length, redacted: vis.filter(x => x.red).length, fresh: vis.filter(x => x.fresh).length } });
+  return J({ ...base, day, game, sheet: true, provisional: !ppl.lineup, dbg, hidden: hideSide, scanned, players, opp, score, events, counts: { total: players.length, sponsored: vis.filter(x => x.sponsor).length, avail: vis.filter(x => x.avail).length, redacted: vis.filter(x => x.red).length, fresh: vis.filter(x => x.fresh).length } });
 }
 function matchDayPage(theme, isDev, teams) {
   const t = theme === "light" ? "light" : "dark";
   const tl = JSON.stringify(teams.filter(x => !x.hidden).map(x => ({ team: String(x.team), name: x.name }))).replace(/</g, "\\u003c");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Match day</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:10px 0}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2:disabled{opacity:.55;cursor:default}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.nv{display:flex;gap:8px;align-items:stretch;margin:12px 0 0}.nv .b2{flex:none;width:52px;font-size:22px;padding:0}.nd{flex:1;min-width:0;border:1px solid #2c3a34;border-radius:12px;background:#111719;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;text-align:center}.nd b{font-size:17px}.nd small{color:#91a49a;font-size:12px;line-height:1.35}body.light .nd{background:#fff;border-color:#c9dccd}.dys{display:flex}.dy{font:700 14px Arial,Helvetica,sans-serif;border-radius:12px;padding:8px 14px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;text-align:left}.dy small{display:block;font-weight:400;font-size:12px;color:#91a49a}.dy.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.dy.on small{color:#e6fff0}.sub{color:#91a49a;font-size:14px;line-height:1.5;margin:10px 0 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}.tt b{font-size:17px}.tt small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.cn{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.cn span{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;border:1px solid #2c3a34;color:#cfd8d3}.cn .am{color:#f2b866;border-color:#5b4b1a}.pr{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;min-height:42px;padding:4px 0;border-top:1px solid #243a2e}.no{display:flex;align-items:center}.no svg{display:block}.pn{min-width:0}.pn b{overflow-wrap:anywhere}.pn small{color:#91a49a;margin-left:4px}.nw{font-size:11px;font-weight:700;color:#07100b;background:#7fd89a;border-radius:6px;padding:1px 6px;margin-left:6px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right}.sp.av{color:#f2b866}.sp.rd{color:#91a49a;font-weight:400}.none{color:#91a49a;padding:10px 0;line-height:1.5}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2:empty{display:none}.ver{color:#91a49a;font-size:12px;text-align:center}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .b2,body.light .dy{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .dy.on,body.light .b2.go{background:#2f9d57;color:#fff;border-color:#2f9d57}body.light .pr{border-color:#d9e5dc}body.light .cn span{color:#14301e;border-color:#c9dccd}body.light .sp{color:#1f7a42}body.light .sp.av{color:#9a5b00}
+<style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:10px 0}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2:disabled{opacity:.55;cursor:default}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.nv{display:flex;gap:8px;align-items:stretch;margin:12px 0 0}.nv .b2{flex:none;width:52px;font-size:22px;padding:0}.nd{flex:1;min-width:0;border:1px solid #2c3a34;border-radius:12px;background:#111719;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;text-align:center}.nd b{font-size:17px}.nd small{color:#91a49a;font-size:12px;line-height:1.35}body.light .nd{background:#fff;border-color:#c9dccd}.dys{display:flex}.dy{font:700 14px Arial,Helvetica,sans-serif;border-radius:12px;padding:8px 14px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;text-align:left}.dy small{display:block;font-weight:400;font-size:12px;color:#91a49a}.dy.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.dy.on small{color:#e6fff0}.sub{color:#91a49a;font-size:14px;line-height:1.5;margin:10px 0 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}.tt b{font-size:17px}.tt small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.cn{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.cn span{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;border:1px solid #2c3a34;color:#cfd8d3}.cn .am{color:#f2b866;border-color:#5b4b1a}.pr{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;min-height:42px;padding:4px 0;border-top:1px solid #243a2e}.no{display:flex;align-items:center}.no svg{display:block}.pn{min-width:0;display:flex;align-items:baseline;gap:6px}.pn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.pn small{color:#91a49a;flex:none;white-space:nowrap}.pr.sb{border-top:2px solid #3a4a42;margin-top:8px;padding-top:8px}body.light .pr.sb{border-top-color:#b7cbbd}.sg{display:grid;grid-template-columns:repeat(3,1fr);margin:10px 0;border:1px solid #2c3a34;border-radius:10px;overflow:hidden}.sg button{border:0;background:transparent;color:#cfd8d3;font:700 13px Arial,Helvetica,sans-serif;min-height:40px;cursor:pointer}.sg button.on{background:#2f9d57;color:#fff}.ev{display:grid;grid-template-columns:38px 112px 1fr;gap:8px;align-items:center;min-height:38px;padding:2px 0;border-top:1px solid #243a2e;font-size:14px}.ev .m{color:#91a49a;font-weight:700}.ev .k{font-weight:700;color:#91a49a}.ev .k.ty{color:#7fd89a}.ev .k.cv{color:#f2b866}body.light .sg{border-color:#c9dccd}body.light .sg button{color:#14301e}body.light .sg button.on{color:#fff}body.light .ev{border-color:#d9e5dc}.nw{flex:none;font-size:11px;font-weight:700;color:#07100b;background:#7fd89a;border-radius:6px;padding:1px 6px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right;white-space:nowrap;max-width:52%;overflow:hidden;text-overflow:ellipsis}.sp.av{color:#f2b866}.sp.rd{color:#91a49a;font-weight:400}.none{color:#91a49a;padding:10px 0;line-height:1.5}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2:empty{display:none}.ver{color:#91a49a;font-size:12px;text-align:center}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .b2,body.light .dy{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .dy.on,body.light .b2.go{background:#2f9d57;color:#fff;border-color:#2f9d57}body.light .pr{border-color:#d9e5dc}body.light .cn span{color:#14301e;border-color:#c9dccd}body.light .sp{color:#1f7a42}body.light .sp.av{color:#9a5b00}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
 <h1>Match day</h1>
 <p class="sub">The team sheets our teams have submitted on the RFU system, in shirt order, with each player's sponsor. Nothing here refreshes by itself.</p>
@@ -4010,14 +3958,25 @@ function idx(){var a=days(),i=-1;a.forEach(function(x,k){if(x.d===day)i=k});retu
 function drawDays(){var z=idx(),x=z.a[z.i];if(!x){$("dys").innerHTML="<small>Looking for game days...</small>";$("pv").disabled=$("nx").disabled=true;return}
 $("dys").innerHTML="<b>"+e(dl(x.d,true))+"</b><small>"+(x.d===today?"Today &middot; ":"")+x.n.join(", ")+(z.a.length>1?" &middot; game day "+(z.i+1)+" of "+z.a.length:"")+"</small>";$("pv").disabled=z.i<=0;$("nx").disabled=z.i>=z.a.length-1}
 function shirt(n,ac){var h=ac.replace("#",""),l=(0.299*parseInt(h.substr(0,2),16)+0.587*parseInt(h.substr(2,2),16)+0.114*parseInt(h.substr(4,2),16))/255,tc=l>0.62?"#101814":"#ffffff",s=String(n),fs=s.length>2?10:13;return'<svg width="38" height="34" viewBox="0 0 40 36" role="img" aria-label="Shirt number '+e(s)+'"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="'+ac+'" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="24" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="'+fs+'" fill="'+tc+'">'+e(s)+"</text></svg>"}
-function lines(t,r){var o=[],g=r.game;o.push(t.name+" "+(g.home?"v":"at")+" "+g.opp+" - "+dl(day,true)+(g.time?", "+g.time:""));r.players.forEach(function(p){var n=p.hidden?"":(p.name||"Name redacted")+(p.star?" *":"");o.push(p.no+". "+(p.hidden?"Name not shown":n+" - "+(p.sponsor||"Available to sponsor")))});return o.join(String.fromCharCode(10))}
+function tg(x){return x==="Captain"?"(C)":x==="Vice captain"?"(VC)":""}
+function isSub(n){n=String(n);return/^S/i.test(n)||+n>15}
+function lines(t,r){var o=[],g=r.game;o.push(t.name+" "+(g.home?"v":"at")+" "+g.opp+" - "+dl(day,true)+(g.time?", "+g.time:""));r.players.forEach(function(p){var n=p.hidden?"":(p.name||"Name redacted")+(tg(p.tag)?" "+tg(p.tag):"");o.push(p.no+". "+(p.hidden?"Name not shown":n+" - "+(p.sponsor||"Available to sponsor")))});return o.join(String.fromCharCode(10))}
+var V={};
+function body(t,r){var v=V[t.team]||"us",h="",g=r.game;
+if(v==="op"){var o=r.opp||{players:[]};if(!o.players.length)return'<div class="none">The opposition sheet is not in yet.</div>';h+='<div class="cn"><span>'+e(o.name||g.opp)+"</span><span>"+(o.hidden?"Names hidden (under 18s)":"Names as the RFU gives them")+"</span></div>";
+var od=false;o.players.forEach(function(p){var sb=isSub(p.no)&&!od;if(sb)od=true;h+='<div class="pr'+(sb?" sb":"")+'"><span class="no">'+shirt(p.no,"#7f93a3")+'</span><span class="pn"><b>'+(p.hidden?'<i style="color:#91a49a;font-weight:400">Name not shown</i>':e(p.name))+"</b>"+(p.tag?"<small>"+tg(p.tag)+"</small>":"")+'</span><span class="sp"></span></div>'});return h}
+if(v==="sc"){var sc=r.score,ev=r.events||[];if(!sc&&!ev.length)return'<div class="none">'+(day>today?"This game has not been played yet.":"No score or scoring has been recorded yet.")+"</div>";
+if(sc)h+='<div class="cn"><span>'+e(sc.home)+" "+sc.hs+" &ndash; "+sc.as+" "+e(sc.away)+"</span></div>";
+if(!ev.length)return h+'<div class="none">No scoring events recorded. Only clubs that enter match events appear here.</div>';
+ev.forEach(function(x){h+='<div class="ev"><span class="m">'+x.min+"'</span><span class=\\"k"+(x.kind==="try"?" ty":x.kind==="conv"?" cv":"")+'">'+e(x.what)+'</span><span>'+e(x.team)+(x.no?" &middot; "+e(x.no):"")+(x.name?" &middot; "+e(x.name):"")+"</span></div>"});return h+'<div class="none" style="font-size:12px">Scorers are only listed for clubs that enter match events.</div>'}
+if(!r.sheet)return'<div class="none">'+(r.unreadable?"The RFU match record could not be read just now. Try Refresh in a minute.":"No sheet available on GMS yet."+(r.dbg?' <small style="color:#91a49a">(RFU returned '+r.dbg.people+' people, sheet flag '+(r.dbg.lineup?"on":"off")+")</small>":""))+"</div>";
+var c=r.counts;if(r.provisional)h+='<div class="none" style="padding:0 0 4px">Provisional: the RFU has not marked this sheet as final yet.</div>';h+='<div class="cn"><span>'+c.total+" on the sheet</span>"+(r.hidden?"<span>Names hidden (under 18s)</span>":'<span>'+c.sponsored+" sponsored</span><span class=\\"am\\">"+c.avail+" available to sponsor</span>"+(c.redacted?"<span>"+c.redacted+" name redacted</span>":"")+(c.fresh?"<span>"+c.fresh+" new</span>":""))+"</div>";
+var subDone=false;r.players.forEach(function(p){var isb=isSub(p.no)&&!subDone;if(isb)subDone=true;var nm=p.hidden?'<i style="color:#91a49a;font-weight:400">Name not shown</i>':(p.name?e(p.name):'<i style="color:#91a49a;font-weight:400">Name redacted</i>');h+='<div class="pr'+(isb?" sb":"")+'"><span class="no">'+shirt(p.no,r.accent||"#2f9e5b")+'</span><span class="pn"><b>'+nm+"</b>"+(p.tag?"<small>"+tg(p.tag)+"</small>":"")+(p.fresh?'<span class="nw">New</span>':"")+'</span><span class="sp'+(p.hidden?" rd":p.sponsor?"":" av")+'">'+(p.hidden?"":p.sponsor?e(p.sponsor):"Available to sponsor")+"</span></div>"});return h}
 function card(t){var r=sheets[t.team];if(!r)return'<div class="cd2"><div class="tt"><b>'+e(t.name)+'</b></div><div class="none">Loading...</div></div>';
 if(!r.ok)return'<div class="cd2"><div class="tt"><b>'+e(t.name)+'</b></div><div class="none">'+e(r.error||"Could not read this team.")+"</div></div>";
-if(!r.game)return"";var g=r.game,h='<div class="cd2"><div class="tt"><div><b>'+e(t.name)+" "+(g.home?"v":"at")+" "+e(g.opp)+"</b><small>"+e(g.comp)+(g.time?" &middot; KO "+e(g.time):"")+(g.venue?" &middot; "+e(g.venue):"")+"</small></div>"+(r.sheet?'<button type="button" class="b2 sm" data-c="'+t.team+'">Copy list</button>':"")+"</div>";
-if(!r.sheet){return h+'<div class="none">'+(r.unreadable?"The RFU match record could not be read just now. Try Refresh in a minute.":"No sheet available on GMS yet."+(r.dbg?' <small style=\"color:#91a49a\">(RFU returned '+r.dbg.people+' people, sheet flag '+(r.dbg.lineup?"on":"off")+")</small>":""))+"</div></div>"}
-var c=r.counts;if(r.provisional)h+='<div class="none" style="padding:0 0 4px">Provisional: the RFU has not marked this sheet as final yet.</div>';h+='<div class="cn"><span>'+c.total+" on the sheet</span>"+(r.hidden?"<span>Names hidden (under 18s)</span>":'<span>'+c.sponsored+" sponsored</span><span class=\\"am\\">"+c.avail+" available to sponsor</span>"+(c.redacted?"<span>"+c.redacted+" name redacted</span>":"")+(c.fresh?"<span>"+c.fresh+" new</span>":""))+"</div>";
-r.players.forEach(function(p){var nm=p.hidden?'<i style="color:#91a49a;font-weight:400">Name not shown</i>':(p.name?e(p.name)+(p.star?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>');h+='<div class="pr"><span class="no">'+shirt(p.no,r.accent||"#2f9e5b")+'</span><span class="pn"><b>'+nm+"</b>"+(p.tag?"<small>"+e(p.tag)+"</small>":"")+(p.fresh?'<span class="nw">New</span>':"")+'</span><span class="sp'+(p.hidden?" rd":p.sponsor?"":" av")+'">'+(p.hidden?"":p.sponsor?e(p.sponsor):"Available to sponsor")+"</span></div>"});
-return h+"</div>"}
+if(!r.game)return"";var g=r.game,v=V[t.team]||"us",h='<div class="cd2"><div class="tt"><div><b>'+e(t.name)+" "+(g.home?"v":"at")+" "+e(g.opp)+"</b><small>"+e(g.comp)+(g.time?" &middot; KO "+e(g.time):"")+(g.venue?" &middot; "+e(g.venue):"")+"</small></div>"+(r.sheet&&v==="us"?'<button type="button" class="b2 sm" data-c="'+t.team+'">Copy list</button>':"")+"</div>";
+h+='<div class="sg">';[["us","Our team"],["op","Opposition"],["sc","Scoring"]].forEach(function(x){h+='<button type="button" class="'+(v===x[0]?"on":"")+'" data-v="'+x[0]+'" data-t="'+t.team+'">'+x[1]+"</button>"});h+="</div>";
+return h+body(t,r)+"</div>"}
 function draw(){drawDays();var h="",any=false,none=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&!r.game){none.push(t.name);return}any=true;h+=card(t)});if(none.length)h+='<p class="sub">No game on '+e(dl(day,true))+" for "+e(none.join(", "))+".</p>";if(day&&day!==today&&today&&day>today&&!T.some(function(t){var r=info[t.team];return r&&r.ok&&r.days.some(function(x){return x.d===today})}))h='<p class="sub">No games today. Showing the next game day; use the arrows to move between game days.</p>'+h;$("out").innerHTML=h||"";$("ca").disabled=!T.some(function(t){var r=sheets[t.team];return r&&r.ok&&r.sheet})}
 function loadDay(d){day=d;sheets={};draw();var n=T.length;T.forEach(function(t){ask({team:t.team,day:d}).then(function(r){if(day!==d)return;sheets[t.team]=r;draw()})})}
 function start(){var n=0;T.forEach(function(t){ask({team:t.team}).then(function(r){info[t.team]=r;if(r&&r.ok&&r.today)today=r.today;if(++n===T.length){var ds=days();if(!ds.length){say("No games found for your teams. "+T.map(function(t){var r=info[t.team];return t.name+": "+(r&&r.ok?r.read+" games read (season "+r.season+", answer "+r.http+")":(r&&r.error)||"no answer")}).join("; ")+".","er");drawDays();return}$("rf").disabled=false;var st=ds.filter(function(x){return x.d>=today})[0]||ds[ds.length-1];loadDay(st.d)}else drawDays()})})}
@@ -4026,7 +3985,7 @@ $("rf").onclick=function(){if(!day||wait>0)return;say("");cool();loadDay(day)};
 function copy(text){var done=function(){say("Copied.","")};try{navigator.clipboard.writeText(text).then(done,function(){fb(text)})}catch(x){fb(text)}}
 function fb(text){var a=document.createElement("textarea");a.value=text;a.setAttribute("readonly","");a.style.cssText="position:fixed;left:0;top:0;opacity:0";document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Copied.")}catch(x){say("Could not copy. Select the names on the screen instead.","er")}document.body.removeChild(a)}
 function step(n){var z=idx(),x=z.a[z.i+n];if(x)loadDay(x.d)}$("pv").onclick=function(){step(-1)};$("nx").onclick=function(){step(1)};
-$("out").onclick=function(ev){var b=ev.target.closest("button[data-c]");if(!b)return;var t=T.filter(function(x){return x.team===b.getAttribute("data-c")})[0],r=sheets[t.team];if(t&&r&&r.sheet)copy(lines(t,r))};
+$("out").onclick=function(ev){var sw=ev.target.closest("button[data-v]");if(sw){V[sw.getAttribute("data-t")]=sw.getAttribute("data-v");draw();return}var b=ev.target.closest("button[data-c]");if(!b)return;var t=T.filter(function(x){return x.team===b.getAttribute("data-c")})[0],r=sheets[t.team];if(t&&r&&r.sheet)copy(lines(t,r))};
 $("ca").onclick=function(){var o=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&r.sheet)o.push(lines(t,r))});if(o.length)copy(o.join(String.fromCharCode(10)+String.fromCharCode(10)))};
 if(!T.length)say("No teams are set up in Admin, Our teams.");else start()})();</script></body></html>`;
 }
@@ -6624,22 +6583,8 @@ const worker = {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(winCheckPage(th, TEAMS, isDev === true), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     }
-    if (url.pathname.replace(/\/+$/, "") === "/matchsheet") {
-      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
-      const ti = Math.max(0, Math.min(TEAMS.length - 1, parseInt(url.searchParams.get("t") || "0", 10) || 0));
-      const tm = TEAMS[ti];
-      let games = [];
-      try {
-        const q = new URLSearchParams({ season: tm.season || AUTO.season, competition: tm.competition, division: tm.division, team: tm.team, teamName: tm.teamName, friendlyName: tm.name, format: "summary", detail: "fixtures" });
-        const fr = await worker.fetch(new Request(url.origin + "/?" + q.toString()));
-        if (fr.ok) games = (await fr.json()).games || [];
-      } catch (_) { games = []; }
-      const nextG = games.find(g => g.status === "upcoming" && g.id) || null;
-      const lastG = games.filter(g => g.status === "done" && !g.wo && g.id).pop() || null;
-      const hideTeam = sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName);
-      const [nextM, lastM] = await Promise.all([nextG ? matchSheetFor(nextG, hideTeam) : null, lastG ? matchSheetFor(lastG, hideTeam) : null]);
-      return new Response(matchSheetPage(th, isDev === true, TEAMS, ti, { next: nextM, last: lastM, hideTeam, nextG, lastG }), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
-    }
+    // The old Match sheet page is now part of Match day (v3.47.0); old links and bookmarks land there.
+    if (url.pathname.replace(/\/+$/, "") === "/matchsheet") return new Response(null, { status: 302, headers: { "Location": "/matchday" + ((url.searchParams.get("theme") || "") === "light" ? "?theme=light" : ""), "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     if (url.pathname.replace(/\/+$/, "") === "/admin") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(adminPage(th, isDev === true, await siteSettings(), !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });

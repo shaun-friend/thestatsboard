@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.47.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.0_match_day_combined.zip | v3.46.6
 v3.46.6 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.6_match_day_shirts.zip | v3.46.5
 v3.46.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.5_match_day_season.zip | v3.46.4
 v3.46.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.4_match_day_diag.zip | v3.46.3
@@ -327,6 +328,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.47.0 - Match day and Match sheet combined
+- Owner request (20-Nov-2026): fold the Match sheet page into Match day so there is one page.
+- Changed: each team card on Match day has a three-way switch. Our team is the existing sheet with sponsors. Opposition is the other side's sheet in shirt order (names as the RFU gives them, "Name withheld" kept, no sponsors, no names for under-18 sides). Scoring shows the score and the tries and conversions with the minute and player, for games played (only clubs that enter match events have scorers).
+- Removed: the old Match sheet page. /matchsheet (behind the club PIN as before) now goes to Match day, so bookmarks still work. The Admin Tools link and the Admin Match day box now point to Match day. The old "next game and last game for one team" view is replaced by the arrows (the last 7 days and the coming game days).
+- Request limit: one extra RFU read (the scoring) only when the chosen day is today or earlier, kept two minutes. Otherwise unchanged.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.46.6 - Match day: shirts, no positions
 - Owner request (20-Nov-2026): the position (for example Tighthead Prop) is not needed; put the number in a small shirt in the team's colour.
