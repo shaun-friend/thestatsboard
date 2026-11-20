@@ -20,7 +20,7 @@ ck('opens on the next game day with arrows, and says there is no game today',/Sa
 ck('defaults to the earliest day and reads one team per request',posts.filter(o=>o.day==='2026-11-21').length>=1&&posts.every(o=>o.team&&!o.id),JSON.stringify(posts.slice(0,3)));
 ck('shows the opposition and kick-off',/Ivybridge 1XV v Exeter Saracens/.test(x)&&/KO 14:30/.test(x),x);
 ck('sponsor, available, redacted and new show',/Vets4Pets/.test(x)&&/Available to sponsor/.test(x)&&/Name redacted/.test(x)&&/New/.test(x)&&/Bobby/.test(x)&&!/Bobby \*/.test(x)&&/\(C\)/.test(x)&&/\(VC\)/.test(x)&&!/Vice captain/.test(x),x);
-ck('substitutes are separated by a line, one row each',(await p.$$('.sh')).length===1&&(await p.$$eval('.pr',els=>els.every(e=>e.getBoundingClientRect().height<60))),'sb');
+ck('substitutes are separated by a line, one row each',(await p.$$('.sh')).length===1&&(await p.$$eval('.pr',els=>els.every(e=>e.getBoundingClientRect().height<110))),'sb');
 ck('under 18 shows no name or sponsor text for that row',!/under 18/i.test(x)||true);
 ck('another team without a sheet says so',/No sheet available on GMS/.test(x),x);
 ck('back is off on the first game day and forward is on',await p.locator('#pv').isDisabled()&&!(await p.locator('#nx').isDisabled()));
@@ -32,7 +32,9 @@ await p.evaluate(()=>{navigator.clipboard.writeText=function(t){window.__c=t;ret
 await p.click('button[data-c="11039"]');await p.waitForTimeout(200);const cp=await p.evaluate(()=>window.__c||'');
 ck('copy list gives shirt number, name and sponsor',/^Ivybridge 1XV v Exeter Saracens/.test(cp)&&/1\. Alan Aye - Vets4Pets/.test(cp)&&/2\. Bobby \(C\) - Available to sponsor/.test(cp)&&/3\. Name redacted - Available to sponsor/.test(cp)&&/4\. Name not shown$/m.test(cp),cp);
 ck('shirt icons show the numbers and positions are gone',(await p.locator('.no svg').count())===5&&!/Prop/.test(await p.innerText('#out')));
-await p.setViewportSize({width:1280,height:900});await p.waitForTimeout(200);ck('on a wide screen a long sponsor name shows in full',await p.$$eval('.sp',els=>els.length>0&&els.every(e=>e.scrollWidth<=e.clientWidth+1)),'trunc');await p.setViewportSize({width:400,height:900});
+const cut=()=>p.$$eval('.sp,.pn b',els=>els.length>0&&els.every(e=>e.scrollWidth<=e.clientWidth+1&&getComputedStyle(e).textOverflow!=='ellipsis'));
+ck('on a phone no player or sponsor name is ever cut off',await cut(),'trunc400');
+await p.setViewportSize({width:1280,height:900});await p.waitForTimeout(200);ck('on a wide screen no player or sponsor name is ever cut off',await cut(),'trunc1280');await p.setViewportSize({width:400,height:900});
 ck('no script errors',errs.length===0,errs.join(';'));
 ck('fits a phone',!(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)));
 await b.close();console.log(f?'FAILED '+f:'ALL OK');process.exit(f?1:0)})();

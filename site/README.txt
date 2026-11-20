@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.3_matchday_never_cut.zip | v3.49.2
 v3.49.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.2_matchday_sponsor_width.zip | v3.49.1
 v3.49.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.1_overview_tv.zip | v3.49.0
 v3.49.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.0_admin_menu_overview.zip | v3.48.1
@@ -336,6 +337,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.3 - Match day: names are never cut off
+- Owner request (20-Nov-2026): a player's name or a sponsor's name must never be cut off.
+- Changed: on the Match day page a long player name or sponsor name now wraps onto a second line instead of ending in "...". Most rows stay on one line.
+- Request limit: none; layout only.
+- Docs: What's new
 
 v3.49.2 - Match day: long sponsor names no longer cut off
 - Owner report (20-Nov-2026): on a wider screen the Match day sponsor names were cut short ("Th...", "Ve...", "Availabl...").
