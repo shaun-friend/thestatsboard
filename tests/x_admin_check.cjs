@@ -11,7 +11,7 @@ c('overview shows visitors and screens',(await p.textContent('#ovp'))==='30'&&(a
 await p.click('.adn a[data-s="screens"]');await p.waitForTimeout(200);
 c('menu opens Screens only',await p.isVisible('#s-screens')&&!(await p.isVisible('#s-home'))&&(await p.getAttribute('.adn a[data-s="screens"]','class')).includes('on'));
 c('save bar hidden at first',!(await p.isVisible('#sbar')));
-c('menu order',JSON.stringify(await p.$$eval('.adn a[data-s]',a=>a.map(x=>x.dataset.s)))===JSON.stringify(['home','teams','notices','screens','tv','paired','status','data','privacy','access']));
+c('menu order',JSON.stringify(await p.$$eval('.adn a[data-s]',a=>a.map(x=>x.dataset.s)))===JSON.stringify(['home','teams','paired','screens','notices','tv','status','access','data','privacy']));
 await p.click('#fa+span');await p.waitForTimeout(100);
 c('unsaved marker after a change',await p.isVisible('#sbar')&&await p.isVisible('#dirty')&&await p.isVisible('#dis'));
 await p.screenshot({path:__dirname+'/x_admin_desktop.png'});

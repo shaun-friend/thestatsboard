@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.0_admin_menu_overview.zip | v3.48.1
 v3.48.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.1_teams_crests.zip | v3.48.0
 v3.48.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.0_sponsor_list.zip | v3.47.3
 v3.47.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.3_subs_line.zip | v3.47.2
@@ -333,6 +334,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.0 - Admin menu grouped by purpose, richer Overview
+- Owner request (20-Nov-2026): look at the order of the Admin menu, hide or group what is not needed often, name things so it is obvious what they are for, and add more to the Overview.
+- Changed: the menu is grouped by purpose, A to Z in each group. Top: Overview, Match day. Club set-up: Link builder, Our teams, Player names and sponsors, Sponsors. Screens and notices: Paired screens, Screen settings, Site notices, TV rotation. Monitoring: RFU feed log, Site status, Usage, Visitor messages. Settings and help: Club PIN and access, Data sources, Documentation, Privacy and counts, Win Predictor test (then Probe and Release notes on the test site). Nothing is hidden or removed.
+- Renamed: Messages is Site notices, Screens is Screen settings, Team links is Link builder, Inbox is Visitor messages, Feed log is RFU feed log, Access is Club PIN and access, Win Predictor check is Win Predictor test, Players is Player names and sponsors (menu, page headings and titles). Addresses are unchanged.
+- Overview: quick links (Match day, Sponsor list, Link builder); a Needs attention strip that shows only when something is off (a team with no crest, no fixtures read for a team, no sponsors added); the next game day for each team; sponsors, sponsored players and sponsors with no players; what the TV rotation shows today (pages hidden by their day selector are marked) and how many screens are paired.
+- Request limit: the Overview is opened only by you. Next game days asks the RFU fixtures list once per team, each in its own request after the page has appeared, so a slow RFU answer cannot hold the page up. Sponsors and paired screens read settings only. No change for visitors.
+- Not done: no fold. The sponsor figure is sponsors with no players (the number of players still free to sponsor needs the RFU squad lists, so it stays on the Players page).
+- Docs: Admin guide, Other addresses, What's new
 
 v3.48.1 - Our teams shows crests
 - Owner request (20-Nov-2026): use the crests on Our teams.

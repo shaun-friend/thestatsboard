@@ -10,7 +10,7 @@ python3 check_release.py ../site "$Z"
 cp ../site/_worker.js t_worker.mjs; node --check t_worker.mjs
 cp t_worker.mjs t_worker_exp.mjs; echo 'export const __t = { shortComp, weatherFor, pageTtlFor, pageKeySearch, KNOWN_PARAMS, cachedText, memCache, blockedMem, refreshing, ttlFor, setCtx(c){SITE_CTX=c}, setEnv(e){SITE_ENV=e} };' >> t_worker_exp.mjs
 echo 'export const __w = { winModel, winPercents, winBacktest, normCdf, winBarHtml };' >> t_worker_exp.mjs
-run(){ o=$("$@" | tail -1); echo "$o"; if echo "$o" | grep -qE '[1-9][0-9]* fail'; then echo "TESTS FAILED"; exit 1; fi; }
+run(){ o=$("$@" | tail -1); echo "$o"; if echo "$o" | grep -qE "[1-9][0-9]* (fail|bad)|^FAILED"; then echo "TESTS FAILED"; exit 1; fi; }
 for t in t_v310.mjs t_v36.mjs t_v35.mjs; do run node $t "$S/t_worker.mjs"; done
 run node t_v313.mjs "$S/t_worker_exp.mjs"
 run node t_v314.mjs "$S/t_worker_exp.mjs"
@@ -104,6 +104,7 @@ sed -i "s/ly-two\"/ly-two ly-win\"/" w/ly_next.html; NODE_PATH=$(npm root -g) no
 node x_mc_win.mjs "$S/t_worker_exp.mjs" | grep -q "panels with a bar" && NODE_PATH=$(npm root -g) node x_clip_check.cjs w/ly_next_win.html 2>&1 | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE WIN PREDICTOR FIT TEST FAILED"; exit 1; }; echo "match centre win predictor fit ok"
 NODE_PATH=$(npm root -g) node x_msg_e2e.mjs "$S/t_worker.mjs" 2>&1 | tail -1 | grep -q "ALL OK" || { echo "MESSAGES BROWSER TEST FAILED"; exit 1; }; echo "messages browser ok"
 node x_admin_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_admin_check.cjs | tail -1 | grep -q "ALL OK" || { echo "ADMIN PAGE TEST FAILED"; exit 1; }; echo "admin page ok"
+NODE_PATH=$(npm root -g) node x_overview.cjs | tail -1 | grep -q "ALL OK" || { echo "ADMIN OVERVIEW TEST FAILED"; exit 1; }; echo "admin overview ok"
 node x_wc_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_wc_shot.cjs | tail -1 | grep -q "ALL OK" || { echo "WIN CHANCE PAGE TEST FAILED"; exit 1; }; echo "win chance pages ok"
 node x_rows.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_rows_check.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE ROWS TEST FAILED"; exit 1; }; echo "match centre rows ok"
 node x_applinks.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_applinks_check.cjs | tail -1 | grep -q "ALL OK" || { echo "APP LINKS TEST FAILED"; exit 1; }; echo "app links ok"

@@ -56,7 +56,7 @@ for(const k of Object.keys(store))if(k.startsWith('msg:')||k.startsWith('mrl:'))
 r=await get('/inbox');c('/inbox needs the club PIN',r.status===303||r.status===401);
 r=await get('/api/inbox');c('/api/inbox needs the club PIN',r.status===303||r.status===401);
 r=await req('/api/inbox',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:'msg:0000000000000-aaaa',act:'delete'})});c('changing the inbox needs the club PIN',r.status===401);
-r=await inbox('/inbox');t=await r.text();c('/inbox opens with the PIN, with a refresh button and filters',r.status===200&&/Inbox/.test(t)&&/Mark done/.test(t)&&/id="rf"/.test(t)&&/id="fl"/.test(t)&&/setInterval/.test(t));
+r=await inbox('/inbox');t=await r.text();c('/inbox opens with the PIN, with a refresh button and filters',r.status===200&&/Visitor messages/.test(t)&&/Mark done/.test(t)&&/id="rf"/.test(t)&&/id="fl"/.test(t)&&/setInterval/.test(t));
 // reading
 ip='3.3.3.3';await (await send(good({reason:'team',text:'Please add our U14s'}))).json();await new Promise(r=>setTimeout(r,5));ip='4.4.4.4';await (await send(good({reason:'idea',text:'Sponsor logos on the TV'}))).json();
 j=await (await inbox('/api/inbox')).json();
@@ -78,7 +78,7 @@ r=await req('/api/inbox',{method:'POST',headers:{'Content-Type':'application/jso
  for(const k of Object.keys(keep))meta[k]=keep[k];}
 // admin
 t=await (await get('/admin',ck)).text();
-c('Admin has the envelope and an Inbox link',/id="env"/.test(t)&&/href="\/inbox"/.test(t)&&/Inbox<span id="inbm"/.test(t));
+c('Admin has the envelope and an Inbox link',/id="env"/.test(t)&&/href="\/inbox"/.test(t)&&/Visitor messages<span id="inbm"/.test(t));
 c('Admin has the message form switch',/id="fm"/.test(t)&&/Message form for visitors/.test(t));
 // switch off
 r=await inbox('/api/admin',{method:'POST',body:JSON.stringify({club:{teams:[{name:'T',teamName:'T',competition:'1699',division:'75791',team:'5001',league:'L',accent:'#2f9e5b'}]},features:{contact:false}})});j=await r.json();c('switch off saves',j.ok===true);

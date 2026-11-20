@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.49.0 20-Nov-2026 Admin: menu grouped by purpose (Club set-up, Screens and notices, Monitoring, Settings and help), A to Z in each group, clearer names; Overview gains quick links, Needs attention, next game days, sponsor counts and TV rotation today.
 //   v3.48.1 20-Nov-2026 Admin, Our teams: each team shows its crest in place of the coloured initials badge (the badge stays if a crest is missing).
 //   v3.48.0 20-Nov-2026 Sponsors: new Sponsor list page (/sponsor-list) showing every sponsor with their players, filterable by team, with a CSV Export; linked from the Sponsors page.
 //   v3.47.3 20-Nov-2026 Match day: the thin line under the Substitutes heading is removed.
@@ -329,7 +330,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.48.1";
+const VERSION = "v3.49.0";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -376,6 +377,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.0_admin_menu_overview.zip | v3.48.1
 v3.48.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.1_teams_crests.zip | v3.48.0
 v3.48.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.0_sponsor_list.zip | v3.47.3
 v3.47.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.3_subs_line.zip | v3.47.2
@@ -668,6 +670,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.0 - Admin menu grouped by purpose, richer Overview
+- Owner request (20-Nov-2026): look at the order of the Admin menu, hide or group what is not needed often, name things so it is obvious what they are for, and add more to the Overview.
+- Changed: the menu is grouped by purpose, A to Z in each group. Top: Overview, Match day. Club set-up: Link builder, Our teams, Player names and sponsors, Sponsors. Screens and notices: Paired screens, Screen settings, Site notices, TV rotation. Monitoring: RFU feed log, Site status, Usage, Visitor messages. Settings and help: Club PIN and access, Data sources, Documentation, Privacy and counts, Win Predictor test (then Probe and Release notes on the test site). Nothing is hidden or removed.
+- Renamed: Messages is Site notices, Screens is Screen settings, Team links is Link builder, Inbox is Visitor messages, Feed log is RFU feed log, Access is Club PIN and access, Win Predictor check is Win Predictor test, Players is Player names and sponsors (menu, page headings and titles). Addresses are unchanged.
+- Overview: quick links (Match day, Sponsor list, Link builder); a Needs attention strip that shows only when something is off (a team with no crest, no fixtures read for a team, no sponsors added); the next game day for each team; sponsors, sponsored players and sponsors with no players; what the TV rotation shows today (pages hidden by their day selector are marked) and how many screens are paired.
+- Request limit: the Overview is opened only by you. Next game days asks the RFU fixtures list once per team, each in its own request after the page has appeared, so a slow RFU answer cannot hold the page up. Sponsors and paired screens read settings only. No change for visitors.
+- Not done: no fold. The sponsor figure is sponsors with no players (the number of players still free to sponsor needs the RFU squad lists, so it stays on the Players page).
+- Docs: Admin guide, Other addresses, What's new
 
 v3.48.1 - Our teams shows crests
 - Owner request (20-Nov-2026): use the crests on Our teams.
@@ -2558,7 +2569,7 @@ const DOCS = [
     { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
     { v: "/sponsor-list", values: "none", where: "Club PIN", what: "Sponsor list: every sponsor with the players they sponsor this season, filtered by team (all teams by default), with an Export button that downloads the list as a CSV file.", ex: [["Sponsor list", "/sponsor-list"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
-    { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
+    { v: "/inbox", values: "none", where: "Club PIN", what: "Visitor messages (the Inbox): messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
     { v: "/admin", values: "none", where: "Club PIN", what: "The admin page: homepage and TV notices, and switches for screen features. Settings are stored per club in Cloudflare KV (the SETTINGS binding).", ex: [["Admin", "/admin"]] },
     { v: "/unlock, /club-unlock", values: "pin, next", where: "PIN pages", what: "The DEV PIN page and the club PIN page. Redirects here automatically.", ex: [] }
   ] }
@@ -2682,19 +2693,30 @@ const DOC_SECTIONS = [
     { ex: [["Open the TV screen", "/tv"]] }
   ] },
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
-    { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Links, Usage, Match sheet, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
+    { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Link builder, Usage, Match day, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
-    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, TV rotation) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
+    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. It is grouped by what each item is for, and each group is in A to Z order: Overview and Match day on their own at the top, then Club set-up, Screens and notices, Monitoring, and Settings and help. Items that open a section on this page (for example Our teams) and items that open their own page (for example Sponsors) sit side by side. The Overview opens first. It has quick links to Match day, the Sponsor list and the Link builder; a Needs attention strip that appears only when something is off (a team with no crest, no fixtures read for a team, no sponsors added) beside any live notices; the status cards (maintenance mode, today's visitors and TV screens, the website back-up); the next game day for each team; this season's sponsor counts; and what the TV rotation shows today and how many screens are paired. A section can be opened directly, for example /admin#data." },
     { dl: [
-      ["Overview", "Status cards and any live notices."],
-      ["Our teams", "Your teams: friendly name, colour, league and order, used across the whole site."],
-      ["Messages", "The homepage notice and the TV screen notice."],
-      ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
-      ["Site status", "Maintenance mode and its pun lines."],
-      ["Data sources", "The England Rugby website back-up switch."],
-      ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
-      ["Access", "How long a PIN sign-in lasts."],
-      ["Tools", "Links to Team links, Usage, Players, Match day, Win Predictor check and Documentation (and Release notes and the Probe page on the test site)."]
+      ["Overview", "Quick links, anything that needs attention, status cards, the next game day for each team, sponsor counts and what the TV rotation shows today."],
+      ["Match day", "Opens the Match day page (team sheets, sponsors, opposition and scoring)."],
+      ["Club set-up: Link builder", "Opens the Link builder for team and screen links."],
+      ["Club set-up: Our teams", "Your teams: friendly name, colour, crest, league and order, used across the whole site."],
+      ["Club set-up: Player names and sponsors", "Opens the Players page: the name we use for each player and their sponsor, by team and season."],
+      ["Club set-up: Sponsors", "Opens the club's list of sponsors, and from there the Sponsor list with its export."],
+      ["Screens and notices: Paired screens", "Screens set up with the quick setup page, with Kick out."],
+      ["Screens and notices: Screen settings", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
+      ["Screens and notices: Site notices", "The homepage notice and the TV screen notice."],
+      ["Screens and notices: TV rotation", "The pages one rotating TV link plays, with the days each shows."],
+      ["Monitoring: RFU feed log", "Times the RFU feed left out a game or answered incompletely."],
+      ["Monitoring: Site status", "Maintenance mode and its pun lines."],
+      ["Monitoring: Usage", "Visitors and TV screen loads."],
+      ["Monitoring: Visitor messages", "Messages visitors have sent from the Message the Stats Board form (shows a count when one is waiting)."],
+      ["Settings and help: Club PIN and access", "How long a PIN sign-in lasts."],
+      ["Settings and help: Data sources", "The England Rugby website back-up switch."],
+      ["Settings and help: Documentation", "This page."],
+      ["Settings and help: Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
+      ["Settings and help: Win Predictor test", "Checks the Win Predictor against this season's finished games."],
+      ["On the test site only", "Probe and Release notes, at the end of Settings and help."]
     ] },
     { note: "The Save bar appears at the bottom when you have edited something, with Unsaved changes and a Discard button to go back to what is saved; it goes away again a few seconds after a successful save. Settings in every section are saved together, and the browser warns you if you try to leave with changes unsaved." },
     { h: "Our teams" },
@@ -2708,7 +2730,7 @@ const DOC_SECTIONS = [
       "A name typed into a link (friendlyName) still wins over the Admin name, so TVs and bookmarks set up earlier keep showing what they showed. A link that repeats the RFU's own name counts as having no name. Links made from the Links page and the link builder no longer carry a name, so they follow the list.",
       "Teams that are not on the list, such as opponents, keep the name the RFU gives them."
     ] },
-    { h: "Messages" },
+    { h: "Site notices" },
     { ul: [
       "Homepage notice: a block at the top of the page where visitors pick a team. Text up to 200 characters.",
       "TV screen notice: a one-line strip on TV screens (the Fixtures board, the Match Centre and other layout=tv pages). Text up to 120 characters; keep it short. The normal phone pages do not show it (the Match Centre does, because it is a screen).",
@@ -2723,7 +2745,7 @@ const DOC_SECTIONS = [
       "All sponsors and their players: on the Sponsors page, press the green All sponsors and their players button (address /sponsor-list). It lists every sponsor with the players they sponsor this season, with the team beside each player. Choose a team to see only that team's players (sponsors with no players in that team are left out). Export downloads what is on screen as a CSV file (Sponsor, Player, Team) that opens in Excel or Sheets. Under-18 teams are listed without names.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
     ] },
-    { h: "Inbox" },
+    { h: "Visitor messages" },
     { ul: [
       "Visitors can write to you from the Message the Stats Board link at the bottom of the welcome page, or the small Message us link on phone team pages. They pick what it is about (something looks wrong, my team is not showing, an idea, something else), write a message of up to 1,000 characters and can add an email address if they want a reply. The page they came from is noted automatically.",
       "When a new message is waiting, a small envelope with a count shows at the top of Admin. Pressing it opens the Inbox (also under Tools), which refreshes itself every few minutes (or press Refresh). Each message shows when it came in, the type of device and a tag for the reason; pick a message to read it like an email, and use the Fault, Team request, Idea and Other buttons above the list to show one kind at a time. Opening a message marks it read.",
@@ -2880,6 +2902,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.49.0", "Admin: the menu is grouped by purpose with clearer names (Site notices, Screen settings, Link builder, Visitor messages, RFU feed log, Club PIN and access, Win Predictor test, Player names and sponsors). The Overview adds quick links, a Needs attention strip, the next game day for each team, sponsor counts and what the TV rotation shows today."],
       ["v3.48.1", "Admin, Our teams: each team shows its crest instead of the coloured initials circle."],
       ["v3.48.0", "Sponsors page: a new All sponsors and their players button opens the Sponsor list, every sponsor with their players, filtered by team and with an Export (CSV) button."],
       ["v3.47.3", "Match day: the thin line under the Substitutes heading is gone."],
@@ -3444,18 +3467,18 @@ function feedLogPage(theme, isDev, log, hasKv) {
   const KIND = { held: "Game missing, earlier game kept", accepted: "Game still missing, new next game accepted", partial: "Incomplete answer", partialNone: "Incomplete answer, nothing earlier to keep", error: "Team would not load" };
   const when = iso => { try { return new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" }); } catch (_) { return iso; } };
   const rows = (log || []).map(x => `<tr><td class="nw">${ea(when(x.t))}</td><td>${ea(x.team)}</td><td><b>${ea(KIND[x.kind] || x.kind)}</b><br><small>${ea(x.detail)}</small></td></tr>`).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Feed log</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>RFU feed log</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:980px}.cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:14px 18px;margin:14px 0}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:8px;border-top:1px solid #26312d;vertical-align:top}th{font-size:12px;color:#91a49a;border-top:0}small{color:#91a49a}.nw{white-space:nowrap}body.light .cd{background:#fff;border-color:#cbd8ce}body.light th,body.light td{border-color:#e0e7e1}.tw{overflow-x:auto}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Feed log</h1><p class="sub">Times the RFU feed left out a game or answered incompletely while the Match Centre was loading. If a team showed the wrong next game, look for its row around that time. Newest first, last 80 kept.</p>
+<h1>RFU feed log</h1><p class="sub">Times the RFU feed left out a game or answered incompletely while the Match Centre was loading. If a team showed the wrong next game, look for its row around that time. Newest first, last 80 kept.</p>
 <div class="cd">${!hasKv ? "<p>This site has no settings store attached, so nothing is recorded.</p>" : rows ? `<div class="tw"><table><tr><th>When (UK)</th><th>Team</th><th>What happened</th></tr>${rows}</table></div>` : "<p>Nothing recorded yet. That is good news: no problems have been seen since this version went live.</p>"}</div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}</body></html>`;
 }
 function winCheckPage(theme, teams, isDev) {
   const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
   const list = JSON.stringify(teams.map(x => ({ name: x.name, team: x.team, competition: x.competition, division: x.division, teamName: x.teamName, league: x.league }))).replace(/</g, "\\u003c");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Win Predictor check</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Win Predictor test</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:980px}.cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:14px 18px;margin:14px 0}.cd h2{margin:0 0 4px;font-size:18px}.cd small{color:#91a49a}.kv{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.kv div{background:#0c1113;border:1px solid #26312d;border-radius:12px;padding:8px 12px;min-width:130px}.kv b{display:block;font-size:22px}.kv span{font-size:12px;color:#91a49a}table{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}th,td{text-align:left;padding:6px 8px;border-top:1px solid #26312d}th{font-size:12px;color:#91a49a;border-top:0}.good{color:#7fd19a}.warn{color:#f0c870}body.light .cd{background:#fff;border-color:#cbd8ce}body.light .kv div{background:#f4f8f5;border-color:#cbd8ce}body.light th,body.light td{border-color:#e0e7e1}.tw{overflow-x:auto}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1>Win Predictor check</h1><p class="sub">For every finished game this season, the Win Predictor chance is worked out using only the games played before it, then compared with what happened. Nothing here is shown to the public. Brier score: 0 is perfect and 0.25 is what saying 50/50 every time scores, so lower is better.</p>
+<h1>Win Predictor test</h1><p class="sub">For every finished game this season, the Win Predictor chance is worked out using only the games played before it, then compared with what happened. Nothing here is shown to the public. Brier score: 0 is perfect and 0.25 is what saying 50/50 every time scores, so lower is better.</p>
 <div id="all" class="cd"><h2>All club teams together</h2><div class="kv" id="tot"><div><b>Loading&hellip;</b></div></div></div><div id="out"></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
 <script>(function(){var T=${list},out=document.getElementById("out"),tot={n:0,fav:0,favN:0,br:0,mae:0},done=0;
@@ -3613,11 +3636,18 @@ ${MENU_CSS}
 .tvadd{min-height:40px;padding:0 14px;border-radius:8px;border:1px dashed #3a6a4c;background:transparent;color:#7fd89a;font:inherit;font-weight:700;cursor:pointer}
 .tvpri{min-height:40px;padding:0 16px;border-radius:8px;border:0;background:#2f9d57;color:#06140c;font:inherit;font-weight:700;cursor:pointer}
 body.light .tvl,body.light .tvg{background:#fff;border-color:#cbd8ce}body.light .tvh{background:#eaf3ed}body.light .tvr,body.light .tvad{border-color:#e0e9e2}body.light .tvb{background:#f1f6f2;color:#14301e;border-color:#b9c9bd}body.light .tvb2{background:#e3f0e7;border:1px solid #cbd8ce}body.light .tvnote,body.light .tvh .tn small{color:#53665a}
+.ovq{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 0}.ovq a{flex:1;min-width:120px;text-align:center;text-decoration:none;padding:12px;border-radius:12px;font-weight:700;font-size:14px;background:#2f9d57;color:#fff}.ovq a.s{background:#18211e;border:1px solid #2c3a34;color:#e6efe9}
+.ovc{background:#111719;border:1px solid #26312d;border-radius:14px;padding:14px 16px;margin-top:14px}.ovc h2{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#91a49a;display:flex;justify-content:space-between;gap:8px}.ovc h2 a{color:#7fdc9a;text-transform:none;letter-spacing:0;font-size:13px;text-decoration:none}
+.ovtw{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ovtw .ovc{min-width:0}
+.gm{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #243a2e}.gm:first-child{border-top:0}.gm>div{flex:1;min-width:0}.gm b{display:block;font-size:14.5px;overflow-wrap:anywhere}.gm small{color:#91a49a;font-size:12.5px}.gm em{font-style:normal;font-size:12px;color:#7fdc9a;font-weight:700;flex:none}
+.ovcr{width:32px;height:32px;object-fit:contain;flex:none}.ovin{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;color:#0b1110;flex:none}
+.ovst{display:flex;gap:8px;margin:2px 0 6px}.ovst div{flex:1;min-width:0;background:#0c1113;border:1px solid #26312d;border-radius:12px;padding:8px 10px}.ovst b{display:block;font-size:20px}.ovst span{font-size:12px;color:#91a49a}
+.ovr{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #243a2e;font-size:14px}.ovr:first-child{border-top:0}.ovr small{color:#91a49a;text-align:right}
 .warn{margin:14px 0 0;background:#3a2f12;color:#f0c870;border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.5}
 
 .sbar:not(.show){display:none}.sbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0c1113;border-top:1px solid #26312d;padding:12px max(16px,calc((100vw - 1040px)/2 + 246px)) calc(12px + env(safe-area-inset-bottom)) ;}
 .sbar .dirty{color:#f0c870;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}.sbar .dirty::before{content:"";width:10px;height:10px;border-radius:50%;background:#f0c870}.sbar .n{flex:1;min-width:140px}.sbb{display:flex;gap:10px}
-@media (max-width:820px){.adw{grid-template-columns:1fr;gap:0}.adn{position:static;flex-direction:row;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px;border-radius:14px;margin-bottom:14px}.adn::-webkit-scrollbar{display:none}.adn .adh{display:none}.adn a{flex:none;white-space:nowrap;padding:10px 14px!important;border-radius:999px}.adn .adt{flex:none;padding:0 4px;margin:0;border:0}.ov{grid-template-columns:repeat(2,minmax(0,1fr))}.sbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}}
+@media (max-width:820px){.adw{grid-template-columns:1fr;gap:0}.adn{position:static;flex-direction:row;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px;border-radius:14px;margin-bottom:14px}.adn::-webkit-scrollbar{display:none}.adn .adh{display:none}.adn a{flex:none;white-space:nowrap;padding:10px 14px!important;border-radius:999px}.adn .adt{flex:none;padding:0 4px;margin:0;border:0}.ov{grid-template-columns:repeat(2,minmax(0,1fr))}.ovtw{grid-template-columns:1fr}.sbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}}
 body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cbd8ce}body.light .adn a{color:#24332b}body.light .adn a.on{background:#e3f0e7;color:#0b1110}body.light .sbar{background:#f4f8f5;border-color:#cbd8ce}body.light .warn{background:#fff1cf;color:#5a3a00}
 .cs{display:flex;justify-content:space-between;align-items:center;margin:14px 0 0;background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 16px}.cs b{font-size:16px}.cs small{color:#91a49a;font-size:12.5px;display:block}
 .ad h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:26px 0 8px}
@@ -3640,8 +3670,32 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/matchday">Match day</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a>
+<a href="/matchday">Match day</a>
+<div class="adt">Club set-up</div>
+<a href="/?view=teams">Link builder</a>
+<a href="#teams" data-s="teams">Our teams</a>
+<a href="/sponsor-players">Player names and sponsors</a>
+<a href="/sponsors">Sponsors</a>
+<div class="adt">Screens and notices</div>
+<a href="#paired" data-s="paired">Paired screens</a>
+<a href="#screens" data-s="screens">Screen settings</a>
+<a href="#notices" data-s="notices">Site notices</a>
+<a href="#tv" data-s="tv">TV rotation</a>
+<div class="adt">Monitoring</div>
+<a href="/feedlog">RFU feed log</a>
+<a href="#status" data-s="status">Site status</a>
+<a href="/usage">Usage</a>
+<a href="/inbox">Visitor messages<span id="inbm" style="color:#7fd89a"></span></a>
+<div class="adt">Settings and help</div>
+<a href="#access" data-s="access">Club PIN and access</a>
+<a href="#data" data-s="data">Data sources</a>
+<a href="/docs">Documentation</a>
+<a href="#privacy" data-s="privacy">Privacy and counts</a>
+<a href="/winchance">Win Predictor test</a>${isDev ? '\n<a href="/probe">Probe (DEV)</a>' : ""}${isDev ? '\n<a href="/release-notes">Release notes</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
+<div class="ovq"><a href="/matchday">Match day</a><a class="s" href="/sponsor-list">Sponsor list</a><a class="s" href="/?view=teams">Link builder</a></div>
+<div id="ovn"></div>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
 <div class="oc"><small>Visitors today</small><b id="ovp">&ndash;</b><span>People across web and TV</span></div>
@@ -3649,6 +3703,9 @@ ${setup}
 <div class="oc"><small>Website back-up</small><b class="${s.features.webfallback === false ? "bad" : "good"}">${s.features.webfallback === false ? "Off" : "On"}</b><span>${s.features.webfallback === false ? "RFU data service only" : "Used if the data service has nothing"}</span></div>
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
+<div class="ovc"><h2>Next game days <a href="/matchday">Open Match day &rsaquo;</a></h2><div id="ovg"></div></div>
+<div class="ovtw"><div class="ovc"><h2>Sponsors this season <a href="/sponsor-list">Sponsor list &rsaquo;</a></h2><div id="ovsp"><p class="n">Loading...</p></div></div>
+<div class="ovc"><h2><span id="ovtt">TV rotation today</span> <a href="#tv">Change &rsaquo;</a></h2><div id="ovtv"></div></div></div>
 </section>
 <section class="sec" id="s-teams" hidden><h1>Our teams</h1><p class="sub">The names, colours and order used across the whole site: the Links page, Match Centre, phone team bar, TV banners and page titles. Change a name here and it changes everywhere once you press Save. Up to six teams.</p>
 <div class="cd" id="tml"></div>
@@ -3657,7 +3714,7 @@ ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: 
 <p class="n" id="tm1" style="margin:8px 0 0"></p><div class="tsr" id="tr"></div><div class="tsr" id="tp"></div></div></div>
 <p class="n" style="margin:10px 2px 0">A name typed into a link (<b>friendlyName=</b>) still wins over the name here, so links you shared earlier keep showing what they showed. Links made from the Links page and the link builder no longer carry a name, so they follow this list. Teams that are not on this list, such as opponents, keep the name the RFU gives them.</p>
 </section>
-<section class="sec" id="s-notices" hidden><h1>Messages</h1><p class="sub">Notices shown to visitors and on the clubhouse TVs.</p>
+<section class="sec" id="s-notices" hidden><h1>Site notices</h1><p class="sub">Notices shown to visitors and on the clubhouse TVs.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Homepage notice</b><small>Shown at the top of the page where visitors pick a team. Everyone sees it.</small></div><label class="tg"><input type="checkbox" id="hon"${h.on ? " checked" : ""}><span></span></label></div>
 <input class="in" id="ht" maxlength="200" autocomplete="off" placeholder="e.g. The RFU feed is having problems today, so some results may be late." value="${ea(h.text)}"><div class="cnt" id="hc"></div>
@@ -3673,7 +3730,7 @@ ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: 
 ${sw("fm", s.features.contact, "Message form for visitors", "Adds a Message the Stats Board link on the welcome page and a small Message us link on phone team pages. Visitors write to you, and you read the messages in the <a href=\"/inbox\" style=\"color:#7fd89a\">Inbox</a>. Messages are deleted after 90 days unless you press Keep. Turn this off to stop taking messages.")}
 </div>
 </section>
-<section class="sec" id="s-screens" hidden><h1>Screens</h1><p class="sub">What appears on the clubhouse TVs and the Match Centre. Phones are not affected.</p>
+<section class="sec" id="s-screens" hidden><h1>Screen settings</h1><p class="sub">What appears on the clubhouse TVs and the Match Centre. Phones are not affected.</p>
 <div class="cd">
 ${sw("fa", s.features.around, "&ldquo;Around the league today&rdquo; strip", "Other results in the same division on match days (Fixtures TV board).")}
 ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the next game, home or away (Fixtures TV board).")}
@@ -3719,7 +3776,7 @@ ${sw("fs", s.features.screens, "Count clubhouse screen loads", "Adds each TV scr
 <div class="nb"><div class="nh"><div><b>Default period on the Usage page</b><small>The range shown first. It can still be changed on the page. <a href="/usage" style="color:#7fd89a">See the usage report</a>.</small></div></div>${seg("rd", String(s.reporting.days), [["7", "7 days"], ["14", "14 days"], ["30", "30 days"], ["90", "90 days"]])}</div>
 </div>
 </section>
-<section class="sec" id="s-access" hidden><h1>Access</h1><p class="sub">Who can see the club pages.</p>
+<section class="sec" id="s-access" hidden><h1>Club PIN and access</h1><p class="sub">Who can see the club pages: the club PIN and how long a sign-in lasts.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>How long a PIN sign-in lasts</b><small>After this many days a device is asked for the club PIN again. Devices already signed in keep the length they were given; changing the PIN signs everyone out at once. Anyone can also use Sign out (bottom of the Links, Documentation and Admin pages).</small></div></div>${seg("sd", String(s.signin.days), [["1", "1 day"], ["7", "7 days"], ["14", "14 days"], ["30", "30 days"]])}</div>
 </div>
@@ -3833,6 +3890,23 @@ var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add
 $("af").addEventListener("input",md);$("af").addEventListener("change",md);$("dis").addEventListener("click",function(){dirty=false;location.reload()});
 addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue=""}});
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
+function ovE(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var OVN={};function ovNeed(k,t){OVN[k]=t;var a=[];for(var x in OVN)if(OVN[x])a.push(OVN[x]);$("ovn").innerHTML=a.length?'<div class="warn"><b>Needs attention:</b> '+a.map(ovE).join(" &middot; ")+"</div>":""}
+function ovGames(){var el=$("ovg"),ts=club.filter(function(t){return!t.hidden&&/^[0-9]+$/.test(String(t.team))});if(!ts.length){el.innerHTML='<p class="n">No teams are shown yet.</p>';return}
+el.innerHTML=ts.map(function(t){return'<div class="gm" id="gm'+ovE(t.team)+'"><span class="ovin" id="ovc'+ovE(t.team)+'" style="background:'+ovE(t.accent)+'">'+ovE(ini(t.name))+'</span><div><b>'+ovE(t.name)+'</b><small>Looking up...</small></div></div>'}).join("");
+ts.forEach(function(t){var id=String(t.team),im=new Image();im.className="ovcr";im.alt="";im.onload=function(){var c=$("ovc"+id);if(c&&c.parentNode)c.parentNode.replaceChild(im,c)};im.onerror=function(){ovNeed("c"+id,t.name+" has no crest")};im.src="/api/crest?id="+encodeURIComponent(id);
+fetch("/api/matchday",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({team:id})}).then(function(r){return r.json()}).then(function(j){var row=$("gm"+id);if(!row)return;var d=row.querySelector("div");
+if(!j||!j.ok||!j.read){ovNeed("g"+id,"The RFU fixtures list gave no games for "+t.name);d.innerHTML="<b>"+ovE(t.name)+"</b><small>No fixtures could be read.</small>";return}
+var g=null;(j.days||[]).forEach(function(x){if(!g&&x.d>=j.today)g=x});
+if(!g){d.innerHTML="<b>"+ovE(t.name)+"</b><small>No game found in the fixtures list.</small>";return}
+var n=Math.round((Date.parse(g.d)-Date.parse(j.today))/864e5),lab=n===0?"Today":n===1?"Tomorrow":"in "+n+" days",ds=new Date(g.d+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"});
+d.innerHTML="<b>"+ovE(t.name)+(g.home?" v ":" at ")+ovE(g.opp)+"</b><small>"+ovE(ds)+(g.time?" &middot; KO "+ovE(g.time):"")+(g.comp?" &middot; "+ovE(g.comp):"")+"</small>";var em=document.createElement("em");em.textContent=lab;row.appendChild(em)}).catch(function(){var row=$("gm"+id);if(row)row.querySelector("small").textContent="Could not look this up just now."})})}
+function ovSp(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var el=$("ovsp");if(!j||!j.ok){el.innerHTML='<p class="n">Could not read the sponsors.</p>';return}var it=j.items||[],u=j.use||{},pl=0,none=0;it.forEach(function(x){if(u[x.id])pl+=u[x.id];else none++});
+el.innerHTML='<div class="ovst"><div><b>'+it.length+"</b><span>Sponsors</span></div><div><b>"+pl+"</b><span>Sponsored players</span></div><div><b>"+none+"</b><span>With no players</span></div></div>";if(!it.length)ovNeed("s","No sponsors have been added yet")}).catch(function(){$("ovsp").innerHTML='<p class="n">Could not read the sponsors.</p>'})}
+function ovTv(){var h="",n=0,more=0;$("ovtt").textContent="TV rotation today ("+TVDN[TVI.today-1]+")";TVI.groups.forEach(function(g){if(g.hidden||!g.on)return;g.items.forEach(function(it){if(it.on===false)return;n++;if(n>8){more++;return}var due=tvDue(it);h+='<div class="ovr"><span>'+ovE(TVI.pages[it.page]||it.page)+(g.key==="all"?"":" &middot; "+ovE(g.short||g.name))+"</span><small>"+(due?ovE(tvDaysLabel(it)):"Not shown today ("+ovE(tvDaysLabel(it))+")")+"</small></div>"})});
+if(more)h+='<p class="n" style="margin:6px 0 0">and '+more+" more</p>";$("ovtv").innerHTML=(h||'<p class="n">Nothing is set up in TV rotation yet.</p>')+'<p class="n" id="ovpr" style="margin:8px 0 0"></p>';
+fetch("/api/screens",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var a=(j&&j.screens)||[];$("ovpr").textContent=a.length+(a.length===1?" screen":" screens")+" paired"}).catch(function(){})}
+try{ovGames();ovSp();ovTv()}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
 var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club},tv:tvOut()};
@@ -4599,10 +4673,10 @@ async function sponsorPlayersApi(request, url, worker) {
 }
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Players</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Player names and sponsors</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.sum{display:flex;gap:8px;margin:10px 0 0}.sum div{flex:1;min-width:0;background:#111719;border:1px solid #26312d;border-radius:12px;padding:8px 10px}.sum b{display:block;font-size:22px;line-height:1.15;color:#7fd89a}.sum span{display:block;font-size:12px;color:#91a49a;line-height:1.3}body.light .sum div{background:#fff;border-color:#c9dccd}body.light .sum b{color:#1f7a42}body.light .sum span{color:#4d6656}.xw{position:relative;flex:1;min-width:150px;display:block}.xw .in2{width:100%;box-sizing:border-box;padding-right:42px}.xb{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:#91a49a;font:24px/1 Arial,Helvetica,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center}.xb[hidden]{display:none}.xb:hover{color:#f2f6f4;background:#26312d}body.light .xb:hover{color:#14301e;background:#e3ece5}.tb{display:flex;gap:8px;margin:12px 0 0}.tb a{flex:1;min-width:0;display:block;text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.tb a b{display:block;font-size:15px;color:#7fd89a}.tb a span{display:block;font-size:12px;line-height:1.35;color:#91a49a;margin-top:2px}.tb a.on{background:#2f9d57;border-color:#2f9d57}.tb a.on b,.tb a.on span{color:#fff}body.light .tb a{background:#fff;border-color:#c9dccd;color:#14301e}body.light .tb a b{color:#1f7a42}body.light .tb a span{color:#4d6656}body.light .tb a.on{background:#2f9d57;border-color:#2f9d57}body.light .tb a.on b,body.light .tb a.on span{color:#fff}.li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #243a2e}.lm{min-width:0;flex:1}.ln{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:2px}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.msg2:empty{display:none}.gl{font-size:12px;color:#91a49a;margin:6px 0 0;line-height:1.5}.gl summary{cursor:pointer;color:#7fd89a;font-weight:700}.li:last-child{border-bottom:0}.li.av{background:#2a2117}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.sp{font-size:13px;font-weight:700;color:#7fdc9a}.sp.av{color:#f2b866}.sp.nc{color:#91a49a;font-weight:400}.tk{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:6px;min-height:32px;cursor:pointer}.tk input{width:20px;height:20px;margin:0}body.light .tk{color:#14301e}.ac2{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.ed{padding:12px 4px;border-bottom:1px solid #243a2e;display:flex;flex-direction:column;gap:10px}.ed label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;display:block;margin-bottom:4px}.ed small{color:#91a49a;font-size:12px;line-height:1.4}.ed select.in2{width:100%}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2,body.light .fc{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li.av{background:#fff4dc}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<h1 id="h1">Players</h1><div class="tb"><a href="/sponsors"><b>1. Sponsors</b><span>Add and edit the club's sponsors</span></a><a href="#list" class="on" id="t2"><b>2. Players</b><span>Give a player a sponsor</span></a><a href="#setup" id="t3"><b>3. Season set-up</b><span>Once a season</span></a></div>
+<h1 id="h1">Player names and sponsors</h1><div class="tb"><a href="/sponsors"><b>1. Sponsors</b><span>Add and edit the club's sponsors</span></a><a href="#list" class="on" id="t2"><b>2. Players</b><span>Give a player a sponsor</span></a><a href="#setup" id="t3"><b>3. Season set-up</b><span>Once a season</span></a></div>
 <p class="sub" style="margin:10px 0 0">${hasKv ? "One sponsor per player. Sponsors belong to the season shown and do not carry into the next one by themselves." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="cd2"><div class="rw2"><select class="in2" id="tm" aria-label="Team"></select><select class="in2" id="se" aria-label="Season"></select></div></div>
 <div class="msg2" id="ms" role="status"></div>
@@ -4646,7 +4720,7 @@ function scan(off,mk,ad,ms,ot){scanning=true;$("scb").disabled=true;post({act:"s
 $("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");gl=[];scan(0,0,0,0,0)};
 var rsArm=false;$("rsb").onclick=function(){if(scanning)return;if(!rsArm){rsArm=true;$("rsb").textContent="Yes, clear ticks";return}rsArm=false;$("rsb").textContent="Clear ticks";post({act:"reset",team:D.team,season:D.season},function(j){gl=[];showGames();pend="Cleared "+j.copied+" player"+(j.copied===1?"":"s")+" from this list. Players with a sponsor, own name or other number are kept and still count as current.";load(D.team,D.season)})};
 function SU(){return location.hash==="#setup"}
-function view(){var su=SU();$("lc").hidden=su;$("sm").hidden=su;$("h1").textContent=su?"Season set-up":"Players";$("t2").className=su?"":"on";$("t3").className=su?"on":"";if(D)draw()}
+function view(){var su=SU();$("lc").hidden=su;$("sm").hidden=su;$("h1").textContent=su?"Season set-up":"Player names and sponsors";$("t2").className=su?"":"on";$("t3").className=su?"on":"";if(D)draw()}
 window.addEventListener("hashchange",view);view();
 load("","");
 })();</script></body></html>`;
@@ -4654,9 +4728,9 @@ load("","");
 function inboxPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   const tags = JSON.stringify(MSG_TAGS);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Inbox</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Visitor messages</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:1080px}.top2{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}.top2 h1{margin:0}.rf{display:flex;align-items:center;gap:10px}.rf small{color:#91a49a;font-size:12.5px}.rb{font:700 14px Arial,Helvetica,sans-serif;border-radius:99px;padding:9px 16px;min-height:40px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.flt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 14px}.fc{font:700 13px Arial,Helvetica,sans-serif;border-radius:99px;padding:8px 13px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.fc.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.fc i{font-style:normal;opacity:.75;margin-left:4px}.hd2{display:flex;align-items:center;gap:6px;font-size:13px;color:#91a49a;margin-left:auto}.ib{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:16px;align-items:start}.lst{display:flex;flex-direction:column;gap:8px}.it{text-align:left;display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-radius:12px;border:1px solid #26312d;background:#111719;color:#e6efe9;cursor:pointer;font:inherit;position:relative}.it.on{border-color:#2f9d57;background:#15201b}.it.dn{opacity:.6}.it .a{display:flex;justify-content:space-between;align-items:center;gap:8px}.it .w{font-size:12.5px;color:#91a49a}.it .s{font-size:15px;line-height:1.4;overflow-wrap:anywhere}.it .dv{font-size:12px;color:#7f948a}.it.nw .s{font-weight:700}.it.nw::before{content:"";position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:#7fd89a}.it.rd .s{color:#a9bbb1}.tg2{display:inline-block;font:700 11px Arial,Helvetica,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:3px 8px;white-space:nowrap}.tg-data{background:#3a1f22;color:#ff9b9b}.tg-team{background:#16283a;color:#8fc4ff}.tg-idea{background:#15301f;color:#7fe0a6}.tg-other{background:#2a2a2a;color:#cfd8d3}.mail{background:#111719;border:1px solid #26312d;border-radius:16px;overflow:hidden;min-width:0}.mt{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #26312d;background:#0f1517}.mt button,.mt a{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:9px 14px;min-height:40px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9;text-decoration:none;display:inline-flex;align-items:center}.mt .pr{background:#7fd19a;color:#0b1110;border-color:#7fd19a}.mt .dg{color:#f09595;border-color:#5a2f2f;margin-left:auto}.mh{padding:18px 20px 12px;display:flex;flex-direction:column;gap:12px}.sj{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}.sj h2{margin:0;font-size:21px;line-height:1.3;flex:1;min-width:0;overflow-wrap:anywhere}.mr{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:14px;color:#91a49a}.mr b{color:#a9bbb1;font-weight:700}.mr span{color:#dbe6df;overflow-wrap:anywhere}.bd{padding:6px 20px 24px;border-top:1px solid #26312d;margin-top:6px}.bd .tx{padding-top:18px;font-size:17px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.ft{padding:12px 20px;border-top:1px solid #26312d;font-size:13px;color:#91a49a}.em{color:#91a49a;padding:24px 8px;font-size:15px}.msg{color:#f09595;font-size:14px;padding:0 20px 8px;min-height:18px}.bk{display:none;font:700 14px Arial,Helvetica,sans-serif;background:none;border:0;color:#7fd89a;padding:10px 16px 0;cursor:pointer}@media (max-width:760px){.ib{grid-template-columns:1fr}.ib.sel .lst{display:none}.ib:not(.sel) .mail{display:none}.bk{display:block}.mt .dg{margin-left:0}.hd2{margin-left:0}}body.light .it,body.light .mail,body.light .fc{background:#fff;border-color:#cbd8ce;color:#14201a}body.light .it.on{background:#eef6f0}body.light .mt{background:#f4f8f5;border-color:#e0e7e1}body.light .mt button,body.light .mt a,body.light .rb{background:#f4f8f5;color:#14201a;border-color:#cbd8ce}body.light .mt .pr{background:#1b7f3b;color:#fff;border-color:#1b7f3b}body.light .fc.on{background:#1b7f3b;color:#fff;border-color:#1b7f3b}body.light .mr span{color:#1b2a22}body.light .bd,body.light .ft{border-color:#e0e7e1}body.light .tg-data{background:#fde4e4;color:#a02020}body.light .tg-team{background:#e1eefc;color:#1d5a9a}body.light .tg-idea{background:#dff3e5;color:#1b6b3a}body.light .tg-other{background:#ebedeb;color:#3a4a42}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
-<div class="top2"><div><h1>Inbox</h1><p class="sub" id="sub" style="margin:4px 0 0">${hasKv ? "Messages from visitors, newest first." : "No settings storage is connected, so there are no messages."}</p></div><div class="rf"><small id="upd"></small><button type="button" class="rb" id="rf">Refresh</button></div></div>
+<div class="top2"><div><h1>Visitor messages</h1><p class="sub" id="sub" style="margin:4px 0 0">${hasKv ? "Messages from visitors, newest first." : "No settings storage is connected, so there are no messages."}</p></div><div class="rf"><small id="upd"></small><button type="button" class="rb" id="rf">Refresh</button></div></div>
 <div class="flt" id="fl"></div>
 <div class="ib" id="ib"><div class="lst" id="ls"></div><div class="mail" id="dt"><div class="em">Choose a message to read it.</div></div></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
