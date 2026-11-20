@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.49.1 20-Nov-2026 Admin Overview: the TV rotation card is one line per team (pages showing today) instead of a long list of every page.
 //   v3.49.0 20-Nov-2026 Admin: menu grouped by purpose (Club set-up, Screens and notices, Monitoring, Settings and help), A to Z in each group, clearer names; Overview gains quick links, Needs attention, next game days, sponsor counts and TV rotation today.
 //   v3.48.1 20-Nov-2026 Admin, Our teams: each team shows its crest in place of the coloured initials badge (the badge stays if a crest is missing).
 //   v3.48.0 20-Nov-2026 Sponsors: new Sponsor list page (/sponsor-list) showing every sponsor with their players, filterable by team, with a CSV Export; linked from the Sponsors page.
@@ -330,7 +331,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.49.0";
+const VERSION = "v3.49.1";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -377,6 +378,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.1_overview_tv.zip | v3.49.0
 v3.49.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.0_admin_menu_overview.zip | v3.48.1
 v3.48.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.1_teams_crests.zip | v3.48.0
 v3.48.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.0_sponsor_list.zip | v3.47.3
@@ -670,6 +672,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.1 - Overview: shorter TV rotation card
+- Owner report (20-Nov-2026): the TV rotation card listed every page, all "Every day", which was not useful.
+- Changed: one line per team (and the Match Centre) with how many of its pages show today, for example "4 pages" or "3 of 4 pages". A page is only named when its days stop it showing today ("Not today: Next game (Sat, Sun)"). The card ends with "N of M pages showing today" and the paired-screen count.
+- Request limit: none; display only.
+- Docs: What's new
 
 v3.49.0 - Admin menu grouped by purpose, richer Overview
 - Owner request (20-Nov-2026): look at the order of the Admin menu, hide or group what is not needed often, name things so it is obvious what they are for, and add more to the Overview.
@@ -2902,6 +2910,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.49.1", "Admin Overview: the TV rotation card now shows one line per team with how many of its pages show today, and only names a page when its days stop it showing."],
       ["v3.49.0", "Admin: the menu is grouped by purpose with clearer names (Site notices, Screen settings, Link builder, Visitor messages, RFU feed log, Club PIN and access, Win Predictor test, Player names and sponsors). The Overview adds quick links, a Needs attention strip, the next game day for each team, sponsor counts and what the TV rotation shows today."],
       ["v3.48.1", "Admin, Our teams: each team shows its crest instead of the coloured initials circle."],
       ["v3.48.0", "Sponsors page: a new All sponsors and their players button opens the Sponsor list, every sponsor with their players, filtered by team and with an Export (CSV) button."],
@@ -3903,9 +3912,10 @@ var n=Math.round((Date.parse(g.d)-Date.parse(j.today))/864e5),lab=n===0?"Today":
 d.innerHTML="<b>"+ovE(t.name)+(g.home?" v ":" at ")+ovE(g.opp)+"</b><small>"+ovE(ds)+(g.time?" &middot; KO "+ovE(g.time):"")+(g.comp?" &middot; "+ovE(g.comp):"")+"</small>";var em=document.createElement("em");em.textContent=lab;row.appendChild(em)}).catch(function(){var row=$("gm"+id);if(row)row.querySelector("small").textContent="Could not look this up just now."})})}
 function ovSp(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var el=$("ovsp");if(!j||!j.ok){el.innerHTML='<p class="n">Could not read the sponsors.</p>';return}var it=j.items||[],u=j.use||{},pl=0,none=0;it.forEach(function(x){if(u[x.id])pl+=u[x.id];else none++});
 el.innerHTML='<div class="ovst"><div><b>'+it.length+"</b><span>Sponsors</span></div><div><b>"+pl+"</b><span>Sponsored players</span></div><div><b>"+none+"</b><span>With no players</span></div></div>";if(!it.length)ovNeed("s","No sponsors have been added yet")}).catch(function(){$("ovsp").innerHTML='<p class="n">Could not read the sponsors.</p>'})}
-function ovTv(){var h="",n=0,more=0;$("ovtt").textContent="TV rotation today ("+TVDN[TVI.today-1]+")";TVI.groups.forEach(function(g){if(g.hidden||!g.on)return;g.items.forEach(function(it){if(it.on===false)return;n++;if(n>8){more++;return}var due=tvDue(it);h+='<div class="ovr"><span>'+ovE(TVI.pages[it.page]||it.page)+(g.key==="all"?"":" &middot; "+ovE(g.short||g.name))+"</span><small>"+(due?ovE(tvDaysLabel(it)):"Not shown today ("+ovE(tvDaysLabel(it))+")")+"</small></div>"})});
-if(more)h+='<p class="n" style="margin:6px 0 0">and '+more+" more</p>";$("ovtv").innerHTML=(h||'<p class="n">Nothing is set up in TV rotation yet.</p>')+'<p class="n" id="ovpr" style="margin:8px 0 0"></p>';
-fetch("/api/screens",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var a=(j&&j.screens)||[];$("ovpr").textContent=a.length+(a.length===1?" screen":" screens")+" paired"}).catch(function(){})}
+function ovTv(){var h="",tot=0,due=0;$("ovtt").textContent="TV rotation today ("+TVDN[TVI.today-1]+")";TVI.groups.forEach(function(g){if(g.hidden||!g.on)return;var its=g.items.filter(function(it){return it.on!==false});if(!its.length)return;var d=its.filter(tvDue),off=its.filter(function(it){return!tvDue(it)});tot+=its.length;due+=d.length;
+var nm=g.key==="all"?"Match Centre":g.name;h+='<div class="ovr"><span>'+ovE(nm)+(off.length?'<br><small style="text-align:left;display:block">Not today: '+off.map(function(it){return ovE((TVI.pages[it.page]||it.page)+" ("+tvDaysLabel(it)+")")}).join(", ")+"</small>":"")+"</span><small>"+(its.length===1?(d.length?"On":"Not today"):d.length===its.length?its.length+" pages":d.length+" of "+its.length+" pages")+"</small></div>"});
+$("ovtv").innerHTML=(h||'<p class="n">Nothing is set up in TV rotation yet.</p>')+'<p class="n" id="ovpr" style="margin:8px 0 0">'+(tot?due+" of "+tot+" pages showing today":"")+"</p>";
+fetch("/api/screens",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var a=(j&&j.screens)||[],e=$("ovpr");e.textContent=(e.textContent?e.textContent+" · ":"")+a.length+(a.length===1?" screen":" screens")+" paired"}).catch(function(){})}
 try{ovGames();ovSp();ovTv()}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});

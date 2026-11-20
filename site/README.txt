@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.1_overview_tv.zip | v3.49.0
 v3.49.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.0_admin_menu_overview.zip | v3.48.1
 v3.48.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.1_teams_crests.zip | v3.48.0
 v3.48.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.0_sponsor_list.zip | v3.47.3
@@ -334,6 +335,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.1 - Overview: shorter TV rotation card
+- Owner report (20-Nov-2026): the TV rotation card listed every page, all "Every day", which was not useful.
+- Changed: one line per team (and the Match Centre) with how many of its pages show today, for example "4 pages" or "3 of 4 pages". A page is only named when its days stop it showing today ("Not today: Next game (Sat, Sun)"). The card ends with "N of M pages showing today" and the paired-screen count.
+- Request limit: none; display only.
+- Docs: What's new
 
 v3.49.0 - Admin menu grouped by purpose, richer Overview
 - Owner request (20-Nov-2026): look at the order of the Admin menu, hide or group what is not needed often, name things so it is obvious what they are for, and add more to the Overview.

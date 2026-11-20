@@ -1,5 +1,6 @@
 const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();let bad=0;const c=(n,x,d)=>{console.log((x?'ok  ':'FAIL')+' '+n+(x?'':' '+(d||'')));if(!x)bad++};
-const html=require('fs').readFileSync(__dirname+'/x_admin.html','utf8');
+let html=require('fs').readFileSync(__dirname+'/x_admin.html','utf8');
+{const m=html.match(/var TVI=(\{.*?\});\n/);const o=JSON.parse(m[1]);o.today=5;o.groups=[{key:'all',name:'Match Centre',short:'',on:true,hidden:false,items:[{page:'centre',secs:20,on:true}]},{key:'11039',name:'Ivybridge 1XV',short:'IVY',on:true,hidden:false,items:['fixtures','match','table','leaders'].map(p=>p==='match'?{page:p,secs:20,on:true,d:[6,7]}:{page:p,secs:20,on:true})},{key:'22',name:'The Vandals',short:'THE',on:true,hidden:false,items:['fixtures','table'].map(p=>({page:p,secs:20,on:true}))}];html=html.replace(m[1],()=>JSON.stringify(o))}
 const p=await b.newPage({viewport:{width:1280,height:1000}});const errs=[];p.on('pageerror',e=>errs.push(String(e)));const posts=[];
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==','base64');
 await p.route('https://thestatsboard.co.uk/**',r=>{const u=new URL(r.request().url());
@@ -22,7 +23,7 @@ c('a team with no fixtures is flagged',/Needs attention/.test(t)&&/gave no games
 c('a team with no crest is flagged and one with a crest is not',/has no crest/.test(t),t);
 c('one request per team, none with a day',posts.length>=1&&posts.every(o=>o.team&&!o.day),JSON.stringify(posts));
 c('sponsor counts',/3\s*Sponsors/.test(t)&&/6\s*Sponsored players/.test(t)&&/1\s*With no players/.test(t),t);
-c('tv rotation card and paired count',/TV rotation today/i.test(t)&&/2 screens paired/.test(t),t);
+c('tv rotation card is one line per team, names only the page hidden today, and counts paired screens',/TV rotation today \(Fri\)/i.test(t)&&/Ivybridge 1XV/.test(t)&&/3 of 4 pages/.test(t)&&/Not today: Next game \(Weekends\)/.test(t)&&/The Vandals/.test(t)&&/6 of 7 pages showing today/.test(t)&&/2 screens paired/.test(t)&&!/League Leaders/.test(t),t);
 c('a crest replaces the initials for 11039',await p.$$eval('#ovg .ovcr',a=>a.length)>=1);
 c('no script errors',errs.length===0,errs.join('|'));
 await p.setViewportSize({width:390,height:800});await p.waitForTimeout(200);
