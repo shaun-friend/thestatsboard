@@ -20,7 +20,7 @@ ck('opens on the next game day with arrows, and says there is no game today',/Sa
 ck('defaults to the earliest day and reads one team per request',posts.filter(o=>o.day==='2026-11-21').length>=1&&posts.every(o=>o.team&&!o.id),JSON.stringify(posts.slice(0,3)));
 ck('shows the opposition and kick-off',/Ivybridge 1XV v Exeter Saracens/.test(x)&&/KO 14:30/.test(x),x);
 ck('sponsor, available, redacted and new show',/Vets4Pets/.test(x)&&/Available to sponsor/.test(x)&&/Name redacted/.test(x)&&/New/.test(x)&&/Bobby/.test(x)&&!/Bobby \*/.test(x)&&/\(C\)/.test(x)&&/\(VC\)/.test(x)&&!/Vice captain/.test(x),x);
-ck('substitutes are separated by a line, one row each',(await p.$$('.pr.sb')).length===1&&(await p.$$eval('.pr',els=>els.every(e=>e.getBoundingClientRect().height<60))),'sb');
+ck('substitutes are separated by a line, one row each',(await p.$$('.sh')).length===1&&(await p.$$eval('.pr',els=>els.every(e=>e.getBoundingClientRect().height<60))),'sb');
 ck('under 18 shows no name or sponsor text for that row',!/under 18/i.test(x)||true);
 ck('another team without a sheet says so',/No sheet available on GMS/.test(x),x);
 ck('back is off on the first game day and forward is on',await p.locator('#pv').isDisabled()&&!(await p.locator('#nx').isDisabled()));
