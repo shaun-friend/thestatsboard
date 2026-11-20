@@ -42,6 +42,7 @@ c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible(
  await p.route('https://thestatsboard.co.uk/api/builder/search**',r=>r.fulfill({json:{teams:[{id:'555',name:'Plymouth Albion'},{id:'11039',name:'Ivybridge'},{id:'777',name:'Solo 777'},{id:'778',name:'Solo 778'}]}}));
  await p.route('https://thestatsboard.co.uk/api/builder/team**',r=>{if(/team=777|team=778/.test(r.request().url())){const id=/team=778/.test(r.request().url())?'778':'777';return r.fulfill({json:{team:id,name:'Solo '+id,leagues:[{competition:'1900',competitionName:'Only League',division:'90',divisionName:'Only Division'}]}})}return r.fulfill({json:{team:'555',name:'Plymouth Albion',leagues:[{competition:'1700',competitionName:'Regional 1',division:'80',divisionName:'Regional 1 South West'},{competition:'1800',competitionName:'Cup',division:'81',divisionName:'Cup Pool A'}]}})});
  await p.route('https://thestatsboard.co.uk/api/admin',r=>{posted=JSON.parse(r.request().postData());return r.fulfill({json:{ok:true,label:'now'}})});
+ await p.route('https://thestatsboard.co.uk/api/crest**',r=>{if(/id=11039/.test(r.request().url()))return r.fulfill({status:200,contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==','base64')});return r.fulfill({status:404,body:'no'})});
  await p.click('.adn a[data-s="teams"]');await p.waitForTimeout(200);
  c('teams: section opens',await p.isVisible('#s-teams')&&!(await p.isVisible('#s-home')));
  c('teams: four team cards',(await p.$$('#tml .tm')).length===4);
@@ -87,6 +88,8 @@ c('deep link opens the section',await p.isVisible('#s-data')&&await p.isVisible(
  const t=posted&&posted.club&&posted.club.teams;
  c('teams: Save sends the list in order',!!t&&t.length===4&&t[0].name==='The Vandals'&&t[1].name==='First XV'&&t[3].team==='555'&&t[3].division==='81'&&t[3].competition==='1800');
  c('teams: Save still sends the other settings',!!posted&&!!posted.notices&&!!posted.features&&!!posted.maintenance);
+ await p.waitForTimeout(300);
+ c('teams: a team with a crest shows it in place of the initials circle',await p.evaluate(()=>{var ok=0,bad=0;document.querySelectorAll('#tml .tm').forEach(function(m){var i=m.querySelector('.tmi'),c=m.querySelector('.tmc');if(i&&i.hasAttribute('name')){ok++;if(getComputedStyle(c).display!=='none'||getComputedStyle(i).display==='none')bad++}else{if(getComputedStyle(c).display==='none')bad++}});return ok>=1&&!bad}));
  c('teams: no page errors',errs.length===0);
  await p.screenshot({path:__dirname+'/x_admin_teams.png'});
  await p.close();

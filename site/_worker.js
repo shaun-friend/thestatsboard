@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.48.1 20-Nov-2026 Admin, Our teams: each team shows its crest in place of the coloured initials badge (the badge stays if a crest is missing).
 //   v3.48.0 20-Nov-2026 Sponsors: new Sponsor list page (/sponsor-list) showing every sponsor with their players, filterable by team, with a CSV Export; linked from the Sponsors page.
 //   v3.47.3 20-Nov-2026 Match day: the thin line under the Substitutes heading is removed.
 //   v3.47.2 20-Nov-2026 Match day: a small Substitutes heading sits on the line above the substitutes.
@@ -328,7 +329,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.48.0";
+const VERSION = "v3.48.1";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -375,6 +376,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.48.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.1_teams_crests.zip | v3.48.0
 v3.48.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.0_sponsor_list.zip | v3.47.3
 v3.47.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.3_subs_line.zip | v3.47.2
 v3.47.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.2_subs_heading.zip | v3.47.1
@@ -666,6 +668,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.48.1 - Our teams shows crests
+- Owner request (20-Nov-2026): use the crests on Our teams.
+- Changed: each team's header on Admin, Our teams shows its crest in place of the coloured initials circle, the same way TV rotation does. The circle (which follows the colour box) stays when a team has no crest or it cannot load.
+- Request limit: none on the server; the browser asks /api/crest for each team (the same copy the rest of the site uses, kept by the browser).
+- Docs: none - admin wording and look only
 
 v3.48.0 - Sponsor list and export
 - Owner request (20-Nov-2026): on the Sponsors page, a clickable link that shows all sponsors with their players underneath, filterable by team (all by default), plus an export.
@@ -2872,6 +2880,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.48.1", "Admin, Our teams: each team shows its crest instead of the coloured initials circle."],
       ["v3.48.0", "Sponsors page: a new All sponsors and their players button opens the Sponsor list, every sponsor with their players, filtered by team and with an Export (CSV) button."],
       ["v3.47.3", "Match day: the thin line under the Substitutes heading is gone."],
       ["v3.47.2", "Match day: the line above the substitutes now carries a small Substitutes heading."],
@@ -3622,7 +3631,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .tw{margin-top:8px;display:flex;flex-direction:column;gap:6px}.tw label{display:flex;gap:8px;align-items:center;font-size:14px}
 .save{margin:22px 0 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.btn{font:700 15px Arial,Helvetica,sans-serif;background:#7fd19a;color:#0b1110;border:0;border-radius:99px;padding:12px 24px;cursor:pointer}.btn:disabled{opacity:.5;cursor:default}.n{font-size:12.5px;color:#91a49a}
 body.light .cs,body.light .cd{background:#fff;border-color:#cbd8ce}body.light .r,body.light .nb{border-color:#e3ebe5}body.light .btn{background:#1b7f3b;color:#fff}body.light .seg{border-color:#cbd8ce}body.light .tg span{background:#c9d4cc}
-.tm{padding:14px 0;border-bottom:1px solid #1f2925}.tm:last-child{border:0}.tmt{display:flex;gap:12px;align-items:flex-end}.tmc{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#0b1110;font-weight:800;font-size:14px;margin-bottom:2px}.tmf{flex:1;min-width:0}.tmr{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.tmr>div{flex:1;min-width:140px}.tmr input[type=color]{padding:3px 6px;height:46px;cursor:pointer}.tmm{margin:8px 0 0!important;line-height:1.5}.tmh{opacity:.55}.tms{margin-top:10px!important}.tmb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tb{background:#26312d!important;color:#e6efe9!important;padding:8px 14px!important;font-size:13px!important}.tb.rm{color:#f09595!important}
+.tm{padding:14px 0;border-bottom:1px solid #1f2925}.tm:last-child{border:0}.tmt{display:flex;gap:12px;align-items:flex-end}.tmi{display:none;flex:none;width:40px;height:40px;object-fit:contain;margin-bottom:2px}.tmi[name]{display:block}.tmc:has(+.tmi[name]){display:none}.tmc{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#0b1110;font-weight:800;font-size:14px;margin-bottom:2px}.tmf{flex:1;min-width:0}.tmr{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.tmr>div{flex:1;min-width:140px}.tmr input[type=color]{padding:3px 6px;height:46px;cursor:pointer}.tmm{margin:8px 0 0!important;line-height:1.5}.tmh{opacity:.55}.tms{margin-top:10px!important}.tmb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tb{background:#26312d!important;color:#e6efe9!important;padding:8px 14px!important;font-size:13px!important}.tb.rm{color:#f09595!important}
 .tsr{display:flex;flex-direction:column;gap:6px;margin-top:10px}.tsr button{text-align:left;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;border-radius:12px;padding:11px 13px;font:600 14px Arial,Helvetica,sans-serif;cursor:pointer;display:flex;flex-direction:column;gap:2px}.tsr button small{color:#91a49a;font-weight:400;font-size:12.5px}
 @media (max-width:520px){.tmb{display:grid;grid-template-columns:1fr 1fr}.tb{white-space:nowrap}}
 body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}body.light .tm{border-color:#e3ebe5}
@@ -3752,7 +3761,7 @@ var MAXT=${MAX_CLUB_TEAMS},MAXALL=${MAX_CLUB_ALL},club=${JSON.stringify(s.club.t
 function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
 function shown(){return club.filter(function(t){return!t.hidden}).length}
-function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span><div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><div class="r tms"><div><b>Win Predictor</b><small>Switch off to stop the win chance showing for this team. Only matters while Win Predictor is on under Screens.</small></div><label class="tg"><input type="checkbox" class="twp"'+(t.nowin?"":" checked")+'><span></span></label></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span>'+(/^[0-9]+$/.test(String(t.team))?'<img class="tmi" alt="" width="40" height="40" src="/api/crest?id='+esc(t.team)+'" onload="this.name=1" onerror="this.remove()">':'')+'<div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><div class="r tms"><div><b>Win Predictor</b><small>Switch off to stop the win chance showing for this team. Only matters while Win Predictor is on under Screens.</small></div><label class="tg"><input type="checkbox" class="twp"'+(t.nowin?"":" checked")+'><span></span></label></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
 $("tml").addEventListener("change",function(e){var r=e.target.closest(".tm");if(r&&e.target.classList.contains("twp")){var tw=club[+r.getAttribute("data-i")];if(e.target.checked)delete tw.nowin;else tw.nowin=true;md();return}if(!r||!e.target.classList.contains("thd"))return;var t=club[+r.getAttribute("data-i")],on=e.target.checked;if(!on&&shown()<2){e.target.checked=true;$("tm1").textContent="At least one team has to stay on.";return}if(on&&shown()>=MAXT){e.target.checked=false;$("tm1").textContent="Six teams can show at once. Hide another team first.";return}if(on)delete t.hidden;else t.hidden=true;rt();md()});
 $("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
 $("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
