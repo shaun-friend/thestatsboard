@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.47.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.1_one_match_day.zip | v3.47.0
 v3.47.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.0_match_day_combined.zip | v3.46.6
 v3.46.6 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.6_match_day_shirts.zip | v3.46.5
 v3.46.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.5_match_day_season.zip | v3.46.4
@@ -328,6 +329,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.47.1 - One Match day link in Admin
+- Owner request (20-Nov-2026): Match day showed twice in Admin (a menu section and a Tools link); there should be one.
+- Changed: the Admin menu section called Match day (it only held a link) is removed. Match day stays in Tools, next to Players. /admin#match no longer exists.
+- Request limit: none; no data is read.
+- Docs: Admin guide, What's new
 
 v3.47.0 - Match day and Match sheet combined
 - Owner request (20-Nov-2026): fold the Match sheet page into Match day so there is one page.

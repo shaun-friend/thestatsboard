@@ -11,13 +11,13 @@ c('overview shows visitors and screens',(await p.textContent('#ovp'))==='30'&&(a
 await p.click('.adn a[data-s="screens"]');await p.waitForTimeout(200);
 c('menu opens Screens only',await p.isVisible('#s-screens')&&!(await p.isVisible('#s-home'))&&(await p.getAttribute('.adn a[data-s="screens"]','class')).includes('on'));
 c('save bar hidden at first',!(await p.isVisible('#sbar')));
-c('menu order',JSON.stringify(await p.$$eval('.adn a[data-s]',a=>a.map(x=>x.dataset.s)))===JSON.stringify(['home','teams','notices','screens','tv','paired','match','status','data','privacy','access']));
+c('menu order',JSON.stringify(await p.$$eval('.adn a[data-s]',a=>a.map(x=>x.dataset.s)))===JSON.stringify(['home','teams','notices','screens','tv','paired','status','data','privacy','access']));
 await p.click('#fa+span');await p.waitForTimeout(100);
 c('unsaved marker after a change',await p.isVisible('#sbar')&&await p.isVisible('#dirty')&&await p.isVisible('#dis'));
 await p.screenshot({path:__dirname+'/x_admin_desktop.png'});
 // every setting id still exists exactly once
 for(const id of ['hon','ht','hu','ton','tt','tu','fa','fw','fc','fp','fo','fb','fv','fs','mon','mpun','mex','mpin','as','am']){c('id '+id,(await p.$$('#'+id)).length===1)}
-c('sections hold the right controls',await p.$('#s-screens #fa')&&await p.$('#s-data #fb')&&await p.$('#s-privacy #fv')&&await p.$('#s-status #mon')&&await p.$('#s-notices #ht')&&await p.$('#s-access input[name="sd"]')&&await p.$('#s-match a[href="/matchday"]'));
+c('sections hold the right controls',await p.$('#s-screens #fa')&&await p.$('#s-data #fb')&&await p.$('#s-privacy #fv')&&await p.$('#s-status #mon')&&await p.$('#s-notices #ht')&&await p.$('#s-access input[name="sd"]'));
 c('tools links present',(await p.$$eval('.adn a',a=>a.map(x=>x.getAttribute('href')))).filter(h=>['/usage','/docs','/matchday','/?view=teams'].includes(h)).length===4&&!(await p.$$eval('.adn a',a=>a.some(x=>x.getAttribute('href')==='/release-notes'))));
 await p.close();
 // phone

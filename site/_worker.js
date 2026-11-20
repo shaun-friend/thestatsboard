@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.47.1 20-Nov-2026 Admin: the duplicate Match day menu section is removed; Match day is reached from Tools.
 //   v3.47.0 20-Nov-2026 Match day and the Match sheet are one page: each team card on Match day switches between Our team, Opposition (their sheet, names as the RFU gives them, no sponsors) and Scoring (score and scorers for played games). /matchsheet now opens Match day and its Admin links are gone.
 //   v3.46.6 20-Nov-2026 Match day: the playing position is no longer shown (captain and vice captain still are) and each shirt number sits in a small shirt in the team's colour from Our teams.
 //   v3.46.5 20-Nov-2026 Match day: asks the fixtures list for the current season (as the Players scan does) instead of the season saved on the team, and the no-games message also shows the season asked for and the answer code.
@@ -324,7 +325,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.47.0";
+const VERSION = "v3.47.1";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -371,6 +372,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.47.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.1_one_match_day.zip | v3.47.0
 v3.47.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.0_match_day_combined.zip | v3.46.6
 v3.46.6 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.6_match_day_shirts.zip | v3.46.5
 v3.46.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.5_match_day_season.zip | v3.46.4
@@ -658,6 +660,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.47.1 - One Match day link in Admin
+- Owner request (20-Nov-2026): Match day showed twice in Admin (a menu section and a Tools link); there should be one.
+- Changed: the Admin menu section called Match day (it only held a link) is removed. Match day stays in Tools, next to Players. /admin#match no longer exists.
+- Request limit: none; no data is read.
+- Docs: Admin guide, What's new
 
 v3.47.0 - Match day and Match sheet combined
 - Owner request (20-Nov-2026): fold the Match sheet page into Match day so there is one page.
@@ -2643,13 +2651,12 @@ const DOC_SECTIONS = [
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Links, Usage, Match sheet, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
-    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, Match day) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
+    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. The sections run from everyday jobs (Messages, Screens, TV rotation) to Site status and then the behind-the-scenes settings (Data sources, Privacy and counts, Access). The Overview opens first and shows, at a glance, whether maintenance mode is on, today's visitors and TV screens, the state of the website back-up and any notices that are showing. A section can be opened directly, for example /admin#data." },
     { dl: [
       ["Overview", "Status cards and any live notices."],
       ["Our teams", "Your teams: friendly name, colour, league and order, used across the whole site."],
       ["Messages", "The homepage notice and the TV screen notice."],
       ["Screens", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
-      ["Match day", "A link to the Match day page (team sheets, sponsors, opposition and scoring)."],
       ["Site status", "Maintenance mode and its pun lines."],
       ["Data sources", "The England Rugby website back-up switch."],
       ["Privacy and counts", "Visit counting, screen-load counting and the default period on the Usage page."],
@@ -2839,6 +2846,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.47.1", "Admin now has one Match day link (in Tools). The empty Match day menu section is gone."],
       ["v3.47.0", "The Match sheet is now part of Match day. Each team card switches between Our team (sponsors, available players), Opposition (the other side's sheet, no sponsors) and Scoring (the score and who scored, once the game is played). The old Match sheet link opens Match day."],
       ["v3.46.6", "Match day: the playing position is gone (captain and vice captain still show), and each shirt number now sits in a small shirt in the team's own colour, the same colour the team has elsewhere on the site."],
       ["v3.46.5", "Match day: fix for no games being found. It now asks for the current season, the same way the Players scan does. If it still finds nothing, the message shows the season asked for and the answer code."],
@@ -3594,7 +3602,7 @@ body.light .tsr button{background:#f4f8f5;border-color:#cbd8ce;color:#14201a}bod
 <script>(function(){var a=document.getElementById("env");if(!a||a.hidden)return;fetch("/api/inbox").then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)return;var n=j.news||0,b=document.getElementById("envn"),m=document.getElementById("inbm");if(n){b.textContent=n>99?"99+":n;b.hidden=false;a.setAttribute("aria-label","Inbox, "+n+" new message"+(n>1?"s":""));a.title=n+" new message"+(n>1?"s":"");if(m){m.textContent=" ("+n+" new)"}}else{a.title="No new messages"}}).catch(function(){})})();</script>
 ${setup}
 <form id="af" onsubmit="return false"><fieldset ${kvOk ? "" : "disabled"} style="border:0;padding:0;margin:0;min-width:0">
-<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#match" data-s="match">Match day</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/matchday">Match day</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
+<div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a><a href="#teams" data-s="teams">Our teams</a><a href="#notices" data-s="notices">Messages</a><a href="#screens" data-s="screens">Screens</a><a href="#tv" data-s="tv">TV rotation</a><a href="#paired" data-s="paired">Paired screens</a><a href="#status" data-s="status">Site status</a><a href="#data" data-s="data">Data sources</a><a href="#privacy" data-s="privacy">Privacy and counts</a><a href="#access" data-s="access">Access</a><div class="adt">Tools</div><a href="/?view=teams">Team links</a><a href="/usage">Usage</a><a href="/winchance">Win Predictor check</a><a href="/sponsors">Sponsors</a><a href="/sponsor-players">Players</a><a href="/matchday">Match day</a><a href="/inbox">Inbox<span id="inbm" style="color:#7fd89a"></span></a><a href="/feedlog">Feed log</a><a href="/docs">Documentation</a>${isDev ? '<a href="/release-notes">Release notes</a>' : ""}${isDev ? '<a href="/probe">Probe (DEV)</a>' : ""}</nav><div class="adm">
 <section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
 <div class="ov">
 <div class="oc"><small>Site status</small><b class="${m.on ? "bad" : "good"}">${m.on ? "Maintenance on" : "Live"}</b><span>${m.on ? "Visitors see the Back soon page" : "Maintenance page is off"}</span></div>
@@ -3660,11 +3668,6 @@ function row(x){var d=document.createElement("div");d.className="nb";var h=docum
 s.textContent=(x.shows||"")+" - paired "+when(x.at)+(x.k?" - kicked out "+when(x.k):"");l.appendChild(n);l.appendChild(s);var b=document.createElement("button");b.className="btn";b.style.cssText="flex:none;width:auto;padding:10px 22px";b.type="button";b.textContent=x.k?"Remove":"Kick out";b.onclick=function(){act(x.id,x.k?"remove":"kick",b)};h.appendChild(l);h.appendChild(b);d.appendChild(h);return d}
 function load(){fetch("/api/screens",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var p=$("pl");p.textContent="";var a=j.screens||[];if(!a.length){var e=document.createElement("p");e.className="n";e.textContent="No screens have been paired yet. Open /setup on a TV to pair one.";p.appendChild(e);return}a.forEach(function(x){p.appendChild(row(x))})}).catch(function(){$("pn")&&($("pn").textContent="Could not load the list.")})}
 load();addEventListener("hashchange",function(){if(location.hash==="#paired")load()})})()</script></section>
-<section class="sec" id="s-match" hidden><h1>Match day</h1><p class="sub">Tools for match days.</p>
-<div class="cd">
-<div class="nb"><div class="nh"><div><b>Match day</b><small>Each team's submitted team sheet for a chosen day with sponsors, the opposition sheet and the scoring, for admins only. Under-18 teams are always shown without names. <a href="/matchday" target="_blank" rel="noopener" style="color:#7fd89a">Open Match day</a></small></div></div></div>
-</div>
-</section>
 <section class="sec" id="s-data" hidden><h1>Data sources</h1><p class="sub">Where the site gets its information.</p>
 <div class="cd">
 ${sw("fb", s.features.webfallback, "England Rugby website as a back-up", "When the RFU data service has no league table, ground or team list, the site asks the englandrugby.com website instead. Turn this off to use the data service only: a table or ground it cannot supply is then left blank. Check the RFU web page row on the Usage page first.")}
@@ -3785,7 +3788,7 @@ function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn"
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
 tvDraw();
-var SECS=["home","teams","notices","screens","tv","paired","match","data","privacy","access","status"];
+var SECS=["home","teams","notices","screens","tv","paired","data","privacy","access","status"];
 function route(){var h=location.hash.replace("#","");if(SECS.indexOf(h)<0)h="home";SECS.forEach(function(k){$("s-"+k).hidden=k!==h});[].forEach.call(document.querySelectorAll(".adn a[data-s]"),function(a){var on=a.getAttribute("data-s")===h;a.classList.toggle("on",on);if(on&&a.scrollIntoView)try{a.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}})}
 addEventListener("hashchange",route);route();
 var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add("show");$("dirty").hidden=false;$("dis").hidden=false}
