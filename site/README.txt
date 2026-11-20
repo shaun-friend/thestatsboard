@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.4_match_day_diag.zip | v3.46.3
 v3.46.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.3_tv_days_tidy.zip | v3.46.2
 v3.46.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.2_match_day_arrows.zip | v3.46.1
 v3.46.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.1_match_day_early.zip | v3.46.0
@@ -324,6 +325,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.4 - Match day: say why no game days were found
+- Owner report (20-Nov-2026): the page only said "No games found for your teams."
+- Cause: not yet known. Either the fixtures list gave no games or the answer for each team failed, and the page did not say which.
+- Changed: the message now lists each team with the number of games the fixtures list gave, or the error returned.
+- Request limit: no change.
+- Docs: What's new
 
 v3.46.3 - TV rotation days: tidier
 - Owner request (19/20-Nov-2026): the day buttons repeated under every page made the TV setup long; default should be every day with no selectors, and the options only when you want something else.

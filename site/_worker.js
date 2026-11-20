@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.46.4 20-Nov-2026 Match day: when no game days are found the page now says, for each team, how many games the fixtures list gave or the error it hit.
 //   v3.46.3 20-Nov-2026 TV rotation days: each page now reads "Shows every day" with a Choose days link; the Mo-Su buttons and presets only open when asked, and a limited page reads e.g. "Weekends only" with a Change link.
 //   v3.46.2 20-Nov-2026 Match day: back and forward arrows step through game days (the last week and the coming ones) instead of a row of day buttons, and say when there is no game today.
 //   v3.46.1 20-Nov-2026 Match day: a sheet is shown as soon as the RFU lists players for our side (marked Provisional until the RFU flags it final), instead of only once the game day arrived; when nothing is listed the page now says how many people the RFU returned.
@@ -320,7 +321,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.46.3";
+const VERSION = "v3.46.4";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -367,6 +368,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.4_match_day_diag.zip | v3.46.3
 v3.46.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.3_tv_days_tidy.zip | v3.46.2
 v3.46.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.2_match_day_arrows.zip | v3.46.1
 v3.46.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.1_match_day_early.zip | v3.46.0
@@ -650,6 +652,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.4 - Match day: say why no game days were found
+- Owner report (20-Nov-2026): the page only said "No games found for your teams."
+- Cause: not yet known. Either the fixtures list gave no games or the answer for each team failed, and the page did not say which.
+- Changed: the message now lists each team with the number of games the fixtures list gave, or the error returned.
+- Request limit: no change.
+- Docs: What's new
 
 v3.46.3 - TV rotation days: tidier
 - Owner request (19/20-Nov-2026): the day buttons repeated under every page made the TV setup long; default should be every day with no selectors, and the options only when you want something else.
@@ -2804,6 +2813,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.46.4", "Match day: if no game days are found, the page now says for each team how many games the fixtures list gave or what went wrong, so the cause can be read from the screen."],
       ["v3.46.3", "TV rotation: the days setting is tidier. Each page says Shows every day with a Choose days link, and the Mo to Su buttons only open when you ask. A page limited to some days says so (for example Weekends only) with a Change link."],
       ["v3.46.2", "Match day: back and forward arrows now step through game days, including the last week, and the page says when there is no game today and which day it is showing."],
       ["v3.46.1", "Match day: a team sheet now shows as soon as the RFU lists players for your side, marked Provisional until the RFU marks it final. Before, it waited for the game day. If nothing shows, the page says how many people the RFU returned so we can see why."],
@@ -3908,7 +3918,7 @@ async function matchDayApi(request, url, worker) {
   } catch (_) { games = []; }
   const live = games.filter(g => g && g.iso && g.status !== "void");
   const days = []; for (const g of live) { const d = lon(g.iso); if (d >= from && !days.some(x => x.d === d) && days.length < 16) days.push({ d, opp: String(g.oppName || ""), home: g.home === true, time: String(g.time || ""), comp: String(g.comp || "") }); }
-  const base = { ok: true, team: String(tm.team), teamName: tm.name, today, days, at: londonTime(Date.now()) };
+  const base = { ok: true, team: String(tm.team), teamName: tm.name, today, days, read: games.length, at: londonTime(Date.now()) };
   if (!day) return J(base);
   const g = live.find(x => lon(x.iso) === day && /^\d{1,10}$/.test(String(x.id || "")));
   if (!g) return J({ ...base, day, game: null });
@@ -3987,7 +3997,7 @@ r.players.forEach(function(p){var nm=p.hidden?"":(p.name?e(p.name)+(p.star?" *":
 return h+"</div>"}
 function draw(){drawDays();var h="",any=false,none=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&!r.game){none.push(t.name);return}any=true;h+=card(t)});if(none.length)h+='<p class="sub">No game on '+e(dl(day,true))+" for "+e(none.join(", "))+".</p>";if(day&&day!==today&&today&&day>today&&!T.some(function(t){var r=info[t.team];return r&&r.ok&&r.days.some(function(x){return x.d===today})}))h='<p class="sub">No games today. Showing the next game day; use the arrows to move between game days.</p>'+h;$("out").innerHTML=h||"";$("ca").disabled=!T.some(function(t){var r=sheets[t.team];return r&&r.ok&&r.sheet})}
 function loadDay(d){day=d;sheets={};draw();var n=T.length;T.forEach(function(t){ask({team:t.team,day:d}).then(function(r){if(day!==d)return;sheets[t.team]=r;draw()})})}
-function start(){var n=0;T.forEach(function(t){ask({team:t.team}).then(function(r){info[t.team]=r;if(r&&r.ok&&r.today)today=r.today;if(++n===T.length){var ds=days();if(!ds.length){say("No games found for your teams.");drawDays();return}$("rf").disabled=false;var st=ds.filter(function(x){return x.d>=today})[0]||ds[ds.length-1];loadDay(st.d)}else drawDays()})})}
+function start(){var n=0;T.forEach(function(t){ask({team:t.team}).then(function(r){info[t.team]=r;if(r&&r.ok&&r.today)today=r.today;if(++n===T.length){var ds=days();if(!ds.length){say("No games found for your teams. "+T.map(function(t){var r=info[t.team];return t.name+": "+(r&&r.ok?r.read+" games read":(r&&r.error)||"no answer")}).join("; ")+".","er");drawDays();return}$("rf").disabled=false;var st=ds.filter(function(x){return x.d>=today})[0]||ds[ds.length-1];loadDay(st.d)}else drawDays()})})}
 var tick=null;function cool(){wait=30;$("rf").disabled=true;if(tick)clearInterval(tick);tick=setInterval(function(){wait--;if(wait<=0){clearInterval(tick);$("rf").disabled=false;$("rf").textContent="Refresh"}else $("rf").textContent="Refresh ("+wait+")"},1000);$("rf").textContent="Refresh (30)"}
 $("rf").onclick=function(){if(!day||wait>0)return;say("");cool();loadDay(day)};
 function copy(text){var done=function(){say("Copied.","")};try{navigator.clipboard.writeText(text).then(done,function(){fb(text)})}catch(x){fb(text)}}
