@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.5_match_day_season.zip | v3.46.4
 v3.46.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.4_match_day_diag.zip | v3.46.3
 v3.46.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.3_tv_days_tidy.zip | v3.46.2
 v3.46.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.2_match_day_arrows.zip | v3.46.1
@@ -325,6 +326,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.5 - Match day: current season for the fixtures list
+- Owner report (20-Nov-2026): Match day said "0 games read" for all three teams.
+- Likely cause: the page asked the fixtures list for the season saved on each team in Our teams, which can be an older season; the Players scan (which works) asks for the current season. Not confirmed with live data.
+- Changed: the page now asks for the current season. The message, if nothing is found, also shows the season asked for and the answer code (200 is fine, anything else is a failed request).
+- Request limit: no change.
+- Docs: What's new
 
 v3.46.4 - Match day: say why no game days were found
 - Owner report (20-Nov-2026): the page only said "No games found for your teams."

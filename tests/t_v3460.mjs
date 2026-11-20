@@ -10,7 +10,7 @@ const helpers=[grab('const SHEET_U18_RE'),'',grab('function sheetOrder'),"const 
 const u18=code.match(/const SHEET_U18_RE = [^\n]*/)[0],hid=code.match(/const sheetHidesNames = [^\n]*/)[0],ord=code.match(/function sheetOrder[^\n]*/)[0],pno=code.match(/const personNo = [^\n]*/)[0];
 let hits=[];const sheets={};
 const ctx={TEAMS:[{team:'11039',name:'Ivybridge 1XV',league:'L',teamName:'Ivybridge',season:'2026-2027',competition:'c',division:'d'},{team:'9',name:'Colts U15',league:'',teamName:'Colts U15',season:'2026-2027',competition:'c',division:'d',hidden:false}],AUTO:{season:'2026-2027'},londonTime:()=>'12:00',
- sheetJson:async u=>{hits.push(u);return sheets[u]===undefined?null:sheets[u]},cleanSponsors:x=>(x&&x.items)||[],SPONSOR_KEY:'sponsors',dateSeasonName:()=> '2026-2027',URLSearchParams,Request,Response,URL,Date,
+ sheetJson:async u=>{hits.push(u);return sheets[u]===undefined?null:sheets[u]},cleanSponsors:x=>(x&&x.items)||[],SPONSOR_KEY:'sponsors',dateSeasonName:()=> '2026-2027',todayIso:()=>'2026-11-20',URLSearchParams,Request,Response,URL,Date,
  kvOf:()=>({get:async()=>({items:[{id:'aaaa1111',name:'Vets4Pets'}]})}),splinkRead:async()=>rec};
 let rec={t:{'11039':{'1001':{n:'Alan A',nm:'',s:'aaaa1111',a:[],c:1,l:3,ld:'2026-11-07',lo:'X'},'1002':{n:'Bob B',nm:'Bobby',s:'',a:[],c:1,l:3,ld:'2026-11-07',lo:'X'},'1005':{n:'Old Num',nm:'',s:'aaaa1111',a:['1006'],c:1,l:3,ld:'2026-11-07',lo:'X'}}},g:{'11039':3}};
 vm.createContext(ctx);vm.runInContext([u18,hid,ord,pno,fn,'this.api=matchDayApi'].join('\n'),ctx);
