@@ -27,7 +27,7 @@ r=await call({team:'11039',day:'2099-01-01'});c('a day with no game for the team
 // no sheet yet
 sheets['https://cluster.england-rfu.com/gms/matches/555']={homeTeamId:50,awayTeamId:60,competitionName:'Counties 1',groupName:'x'};
 sheets['https://cluster.england-rfu.com/gms/matchparticipants?matchId=555']={lineup:false,participants:[]};
-r=await call({team:'11039',day});c('no sheet submitted: sheet false, no players',r.j.sheet===false&&r.j.players.length===0&&!r.j.unreadable,JSON.stringify(r.j));
+r=await call({team:'11039',day});c('no sheet submitted: sheet false, no players, says how many people came back',r.j.sheet===false&&r.j.players.length===0&&!r.j.unreadable&&r.j.dbg&&r.j.dbg.people===0,JSON.stringify(r.j));
 sheets['https://cluster.england-rfu.com/gms/matches/555']=null;
 r=await call({team:'11039',day});c('match record unreadable is reported',r.j.sheet===false&&r.j.unreadable===true);
 // with a sheet: our side is the home side (50)
@@ -36,8 +36,9 @@ const P=(id,no,pos,fn,ln,extra)=>({teamId:id,individualId:no,playingPositionNo:p
 sheets['https://cluster.england-rfu.com/gms/matchparticipants?matchId=555']={lineup:true,participants:[
  P(60,'7777','1','Other','Side'),P(50,'1002','2','Bob','Bee'),P(50,'1001','1','Alan','Aye'),P(50,'1006','3','Alt','Number'),P(50,'1003','16','New','Player'),
  P(50,'1004','4','','Withheld',{hasDisclosure:true}),P(50,'1007','5','Kid','Young',{isU18:true})]};
-hits=[];r=await call({team:'11039',day});const pl=r.j.players||[];
-c('sheet is read with two calls',hits.length===2,hits.join());
+hits=[];r=await call({team:'11039',day});const pl=r.j.players||[];const hc=hits.slice();
+c('a final sheet is not marked provisional',r.j.sheet===true&&r.j.provisional===false);{const k='https://cluster.england-rfu.com/gms/matchparticipants?matchId=555';sheets[k].lineup=false;const q=await call({team:'11039',day});c('before the RFU flags the sheet final it still shows, marked provisional',q.j.sheet===true&&q.j.provisional===true&&q.j.players.length===6);sheets[k].lineup=true}
+c('sheet is read with two calls',hc.length===2,hc.join());
 c('only our side is listed, in shirt order',pl.map(x=>x.no).join()==='1,2,3,4,5,16',pl.map(x=>x.no).join());
 c('a sponsored player shows the sponsor',pl[0].sponsor==='Vets4Pets'&&pl[0].name==='Alan Aye'&&!pl[0].avail);
 c('an own name replaces the RFU name and is starred; no sponsor means available',pl[1].name==='Bobby'&&pl[1].star===true&&pl[1].avail===true);
@@ -46,6 +47,9 @@ c('a withheld name is redacted and available',pl[3].red===true&&pl[3].name===''&
 c('an under 18 shows no name and no sponsor',pl[4].hidden===true&&pl[4].name===''&&pl[4].sponsor===''&&pl[4].avail===false);
 c('a player not on any earlier sheet is flagged new',pl[5].fresh===true&&pl[5].avail===true&&pl[0].fresh===false);
 c('counts add up',r.j.counts.total===6&&r.j.counts.sponsored===2&&r.j.counts.redacted===1&&r.j.counts.fresh===2,JSON.stringify(r.j.counts));
+// the match record's side number does not match the sheet: the side with the known players is used
+sheets['https://cluster.england-rfu.com/gms/matches/555']={homeTeamId:99,awayTeamId:98,competitionName:'x',groupName:'x'};r=await call({team:'11039',day});c('a side number mismatch falls back to the side with known players',r.j.sheet===true&&r.j.players.length===6,JSON.stringify(r.j.dbg));
+sheets['https://cluster.england-rfu.com/gms/matches/555']={homeTeamId:50,awayTeamId:60,competitionName:'Counties 1',groupName:'x'};
 // no scan done: nobody is flagged new
 rec={t:rec.t,g:{}};r=await call({team:'11039',day});c('before the season scan nobody is flagged new',r.j.players.every(x=>!x.fresh)&&r.j.counts.fresh===0);
 // no private fields

@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.1_match_day_early.zip | v3.46.0
 v3.46.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.46.0_match_day.zip | v3.45.1
 v3.45.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.1_sponsor_tabs.zip | v3.45.0
 v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
@@ -321,6 +322,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.1 - Match day: sheets before game day
+- Owner report (20-Nov-2026): the submitted team could not be seen until the game day itself.
+- Cause (likely): the page only showed a sheet when the RFU's final-sheet flag was on, which may not be set until the day. Not confirmed with live data.
+- Changed: the page shows the sheet as soon as the RFU lists players for our side, marked "Provisional: the RFU has not marked this sheet as final yet" until the flag is on. If the match record's side number does not match the sheet, the side with the most players we already know is used.
+- New: when nothing is found the card says how many people the RFU returned and whether the sheet flag is on, so a remaining problem can be read straight off the page.
+- Request limit: no change.
+- Docs: What's new
 
 v3.46.0 - Match day page
 - Owner request (19-Nov-2026): a page for match day showing the team sheet each team has submitted, with sponsors, so the club can see who is playing, who has a sponsor and who is available to sponsor.

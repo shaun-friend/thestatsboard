@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.46.1 20-Nov-2026 Match day: a sheet is shown as soon as the RFU lists players for our side (marked Provisional until the RFU flags it final), instead of only once the game day arrived; when nothing is listed the page now says how many people the RFU returned.
 //   v3.46.0 19-Nov-2026 New page /matchday (club PIN, Admin, Tools, Match day): choose a match day (the next game day is chosen for you) and see each of our teams' submitted team sheet in shirt order with each player's sponsor, who is available to sponsor, withheld names ("Name redacted"), own names (*) and players not seen on a sheet before this season (New), "No sheet available on GMS" when nothing is in, a rate-limited Refresh and a Copy list button. Under-18 sides show no names.
 //   v3.45.1 19-Nov-2026 Sponsors and Players: the two pages are now clear numbered buttons ("1. Sponsors - add and edit the sponsors", "2. Players - give a player a sponsor") instead of plain links. The scan, Clear ticks and Copy from last season now live under a third button, 3. Season set-up. The Add players list shows only players without a sponsor unless you untick a box. The player and sponsor search boxes have an X to clear them, and both pages show a summary of sponsors and sponsored players.
 //   v3.45.0 19-Nov-2026 TV rotation: days of the week for each page (Mon to Sun buttons, Every day and Weekends presets, UK time); the rotator leaves out pages that are not due today and picks the change up within 2 minutes of midnight.
@@ -317,8 +318,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.46.0";
-const BUILD_DATE = "19-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.46.1";
+const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -364,6 +365,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.1_match_day_early.zip | v3.46.0
 v3.46.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.46.0_match_day.zip | v3.45.1
 v3.45.1 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.1_sponsor_tabs.zip | v3.45.0
 v3.45.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.45.0_tv_days.zip | v3.44.2
@@ -644,6 +646,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.1 - Match day: sheets before game day
+- Owner report (20-Nov-2026): the submitted team could not be seen until the game day itself.
+- Cause (likely): the page only showed a sheet when the RFU's final-sheet flag was on, which may not be set until the day. Not confirmed with live data.
+- Changed: the page shows the sheet as soon as the RFU lists players for our side, marked "Provisional: the RFU has not marked this sheet as final yet" until the flag is on. If the match record's side number does not match the sheet, the side with the most players we already know is used.
+- New: when nothing is found the card says how many people the RFU returned and whether the sheet flag is on, so a remaining problem can be read straight off the page.
+- Request limit: no change.
+- Docs: What's new
 
 v3.46.0 - Match day page
 - Owner request (19-Nov-2026): a page for match day showing the team sheet each team has submitted, with sponsors, so the club can see who is playing, who has a sponsor and who is available to sponsor.
@@ -2452,7 +2462,7 @@ const DOCS = [
     { v: "/probe", values: "ep", where: "DEV only", what: "Checks the RFU feeds are answering.", ex: [["Probe", "/probe", "dev"]] },
     { v: "/usage", values: "days (7, 14, 30, 90) on the data call", where: "Club PIN", what: "The Usage report: people per day, what is viewed, our teams, teams people look up (ours are marked), devices.", ex: [["Usage", "/usage"]] },
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
-    { v: "/matchday", values: "none", where: "Club PIN", what: "Match day: the team sheets our teams have submitted for a chosen match day, in shirt order, with each player's sponsor, who is available to sponsor, withheld names and new players, and a Copy list button.", ex: [["Match day", "/matchday"]] },
+    { v: "/matchday", values: "none", where: "Club PIN", what: "Match day: the team sheets our teams have entered for a chosen match day, in shirt order, with each player's sponsor, who is available to sponsor, withheld names and new players, and a Copy list button.", ex: [["Match day", "/matchday"]] },
     { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
     { v: "/inbox", values: "none", where: "Club PIN", what: "The Inbox: messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
@@ -2777,6 +2787,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.46.1", "Match day: a team sheet now shows as soon as the RFU lists players for your side, marked Provisional until the RFU marks it final. Before, it waited for the game day. If nothing shows, the page says how many people the RFU returned so we can see why."],
       ["v3.46.0", "New Match day page (Admin, Tools, Match day, club PIN). Pick a match day and see each team's submitted team sheet in shirt order with each player's sponsor, who is still available to sponsor, names the RFU withholds (Name redacted), the club's own names (*) and players not seen on a sheet before (New). A team with nothing submitted says No sheet available on GMS. Refresh waits 30 seconds between presses, nothing refreshes by itself, and Copy list copies a team (or Copy all every team) as text. Under-18 teams show shirt numbers only."],
       ["v3.45.1", "Sponsors and Players: the two pages are now big numbered buttons with a line saying what each is for (1. Sponsors adds and edits the sponsors, 2. Players gives a player a sponsor), so it is clearer which screen does what. Find this season's players, Clear ticks and Copy from last season have moved to a new third button, 3. Season set-up (used once a season). In a sponsor's Add players list, players who already have a sponsor are now hidden by default (untick the box Only players without a sponsor to change that). The search boxes also have an X to clear the text, and both pages have a summary block: sponsors, sponsored players (a player on two teams counts once) and sponsors with players."],
       ["v3.45.0", "TV rotation: each page can now be limited to certain days of the week (Admin, TV rotation: Mon to Sun buttons under each page, plus Every day and Weekends). The TV leaves a page out on the other days, judged in UK time, and the full-round total counts only today's pages. Pages you do not touch still show every day."],
@@ -3893,9 +3904,16 @@ async function matchDayApi(request, url, worker) {
   const scanned = !!(rec && rec.g && rec.g[String(tm.team)] > 0);
   const side = String(g.home === true ? mrec.homeTeamId : mrec.awayTeamId);
   const list = Array.isArray(ppl.participants) ? ppl.participants : [];
-  const mine = list.filter(p => String(p.teamId) === side);
+  let mine = list.filter(p => String(p.teamId) === side);
+  // If the match record's side number does not match the sheet (seen before game day), take the side with most players we already know.
+  if (!mine.length && list.length) {
+    const grp = {}; for (const p of list) (grp[String(p.teamId)] || (grp[String(p.teamId)] = [])).push(p);
+    let best = null, bn = 0; for (const k of Object.keys(grp)) { const n = grp[k].filter(p => { const no = personNo(p.individualId); return !!(by[altOf[no] || no]); }).length; if (n > bn) { bn = n; best = grp[k]; } }
+    if (best) mine = best;
+  }
+  const dbg = { people: list.length, lineup: !!ppl.lineup, sides: [...new Set(list.map(p => String(p.teamId)))].slice(0, 4), ours: side };
   const hideSide = sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName) || sheetHidesNames((mrec.competitionName || "") + " " + (mrec.groupName || ""));
-  if (!(ppl.lineup && mine.length)) return J({ ...base, day, game, sheet: false, players: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
+  if (!mine.length) return J({ ...base, day, game, sheet: false, dbg, players: [], counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
   const players = mine.map(p => {
     const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", nm: "" };
     const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
@@ -3911,7 +3929,7 @@ async function matchDayApi(request, url, worker) {
     };
   }).sort((a, b2) => sheetOrder(a.no) - sheetOrder(b2.no));
   const vis = players.filter(x => !x.hidden);
-  return J({ ...base, day, game, sheet: true, hidden: hideSide, scanned, players, counts: { total: players.length, sponsored: vis.filter(x => x.sponsor).length, avail: vis.filter(x => x.avail).length, redacted: vis.filter(x => x.red).length, fresh: vis.filter(x => x.fresh).length } });
+  return J({ ...base, day, game, sheet: true, provisional: !ppl.lineup, dbg, hidden: hideSide, scanned, players, counts: { total: players.length, sponsored: vis.filter(x => x.sponsor).length, avail: vis.filter(x => x.avail).length, redacted: vis.filter(x => x.red).length, fresh: vis.filter(x => x.fresh).length } });
 }
 function matchDayPage(theme, isDev, teams) {
   const t = theme === "light" ? "light" : "dark";
@@ -3938,8 +3956,8 @@ function lines(t,r){var o=[],g=r.game;o.push(t.name+" "+(g.home?"v":"at")+" "+g.
 function card(t){var r=sheets[t.team];if(!r)return'<div class="cd2"><div class="tt"><b>'+e(t.name)+'</b></div><div class="none">Loading...</div></div>';
 if(!r.ok)return'<div class="cd2"><div class="tt"><b>'+e(t.name)+'</b></div><div class="none">'+e(r.error||"Could not read this team.")+"</div></div>";
 if(!r.game)return"";var g=r.game,h='<div class="cd2"><div class="tt"><div><b>'+e(t.name)+" "+(g.home?"v":"at")+" "+e(g.opp)+"</b><small>"+e(g.comp)+(g.time?" &middot; KO "+e(g.time):"")+(g.venue?" &middot; "+e(g.venue):"")+"</small></div>"+(r.sheet?'<button type="button" class="b2 sm" data-c="'+t.team+'">Copy list</button>':"")+"</div>";
-if(!r.sheet){return h+'<div class="none">'+(r.unreadable?"The RFU match record could not be read just now. Try Refresh in a minute.":"No sheet available on GMS yet.")+"</div></div>"}
-var c=r.counts;h+='<div class="cn"><span>'+c.total+" on the sheet</span>"+(r.hidden?"<span>Names hidden (under 18s)</span>":'<span>'+c.sponsored+" sponsored</span><span class=\\"am\\">"+c.avail+" available to sponsor</span>"+(c.redacted?"<span>"+c.redacted+" name redacted</span>":"")+(c.fresh?"<span>"+c.fresh+" new</span>":""))+"</div>";
+if(!r.sheet){return h+'<div class="none">'+(r.unreadable?"The RFU match record could not be read just now. Try Refresh in a minute.":"No sheet available on GMS yet."+(r.dbg?' <small style=\"color:#91a49a\">(RFU returned '+r.dbg.people+' people, sheet flag '+(r.dbg.lineup?"on":"off")+")</small>":""))+"</div></div>"}
+var c=r.counts;if(r.provisional)h+='<div class="none" style="padding:0 0 4px">Provisional: the RFU has not marked this sheet as final yet.</div>';h+='<div class="cn"><span>'+c.total+" on the sheet</span>"+(r.hidden?"<span>Names hidden (under 18s)</span>":'<span>'+c.sponsored+" sponsored</span><span class=\\"am\\">"+c.avail+" available to sponsor</span>"+(c.redacted?"<span>"+c.redacted+" name redacted</span>":"")+(c.fresh?"<span>"+c.fresh+" new</span>":""))+"</div>";
 r.players.forEach(function(p){var nm=p.hidden?"":(p.name?e(p.name)+(p.star?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>');h+='<div class="pr"><span class="no">'+e(p.no)+'</span><span class="pn"><b>'+nm+"</b><small>"+e(p.pos)+(p.tag?" &middot; "+e(p.tag):"")+"</small>"+(p.fresh?'<span class="nw">New</span>':"")+'</span><span class="sp'+(p.hidden?" rd":p.sponsor?"":" av")+'">'+(p.hidden?"":p.sponsor?e(p.sponsor):"Available to sponsor")+"</span></div>"});
 return h+"</div>"}
 function draw(){drawDays();var h="",any=false,none=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&!r.game){none.push(t.name);return}any=true;h+=card(t)});if(none.length)h+='<p class="sub">No game on '+e(dl(day,true))+" for "+e(none.join(", "))+".</p>";$("out").innerHTML=h||"";$("ca").disabled=!T.some(function(t){var r=sheets[t.team];return r&&r.ok&&r.sheet})}
