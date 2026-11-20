@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.3_tv_days_tidy.zip | v3.46.2
 v3.46.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.2_match_day_arrows.zip | v3.46.1
 v3.46.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.1_match_day_early.zip | v3.46.0
 v3.46.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.46.0_match_day.zip | v3.45.1
@@ -323,6 +324,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.3 - TV rotation days: tidier
+- Owner request (19/20-Nov-2026): the day buttons repeated under every page made the TV setup long; default should be every day with no selectors, and the options only when you want something else.
+- Changed: each page shows one line, "Shows every day" with a Choose days link. Opening it shows the Mo to Su buttons and the Every day and Weekends shortcuts, with Done to close. A limited page reads for example "Weekends only" or "Sat, Sun only" with a Change link. Which are open is remembered while the Admin page is open.
+- No change to how the days are saved or applied.
+- Request limit: no change (Admin page layout only).
+- Docs: TV rotation (one rotating link), What's new
 
 v3.46.2 - Match day: back and forward arrows
 - Owner request (20-Nov-2026): with no game today the page showed nothing useful; wanted back and forward buttons to move to Saturday and Sunday.

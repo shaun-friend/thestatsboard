@@ -20,6 +20,14 @@ await grp(0).locator('.tvadd').click();                  // match centre
 ck('centre added',await grp(0).locator('.tvr').count()===1);
 await grp(1).locator('.tvr').nth(3).locator('.tvx').click(); // remove leaders
 ck('remove works',await grp(1).locator('.tvr').count()===3);
+ck('by default no day buttons show, only Shows every day',await grp(1).locator('.tvdb').count()===0&&(await grp(1).locator('.tvdl').first().innerText())==='Shows every day');
+await grp(1).locator('.tvlk').first().click();
+ck('Choose days opens the day buttons and presets',await grp(1).locator('.tvdb').count()===9);
+await grp(1).locator('.tvdb.pre',{hasText:'Weekends'}).first().click();
+ck('a limited page says so and stays open',(await grp(1).locator('.tvdl').first().innerText())==='Weekends only'&&await grp(1).locator('.tvdb').count()===9);
+await grp(1).locator('.tvlk').first().click();
+ck('Done closes it and keeps the limit',await grp(1).locator('.tvdb').count()===0&&(await grp(1).locator('.tvlk').first().innerText())==='Change');
+await grp(1).locator('.tvlk').first().click();await grp(1).locator('.tvdb.pre',{hasText:'Every day'}).first().click();ck('Every day goes back to the default line',(await grp(1).locator('.tvdl').first().innerText())==='Shows every day');await grp(1).locator('.tvlk').first().click();
 await grp(1).locator('.tvadd').click();                  // opens missing list
 ck('missing list offers Leaders',(await grp(1).locator('.tvad').innerText()).includes('League Leaders'));
 await grp(1).locator('.tvadd',{hasText:'League Leaders'}).click();

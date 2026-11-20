@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.46.3 20-Nov-2026 TV rotation days: each page now reads "Shows every day" with a Choose days link; the Mo-Su buttons and presets only open when asked, and a limited page reads e.g. "Weekends only" with a Change link.
 //   v3.46.2 20-Nov-2026 Match day: back and forward arrows step through game days (the last week and the coming ones) instead of a row of day buttons, and say when there is no game today.
 //   v3.46.1 20-Nov-2026 Match day: a sheet is shown as soon as the RFU lists players for our side (marked Provisional until the RFU flags it final), instead of only once the game day arrived; when nothing is listed the page now says how many people the RFU returned.
 //   v3.46.0 19-Nov-2026 New page /matchday (club PIN, Admin, Tools, Match day): choose a match day (the next game day is chosen for you) and see each of our teams' submitted team sheet in shirt order with each player's sponsor, who is available to sponsor, withheld names ("Name redacted"), own names (*) and players not seen on a sheet before this season (New), "No sheet available on GMS" when nothing is in, a rate-limited Refresh and a Copy list button. Under-18 sides show no names.
@@ -319,7 +320,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.46.2";
+const VERSION = "v3.46.3";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -366,6 +367,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.46.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.3_tv_days_tidy.zip | v3.46.2
 v3.46.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.2_match_day_arrows.zip | v3.46.1
 v3.46.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.46.1_match_day_early.zip | v3.46.0
 v3.46.0 | 19-Nov-2026 | RFU_Club_Dashboard_v3.46.0_match_day.zip | v3.45.1
@@ -648,6 +650,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.46.3 - TV rotation days: tidier
+- Owner request (19/20-Nov-2026): the day buttons repeated under every page made the TV setup long; default should be every day with no selectors, and the options only when you want something else.
+- Changed: each page shows one line, "Shows every day" with a Choose days link. Opening it shows the Mo to Su buttons and the Every day and Weekends shortcuts, with Done to close. A limited page reads for example "Weekends only" or "Sat, Sun only" with a Change link. Which are open is remembered while the Admin page is open.
+- No change to how the days are saved or applied.
+- Request limit: no change (Admin page layout only).
+- Docs: TV rotation (one rotating link), What's new
 
 v3.46.2 - Match day: back and forward arrows
 - Owner request (20-Nov-2026): with no game today the page showed nothing useful; wanted back and forward buttons to move to Saturday and Sunday.
@@ -2584,7 +2593,7 @@ const DOC_SECTIONS = [
       "Pages are grouped by team. Each team has a Show switch, so a whole team can be left out without losing its settings.",
       "Add all pages for a team, or use + Add a page to add one at a time. The Match Centre sits under All teams.",
       "Each page has its own on/off switch, an up and down button for the order, a seconds stepper (5 to 120) and Remove. The arrows next to a team move the whole team.",
-      "Under each page, the day buttons (Mo to Su) choose the days of the week it is shown; Every day and Weekends are shortcuts. A page left on every day shows every day. The day is the UK day, and the TV drops or brings back pages within about 2 minutes of midnight. At least one day must stay on; to stop a page altogether, use its switch. One full round lasts counts only the pages due today.",
+      "Under each page, Shows every day is the default; tap Choose days (or Change) to open the day buttons (Mo to Su) that choose the days of the week it is shown; Every day and Weekends are shortcuts. A page left on every day shows every day. The day is the UK day, and the TV drops or brings back pages within about 2 minutes of midnight. At least one day must stay on; to stop a page altogether, use its switch. One full round lasts counts only the pages due today.",
       "Under the link, One full round lasts shows the total of every page that is switched on, in minutes and seconds and as plain seconds, so you can set the same display time on a digital signage system. It updates as you change seconds or switch pages, before you save.",
       "Theme chooses dark or light for every page. Two optional switches add a thin strip along the bottom, below the pages so nothing is covered: Show the page name, and Show dots and a progress line (both off by default).",
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
@@ -2795,6 +2804,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.46.3", "TV rotation: the days setting is tidier. Each page says Shows every day with a Choose days link, and the Mo to Su buttons only open when you ask. A page limited to some days says so (for example Weekends only) with a Change link."],
       ["v3.46.2", "Match day: back and forward arrows now step through game days, including the last week, and the page says when there is no game today and which day it is showing."],
       ["v3.46.1", "Match day: a team sheet now shows as soon as the RFU lists players for your side, marked Provisional until the RFU marks it final. Before, it waited for the game day. If nothing shows, the page says how many people the RFU returned so we can see why."],
       ["v3.46.0", "New Match day page (Admin, Tools, Match day, club PIN). Pick a match day and see each team's submitted team sheet in shirt order with each player's sponsor, who is still available to sponsor, names the RFU withholds (Name redacted), the club's own names (*) and players not seen on a sheet before (New). A team with nothing submitted says No sheet available on GMS. Refresh waits 30 seconds between presses, nothing refreshes by itself, and Copy list copies a team (or Copy all every team) as text. Under-18 teams show shirt numbers only."],
@@ -3511,7 +3521,7 @@ ${MENU_CSS}
 .tvh{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#16221d;border-left:6px solid #3fb26b;flex-wrap:wrap}.tvh .tn{flex:1;min-width:150px}.tvh .tn b{display:block;font-size:18px}.tvh .tn small{color:#91a49a;font-size:13px}.tvsh{color:#91a49a}
 .tvcr{width:38px;height:38px;object-fit:contain;flex:none}
 .tvb2{width:38px;height:38px;border-radius:50%;background:#fff;color:#1f7a45;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
-.tvr{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 28px;border-top:1px solid #1d2925;flex-wrap:wrap}.tvr.off{opacity:.55}.tvdy{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:0 14px 8px 28px}.tvdy .tvdl{font-size:12px;color:#91a49a;margin-right:4px;min-width:64px}.tvdb{min-width:36px;min-height:30px;padding:0 6px;border-radius:8px;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;font:700 12px Arial,Helvetica,sans-serif;cursor:pointer}.tvdb.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.tvdb.pre{border-style:dashed;color:#7fd89a}body.light .tvdb{background:#fff;border-color:#c9dccd;color:#14301e}body.light .tvdb.on{background:#1b7f3b;border-color:#1b7f3b;color:#fff}.tvr .pn{flex:1;min-width:120px;font-weight:700}.tvm,.tvsc{display:flex;align-items:center;gap:4px}.tvs{min-width:44px;text-align:center;font-weight:700}
+.tvr{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 28px;border-top:1px solid #1d2925;flex-wrap:wrap}.tvr.off{opacity:.55}.tvdy{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:0 14px 8px 28px}.tvdy .tvdt{display:flex;align-items:center;gap:8px;width:100%}.tvdy .tvdl{font-size:12px;color:#91a49a;margin-right:4px}.tvdy .tvdl.lim{color:#f2f6f4;font-weight:700}.tvlk{margin-left:auto;background:none;border:0;color:#7fd89a;font:700 13px Arial,Helvetica,sans-serif;padding:4px 0;min-height:32px;cursor:pointer}body.light .tvdy .tvdl.lim{color:#14301e}body.light .tvlk{color:#1f7a42}.tvdb{min-width:36px;min-height:30px;padding:0 6px;border-radius:8px;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;font:700 12px Arial,Helvetica,sans-serif;cursor:pointer}.tvdb.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.tvdb.pre{border-style:dashed;color:#7fd89a}body.light .tvdb{background:#fff;border-color:#c9dccd;color:#14301e}body.light .tvdb.on{background:#1b7f3b;border-color:#1b7f3b;color:#fff}.tvr .pn{flex:1;min-width:120px;font-weight:700}.tvm,.tvsc{display:flex;align-items:center;gap:4px}.tvs{min-width:44px;text-align:center;font-weight:700}
 .tvb{min-width:36px;min-height:38px;border-radius:8px;border:1px solid #3a4a43;background:#16201c;color:#e6efe9;font:inherit;font-size:15px;cursor:pointer}
 .tvx{background:none;border:0;color:#e08a82;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;min-height:38px}
 .tvad{padding:8px 14px 10px 28px;border-top:1px solid #1d2925;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tvnote{color:#a9bab1;font-size:14px;flex:1;min-width:180px}
@@ -3690,9 +3700,13 @@ function tvSw(on,label,fn){var l=tvE("label","tg"),i=document.createElement("inp
 var TVDN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 function tvDue(it){return!it.d||it.d.indexOf(TVI.today)>=0}
 function tvDaysLabel(it){if(!it.d)return"Every day";if(it.d.join()==="6,7")return"Weekends";return it.d.map(function(x){return TVDN[x-1]}).join(", ")}
-function tvDays(it,pn){var w=tvE("div","tvdy");w.appendChild(tvE("span","tvdl",tvDaysLabel(it)));
-TVDN.forEach(function(nm,i){var d=i+1,on=!it.d||it.d.indexOf(d)>=0,b=tvE("button","tvdb"+(on?" on":""),nm.slice(0,2));b.type="button";b.setAttribute("aria-label",pn+" on "+nm);b.setAttribute("aria-pressed",on?"true":"false");b.addEventListener("click",function(){var cur=it.d?it.d.slice():[1,2,3,4,5,6,7],k=cur.indexOf(d);if(k>=0){if(cur.length===1)return;cur.splice(k,1)}else cur.push(d);cur.sort(function(a,b){return a-b});it.d=cur.length===7?undefined:cur;tvDraw();md()});w.appendChild(b)});
-[["Every day",null],["Weekends",[6,7]]].forEach(function(p){var b=tvE("button","tvdb pre",p[0]);b.type="button";b.addEventListener("click",function(){it.d=p[1]?p[1].slice():undefined;tvDraw();md()});w.appendChild(b)});return w}
+var TVO={};
+function tvDays(it,pn){var k=(it.team||"")+"|"+it.page,open=!!TVO[k],lim=!!it.d,w=tvE("div","tvdy"),top=tvE("div","tvdt");
+top.appendChild(tvE("span","tvdl"+(lim?" lim":""),lim?tvDaysLabel(it)+" only":"Shows every day"));
+var lk=tvE("button","tvlk",open?"Done":(lim?"Change":"Choose days"));lk.type="button";lk.setAttribute("aria-expanded",open?"true":"false");lk.addEventListener("click",function(){TVO[k]=!open;tvDraw()});top.appendChild(lk);w.appendChild(top);
+if(!open)return w;
+TVDN.forEach(function(nm,i){var d=i+1,on=!it.d||it.d.indexOf(d)>=0,b=tvE("button","tvdb"+(on?" on":""),nm.slice(0,2));b.type="button";b.setAttribute("aria-label",pn+" on "+nm);b.setAttribute("aria-pressed",on?"true":"false");b.addEventListener("click",function(){var cur=it.d?it.d.slice():[1,2,3,4,5,6,7],x=cur.indexOf(d);if(x>=0){if(cur.length===1)return;cur.splice(x,1)}else cur.push(d);cur.sort(function(a,b){return a-b});it.d=cur.length===7?undefined:cur;tvDraw();md()});w.appendChild(b)});
+[["Every day",null],["Weekends",[6,7]]].forEach(function(q){var b=tvE("button","tvdb pre",q[0]);b.type="button";b.addEventListener("click",function(){it.d=q[1]?q[1].slice():undefined;tvDraw();md()});w.appendChild(b)});return w}
 function tvMove(a,i,d){var j=i+d;if(j<0||j>=a.length)return;var x=a[i];a[i]=a[j];a[j]=x}
 function tvFmt(sec){var m=Math.floor(sec/60),s=sec%60;return m?m+" min "+s+" s":s+" s"}
 function tvDraw(){
