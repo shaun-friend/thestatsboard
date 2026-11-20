@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.48.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.48.0_sponsor_list.zip | v3.47.3
 v3.47.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.3_subs_line.zip | v3.47.2
 v3.47.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.2_subs_heading.zip | v3.47.1
 v3.47.1 | 20-Nov-2026 | RFU_Club_Dashboard_v3.47.1_one_match_day.zip | v3.47.0
@@ -331,6 +332,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.48.0 - Sponsor list and export
+- Owner request (20-Nov-2026): on the Sponsors page, a clickable link that shows all sponsors with their players underneath, filterable by team (all by default), plus an export.
+- New: /sponsor-list (club PIN), linked by a green button on the Sponsors page. Each sponsor with its players this season and the team beside each (a player on two teams is listed once in All teams). The team box filters to one team and leaves out sponsors with no players there. Export downloads the list on screen as a CSV (Sponsor, Player, Team); sponsors with no players are included as a row of their own. Under-18 teams show no names.
+- Request limit: one settings-store read for the sponsors and one for the season's player links, the same as opening a sponsor on the Sponsors page. No RFU reads.
+- Docs: Admin guide, Other addresses, What's new
 
 v3.47.3 - Match day: no line under Substitutes
 - Owner request (20-Nov-2026): remove the second, thinner line under the word Substitutes.
