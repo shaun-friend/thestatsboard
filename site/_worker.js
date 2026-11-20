@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.49.5 20-Nov-2026 Match day: the "game day N of M" count is replaced by Today / Tomorrow / In N days / N days ago.
 //   v3.49.4 20-Nov-2026 Fixture lines on the Overview and Match day always read "our team v opposition" with a Home or Away flag (no more "at").
 //   v3.49.3 20-Nov-2026 Match day: a long player or sponsor name wraps onto a second line instead of being cut off with "...".
 //   v3.49.2 20-Nov-2026 Match day: long sponsor names are shown in full on wide screens (the sponsor column was a percentage of a self-sizing column).
@@ -334,7 +335,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.49.4";
+const VERSION = "v3.49.5";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -381,6 +382,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.5_matchday_day_label.zip | v3.49.4
 v3.49.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.4_team_v_team.zip | v3.49.3
 v3.49.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.3_matchday_never_cut.zip | v3.49.2
 v3.49.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.2_matchday_sponsor_width.zip | v3.49.1
@@ -678,6 +680,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.5 - Match day: plain day label instead of "game day 3 of 27"
+- Owner question (20-Nov-2026): why does it say game day 3 of 27 when seven games have been played?
+- Changed: the "game day N of M" count is gone. It numbered the list the page reads (last week's games plus the rest of the season), not the season's game days. The date box now says Today, Tomorrow, In N days, Yesterday or N days ago, followed by the teams playing. The arrows work as before.
+- Request limit: none; wording only.
+- Docs: What's new
 
 v3.49.4 - Fixtures read the same everywhere: team v team, with a Home or Away flag
 - Owner request (20-Nov-2026): the Overview mixed "Ivybridge 1XV v North Petherton" with "The Vandals at Paignton II". It should always be team v team with a home or away flag.
@@ -2934,6 +2942,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.49.5", "Match day: the date box says Today, Tomorrow or In N days instead of a game day count."],
       ["v3.49.4", "Overview and Match day: fixtures always read team v team with a Home or Away flag."],
       ["v3.49.3", "Match day: player and sponsor names are never cut off; a long one wraps onto a second line."],
       ["v3.49.2", "Match day: sponsor names are no longer cut short on a wide screen."],
@@ -4107,8 +4116,8 @@ function ask(o){return fetch("/api/matchday",{method:"POST",headers:{"Content-Ty
 function dl(d,long){var m=String(d).split("-");if(m.length!==3)return d;var x=new Date(Date.UTC(+m[0],+m[1]-1,+m[2],12));return x.toLocaleDateString("en-GB",{weekday:long?"long":"short",day:"numeric",month:"short",timeZone:"UTC"})}
 function days(){var s={};T.forEach(function(t){var r=info[t.team];if(r&&r.ok)r.days.forEach(function(x){(s[x.d]=s[x.d]||[]).push(t.name)})});return Object.keys(s).sort().map(function(d){return{d:d,n:s[d]}})}
 function idx(){var a=days(),i=-1;a.forEach(function(x,k){if(x.d===day)i=k});return{a:a,i:i}}
-function drawDays(){var z=idx(),x=z.a[z.i];if(!x){$("dys").innerHTML="<small>Looking for game days...</small>";$("pv").disabled=$("nx").disabled=true;return}
-$("dys").innerHTML="<b>"+e(dl(x.d,true))+"</b><small>"+(x.d===today?"Today &middot; ":"")+x.n.join(", ")+(z.a.length>1?" &middot; game day "+(z.i+1)+" of "+z.a.length:"")+"</small>";$("pv").disabled=z.i<=0;$("nx").disabled=z.i>=z.a.length-1}
+function dRel(d){var n=Math.round((Date.parse(d)-Date.parse(today))/864e5);return n===0?"Today":n===1?"Tomorrow":n===-1?"Yesterday":n>1?"In "+n+" days":(-n)+" days ago"}function drawDays(){var z=idx(),x=z.a[z.i];if(!x){$("dys").innerHTML="<small>Looking for game days...</small>";$("pv").disabled=$("nx").disabled=true;return}
+$("dys").innerHTML="<b>"+e(dl(x.d,true))+"</b><small>"+dRel(x.d)+" &middot; "+x.n.join(", ")+"</small>";$("pv").disabled=z.i<=0;$("nx").disabled=z.i>=z.a.length-1}
 function shirt(n,ac){var h=ac.replace("#",""),l=(0.299*parseInt(h.substr(0,2),16)+0.587*parseInt(h.substr(2,2),16)+0.114*parseInt(h.substr(4,2),16))/255,tc=l>0.62?"#101814":"#ffffff",s=String(n),fs=s.length>2?10:13;return'<svg width="38" height="34" viewBox="0 0 40 36" role="img" aria-label="Shirt number '+e(s)+'"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="'+ac+'" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="24" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="'+fs+'" fill="'+tc+'">'+e(s)+"</text></svg>"}
 function tg(x){return x==="Captain"?"(C)":x==="Vice captain"?"(VC)":""}
 function isSub(n){n=String(n);return/^S/i.test(n)||+n>15}

@@ -16,7 +16,7 @@ await p.route('**/*',r=>{const u=new URL(r.request().url());
  r.fulfill({status:200,body:'{}'})});
 await p.goto('https://thestatsboard.co.uk/matchday');await p.waitForTimeout(700);
 const t=()=>p.innerText('body');let x=await t();
-ck('opens on the next game day with arrows, and says there is no game today',/Saturday 21 Nov/.test(x)&&/No games today/.test(x)&&/game day 1 of 3/.test(x),x);
+ck('opens on the next game day with arrows, and says there is no game today',/Saturday 21 Nov/.test(x)&&/No games today/.test(x)&&/Tomorrow/.test(x)&&!/game day \d/.test(x),x);
 ck('defaults to the earliest day and reads one team per request',posts.filter(o=>o.day==='2026-11-21').length>=1&&posts.every(o=>o.team&&!o.id),JSON.stringify(posts.slice(0,3)));
 ck('shows the opposition and kick-off',/Ivybridge 1XV v Exeter Saracens/.test(x)&&/KO 14:30/.test(x),x);
 ck('sponsor, available, redacted and new show',/Vets4Pets/.test(x)&&/Available to sponsor/.test(x)&&/Name redacted/.test(x)&&/New/.test(x)&&/Bobby/.test(x)&&!/Bobby \*/.test(x)&&/\(C\)/.test(x)&&/\(VC\)/.test(x)&&!/Vice captain/.test(x),x);

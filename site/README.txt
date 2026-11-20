@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.49.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.5_matchday_day_label.zip | v3.49.4
 v3.49.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.4_team_v_team.zip | v3.49.3
 v3.49.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.3_matchday_never_cut.zip | v3.49.2
 v3.49.2 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.2_matchday_sponsor_width.zip | v3.49.1
@@ -338,6 +339,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.49.5 - Match day: plain day label instead of "game day 3 of 27"
+- Owner question (20-Nov-2026): why does it say game day 3 of 27 when seven games have been played?
+- Changed: the "game day N of M" count is gone. It numbered the list the page reads (last week's games plus the rest of the season), not the season's game days. The date box now says Today, Tomorrow, In N days, Yesterday or N days ago, followed by the teams playing. The arrows work as before.
+- Request limit: none; wording only.
+- Docs: What's new
 
 v3.49.4 - Fixtures read the same everywhere: team v team, with a Home or Away flag
 - Owner request (20-Nov-2026): the Overview mixed "Ivybridge 1XV v North Petherton" with "The Vandals at Paignton II". It should always be team v team with a home or away flag.
