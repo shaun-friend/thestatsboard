@@ -1,0 +1,41 @@
+const src=process.argv[2];let ok=0,bad=0;const c=(n,x,d)=>{if(x){ok++}else{bad++;console.log('FAIL',n,d||'')}};
+const mk=()=>{const o={store:{},gets:0,puts:0};o.kv={get:async(k,t)=>{o.gets++;const v=o.store[k];if(v==null)return null;return t&&t.type==='json'?JSON.parse(v):v},put:async(k,v)=>{o.puts++;o.store[k]=v},delete:async k=>{delete o.store[k]}};return o};
+let calls=0;globalThis.fetch=async()=>{calls++;return {ok:false,status:404,text:async()=>''}};
+const ctx={waitUntil(){}};
+const w=(await import(src+'?i=1')).default;
+const login=async env=>{const r0=await w.fetch(new Request('https://x.co.uk/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1'})}),env,ctx);return (r0.headers.get('Set-Cookie')||'').split(';')[0]};
+const api=async(env,ck,host,o)=>{const r=await w.fetch(new Request('https://'+host+'/api/sponsors',{method:'POST',headers:{'Content-Type':'application/json',Cookie:ck,Origin:'https://'+host},body:JSON.stringify(o)}),env,ctx);return {s:r.status,j:await r.json()}};
+const today=new Date();const yr=today.getUTCMonth()>=6?today.getUTCFullYear():today.getUTCFullYear()-1;const S=y=>y+'-'+(y+1);
+const dev=mk(),prod=mk();const denv={CLUB_PIN:'1',SETTINGS:dev.kv,ENV_LABEL:''},penv={CLUB_PIN:'1',SETTINGS:prod.kv,ENV_LABEL:''};
+const dck=await login(denv),pck=await login(penv);
+dev.store['sponsors']=JSON.stringify({v:1,items:[{id:'00000001',name:'Vets4Pets'},{id:'00000002',name:'Dart Motors'}]});
+dev.store['sponsor-links:'+S(yr)]=JSON.stringify({v:1,t:{'11039':{'5':{n:'Aled Price',nm:'Al',s:'00000001'},'6':{n:'Ben Bee',s:'00000002'}},'11040':{'5':{n:'Aled Price',nm:'Al',s:'00000001'}}},g:{'11039':3},i:{}});
+dev.store['sponsor-links:'+S(yr+1)]=JSON.stringify({v:1,t:{'11039':{'9':{n:'Cat Cee',s:'00000001'}}},g:{},i:{}});
+const g0=dev.gets,p0=dev.puts;
+let b=await api(denv,dck,'dev.thestatsboard.co.uk',{act:'backup'});
+c('backup returns a file with the sponsors and each season',b.s===200&&b.j.ok&&b.j.file.format==='stats-board-sponsors'&&b.j.file.sponsors.length===2&&Object.keys(b.j.file.seasons).length===2&&b.j.file.seasons[S(yr)].t['11039']['5'].s==='00000001',JSON.stringify(b.j).slice(0,300));
+c('backup only reads: no writes, few settings reads, no RFU reads',dev.puts===p0&&(dev.gets-g0)<=8&&calls===0,(dev.gets-g0)+' reads '+(dev.puts-p0)+' writes '+calls+' rfu');
+const file=b.j.file;
+prod.store['sponsors']=JSON.stringify({v:1,items:[{id:'0000000f',name:'Old Sponsor'}]});
+prod.store['sponsor-links:'+S(yr-1)]=JSON.stringify({v:1,t:{'11039':{'1':{n:'Old One',s:'0000000f'}}},g:{},i:{}});
+const before=JSON.stringify(prod.store);
+let r=await api(penv,pck,'thestatsboard.co.uk',{act:'restore',file,confirm:false});
+c('preview counts what is in the file and what is on this site',r.j.ok&&r.j.applied===false&&r.j.summary.sponsors===2&&r.j.summary.here.sponsors===1&&r.j.summary.seasons.find(z=>z.season===S(yr)).players===2&&r.j.summary.seasons.find(z=>z.season===S(yr)).teams===2,JSON.stringify(r.j.summary));
+c('preview changes nothing',JSON.stringify(prod.store)===before);
+const pp=prod.puts,pg=prod.gets;
+r=await api(penv,pck,'thestatsboard.co.uk',{act:'restore',file,confirm:true});
+c('loading writes the sponsors and the three seasons and nothing else',r.j.ok&&r.j.applied===true&&prod.puts-pp===4,prod.puts-pp);
+c('the sponsor list is replaced',JSON.parse(prod.store['sponsors']).items.map(x=>x.name).sort().join()==='Dart Motors,Vets4Pets');
+c('this and next season carry the players, and last season is cleared',JSON.parse(prod.store['sponsor-links:'+S(yr)]).t['11039']['5'].s==='00000001'&&JSON.parse(prod.store['sponsor-links:'+S(yr+1)]).t['11039']['9'].s==='00000001'&&Object.keys(JSON.parse(prod.store['sponsor-links:'+S(yr-1)]).t).length===0);
+c('loading stays within a small number of settings reads and writes, no RFU reads',(prod.gets-pg)<=8&&(prod.puts-pp)<=4&&calls===0,(prod.gets-pg)+' reads');
+const rep=await api(penv,pck,'thestatsboard.co.uk',{act:'report'});
+c('the Sponsor list on the new site now shows the players',rep.j.ok&&rep.j.sponsors.find(s=>s.id==='00000001').players.length>=1,JSON.stringify(rep.j).slice(0,200));
+// bad files
+for(const [n,f] of [['not a backup',{hello:1}],['wrong version',{...file,version:2}],['empty',{format:'stats-board-sponsors',version:1,sponsors:[],seasons:{}}]]){const x=await api(penv,pck,'thestatsboard.co.uk',{act:'restore',file:f,confirm:true});c('refuses '+n+' and changes nothing',x.s===400&&!x.j.ok&&JSON.parse(prod.store['sponsors']).items.length===2,JSON.stringify(x.j))}
+// link to a sponsor not in the list, and a season outside the window
+const odd={format:'stats-board-sponsors',version:1,sponsors:[{id:'00000009',name:'Only One'}],seasons:{[S(yr)]:{v:1,t:{'11039':{'5':{n:'Zed',s:'00000001'},'6':{n:'Yan',s:'00000009'}}}},'2001-2002':{v:1,t:{'11039':{'1':{n:'Old',s:'00000009'}}}}}};
+const pr=await api(penv,pck,'thestatsboard.co.uk',{act:'restore',file:odd,confirm:false});
+c('a link to a missing sponsor is dropped and a far-off season is ignored',pr.j.ok&&pr.j.summary.dropped===1&&pr.j.summary.ignored.join()==='2001-2002'&&pr.j.summary.seasons.find(z=>z.season===S(yr)).players===1,JSON.stringify(pr.j.summary));
+c('needs the club PIN',(await w.fetch(new Request('https://thestatsboard.co.uk/api/sponsors',{method:'POST',body:JSON.stringify({act:'backup'})}),penv,ctx)).status!==200);
+c('another site address is refused',(await api(penv,pck,'thestatsboard.co.uk',{act:'backup'})).j.ok&&(await w.fetch(new Request('https://thestatsboard.co.uk/api/sponsors',{method:'POST',headers:{'Content-Type':'application/json',Cookie:pck,Origin:'https://evil.example'},body:JSON.stringify({act:'restore',file,confirm:true})}),penv,ctx)).status===403);
+console.log(ok+' pass, '+bad+' fail');process.exit(bad?1:0);

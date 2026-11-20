@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.50.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.50.0_sponsor_backup.zip | v3.49.5
 v3.49.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.5_matchday_day_label.zip | v3.49.4
 v3.49.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.4_team_v_team.zip | v3.49.3
 v3.49.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.3_matchday_never_cut.zip | v3.49.2
@@ -339,6 +340,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.50.0 - Sponsors: back up, or move to another site
+- Owner request (20-Nov-2026): sponsors and players were entered on the test site; copy them to the live site without typing them again.
+- New: at the foot of the Sponsors page, Back up or move to another site. Download backup saves one JSON file with every sponsor and each player's sponsor for last season, this season and next season. Load a backup file (on any site) reads the file, shows what is in it and what the site has now, and only changes anything when you press Replace this site's sponsors with this file. Loading replaces the sponsor list and the player sponsors for those three seasons and clears a season the file has nothing for. A player link to a sponsor that is not in the file is left without a sponsor, and seasons outside the three are ignored. A file that is not a Stats Board sponsor backup is refused.
+- Request limit: used only by you on the Sponsors page, never by visitors. Download and the preview read the settings store about five times; loading writes four values (the sponsor list and the three seasons). No RFU reads. Each action is its own request, so none comes near the 50-request limit.
+- Docs: Admin guide
 
 v3.49.5 - Match day: plain day label instead of "game day 3 of 27"
 - Owner question (20-Nov-2026): why does it say game day 3 of 27 when seven games have been played?

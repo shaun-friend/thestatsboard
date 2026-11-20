@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.50.0 20-Nov-2026 Sponsors: Back up or move to another site (Download backup / Load a backup file) copies the sponsor list and each player's sponsor between sites, for example DEV to PROD.
 //   v3.49.5 20-Nov-2026 Match day: the "game day N of M" count is replaced by Today / Tomorrow / In N days / N days ago.
 //   v3.49.4 20-Nov-2026 Fixture lines on the Overview and Match day always read "our team v opposition" with a Home or Away flag (no more "at").
 //   v3.49.3 20-Nov-2026 Match day: a long player or sponsor name wraps onto a second line instead of being cut off with "...".
@@ -335,7 +336,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.49.5";
+const VERSION = "v3.50.0";
 const BUILD_DATE = "20-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -382,6 +383,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.50.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.50.0_sponsor_backup.zip | v3.49.5
 v3.49.5 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.5_matchday_day_label.zip | v3.49.4
 v3.49.4 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.4_team_v_team.zip | v3.49.3
 v3.49.3 | 20-Nov-2026 | RFU_Club_Dashboard_v3.49.3_matchday_never_cut.zip | v3.49.2
@@ -680,6 +682,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.50.0 - Sponsors: back up, or move to another site
+- Owner request (20-Nov-2026): sponsors and players were entered on the test site; copy them to the live site without typing them again.
+- New: at the foot of the Sponsors page, Back up or move to another site. Download backup saves one JSON file with every sponsor and each player's sponsor for last season, this season and next season. Load a backup file (on any site) reads the file, shows what is in it and what the site has now, and only changes anything when you press Replace this site's sponsors with this file. Loading replaces the sponsor list and the player sponsors for those three seasons and clears a season the file has nothing for. A player link to a sponsor that is not in the file is left without a sponsor, and seasons outside the three are ignored. A file that is not a Stats Board sponsor backup is refused.
+- Request limit: used only by you on the Sponsors page, never by visitors. Download and the preview read the settings store about five times; loading writes four values (the sponsor list and the three seasons). No RFU reads. Each action is its own request, so none comes near the 50-request limit.
+- Docs: Admin guide
 
 v3.49.5 - Match day: plain day label instead of "game day 3 of 27"
 - Owner question (20-Nov-2026): why does it say game day 3 of 27 when seven games have been played?
@@ -2782,6 +2790,7 @@ const DOC_SECTIONS = [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
       "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
       "Players (Admin, Tools, Players, or the Players tab on the Sponsors page): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. On the Sponsors page you can also tap a sponsor and add several players to it at once. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
+      "Back up or move the sponsors: at the foot of the Sponsors page, open Back up or move to another site. Download backup saves one file with every sponsor and each player's sponsor for last season, this season and next season. To copy your setup to another site (for example from the test site to the live site), open the Sponsors page there, press Load a backup file and choose the file. It shows what is in the file and what is on the site now, and nothing changes until you press Replace this site's sponsors with this file. Loading replaces the sponsors and the player sponsors for those three seasons, and clears a season the file has nothing for. Keep the file as a backup too.",
       "All sponsors and their players: on the Sponsors page, press the green All sponsors and their players button (address /sponsor-list). It lists every sponsor with the players they sponsor this season, with the team beside each player. Choose a team to see only that team's players (sponsors with no players in that team are left out). Export downloads what is on screen as a CSV file (Sponsor, Player, Team) that opens in Excel or Sheets. Under-18 teams are listed without names.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
     ] },
@@ -2942,6 +2951,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.50.0", "Sponsors page: Back up or move to another site downloads the sponsors and each player's sponsor as one file, and loads it on another site (for example from the test site to the live site) after showing what will change."],
       ["v3.49.5", "Match day: the date box says Today, Tomorrow or In N days instead of a game day count."],
       ["v3.49.4", "Overview and Match day: fixtures always read team v team with a Home or Away flag."],
       ["v3.49.3", "Match day: player and sponsor names are never cut off; a long one wraps onto a second line."],
@@ -4365,7 +4375,7 @@ async function sponsorsApi(request, url) {
   if (request.method !== "POST") return J({ ok: false, error: "Use the Sponsors page." }, 405);
   const origin = request.headers.get("Origin");
   if (origin) { let oh = ""; try { oh = new URL(origin).host; } catch (_) { oh = ""; } if (oh !== url.host) return J({ ok: false, error: "Not allowed." }, 403); }
-  let b = null; try { b = JSON.parse(await request.text()); } catch (_) { b = null; }
+  let b = null; try { const tx = await request.text(); b = tx.length > 700000 ? null : JSON.parse(tx); } catch (_) { b = null; }
   if (!b || typeof b.act !== "string") return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
   if (b.act === "detail") return detailOf(String(b.id || ""));
   if (b.act === "report") {
@@ -4378,6 +4388,35 @@ async function sponsorsApi(request, url) {
     }
     const sp = sponsorSorted(items).map(x => ({ id: x.id, name: x.name, players: (by[x.id] || []).sort((a, c) => (a.name || "~").toLowerCase() < (c.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (c.name || "~").toLowerCase() ? 1 : 0) }));
     return J({ ok: true, season, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), sponsors: sp });
+  }
+  if (b.act === "backup" || b.act === "restore") {
+    // v3.50.0: one file with the sponsor list and every player's sponsor for last, this and next season, so the setup can be loaded on another site (DEV to PROD) or kept as a backup.
+    const y0 = +season.slice(0, 4), wanted = [seasonName(y0 - 1), season, seasonName(y0 + 1)];
+    if (b.act === "backup") {
+      const out = {};
+      try { for (const sn of wanted) { const r = sn === season && rec ? rec : await splinkRead(kv, sn); if (Object.keys(r.t).length) out[sn] = r; } } catch (_) { return J({ ok: false, error: "Could not read the players. Try again." }, 502); }
+      return J({ ok: true, file: { format: "stats-board-sponsors", version: 1, exported: new Date().toISOString(), from: url.host, sponsors: sponsorSorted(items), seasons: out } });
+    }
+    const f = b.file;
+    if (!f || typeof f !== "object" || f.format !== "stats-board-sponsors" || f.version !== 1 || !Array.isArray(f.sponsors)) return J({ ok: false, error: "That is not a Stats Board sponsor backup file." }, 400);
+    const sp = cleanSponsors({ items: f.sponsors }), ids = new Set(sp.map(x => x.id)), recs = {}, ignored = [];
+    let dropped = 0;
+    const fs = f.seasons && typeof f.seasons === "object" ? f.seasons : {};
+    for (const sn of Object.keys(fs)) {
+      if (!wanted.includes(sn)) { ignored.push(sn); continue; }
+      const r = cleanLinks(fs[sn]);
+      for (const tk of Object.keys(r.t)) for (const no of Object.keys(r.t[tk])) { const e0 = r.t[tk][no]; if (e0.s && !ids.has(e0.s)) { e0.s = ""; dropped++; if (!e0.nm && !e0.a.length && e0.c !== 1) delete r.t[tk][no]; } }
+      recs[sn] = r;
+    }
+    if (!sp.length && !Object.keys(recs).length) return J({ ok: false, error: "That file has no sponsors or players in it." }, 400);
+    const cnt = r => { const set = new Set(); let teams = 0; for (const tk of Object.keys(r.t)) { let n = 0; for (const no of Object.keys(r.t[tk])) if (r.t[tk][no].s) { set.add(no); n++; } if (n) teams++; } return { players: set.size, teams }; };
+    const summary = { sponsors: sp.length, seasons: wanted.map(sn => ({ season: sn, ...(recs[sn] ? cnt(recs[sn]) : { players: 0, teams: 0 }), inFile: !!recs[sn] })), here: { sponsors: items.length, players: rec ? cnt(rec).players : 0, season }, ignored, dropped, from: String(f.from || "").slice(0, 60), exported: String(f.exported || "").slice(0, 10) };
+    if (b.confirm !== true) return J({ ok: true, applied: false, summary });
+    try {
+      await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items: sp, savedAt: new Date().toISOString() }));
+      for (const sn of wanted) await kv.put(SPLINK_PREFIX + sn, recJson(recs[sn] || cleanLinks(null)));
+    } catch (_) { return J({ ok: false, error: "Could not save everything. Load the file again to finish." }, 502); }
+    return J({ ok: true, applied: true, summary });
   }
   const has = (name, skipId) => items.some(x => x.id !== skipId && x.name.toLowerCase() === name.toLowerCase());
   let added = 0, skipped = 0;
@@ -4454,6 +4493,7 @@ function sponsorsPage(theme, isDev, hasKv) {
 <div class="msg2" id="ms" role="status"></div>
 <div class="sum" id="sm"></div>
 <div class="cd2"><a class="b2 go" href="/sponsor-list" style="display:block;text-align:center;text-decoration:none"><b>All sponsors and their players</b> &rsaquo;</a></div>
+<details class="cd2" id="bkp"><summary>Back up or move to another site</summary><p class="sub" style="margin:8px 0">Download one file with all the sponsors and each player's sponsor for last season, this season and next season. Load that file on another site, for example PROD, to copy it there. Loading a file replaces what is on the site you load it on.</p><div class="rw2"><button type="button" class="b2 go" id="bd">Download backup</button><button type="button" class="b2" id="bl">Load a backup file</button><input type="file" id="bf" accept=".json,application/json" hidden></div><div id="br" style="margin-top:8px"></div></details>
 <div class="cd2"><div class="rw2" style="margin-bottom:6px"><span class="xw"><input class="in2" id="fq" placeholder="Search sponsors" autocomplete="off"><button type="button" class="xb" hidden aria-label="Clear search">&times;</button></span><small id="ct" style="color:#91a49a"></small></div><div id="ls"></div></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
 <script>(function(){var items=[],use={},season="",why=[],max=300,open="",armed="",busy=false,det=null,pool=null,sel={},pt="",onlyCur=true,onlyFree=true;
@@ -4489,6 +4529,13 @@ function post(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST
 function load(){fetch("/api/sponsors",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the sponsors.","er");return}items=j.items;use=j.use||{};season=j.season||"";max=j.max||max;draw()}).catch(function(){say("Could not read the sponsors.","er")})}
 $("ad").onclick=function(){var v=$("nm").value;post({act:"add",name:v},function(){$("nm").value="";say("Added.","ok");$("nm").focus()})};
 $("nm").onkeydown=function(ev){if(ev.key==="Enter")$("ad").click()};
+function bsay(h){$("br").innerHTML=h}
+function bapi(o,cb){fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"That did not work. Try again."}})}).then(cb).catch(function(){cb({ok:false,error:"That did not work. Try again."})})}
+var bfile=null;
+function bsum(m,done){var h="<p class='sub' style='margin:0 0 6px'>"+(done?"<b>Loaded.</b> This site now has:":"This file has:")+"</p><ul class='sub' style='margin:0 0 8px;padding-left:18px'><li>"+m.sponsors+" sponsors</li>";m.seasons.forEach(function(z){h+="<li>"+e(z.season)+": "+(z.inFile?z.players+" sponsored players in "+z.teams+" teams":"nothing")+"</li>"});h+="</ul>";if(!done){h+="<p class='sub' style='margin:0 0 8px'>"+(m.from?"From "+e(m.from)+(m.exported?" on "+e(m.exported):"")+". ":"")+"This site has "+m.here.sponsors+" sponsors and "+m.here.players+" sponsored players for "+e(m.here.season)+". Loading replaces them"+(m.seasons.some(function(z){return!z.inFile})?", and clears any season the file has nothing for":"")+".</p>"}if(m.dropped)h+="<p class='sub' style='margin:0 0 8px'>"+m.dropped+" player links pointed at a sponsor that is not in the file and were left without one.</p>";if(m.ignored&&m.ignored.length)h+="<p class='sub' style='margin:0 0 8px'>Seasons not loaded (outside last, this and next season): "+e(m.ignored.join(", "))+".</p>";return h}
+$("bd").onclick=function(){bsay("Preparing the file...");bapi({act:"backup"},function(j){if(!j||!j.ok){bsay("<span class='msg2 er'>"+e((j&&j.error)||"Could not make the backup.")+"</span>");return}var d=new Blob([JSON.stringify(j.file,null,1)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(d);a.download="sponsors-backup-"+location.hostname+"-"+j.file.exported.slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000);bsay("<span class='msg2'>Downloaded "+e(a.download)+".</span>")})};
+$("bl").onclick=function(){$("bf").value="";$("bf").click()};
+$("bf").onchange=function(){var f=this.files&&this.files[0];if(!f)return;bfile=null;if(f.size>600000){bsay("<span class='msg2 er'>That file is too big to be a sponsor backup.</span>");return}var rd=new FileReader();rd.onload=function(){var o=null;try{o=JSON.parse(String(rd.result))}catch(x){o=null}if(!o){bsay("<span class='msg2 er'>That file could not be read. Choose a sponsor backup file.</span>");return}bfile=o;bsay("Checking the file...");bapi({act:"restore",file:o,confirm:false},function(j){if(!j||!j.ok){bfile=null;bsay("<span class='msg2 er'>"+e((j&&j.error)||"That file could not be checked.")+"</span>");return}bsay(bsum(j.summary,false)+"<div class='rw2'><button type='button' class='b2 go' id='bg'>Replace this site's sponsors with this file</button><button type='button' class='b2' id='bc'>Cancel</button></div>");$("bc").onclick=function(){bfile=null;bsay("")};$("bg").onclick=function(){$("bg").disabled=true;bsay("Loading...");bapi({act:"restore",file:bfile,confirm:true},function(k){bfile=null;if(!k||!k.ok){bsay("<span class='msg2 er'>"+e((k&&k.error)||"Could not load the file.")+"</span>");return}bsay(bsum(k.summary,true));load()})}})};rd.readAsText(f)};
 $("ab").onclick=function(){post({act:"bulk",text:$("bk").value},function(j){$("bk").value="";say("Added "+j.added+(j.skipped?", skipped "+j.skipped+" already in the list":"")+".","ok")})};
 $("fq").oninput=draw;(function(){function sy(i){var b=i.parentNode.querySelector(".xb");if(b)b.hidden=!i.value}document.addEventListener("input",function(e){if(e.target.classList&&e.target.classList.contains("in2"))sy(e.target)});document.addEventListener("click",function(e){var b=e.target.closest?e.target.closest(".xb"):null;if(!b)return;var i=b.parentNode.querySelector("input");i.value="";b.hidden=true;i.dispatchEvent(new Event("input",{bubbles:true}));i.focus()})})();
 $("ls").onchange=function(ev){var c=ev.target;if(c.id==="at"){pt=c.value;loadPool();return}if(c.id==="ac"){onlyCur=c.checked;drawPool();return}if(c.id==="af"){onlyFree=c.checked;drawPool();return}var no=c.getAttribute&&c.getAttribute("data-no");if(no){if(c.checked)sel[no]=1;else delete sel[no];drawPool()}};
