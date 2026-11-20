@@ -10,7 +10,7 @@ await p.route('**/*',r=>{const u=new URL(r.request().url());
  if(u.pathname==='/api/matchday'){const o=JSON.parse(r.request().postData());posts.push(o);
   const base={ok:true,team:o.team,teamName:'T',today:'2026-11-20',days:o.team==='11039'?[{d:'2026-11-21',opp:'Exeter Saracens',home:true,time:'14:30',comp:'Counties 1'},{d:'2026-11-28',opp:'X',home:false,time:'',comp:''}]:[{d:'2026-11-22',opp:'Y',home:false,time:'',comp:''}],at:'12:00'};
   if(!o.day)return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(base)});
-  if(o.team==='11039'&&o.day==='2026-11-21')return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...base,day:o.day,game:{opp:'Exeter Saracens',home:true,time:'14:30',comp:'Counties 1',venue:'Ivybridge',status:'upcoming'},sheet:true,hidden:false,scanned:true,players:[pl('1','Alan Aye',{sponsor:'Vets4Pets',avail:false}),pl('2','Bobby',{star:true,fresh:true,tag:'Captain'}),pl('S1','Sam Sub',{tag:'Vice captain'}),pl('3','',{red:true}),pl('4','',{hidden:true,avail:false})],counts:{total:5,sponsored:1,avail:2,redacted:1,fresh:1}})});
+  if(o.team==='11039'&&o.day==='2026-11-21')return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...base,day:o.day,game:{opp:'Exeter Saracens',home:true,time:'14:30',comp:'Counties 1',venue:'Ivybridge',status:'upcoming'},sheet:true,hidden:false,scanned:true,players:[pl('1','Alan Aye',{sponsor:'Vets4Pets',avail:false}),pl('2','Bobby',{star:true,fresh:true,tag:'Captain'}),pl('S1','Sam Sub',{tag:'Vice captain',sponsor:'The Ivybridge Cricket and Social Club Ltd',avail:false}),pl('3','',{red:true}),pl('4','',{hidden:true,avail:false})],counts:{total:5,sponsored:1,avail:2,redacted:1,fresh:1}})});
   if(o.team==='11039'&&o.day==='2026-11-22')return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...base,day:o.day,game:null})});
   return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...base,day:o.day,game:{opp:'Y',home:false,time:'',comp:'',venue:'',status:'upcoming'},sheet:false,players:[],counts:{total:0}})})}
  r.fulfill({status:200,body:'{}'})});
@@ -32,6 +32,7 @@ await p.evaluate(()=>{navigator.clipboard.writeText=function(t){window.__c=t;ret
 await p.click('button[data-c="11039"]');await p.waitForTimeout(200);const cp=await p.evaluate(()=>window.__c||'');
 ck('copy list gives shirt number, name and sponsor',/^Ivybridge 1XV v Exeter Saracens/.test(cp)&&/1\. Alan Aye - Vets4Pets/.test(cp)&&/2\. Bobby \(C\) - Available to sponsor/.test(cp)&&/3\. Name redacted - Available to sponsor/.test(cp)&&/4\. Name not shown$/m.test(cp),cp);
 ck('shirt icons show the numbers and positions are gone',(await p.locator('.no svg').count())===5&&!/Prop/.test(await p.innerText('#out')));
+await p.setViewportSize({width:1280,height:900});await p.waitForTimeout(200);ck('on a wide screen a long sponsor name shows in full',await p.$$eval('.sp',els=>els.length>0&&els.every(e=>e.scrollWidth<=e.clientWidth+1)),'trunc');await p.setViewportSize({width:400,height:900});
 ck('no script errors',errs.length===0,errs.join(';'));
 ck('fits a phone',!(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)));
 await b.close();console.log(f?'FAILED '+f:'ALL OK');process.exit(f?1:0)})();
