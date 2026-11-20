@@ -24,6 +24,7 @@ c('a team with no crest is flagged and one with a crest is not',/has no crest/.t
 c('one request per team, none with a day',posts.length>=1&&posts.every(o=>o.team&&!o.day),JSON.stringify(posts));
 c('sponsor counts',/3\s*Sponsors/.test(t)&&/6\s*Sponsored players/.test(t)&&/1\s*With no players/.test(t),t);
 c('tv rotation card is one line per team, names only the page hidden today, and counts paired screens',/TV rotation today \(Fri\)/i.test(t)&&/Ivybridge 1XV/.test(t)&&/3 of 4 pages/.test(t)&&/Not today: Next game \(Weekends\)/.test(t)&&/The Vandals/.test(t)&&/6 of 7 pages showing today/.test(t)&&/2 screens paired/.test(t)&&!/League Leaders/.test(t),t);
+c('next game is team v team with a Home flag',/Ivybridge 1XV v North Petherton/.test(t)&&/home/i.test(t),t);
 c('a crest replaces the initials for 11039',await p.$$eval('#ovg .ovcr',a=>a.length)>=1);
 c('no script errors',errs.length===0,errs.join('|'));
 await p.setViewportSize({width:390,height:800});await p.waitForTimeout(200);

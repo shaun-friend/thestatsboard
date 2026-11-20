@@ -22,6 +22,8 @@ ck('shows the opposition and kick-off',/Ivybridge 1XV v Exeter Saracens/.test(x)
 ck('sponsor, available, redacted and new show',/Vets4Pets/.test(x)&&/Available to sponsor/.test(x)&&/Name redacted/.test(x)&&/New/.test(x)&&/Bobby/.test(x)&&!/Bobby \*/.test(x)&&/\(C\)/.test(x)&&/\(VC\)/.test(x)&&!/Vice captain/.test(x),x);
 ck('substitutes are separated by a line, one row each',(await p.$$('.sh')).length===1&&(await p.$$eval('.pr',els=>els.every(e=>e.getBoundingClientRect().height<110))),'sb');
 ck('under 18 shows no name or sponsor text for that row',!/under 18/i.test(x)||true);
+{const src=fs.readFileSync('t_worker.mjs','utf8');ck('fixtures always read team v team with a Home or Away flag, never "at"',(src.match(/g\.home\?"Home":"Away"/g)||[]).length>=3&&!/g\.home\?"v":"at"/.test(src)&&!/g\.home\?" v ":" at "/.test(src))}
+ck('the game header shows a Home or Away flag',(await p.$$('.tt .ha')).length>=1&&/home/i.test(x)&&/away/i.test(x),x);
 ck('another team without a sheet says so',/No sheet available on GMS/.test(x),x);
 ck('back is off on the first game day and forward is on',await p.locator('#pv').isDisabled()&&!(await p.locator('#nx').isDisabled()));
 await p.click('#nx');await p.waitForTimeout(500);x=await t();ck('another day shows that day and the no game line',/No game on/.test(x),x);
