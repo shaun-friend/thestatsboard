@@ -44,6 +44,7 @@ await p.click('button[data-a=rm]');ck('remove asks first',/Remove this sponsor/.
 await p.click('button[data-a=yes]');await p.waitForTimeout(300);ck('remove after confirming',!/Brook Dental Ltd/.test(await t())&&/2 of 300/.test(await t()),await t());
 ck('letter headings and A-Z row appear',await p.locator('.lt').count()>=1&&await p.locator('#az .azb').count()>=1&&await p.locator('.lt').count()===await p.locator('#az .azb').count());
 ck('clicking a letter does not error',await p.locator('#az .azb').first().click().then(()=>true).catch(()=>false));
+await p.click('#fcs button[data-n="1"]');ck('No players filter works and shows a count',/No players \d/.test(await p.innerText('#fcs')));ck('every listed sponsor has no players',await p.locator('#ls .sr').evaluateAll(a=>a.every(e=>!/\b[1-9]\d*\b/.test((e.querySelector('.ct,.n,.bd')||{textContent:''}).textContent))));await p.click('#fcs button[data-n="0"]');ck('All button restores the list',await p.locator('#ls .sr').count()>=1);
 ck('no script errors',errs.length===0,errs.join(';'));
 const wide=await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);ck('fits a phone',!wide);
 await b.close();console.log(f?'FAILED '+f:'ALL OK');process.exit(f?1:0)})();

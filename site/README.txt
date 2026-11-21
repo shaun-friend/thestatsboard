@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.51.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.2_sponsors_no_players_filter.zip | v3.51.1
 v3.51.1 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.1_players_sponsored_filter.zip | v3.51.0
 v3.51.0 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.0_sponsor_layout.zip | v3.50.3
 v3.50.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.50.3_matchday_bigger_gap.zip | v3.50.2
@@ -345,6 +346,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.51.2 - Sponsors: No players filter
+- Owner request (21-Nov-2026): list sponsors that have no player attached.
+- Added: All / No players buttons above the sponsor list; No players shows sponsors with no player in the season shown.
+- Request limit: none; screen filter only.
+- Docs: Admin guide
 
 v3.51.1 - Players: Sponsored filter
 - Owner request (21-Nov-2026): list only the sponsored players, to check everyone is captured.
