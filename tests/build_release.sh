@@ -93,6 +93,7 @@ NODE_PATH=$(npm root -g) node x_sponsorbackup.cjs | tail -1 | grep -q "ALL OK" |
 node x_sponsorlist.mjs "$S/t_worker.mjs" >/dev/null && NODE_PATH=$(npm root -g) node x_sponsorlist.cjs | tail -1 | grep -q "ALL OK" || { echo "SPONSOR LIST PAGE TEST FAILED"; exit 1; }; echo "sponsor list page ok"
 node x_splayers.mjs "$S/t_worker.mjs" >/dev/null && NODE_PATH=$(npm root -g) node x_splayers.cjs | tail -1 | grep -q "ALL OK" || { echo "PLAYER SPONSORS PAGE TEST FAILED"; exit 1; }; echo "player sponsors page ok"
 node x_matchday.mjs "$S/t_worker.mjs" >/dev/null && NODE_PATH=$(npm root -g) node x_matchday.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH DAY PAGE TEST FAILED"; exit 1; }; echo "match day page ok"
+NODE_PATH=$(npm root -g) node x_matchdayteam.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH DAY TEAM BOX TEST FAILED"; exit 1; }; echo "match day team box ok"
 node x_usage_chk.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_usage_align.cjs | tail -1 | grep -q "ALL OK" || { echo "USAGE CHART ALIGNMENT TEST FAILED"; exit 1; }; echo "usage chart aligned"
 node x_usage_chk.mjs "$S/t_worker.mjs" >/dev/null && NODE_PATH=$(npm root -g) node x_usage_chk.cjs | tail -1 | grep -q "ALL OK" || { echo "USAGE PAGE BROWSER TEST FAILED"; exit 1; }; echo "usage page renders ok"
 node x_usage_chk.mjs "$S/t_worker.mjs" >/dev/null && node x_usage_screens.mjs "$S/t_worker.mjs" >/dev/null && NODE_PATH=$(npm root -g) node x_usage_screens.cjs | tail -1 | grep -q "ALL OK" || { echo "USAGE SCREENS TEST FAILED"; exit 1; }; echo "usage screens ok"
