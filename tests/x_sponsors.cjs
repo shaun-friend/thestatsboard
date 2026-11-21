@@ -42,6 +42,8 @@ await p.fill('#ei','Brook Dental Ltd');await p.click('button[data-a=save]');awai
 ck('rename',/Brook Dental Ltd/.test(await t()));
 await p.click('button[data-a=rm]');ck('remove asks first',/Remove this sponsor/.test(await t()));
 await p.click('button[data-a=yes]');await p.waitForTimeout(300);ck('remove after confirming',!/Brook Dental Ltd/.test(await t())&&/2 of 300/.test(await t()),await t());
+ck('letter headings and A-Z row appear',await p.locator('.lt').count()>=1&&await p.locator('#az .azb').count()>=1&&await p.locator('.lt').count()===await p.locator('#az .azb').count());
+ck('clicking a letter does not error',await p.locator('#az .azb').first().click().then(()=>true).catch(()=>false));
 ck('no script errors',errs.length===0,errs.join(';'));
 const wide=await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);ck('fits a phone',!wide);
 await b.close();console.log(f?'FAILED '+f:'ALL OK');process.exit(f?1:0)})();

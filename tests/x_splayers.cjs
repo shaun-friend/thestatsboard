@@ -35,6 +35,8 @@ await p.click('#t3');await p.waitForTimeout(200);const cp=await p.locator('#cpb'
 await cp.click();ck('copy asks first',/Yes, copy from/.test(await cp.innerText()));
 await cp.click();await p.waitForTimeout(300);ck('copy sends the request',posts.some(o=>o.act==='copy'&&o.from==='2026-2027'),JSON.stringify(posts));
 await p.selectOption('#se','2025-2026');await p.waitForTimeout(300);ck('no copy button on the oldest season',await p.locator('#cpb').isHidden());
+ck('available player has amber row and chip',await p.locator('.li.av').count()>=1&&await p.locator('.am').count()>=1);
+ck('set-up view hides the list, key and totals labels',await (async()=>{await p.click('#t3');await p.waitForTimeout(200);const v=await p.locator('#ls').isHidden();await p.click('#t2');return v})());
 ck('no script errors',errs.length===0,errs.join(';'));
 ck('fits a phone',!(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)));
 await b.close();console.log(f?'FAILED '+f:'ALL OK');process.exit(f?1:0)})();
