@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.51.3 21-Nov-2026 Admin menu: one entry for Player names and sponsors (Sponsors is the first tab inside it).
 //   v3.51.2 21-Nov-2026 Sponsors: No players filter (sponsors with no player this season).
 //   v3.51.1 21-Nov-2026 Players: new Sponsored filter (current players who have a sponsor).
 //   v3.51.0 21-Nov-2026 Sponsors and Players pages: clearer separate areas (two columns on laptop, labelled zones, coloured totals, A-Z jump row, coloured player rows).
@@ -342,7 +343,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.51.2";
+const VERSION = "v3.51.3";
 const BUILD_DATE = "21-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -389,6 +390,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.51.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.3_menu_one_sponsor_entry.zip | v3.51.2
 v3.51.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.2_sponsors_no_players_filter.zip | v3.51.1
 v3.51.1 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.1_players_sponsored_filter.zip | v3.51.0
 v3.51.0 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.0_sponsor_layout.zip | v3.50.3
@@ -694,6 +696,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.51.3 - Admin menu: one way in to players and sponsors
+- Owner request (21-Nov-2026): the menu had two entries for the same area.
+- Changed: the separate Sponsors menu entry is removed; Player names and sponsors opens the pages, and Sponsors is tab 1 inside it.
+- Request limit: none.
+- Docs: Admin guide
 
 v3.51.2 - Sponsors: No players filter
 - Owner request (21-Nov-2026): list sponsors that have no player attached.
@@ -2797,8 +2805,7 @@ const DOC_SECTIONS = [
       ["Match day", "Opens the Match day page (team sheets, sponsors, opposition and scoring)."],
       ["Club set-up: Link builder", "Opens the Link builder for team and screen links."],
       ["Club set-up: Our teams", "Your teams: friendly name, colour, crest, league and order, used across the whole site."],
-      ["Club set-up: Player names and sponsors", "Opens the Players page: the name we use for each player and their sponsor, by team and season."],
-      ["Club set-up: Sponsors", "Opens the club's list of sponsors, and from there the Sponsor list with its export."],
+      ["Club set-up: Player names and sponsors", "Opens the sponsors and players pages, with three tabs along the top: 1. Sponsors (the club's sponsor list, with a No players filter and the Sponsor list export), 2. Players (the name we use for each player and their sponsor, by team and season, with filters) and 3. Season set-up."],
       ["Screens and notices: Paired screens", "Screens set up with the quick setup page, with Kick out."],
       ["Screens and notices: Screen settings", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
       ["Screens and notices: Site notices", "The homepage notice and the TV screen notice."],
@@ -2999,6 +3006,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.51.3", "Admin menu: one entry for Player names and sponsors; Sponsors is the first tab inside it."],
       ["v3.51.2", "Sponsors: a No players filter lists sponsors with no player this season."],
       ["v3.51.1", "Players: a Sponsored filter lists just the players who have a sponsor."],
       ["v3.51.0", "Sponsors and Players pages: areas are easier to tell apart, with an A-Z jump row on sponsors."],
@@ -3785,7 +3793,6 @@ ${setup}
 <a href="/?view=teams">Link builder</a>
 <a href="#teams" data-s="teams">Our teams</a>
 <a href="/sponsor-players">Player names and sponsors</a>
-<a href="/sponsors">Sponsors</a>
 <div class="adt">Screens and notices</div>
 <a href="#paired" data-s="paired">Paired screens</a>
 <a href="#screens" data-s="screens">Screen settings</a>
