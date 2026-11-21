@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.51.1 21-Nov-2026 Players: new Sponsored filter (current players who have a sponsor).
 //   v3.51.0 21-Nov-2026 Sponsors and Players pages: clearer separate areas (two columns on laptop, labelled zones, coloured totals, A-Z jump row, coloured player rows).
 //   v3.50.3 21-Nov-2026 Match day: the gap before the substitutes is larger (34px).
 //   v3.50.2 21-Nov-2026 Match day: the Substitutes heading is removed; a plain gap separates the substitutes from the fifteen.
@@ -340,7 +341,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.51.0";
+const VERSION = "v3.51.1";
 const BUILD_DATE = "21-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -387,6 +388,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.51.1 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.1_players_sponsored_filter.zip | v3.51.0
 v3.51.0 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.0_sponsor_layout.zip | v3.50.3
 v3.50.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.50.3_matchday_bigger_gap.zip | v3.50.2
 v3.50.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.50.2_matchday_no_subs_heading.zip | v3.50.1
@@ -690,6 +692,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.51.1 - Players: Sponsored filter
+- Owner request (21-Nov-2026): list only the sponsored players, to check everyone is captured.
+- Added: a Sponsored filter (with a count) between Current and Available to sponsor; it shows current players who have a sponsor.
+- Request limit: none; screen filter only.
+- Docs: Admin guide
 
 v3.51.0 - Sponsors and Players pages: areas easier to tell apart
 - Owner request (21-Nov-2026): everything blended together; make the areas clear at a glance.
@@ -2983,6 +2991,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.51.1", "Players: a Sponsored filter lists just the players who have a sponsor."],
       ["v3.51.0", "Sponsors and Players pages: areas are easier to tell apart, with an A-Z jump row on sponsors."],
       ["v3.50.3", "Match day: a bigger gap before the substitutes."],
       ["v3.50.2", "Match day: no Substitutes heading; a small gap separates the substitutes."],
@@ -4847,12 +4856,12 @@ function shown(r){return r.nm||r.rfu}
 function label(r){var n=shown(r);return n?e(n)+(r.own?" *":""):'<i style="color:#91a49a;font-weight:400">Name redacted</i>'}
 function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name hidden"));else if(r.hidden&&!r.nm)p.push("The RFU has hidden this name");p.push("no. "+r.no);if(r.alt.length)p.push("also "+r.alt.join(", "));if(r.left)p.push("not in the RFU squad list now");if(r.lastOn)p.push("last on a sheet "+dm(r.lastOn)+(r.lastOpp?" v "+r.lastOpp:"")+(r.last>0?" ("+r.last+" game"+(r.last===1?"":"s")+" ago)":""));else if(r.last>=0)p.push("last on a sheet: "+(r.last===0?"latest game":r.last+" game"+(r.last===1?"":"s")+" ago"));return p.join(" · ")}
 function dm(d){var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],x=String(d).split("-");return x.length===3?(+x[2])+" "+m[+x[1]-1]:d}
-function counts(){var a=0,o=0,c=0;D.rows.forEach(function(r){if(r.cur)c++;if(r.cur&&!r.sid)a++;if(r.own)o++});return{a:a,o:o,c:c}}
-function chips(){var c=counts();var h="";[["cur","Current "+c.c],["all","All "+D.rows.length],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="av"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
+function counts(){var a=0,o=0,c=0,sp=0;D.rows.forEach(function(r){if(r.cur&&r.sid)sp++;if(r.cur)c++;if(r.cur&&!r.sid)a++;if(r.own)o++});return{a:a,o:o,c:c,sp:sp}}
+function chips(){var c=counts();var h="";[["cur","Current "+c.c],["all","All "+D.rows.length],["sp","Sponsored "+c.sp],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="av"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
 function editBox(r){var o='<option value="">Available to sponsor</option>';D.sponsors.forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===r.sid?" selected":"")+">"+e(s.name)+"</option>"});
 return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><label for="en">Name we use</label><input class="in2" id="en" maxlength="60" style="width:100%" value="'+e(r.nm)+'" placeholder="'+e(r.rfu||"Name redacted")+'"><small>Shown on match-day lists with a * when it differs from the RFU record. Leave it empty to use the RFU name.</small></div><div><label for="es">Sponsor</label><select class="in2" id="es">'+o+'</select></div><div><label for="ea">Other RFU numbers for this player</label><input class="in2" id="ea" style="width:100%" value="'+e(r.alt.join(", "))+'" placeholder="None"><small>Only if the RFU holds two records for one person. Either number then finds this player.</small></div><div><label class="tk" style="text-transform:none;letter-spacing:0;font-size:15px;margin:0"><input type="checkbox" id="ec"'+(r.cur?" checked":"")+'> Current player</label><small>Current players are the ones listed on the match-day page. A player with a sponsor counts as current until you untick them.</small></div><div class="rw2"><button type="button" class="b2 go" data-a="save" data-i="'+r.no+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
 function draw(){var t=D.tot||{sponsors:0,used:0,players:0};$("sm").innerHTML="<div><b>"+t.sponsors+"</b><span>Sponsors</span></div><div><b>"+t.players+"</b><span>Sponsored players, all teams</span></div><div><b>"+t.used+"</b><span>Sponsors with players</span></div>";var q=$("fq").value.trim().toLowerCase(),h="",n=0;chips();
-D.rows.forEach(function(r){if(flt==="cur"&&!r.cur)return;if(flt==="av"&&(r.sid||!r.cur))return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
+D.rows.forEach(function(r){if(flt==="cur"&&!r.cur)return;if(flt==="sp"&&(!r.sid||!r.cur))return;if(flt==="av"&&(r.sid||!r.cur))return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
 if(edit===r.no){h+=editBox(r);return}
 h+='<div class="li'+(r.sid?"":(r.cur?" av":" nc"))+'"><div class="lm"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div class="ln"><span class="sp'+(r.sid?"":(r.cur?" av":" nc"))+'">'+(r.sid?e(r.sponsor):(r.cur?"Available to sponsor":"Not current"))+'</span><label class="tk"><input type="checkbox" data-a="cur" data-i="'+r.no+'"'+(r.cur?" checked":"")+'> Current</label></div></div><button type="button" class="b2 sm" data-a="edit" data-i="'+r.no+'">Edit</button></div>'});
 $("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(D.rows.length?(flt==="cur"&&!q?"No current players yet. "+(D.season===D.seasons.cur?"Press Find this season's players, or choose All and tick them.":"Choose All and tick them."):"No player matches."):(D.squadError||"No players found for this team."))+"</p>";

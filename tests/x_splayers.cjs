@@ -18,6 +18,7 @@ ck('unsponsored players say Available to sponsor',(x.match(/Available to sponsor
 ck('second RFU number shown',/also 2380102/.test(x));
 ck('counts on the filters',/Available to sponsor 2/.test(x)&&/Own name \* 1/.test(x)&&/All 4/.test(x)&&/Current 4/.test(x),x.slice(0,300));
 await p.click('button[data-f=av]');x=await p.innerText('#ls');ck('Available filter lists only unsponsored',/Aled Price/.test(x)&&!/Smith Plumbing/.test(x));
+await p.click('button[data-f=sp]');x=await p.innerText('#ls');ck('Sponsored filter lists only sponsored players',/Smith Plumbing/.test(x)&&!/Aled Price/.test(x),x.slice(0,300));ck('Sponsored chip has a count',/Sponsored \d/.test(await p.innerText('body')));
 await p.click('button[data-f=all]');
 posts.length=0;await p.locator('input[data-a=cur][data-i="5"]').uncheck();await p.waitForTimeout(300);
 ck('unticking Current sends the change',posts.length===1&&posts[0].act==='set'&&posts[0].no==='5'&&posts[0].cur===false,JSON.stringify(posts));posts.length=0;
