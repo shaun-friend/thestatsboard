@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.50.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.50.3_matchday_bigger_gap.zip | v3.50.2
 v3.50.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.50.2_matchday_no_subs_heading.zip | v3.50.1
 v3.50.1 | 21-Nov-2026 | RFU_Club_Dashboard_v3.50.1_matchday_team_box.zip | v3.50.0
 v3.50.0 | 20-Nov-2026 | RFU_Club_Dashboard_v3.50.0_sponsor_backup.zip | v3.49.5
@@ -342,6 +343,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.50.3 - Match day: a bigger gap before the substitutes
+- Owner request (21-Nov-2026): the gap needs to be more obvious; try a larger one.
+- Changed: the empty gap between the fifteen and the substitutes is about twice as tall (16 to 34 pixels).
+- Request limit: none; layout only.
+- Docs: What's new
 
 v3.50.2 - Match day: no Substitutes heading, just a gap
 - Owner request (21-Nov-2026): do not use the word Substitutes; a line break to separate is enough.
