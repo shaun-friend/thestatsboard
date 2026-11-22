@@ -113,5 +113,6 @@ node x_rows.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node
 node x_applinks.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_applinks_check.cjs | tail -1 | grep -q "ALL OK" || { echo "APP LINKS TEST FAILED"; exit 1; }; echo "app links ok"
 node foot_render2.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node foot_check2.cjs | tail -1 | grep -q "ALL OK" || { echo "MATCH CENTRE FOOTER TEST FAILED"; exit 1; }; echo "match centre footer ok"
 NODE_PATH=$(npm root -g) node x_shell.cjs | tail -1 | grep -q "ALL OK" || { echo "APP SHELL BUTTON TEST FAILED"; exit 1; }; echo "app shell buttons ok"
+NODE_PATH=$(npm root -g) node x_shelljump.cjs | tail -1 | grep -q "ALL OK" || { echo "APP SHELL JUMP LINK TEST FAILED"; exit 1; }; echo "app shell jump links ok"
 node t_v310.mjs "$S/t_worker.mjs" | grep -q "0 fail" || { echo "counting tests failed"; exit 1; }
 mkdir -p ../dist && (cd ../site && rm -f "../dist/$Z" && zip -q "../dist/$Z" _worker.js README.txt index.html) && echo "BUILT dist/$Z"

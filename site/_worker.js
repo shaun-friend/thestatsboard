@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.51.4 22-Nov-2026 Opposition report: the At a glance rows and the jump chips work again inside the app (the app shell was swallowing in-page links).
 //   v3.51.3 21-Nov-2026 Admin menu: one entry for Player names and sponsors (Sponsors is the first tab inside it).
 //   v3.51.2 21-Nov-2026 Sponsors: No players filter (sponsors with no player this season).
 //   v3.51.1 21-Nov-2026 Players: new Sponsored filter (current players who have a sponsor).
@@ -343,8 +344,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.51.3";
-const BUILD_DATE = "21-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.51.4";
+const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -390,6 +391,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
 v3.51.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.3_menu_one_sponsor_entry.zip | v3.51.2
 v3.51.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.2_sponsors_no_players_filter.zip | v3.51.1
 v3.51.1 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.1_players_sponsored_filter.zip | v3.51.0
@@ -696,6 +698,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.51.4 - Opposition report: jump links work in the app
+- Owner report (22-Nov-2026): the At a glance rows and the This game / Their form / You v them / Season buttons did nothing.
+- Fixed: the app shell treated every link in the page as a page change and ignored in-page ones. In-page links now scroll to their section.
+- Request limit: none.
+- Docs: What's new
 
 v3.51.3 - Admin menu: one way in to players and sponsors
 - Owner request (21-Nov-2026): the menu had two entries for the same area.
@@ -3006,6 +3014,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.51.4", "Opposition report: the At a glance rows and the jump buttons (This game, Their form, You v them, Season) work again in the app."],
       ["v3.51.3", "Admin menu: one entry for Player names and sponsors; Sponsors is the first tab inside it."],
       ["v3.51.2", "Sponsors: a No players filter lists sponsors with no player this season."],
       ["v3.51.1", "Players: a Sponsored filter lists just the players who have a sponsor."],
@@ -5921,7 +5930,8 @@ var f1=null,f2=null,split=false;
 function mkFrame(){var f=el("iframe","sbx-fr");f.setAttribute("title","Stats Board");f.addEventListener("load",function(){hook(f)});return f}
 function hook(f){try{var doc=f.contentDocument;if(!doc||doc.__sbx)return;doc.__sbx=1;doc.addEventListener("click",function(ev){
  var a=ev.target&&ev.target.closest?ev.target.closest("a[href]"):null;if(!a||ev.defaultPrevented||ev.button||ev.metaKey||ev.ctrlKey)return;
- var u;try{u=new URL(a.getAttribute("href"),f.contentWindow.location.href)}catch(e){return}
+ var hr=a.getAttribute("href")||"";if(hr.charAt(0)==="#"){if(hr.length>1){var tg=doc.getElementById(hr.slice(1));if(tg){ev.preventDefault();tg.scrollIntoView({behavior:"smooth",block:"start"})}}return}
+ var u;try{u=new URL(hr,f.contentWindow.location.href)}catch(e){return}
  if(u.origin!==L.origin)return;
  var p=u.searchParams,v=p.get("view")||"";
  if((u.pathname==="/"||u.pathname==="")&&p.get("team")&&["","fixtures","leaders","match","opposition"].indexOf(v)>=0){ev.preventDefault();var t={};PK.forEach(function(k){t[k]=p.get(k)||""});T=t;remember(T);go(v,true);return}
