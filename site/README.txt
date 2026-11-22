@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.56.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.4_win_bonus10.zip | v3.56.3
 v3.56.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.3_win_history_less.zip | v3.56.2
 v3.56.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.2_games_list_badge.zip | v3.56.1
 v3.56.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.1_win_history.zip | v3.56.0
@@ -362,6 +363,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.56.4 - Win chance: bigger win bonus
+- Owner request (22-Nov-2026): make winning count for more. Ivybridge 1XV (7 wins from 8) were rated level with Nailsea & Backwell (3 wins from 8) on results.
+- Changed: a win or defeat counts for 10 points on top of the capped margin (was 6). On a test using both sides' real results this moves the gap from level to about 2.5 points to Ivybridge and Nailsea's chance at home from about 64% to about 59%. It is a judgement call, set in one place (winBonus) so it can be changed.
+- Changed: the Games counted note quotes the bonus in use. Stored win chances use a new key, so every game is worked out afresh once.
+- Request limit: no change.
+- Docs: What's new, Admin guide
 
 v3.56.3 - Win chance: older seasons count for much less
 - Owner report (22-Nov-2026): v3.56.1 still rated Ivybridge 1XV (7 wins from 8) below Nailsea & Backwell (31% for Ivybridge).

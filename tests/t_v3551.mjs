@@ -33,7 +33,7 @@ c('a side that wins 7 of 8 is rated above a side that scrapes by (win bonus)', s
 c('win bonus can be switched off in config', Math.abs(winModel(wl(7), 'X', 'Z', { winBonus: 0 }).rHome - flat.rHome) < 1e-9);
 const rows = steady.gameRows('X');
 c('games list has every game for the side, newest first', rows.length === 8 && rows[0].ts > rows[7].ts);
-c('games list rows carry score, counted margin and weight', rows.every(r => typeof r.f === 'number' && typeof r.c === 'number' && r.w > 0) && rows.some(r => r.c === 12) && rows.some(r => r.c === -12));
+c('games list rows carry score, counted margin and weight', rows.every(r => typeof r.f === 'number' && typeof r.c === 'number' && r.w > 0) && rows.some(r => r.c === 16) && rows.some(r => r.c === -16));
 c('names are never the word undefined', rows.every(r => !/undefined/.test(r.o) && r.o.length > 0));
 const html = __w.winBarHtml({ home: { name: 'Xs', pct: 60 }, away: { name: 'Zs', pct: 40 }, gap: 1, ha: 4, rh: 3, ra: 1, mu: 5, sg: 14, raw: 60, n: 8, gc: { h: rows, a: steady.gameRows('Z') } }, { open: true });
 c('panel shows the Games counted list', /Games counted/.test(html) && /Opp[PQ]/.test(html));
