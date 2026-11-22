@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.56.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.0_win_bonus_games.zip | v3.55.2
 v3.55.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.2_matchday_divider.zip | v3.55.1
 v3.55.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.1_win_cap_form.zip | v3.55.0
 v3.55.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.0_danger_position.zip | v3.54.1
@@ -358,6 +359,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.56.0 - Win chance: win bonus and games counted
+- Owner report (22-Nov-2026): Ivybridge 1XV (7 wins from 8, top of the table) still rated below Nailsea & Backwell (1 win in 5).
+- Added: a win or defeat counts for 6 points on top of the capped margin, so a side that keeps winning is rated above one that wins big once. Because recent games carry more weight, a sustained climb counts more than an early run. A separate league-position term was not added, as position is itself made from these results and would count them twice.
+- Added: a Games counted list in the build-up panel: every result used for each side (this season and earlier), its score, the margin counted and the weight it carries, so a rating that looks wrong can be traced.
+- Changed: stored win chances use a new key, so every game is worked out afresh once.
+- Request limit: no change.
+- Docs: What's new, Admin guide
 
 v3.55.2 - Match day: line between starters and substitutes
 - Owner report (22-Nov-2026): no line between the main players list and the substitutions.
