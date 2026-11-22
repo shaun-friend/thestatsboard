@@ -72,6 +72,13 @@ ok('hold: rebuilt after the seconds',pageState(t0-400e3,t0,{secs:300,until:U})==
 ok('hold: rebuilt at the stop time even if young',pageState(U-1000,U+1000,{secs:1800,until:U})==='old');
 ok('hold: not rebuilt twice for the same stop time',pageState(U+500,U+1000,{secs:1800,until:U})==='fresh'||true);
 if(process.env.VARIANT){const [fn,acc,theme,extra]=process.env.VARIANT.split('|');await put({matchday:true,accent:acc});r=await get('&mdnow=12:00&mdfake=1&theme='+theme+(extra||''));fs.writeFileSync(fn,r.h)}
+// DEV preview with the real line-up of a game already played
+await put({});sheetMode='full';r=await get('&mdgame=1');
+ok('preview: game already played shows the page even with the switch off and no mdnow',isMd(r.h)&&(r.h.match(/class="rw"/g)||[]).length===15,r.h.slice(0,160));
+ok('preview: footer says which game the line-up is from, and nothing is held',/Preview: line-up from/.test(r.h)&&!r.r.headers.get('X-Md-Hold'));
+r=await get('&mdgame=99999');ok('preview: unknown game id gives the normal page',!isMd(r.h));
+{const rp=await w.fetch(new Request('https://thestatsboard.co.uk'+Q+'&mdgame=1',{headers:{'User-Agent':'Mozilla/5.0'}}),{...env,ENV_LABEL:''},{waitUntil(){}});ok('PROD ignores mdgame',!isMd(await rp.text()));}
+ok('Admin preview box: past games list and Open preview',/id="smg2"/.test(src)&&/Open preview/.test(src)&&/Preview the Match day TV page/.test(src));
 // Admin
 let ra=await w.fetch(new Request('https://thestatsboard.co.uk/admin',{headers:{Cookie:''}}),{...env},{waitUntil(){}});
 ok('Admin source has the Match day switch and Stop showing at',/class="tmd"/.test(src)&&/Stop showing at/.test(src)&&/MDE=\$\{JSON\.stringify\(MD_ENDS\)\}/.test(src));
