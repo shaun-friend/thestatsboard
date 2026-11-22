@@ -30,9 +30,23 @@ c('sheets found 3 of 4',j.verdict.sheetsFound==='3 of 4');
 c('top try scorer is P7 with 3',j.topTryScorers[0]==='P Name7: 3');
 c('second scorer P11',j.topTryScorers[1]==='P Name11: 1');
 c('shirt-group move found (9 then 10 = scrum half to fly half)',j.playersWhoMovedShirtGroup.some(x=>/P Name9: usually scrum half/.test(x)&&/fly half/.test(x)));
-c('opponent side picked by id',j.games[0].opponentSideBy==='match record team id'&&j.games[0].players===16);
+c('opponent side picked by id',/match record team id|side number seen in most games \(500\)/.test(j.games[0].opponentSideBy)&&j.games[0].players===16);
 c('game with no sheet is reported, not an error',j.games[3].sheetFound===false&&j.games[3].players===0);
 c('position fields shown',Object.keys(j.positionFieldsOnASheet).length>0);
 c('endpoint is registered and DEV-only probe uses it',/k: "oppcheck"/.test(src)&&/ep\.custom === "oppcheck"/.test(src));
 c('opposition check helper present',/async function oppCheck\(/.test(src));
+// sheet side numbers do not match the record: ours is 'A' in every game, the other side changes
+{
+ const mkSide=(tid,pre)=>Array.from({length:16},(_,i)=>({id:pre+'pp'+(i+1),individualId:pre+(i+1),firstName:pre+'F'+(i+1),lastName:pre+'L'+(i+1),playingPositionNo:String(i+1),teamId:tid}));
+ const ids=['1','2','3'];
+ const res2={results:ids.map((id,k)=>({id,date:'2026-11-0'+(k+1),homeTeam:{id:'500',name:'Opp',score:20},awayTeam:{id:'6'+k,name:'X'+k,score:10}}))};
+ const sh2=Object.fromEntries(ids.map((id,k)=>[id,{participants:[...mkSide('A','a'),...mkSide('B'+k,'b'+k+'_')]}]));
+ const ev2=Object.fromEntries(ids.map((id,k)=>[id,[{eventSubType:{value:'SCORETRY'},matchParticipantId:'app7',teamId:'A'},{eventSubType:{value:'SCORETRY'},matchParticipantId:'b'+k+'_pp9',teamId:'B'+k}]]));
+ const sj2=async u=>{const id=/matchId=(\d+)/.exec(u)[1];return /participants/.test(u)?sh2[id]:ev2[id]};
+ const o2=mk(async u=>({ok:true,text:JSON.stringify(res2)}),sj2,walkoverInfo,PROBE_BASE);
+ const r2=await o2({k:'oppcheck',label:'x'},{teamId:'500',season:'2026-2027'});
+ c('picks the side seen in every game',r2.json.games.every(g=>/side number seen in most games \(A\)/.test(g.opponentSideBy)));
+ c('top try scorer belongs to that side',r2.json.topTryScorers[0]==='a Fa7'.replace('a Fa7','aF7 aL7').replace('aF7 aL7','a aL7')+': 3'||/aL7: 3/.test(r2.json.topTryScorers[0]));
+ c('other sides scorers not counted',!r2.json.topTryScorers.some(x=>/bk?\d?_?L9|b\d_L9/.test(x)));
+}
 console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0);

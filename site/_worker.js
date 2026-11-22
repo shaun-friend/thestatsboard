@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.53.3 22-Nov-2026 DEV probe Opposition check: the opponent's side on a team sheet is found by the side number that appears in most of its games (the match record numbers do not match the sheet).
 //   v3.53.2 22-Nov-2026 Fixtures TV board: banner colour is the team colour saved in Our teams (it was taken from the crest picture).
 //   v3.53.1 22-Nov-2026 Match Stats and Opposition report: our side now keeps the colour saved in Our teams (it was being replaced by a colour taken from the crest, so the 1XV and Vandals could show the wrong colours).
 //   v3.53.0 22-Nov-2026 DEV probe: Opposition check card (opponent's last 5 games: team sheets, scorers, top try scorers, players who changed shirt group). Testing only.
@@ -348,7 +349,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.53.2";
+const VERSION = "v3.53.3";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -395,6 +396,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
 v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
 v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
 v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
@@ -706,6 +708,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.3 - DEV probe: Opposition check picks the right side (testing only)
+- Found from the first real run (22-Nov-2026): the team sheet side numbers do not match the match record, and with two sides of 18 the check guessed, so scorers and position changes could be mixed between teams.
+- Fixed: the check now takes the sheet side number that appears in most of the team's games. Real findings so far: all 5 sheets and all 5 scorer lists were there, tries were named in 4 of 5 games, and each player has a position name and shirt number.
+- Request limit: unchanged; about 11 RFU calls when the card is run on DEV.
+- Docs: Other addresses
 
 v3.53.2 - Fixtures TV board: our team colour from Our teams
 - Owner question (22-Nov-2026): does the colour fix cover the other pages, such as the TV pages?
@@ -3049,6 +3057,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.53.3", "Testing only: the Opposition check on the DEV probe page now finds the right side of each team sheet."],
       ["v3.53.2", "Fixtures TV board: the banner uses the team colour saved in Our teams."],
       ["v3.53.1", "Match Stats and the Opposition report now use the team colour saved in Our teams for your side, instead of a colour taken from the crest."],
       ["v3.53.0", "Testing only: a new Opposition check on the DEV probe page shows whether opposition top try scorers and position changes can be shown. Nothing changes on the public pages."],
@@ -6218,14 +6227,18 @@ async function oppCheck(ep, v) {
     }));
     const nameOf = p => p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "" : (String(p.firstName || "").trim().charAt(0).toUpperCase() ? String(p.firstName).trim().charAt(0).toUpperCase() + " " : "") + String(p.lastName || "").trim();
     const wore = {}, tries = {}, games = [], fieldsSeen = {};
+    // v3.53.3: the sheet's side numbers are not the numbers in the results list, so the opponent's side is the sheet side number that turns up in the most of its games (an opposing side changes every game)
+    const sideCount = {}; for (const { ppl } of per) for (const id of new Set((ppl && Array.isArray(ppl.participants) ? ppl.participants : []).map(p => String(p.teamId)))) sideCount[id] = (sideCount[id] || 0) + 1;
+    const topSide = Object.keys(sideCount).sort((a, b) => sideCount[b] - sideCount[a])[0], topN = topSide ? sideCount[topSide] : 0, sideKnown = topN >= 2 && Object.keys(sideCount).filter(k => sideCount[k] === topN).length === 1;
     for (const { m, ppl, evs } of per) {
-      const homeIsThem = idOf(m.homeTeam) === String(v.teamId), side = homeIsThem ? m.homeTeam : m.awayTeam;
+      const homeIsThem = idOf(m.homeTeam) === String(v.teamId), side = homeIsThem ? m.homeTeam : m.awayTeam, sideKey = sideKnown ? topSide : idOf(side);
       const list = ppl && Array.isArray(ppl.participants) ? ppl.participants : [];
       const sideIds = [...new Set(list.map(p => String(p.teamId)))];
       // which side of the sheet is the opponent: the one whose teamId matches the match record for them, else the larger side
       let ours = list.filter(p => String(p.teamId) === idOf(side));
       let how = "match record team id";
-      if (!ours.length && list.length) { const g = {}; for (const p of list) (g[String(p.teamId)] || (g[String(p.teamId)] = [])).push(p); const k = Object.keys(g).sort((a, b) => g[b].length - g[a].length)[0]; ours = g[k] || []; how = "larger side (ids did not match)"; }
+      if (sideKnown && list.some(p => String(p.teamId) === topSide)) { ours = list.filter(p => String(p.teamId) === topSide); how = "side number seen in most games (" + topSide + ")"; }
+      else if (!ours.length && list.length) { const g = {}; for (const p of list) (g[String(p.teamId)] || (g[String(p.teamId)] = [])).push(p); const k = Object.keys(g).sort((a, b) => g[b].length - g[a].length)[0]; ours = g[k] || []; how = "larger side (ids did not match)"; }
       for (const p of ours.slice(0, 1)) for (const k of Object.keys(p)) if (/pos|role|number|no$|shirt|status/i.test(k) && Object.keys(fieldsSeen).length < 14) fieldsSeen[k] = typeof p[k] === "object" && p[k] ? JSON.stringify(p[k]).slice(0, 60) : String(p[k]).slice(0, 40);
       const withNo = ours.filter(p => /^\d+$/.test(String(p.playingPositionNo || "")) && +p.playingPositionNo <= 23);
       const when = String(m.date || "").slice(0, 10), vs = homeIsThem ? (m.awayTeam.name || "") : (m.homeTeam.name || "");
@@ -6233,7 +6246,7 @@ async function oppCheck(ep, v) {
       const evList = Array.isArray(evs) ? evs : [];
       const tryEv = evList.filter(x => x && x.eventSubType && /SCORETRY$/.test(String(x.eventSubType.value || "")));
       const byPid = new Map(list.map(p => [p.id, p]));
-      const theirTries = tryEv.filter(x => ours.some(p => p.id === x.matchParticipantId) || String(x.teamId) === idOf(side));
+      const theirTries = tryEv.filter(x => ours.some(p => p.id === x.matchParticipantId) || String(x.teamId) === sideKey);
       let named = 0;
       for (const x of theirTries) { const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18, individualId: x.individualId }; const nm = nameOf(pl); if (nm) { named++; const key = String(pl.individualId || x.matchParticipantId || nm); const t = tries[key] || (tries[key] = { name: nm, n: 0 }); t.n++; } }
       games.push({ date: when, v: (homeIsThem ? "home v " : "away at ") + vs, score: m.homeTeam.score + "-" + m.awayTeam.score, sheetFound: !!ppl, sideIds: sideIds.slice(0, 3), opponentSideBy: how, players: ours.length, withShirtNumber: withNo.length, namesWithheld: ours.filter(p => p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))).length, under18: ours.filter(p => p.isU18 === true).length, eventsFound: Array.isArray(evs), eventsInGame: evList.length, triesForThem: theirTries.length, triesWithNamedScorer: named });

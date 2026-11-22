@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
 v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
 v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
 v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
@@ -352,6 +353,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.3 - DEV probe: Opposition check picks the right side (testing only)
+- Found from the first real run (22-Nov-2026): the team sheet side numbers do not match the match record, and with two sides of 18 the check guessed, so scorers and position changes could be mixed between teams.
+- Fixed: the check now takes the sheet side number that appears in most of the team's games. Real findings so far: all 5 sheets and all 5 scorer lists were there, tries were named in 4 of 5 games, and each player has a position name and shirt number.
+- Request limit: unchanged; about 11 RFU calls when the card is run on DEV.
+- Docs: Other addresses
 
 v3.53.2 - Fixtures TV board: our team colour from Our teams
 - Owner question (22-Nov-2026): does the colour fix cover the other pages, such as the TV pages?
