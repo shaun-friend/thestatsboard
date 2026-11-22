@@ -46,7 +46,7 @@ ok('withheld name is marked, captain tag shown',/Name redacted/.test(r.h)&&/\(C\
 ok('header shows v and Today with kick-off',/<b>v<\/b><span>Today &middot; \d\d:\d\d<\/span>/.test(r.h));
 ok('our team on the left with its Home or Away pill',/class="nm"[^>]*>Ivybridge[^<]*<\/div><span class="tag"[^>]*>Home/.test(r.h));
 ok('six stat rows and the form and head to head headings',(r.h.match(/class="l">(Position|League points|Played|Wins|Points scored|Points conceded)</g)||[]).length===6&&/Recent form/.test(r.h)&&/Head to head/.test(r.h));
-ok('head to head: full team names in the legend, no ellipsis rule on names',new RegExp('class="hk"[^]*'+OPN+' won').test(r.h)&&!/\.nm\{[^}]*text-overflow/.test(r.h)&&!/\.hh2 b\{[^}]*text-overflow/.test(r.h));
+ok('head to head: full team names in the legend, no ellipsis rule on names',new RegExp('class="hk"[^]*'+OPN.replace(/&/g,'&amp;')+' won').test(r.h)&&!/\.nm\{[^}]*text-overflow/.test(r.h)&&!/\.hh2 b\{[^}]*text-overflow/.test(r.h));
 // fewer than 15
 sheetMode='ten';await put({matchday:true});r=await get('&mdnow=12:00');ok('10 players: counts as published, only named shown, no substitutes box',isMd(r.h)&&(r.h.match(/class="rw"/g)||[]).length===10&&!/class="sb"/.test(r.h));
 sheetMode='nine';await put({matchday:true});r=await get('&mdnow=12:00');ok('9 players: not published, normal page, 5 minute hold',!isMd(r.h)&&/^300;/.test(r.r.headers.get('X-Md-Hold')||''));

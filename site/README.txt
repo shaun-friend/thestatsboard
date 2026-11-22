@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.3_match_day_tidy_names.zip | v3.59.2
 v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
 v3.59.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.1_match_day_preview.zip | v3.59.0
 v3.59.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.0_match_day_tv.zip | v3.58.1
@@ -371,6 +372,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.3 - Match day TV page: tidier team names
+- Owner request (22-Nov-2026): a two-line team name (Nailsea & Backwell) looked untidy beside its crest.
+- Change: in the stats panel each team's crest now sits centred above its name, and the big header name steps down one size sooner so a name like Nailsea & Backwell stays on one line; a name that needs two lines is balanced and centred, so it lines up over its column of figures.
+- Request limit: no change.
+- Docs: What's new, Which page is which
 
 v3.59.2 - Match day TV page: names never cut off
 - Owner request (22-Nov-2026): team names in the head to head must never be cut off.

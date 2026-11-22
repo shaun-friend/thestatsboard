@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.59.3 22-Nov-2026 Match day TV page: team name sits centred under its crest in the stats panel header.
 //   v3.59.2 22-Nov-2026 Match day TV page: team names are never cut off (head to head names written in full under the bar; panel and header names wrap).
 //   v3.59.1 22-Nov-2026 Match day TV page preview (DEV): pick a game already played this season and see the page with its real line-up and sponsors; the timing simulator is folded away under it.
 //   v3.59.0 22-Nov-2026 Match day TV page: on game day, once the team sheet is on the RFU system, a team's Match Stats TV slot shows the line-up, sponsors, head to head and substitutes (per-team Admin switch, off by default; stop time per team, default 18:00; checks from 10:00; DEV simulator). Timings of the rotation do not change.
@@ -367,7 +368,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.59.2";
+const VERSION = "v3.59.3";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -414,6 +415,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.3_match_day_tidy_names.zip | v3.59.2
 v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
 v3.59.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.1_match_day_preview.zip | v3.59.0
 v3.59.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.0_match_day_tv.zip | v3.58.1
@@ -744,6 +746,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.3 - Match day TV page: tidier team names
+- Owner request (22-Nov-2026): a two-line team name (Nailsea & Backwell) looked untidy beside its crest.
+- Change: in the stats panel each team's crest now sits centred above its name, and the big header name steps down one size sooner so a name like Nailsea & Backwell stays on one line; a name that needs two lines is balanced and centred, so it lines up over its column of figures.
+- Request limit: no change.
+- Docs: What's new, Which page is which
 
 v3.59.2 - Match day TV page: names never cut off
 - Owner request (22-Nov-2026): team names in the head to head must never be cut off.
@@ -3226,6 +3234,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.59.3", "Match day TV page: in the stats panel each team crest now sits above its name, centred, so two-line names look tidy."],
       ["v3.59.2", "Match day TV page: team names are never cut short. In the head to head the bar shows the win counts and the full team names are written underneath; long names wrap in the header and the stats panel."],
       ["v3.59.1", "Match day TV page preview (DEV only): on the Match day admin page, pick a team and a game already played this season and open the new TV page with that game's real line-up and sponsors, so it can be checked before a real game day."],
       ["v3.59.0", "Match day TV page: on game day, once the team sheet is on the RFU system, a team's Match Stats slot on the TV shows its line-up with sponsors, the substitutes and a short head to head. Switch it on per team in Admin, Our teams (off until you do), and choose the time it stops (6:00pm unless you change it). It starts at 10:00, never shows the day before, and the normal Match Stats page shows when there is no sheet. The TV rotation and its timings do not change."],
@@ -4503,8 +4512,8 @@ const MD_TV_CSS = `body.md .top{display:none}
 .rw .sp{flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.15rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
 .rc{display:flex;flex-direction:column;gap:.8rem;min-height:0}
 .pn{flex:1 1 auto;min-height:0;background:var(--card);border:1px solid var(--bd);border-radius:.8rem;padding:.8rem 1.3rem;display:flex;flex-direction:column;gap:.25rem;overflow:hidden}
-.st{display:grid;grid-template-columns:1fr auto 1fr;gap:.25rem .8rem;align-items:center;text-align:center}.st .hh2{display:flex;align-items:center;justify-content:center;gap:.6rem;min-width:0}.st .hh2 b{font-size:1.5rem;line-height:1.1;overflow-wrap:anywhere}
-.st .cr{width:2.6rem;height:2.6rem;border-radius:50%;background:#fff;border:.2rem solid var(--c);position:relative;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#333}.st .cr img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain}
+.st{display:grid;grid-template-columns:1fr auto 1fr;gap:.25rem .8rem;align-items:center;text-align:center}.st .hh2{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.35rem;min-width:0;align-self:start}.st .hh2 b{font-size:1.5rem;line-height:1.1;overflow-wrap:anywhere;text-wrap:balance;text-align:center}
+.st .cr{width:3rem;height:3rem;border-radius:50%;background:#fff;border:.2rem solid var(--c);position:relative;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#333}.st .cr img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain}
 .st .v{font-size:1.7rem;font-weight:700}.st .l{color:var(--mu);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase;min-width:9rem}
 .mdh3{margin:.35rem 0 0;text-align:center;letter-spacing:.18em;font-size:.95rem;color:var(--mu);font-weight:700;text-transform:uppercase}
 .fm2{display:flex;justify-content:space-between;gap:1rem;padding:.3rem .3rem 0}.fm2>div{display:flex;flex-direction:column;gap:.45rem;align-items:flex-start;min-width:0}.fm2>div:last-child{align-items:flex-end;text-align:right}.fm2 .fd{padding-bottom:0;gap:.4rem}.fm2 .dot{width:1.7rem;height:1.7rem}.fm2 .ll{font-size:1.05rem;color:var(--tx)}.fm2 .ll small{display:block;color:var(--mu);font-size:.95rem}
@@ -4517,7 +4526,7 @@ body.light .st .cr{background:#fff}
 :root{--av:#ffd978;--sbg:#26332d;--sbd:#3f5a4c}body.light{--sbg:#e1ece5;--sbd:#9db8a8}`;
 function mdTvInner(o) {
   const { e, ord, light, me, opp, n, sheet, crest, meCol, tm, h2hAll, league, season, stamp } = o;
-  const bigSz = nm => { const k = String(nm || "").length; return k <= 18 ? 3.4 : k <= 28 ? 2.7 : k <= 40 ? 2.2 : 1.8; }, panSz = nm => { const k = String(nm || "").length; return k <= 20 ? 1.5 : k <= 32 ? 1.2 : 1; }; // long names get smaller type, never an ellipsis
+  const bigSz = nm => { const k = String(nm || "").length; return k <= 16 ? 3.4 : k <= 24 ? 2.8 : k <= 34 ? 2.3 : k <= 44 ? 2.1 : 1.8; }, panSz = nm => { const k = String(nm || "").length; return k <= 20 ? 1.5 : k <= 32 ? 1.2 : 1; }; // long names get smaller type, never an ellipsis
   const sCol = mdLegible(meCol, light), avCol = mdAvailColour(meCol, light);
   const show = v => v === null || v === undefined || v === "" ? "-" : String(v);
   const nameCell = p => p.hidden ? `<em>Name not shown</em>` : p.name ? e(p.name) + (p.tag === "Captain" ? "<i>(C)</i>" : p.tag === "Vice captain" ? "<i>(VC)</i>" : "") : `<em>Name redacted</em>`;
