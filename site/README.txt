@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.58.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.1_no_polling.zip | v3.58.0
 v3.58.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.0_refresh_scores.zip | v3.57.2
 v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
 v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
@@ -367,6 +368,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.58.1 - Refresh scores now: no polling
+- Owner decision (22-Nov-2026): leave screens on their normal 10-minute weekend reload rather than add a request a minute per screen (the longest wait is then 10 minutes).
+- Changed: open screens no longer ask for the refresh time every minute; the /api/scores-at address is removed. A pressed refresh shows when a screen next reloads: within 10 minutes at weekends, within an hour on weekdays. Nothing else changes.
+- Request limit: back to no extra requests from open screens.
+- Docs: What's new, Admin guide
 
 v3.58.0 - Admin: Refresh scores now
 - Owner request (22-Nov-2026): a way to refresh the scores by hand when a result is known to be in GMS, without waiting for the usual timing (up to 30 minutes at weekends).

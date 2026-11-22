@@ -8,15 +8,13 @@ const pts=[];const env={CLUB_PIN:'1234',SETTINGS:kv,USAGE:{writeDataPoint(d){pts
 globalThis.fetch=async()=>({ok:false,status:404,json:async()=>({}),text:async()=>''});
 const O='https://thestatsboard.co.uk';const F=(p,o)=>w.fetch(new Request(O+p,o),env,ctx);
 let r=await F('/club-unlock',{method:'POST',body:new URLSearchParams({pin:'1234',next:'/'})});const ck=(r.headers.get('set-cookie')||'').split(';')[0];
-r=await F('/api/scores-at');let j=await r.json();ok('scores-at is public and starts at 0',r.status===200&&j.t===0,JSON.stringify(j));
+let j;
 r=await F('/api/scores-refresh',{method:'POST'});ok('refresh without the PIN is refused',r.status===401||r.status===303,r.status);
 r=await F('/api/scores-refresh',{method:'POST',headers:{Cookie:ck}});j=await r.json();ok('refresh with the PIN saves a time',r.status===200&&j.ok&&j.t>Date.now()-5000&&!j.again,JSON.stringify(j));
 const t1=j.t;
 ok('the time is stored',JSON.parse(store['scores-refresh']).t===t1);
-r=await F('/api/scores-at');j=await r.json();ok('scores-at now returns that time',j.t===t1,JSON.stringify(j));
 r=await F('/api/scores-refresh',{method:'POST',headers:{Cookie:ck}});j=await r.json();ok('pressing again within a minute changes nothing',j.ok&&j.again&&j.t===t1,JSON.stringify(j));
 r=await F('/api/scores-refresh',{headers:{Cookie:ck}});j=await r.json();ok('GET gives the last time (for the Admin card)',j.ok&&j.t===t1);
-pts.length=0;await F('/api/scores-at');ok('polling is not counted as a visit',pts.length===0,JSON.stringify(pts));
 r=await F('/admin',{headers:{Cookie:ck}});const h=await r.text();ok('Admin Overview has the Refresh scores now button',/id="ovsr"[^>]*>Refresh scores now/.test(h));
 // behaviour (fresh copy of the worker): cached until Refresh scores now, then fetched again once, then cached again
 {const w2=(await import(process.argv[2]+'?beh')).default;const st2={};const kv2={async get(k,o){const v=st2[k];return v==null?null:(o&&o.type==='json'?JSON.parse(v):v)},async put(k,v){st2[k]=v}};
@@ -31,6 +29,6 @@ ok('RFU data is kept between visits',a>0&&b===a,a+' '+b);ok('after Refresh score
 ok('cachedText treats live data older than the saved time as old',/const isOld = fa => now - fa >= ttl \|\| \(ep > 0 && fa < ep\)/.test(src)&&/!isOld\(mem\.fetchedAt\)/.test(src)&&/!isOld\(fetchedAt\)/.test(src));
 ok('an old-by-refresh copy is not shown while rebuilding in the background',/stale && !\(ep > 0 && stale\.fetchedAt < ep\) && now - stale\.fetchedAt/.test(src));
 ok('page and summary cache keys carry the saved time',/&_sa=" \+ SCORES_AT/.test(src)&&/TEAMS_STAMP \+ "\|" \+ SCORES_AT/.test(src));
-ok('open big display pages poll once a minute and reload softly',/\/api\/scores-at/.test(src)&&/setInterval\(p,60000\)/.test(src)&&/if\(window\.rfuSoft\)rfuSoft\(\)/.test(src)&&/top!==self/.test(src));
+ok('open screens do not poll (no scores-at address, no minute timer)',!/path === "\/api\/scores-at"/.test(src)&&!/setInterval\(p,60000\)/.test(src));
 ok('the help text says 30 minutes at weekends',!/fresh for 10 minutes on Saturdays/.test(src));
 console.log(pass+' passed, '+fail+' failed');if(fail)process.exit(1);

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.58.1 22-Nov-2026 Refresh scores now: screens no longer poll; they pick the refresh up on their normal reload (10 minutes at weekends, hourly otherwise)
 //   v3.58.0 22-Nov-2026 Admin Overview: Refresh scores now button (results fetched before that time count as old; open screens check once a minute); help text says 30 minutes at weekends
 //   v3.57.2 22-Nov-2026 Fixtures TV board: the Last game banner border is now the team colour (as the Next game banner and highlighted row already were), not green/red/amber by result
 //   v3.57.1 22-Nov-2026 Laptop app view: page content is one centred column (never two) and the scrollbar sits at the window edge in the theme colour
@@ -363,7 +364,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.58.0";
+const VERSION = "v3.58.1";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -410,6 +411,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.58.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.1_no_polling.zip | v3.58.0
 v3.58.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.0_refresh_scores.zip | v3.57.2
 v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
 v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
@@ -736,6 +738,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.58.1 - Refresh scores now: no polling
+- Owner decision (22-Nov-2026): leave screens on their normal 10-minute weekend reload rather than add a request a minute per screen (the longest wait is then 10 minutes).
+- Changed: open screens no longer ask for the refresh time every minute; the /api/scores-at address is removed. A pressed refresh shows when a screen next reloads: within 10 minutes at weekends, within an hour on weekdays. Nothing else changes.
+- Request limit: back to no extra requests from open screens.
+- Docs: What's new, Admin guide
 
 v3.58.0 - Admin: Refresh scores now
 - Owner request (22-Nov-2026): a way to refresh the scores by hand when a result is known to be in GMS, without waiting for the usual timing (up to 30 minutes at weekends).
@@ -2981,7 +2989,7 @@ const DOC_SECTIONS = [
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Link builder, Usage, Match day, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
-    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. It is grouped by what each item is for, and each group is in A to Z order: Overview and Match day on their own at the top, then Club set-up, Screens and notices, Monitoring, and Settings and help. Items that open a section on this page (for example Our teams) and items that open their own page (for example Sponsors) sit side by side. The Overview opens first. It has quick links to Match day, the Sponsor list and the Link builder; a Needs attention strip that appears only when something is off (a team with no crest, no fixtures read for a team, no sponsors added) beside any live notices; the status cards (maintenance mode, today's visitors and TV screens, the website back-up); a Scores card with a Refresh scores now button (press it when a score is in GMS and you want the screens to show it sooner; open screens pick it up within a few minutes, and the Updated time moves to the new fetch); the next game day for each team; this season's sponsor counts; and what the TV rotation shows today and how many screens are paired. A section can be opened directly, for example /admin#data." },
+    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. It is grouped by what each item is for, and each group is in A to Z order: Overview and Match day on their own at the top, then Club set-up, Screens and notices, Monitoring, and Settings and help. Items that open a section on this page (for example Our teams) and items that open their own page (for example Sponsors) sit side by side. The Overview opens first. It has quick links to Match day, the Sponsor list and the Link builder; a Needs attention strip that appears only when something is off (a team with no crest, no fixtures read for a team, no sponsors added) beside any live notices; the status cards (maintenance mode, today's visitors and TV screens, the website back-up); a Scores card with a Refresh scores now button (press it when a score is in GMS and you want the screens to show it sooner; open screens pick it up when they next reload, which is every 10 minutes at weekends and hourly on weekdays, and the Updated time moves to the new fetch); the next game day for each team; this season's sponsor counts; and what the TV rotation shows today and how many screens are paired. A section can be opened directly, for example /admin#data." },
     { dl: [
       ["Overview", "Quick links, anything that needs attention, status cards, the next game day for each team, sponsor counts and what the TV rotation shows today."],
       ["Match day", "Opens the Match day page (team sheets, sponsors, opposition and scoring)."],
@@ -3188,7 +3196,8 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
-      ["v3.58.0", "Admin, Overview: a Refresh scores now button. Press it when a score is in GMS and you want the screens to show it sooner: results are fetched from the RFU again on the next visit and open screens reload within a few minutes. The Updated time on each screen moves to the new fetch, and the usual weekend timing carries on from there."],
+      ["v3.58.1", "Refresh scores now: open screens no longer check for a refresh every minute; they pick it up on their normal reload, so at weekends a score shows within 10 minutes of pressing the button."],
+      ["v3.58.0", "Admin, Overview: a Refresh scores now button. Press it when a score is in GMS and you want the screens to show it sooner: results are fetched from the RFU again on the next visit, and open screens show them on their next reload. The Updated time on each screen moves to the new fetch, and the usual weekend timing carries on from there."],
       ["v3.57.2", "Fixtures screen: the Last game banner outline now uses the team colour, matching the Next game banner and the highlighted row. The W/L stripes on played rows are unchanged."],
       ["v3.57.1", "Laptop app view: the page is one centred column, never two, and the scrollbar now sits at the window edge and follows the dark or light theme."],
       ["v3.57.0", "Laptops: the links page now has an App view button for laptops, and with a mouse the app view shows one page at a time in a centred column with a single scrollbar."],
@@ -4079,7 +4088,7 @@ ${setup}
 <div class="oc"><small>Website back-up</small><b class="${s.features.webfallback === false ? "bad" : "good"}">${s.features.webfallback === false ? "Off" : "On"}</b><span>${s.features.webfallback === false ? "RFU data service only" : "Used if the data service has nothing"}</span></div>
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
-<div class="ovc"><h2>Scores</h2><p class="n" style="margin:0 0 10px">Screens fetch results from the RFU at most every 30 minutes at weekends. If a score is in GMS and you want it on the screens sooner, press this. Open screens pick it up within a few minutes.</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button class="btn" id="ovsr" type="button">Refresh scores now</button><span class="n" id="ovsrm" style="margin:0"></span></div></div>
+<div class="ovc"><h2>Scores</h2><p class="n" style="margin:0 0 10px">Screens fetch results from the RFU at most every 30 minutes at weekends. If a score is in GMS and you want it on the screens sooner, press this. Open screens pick it up when they next reload (every 10 minutes at weekends, hourly on weekdays).</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button class="btn" id="ovsr" type="button">Refresh scores now</button><span class="n" id="ovsrm" style="margin:0"></span></div></div>
 <div class="ovc"><h2>Next game days <a href="/matchday">Open Match day &rsaquo;</a></h2><div id="ovg"></div></div>
 <div class="ovtw"><div class="ovc"><h2>Sponsors this season <a href="/sponsor-list">Sponsor list &rsaquo;</a></h2><div id="ovsp"><p class="n">Loading...</p></div></div>
 <div class="ovc"><h2><span id="ovtt">TV rotation today</span> <a href="#tv">Change &rsaquo;</a></h2><div id="ovtv"></div></div></div>
@@ -10040,9 +10049,6 @@ async function pairRoutes(request, url) {
     try { await kv.delete("pair:" + c); } catch (_) { /* expires on its own */ }
     return J({ ok: true, t: r.t, l: String(r.l || "") });
   }
-  if (path === "/api/scores-at" && request.method === "GET") { // v3.58.0: tiny, public: the time of the last "Refresh scores now" (open screens check it once a minute)
-    return new Response(JSON.stringify({ t: await scoresAtLoad() }), { headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
-  }
   if (path === "/api/scores-refresh") { // behind the club PIN (clubGate)
     const J2 = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
     const kv = kvOf(); if (!kv) return J2({ ok: false, error: "Settings storage is not connected." }, 503);
@@ -10364,7 +10370,6 @@ function stop(){removeEventListener("message",on);clearTimeout(tm)}
 function fail(){if(done)return;done=true;stop();busy=false;try{f.remove()}catch(e){}}
 function on(e){if(done||e.source!==f.contentWindow)return;if(e.data==="rfu-kicked"){done=true;stop();location.replace("/setup?reset=1");return}if(e.data!=="rfu-sr-ready")return;done=true;stop();LAST=Date.now();f.style.opacity="1";var prev=old;old=f;setTimeout(function(){try{if(prev)prev.remove()}catch(e){}busy=false},1500)}
 addEventListener("message",on);var tm=setTimeout(fail,20000);document.body.appendChild(f)};
-(function(){if(sr||top!==self||!matchMedia("(min-width:801px) and (min-height:561px)").matches||!document.querySelector(".clubhead,.rw,.fx,.lc"))return;var base=null;function p(){if(document.visibilityState!=="visible")return;fetch("/api/scores-at",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var t=Number(j&&j.t)||0;if(base===null){base=t;return}if(t>base){base=t;if(window.rfuSoft)rfuSoft()}}).catch(function(){})}setTimeout(p,5000);setInterval(p,60000)})();
 })();</script>`;
 // v3.30.15: the Admin name is filled into a request by withClubName, so the page then built links carrying it (friendlyName=Ivybridge+1XV). Those are left out again: a link for a team on the club's list follows Admin by itself. A different name in a link is kept.
 let CLUB_NAME_RE = null, CLUB_NAME_STAMP = "";
