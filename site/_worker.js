@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.55.1 22-Nov-2026 Win chance: each game's margin counts at most 30 points and recent games count more, so a side's recent form shows
 //   v3.55.0 22-Nov-2026 Opposition report: Danger players shows each try scorer's usual position
 //   v3.54.1 22-Nov-2026 Win chance: stored answers from before v3.52.0 are dropped so the build-up panel shows straight away
 //   v3.54.0 22-Nov-2026 Opposition report: Danger players (their top three try scorers over the last five games and anyone who recently wore a different shirt group); the DEV Opposition check also lists any shirt number change.
@@ -352,7 +353,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.55.0";
+const VERSION = "v3.55.1";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -399,6 +400,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.55.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.1_win_cap_form.zip | v3.55.0
 v3.55.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.0_danger_position.zip | v3.54.1
 v3.54.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.1_win_buildup_cache.zip | v3.54.0
 v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
@@ -714,6 +716,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.55.1 - Win chance: big wins capped, recent form counts
+- Owner report (22-Nov-2026): Nailsea & Backwell (1 win in their last 5) were rated well above Ivybridge 1XV (7 wins from 8), giving Ivybridge 17%.
+- Cause: the ratings used each game's full points margin with no limit, so a couple of 50-point wins outweighed everything else, and form played no part.
+- Fixed: each game's margin now counts at most 30 points (about four scores), including for home advantage and the spread of results. Games this season also lose weight as they age (half weight after about six weeks, never below half), so recent form shows. Earlier seasons keep their half and quarter weights.
+- Changed: the build-up panel (step 1) says so. Stored win chances use a new key, so every game is worked out afresh once.
+- Request limit: no change.
+- Docs: What's new, Admin guide
 
 v3.55.0 - Danger players show their usual position
 - Owner request (22-Nov-2026): show each danger player's usual position.
@@ -3084,6 +3094,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.55.1", "Win chance: one big win no longer inflates a side's rating (margins count at most 30 points) and recent games count more, so a side in poor form is rated lower."],
       ["v3.55.0", "Opposition report: each danger player now shows their usual position beside their name."],
       ["v3.54.1", "Win chance: the build-up panel now shows on every game straight away (older stored answers no longer hide it)."],
       ["v3.54.0", "Opposition report: a Danger players card shows their top three try scorers from the last five games and anyone who recently played in a different position."],
@@ -3591,7 +3602,7 @@ function normCdf(z) { // Abramowitz and Stegun 7.1.26
   const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
   return z > 0 ? 1 - p : p;
 }
-const WIN_CFG = { minGames: 4, haPrior: 4, haK: 10, ridge: 3, sigma0: 17, sigmaK: 8, sigmaMin: 12, sigmaMax: 28, pMin: 3, pEarly: 20, pFull: 15, fullGames: 8 };
+const WIN_CFG = { minGames: 4, haPrior: 4, haK: 10, ridge: 3, sigma0: 17, sigmaK: 8, sigmaMin: 12, sigmaMax: 28, marginCap: 30, recentHalfDays: 45, recentFloor: 0.5, pMin: 3, pEarly: 20, pFull: 15, fullGames: 8 };
 // games: [{ h: homeId, a: awayId, hs, as, w }] with w 1 for this season, 0.5 and 0.25 for earlier ones. Returns null when either side has fewer than minGames games this season.
 function winModel(games, homeId, awayId, cfg) {
   const C = { ...WIN_CFG, ...(cfg || {}) }; homeId = String(homeId); awayId = String(awayId);
@@ -3599,17 +3610,21 @@ function winModel(games, homeId, awayId, cfg) {
   const cur = id => gs.filter(g => g.w >= 1 && (g.h === id || g.a === id)).length;
   const nH = cur(homeId), nA = cur(awayId);
   if (homeId === awayId || nH < C.minGames || nA < C.minGames) return null;
-  let cw = 0, cm = 0; for (const g of gs) if (g.w >= 1) { cw++; cm += g.hs - g.as; }
+  // v3.55.1: one huge win or defeat no longer carries a rating: each margin counts at most marginCap points, and games lose weight with age (this season only) so form shows.
+  const cl = x => Math.max(-C.marginCap, Math.min(C.marginCap, x));
+  let tsMax = -Infinity; for (const g of gs) if (g.w >= 1 && Number.isFinite(g.ts) && g.ts > tsMax) tsMax = g.ts;
+  const ew = g => g.w * (g.w >= 1 && Number.isFinite(g.ts) && Number.isFinite(tsMax) ? C.recentFloor + (1 - C.recentFloor) * Math.pow(0.5, (tsMax - g.ts) / 86400000 / C.recentHalfDays) : 1);
+  let cw = 0, cm = 0; for (const g of gs) if (g.w >= 1) { cw++; cm += cl(g.hs - g.as); }
   const ha = Math.max(0, Math.min(10, (cm + C.haK * C.haPrior) / (cw + C.haK)));
   const ids = new Set([homeId, awayId]); for (const g of gs) { ids.add(g.h); ids.add(g.a); }
   const r = {}, by = {}; for (const i of ids) { r[i] = 0; by[i] = []; }
-  for (const g of gs) { const t = g.hs - g.as - ha; by[g.h].push({ o: g.a, t, w: g.w }); by[g.a].push({ o: g.h, t: -t, w: g.w }); }
+  for (const g of gs) { const t = cl(g.hs - g.as) - ha, w = ew(g); by[g.h].push({ o: g.a, t, w }); by[g.a].push({ o: g.h, t: -t, w }); }
   for (let it = 0; it < 120; it++) { // v3.30.4: stops at a thousandth of a point (was a ten-millionth, up to 300 rounds); far less work, same percentages
     let mv = 0;
     for (const i of ids) { let num = 0, den = C.ridge; for (const x of by[i]) { num += x.w * (r[x.o] + x.t); den += x.w; } const v = num / den; mv = Math.max(mv, Math.abs(v - r[i])); r[i] = v; }
     if (mv < 1e-3) break;
   }
-  let se = 0, sw = 0; for (const g of gs) { const e = g.hs - g.as - (r[g.h] - r[g.a] + ha); se += g.w * e * e; sw += g.w; }
+  let se = 0, sw = 0; for (const g of gs) { const e = cl(g.hs - g.as) - (r[g.h] - r[g.a] + ha), w = ew(g); se += w * e * e; sw += w; }
   const sigma = Math.max(C.sigmaMin, Math.min(C.sigmaMax, Math.sqrt((se + C.sigmaK * C.sigma0 * C.sigma0) / (sw + C.sigmaK)) * 1.1));
   const gap = r[homeId] - r[awayId], mu = gap + ha;
   return { pHome: normCdf(mu / sigma), mu, gap, ha, sigma, nHome: nH, nAway: nA, games: gs.length, rHome: r[homeId], rAway: r[awayId] };
@@ -3659,7 +3674,7 @@ function winBuild(win) {
   const st = (n, h, b) => `<div class="wbs"><i>${n}</i><div><b>${h}</b>${b}</div></div>`;
   const big = win.big || {}, bigRows = [[hn, big.h], [an, big.a]].filter(x => x[1]).map(x => `<div class="wbr"><span>${e(x[0])}</span><span>${e(x[1])}</span></div>`).join("");
   return `<div class="wbd">`
-    + st(1, "Team strength, from results", `<small>Points better or worse than an average side in the league.</small><div class="wbb"><u style="left:${pos(win.rh).toFixed(1)}%" class="wbh"></u><u style="left:${pos(win.ra).toFixed(1)}%" class="wba"></u></div><div class="wbl"><span><i class="wbh"></i>${e(hn)} <b>${sgn(win.rh)}</b></span><span><i class="wba"></i>${e(an)} <b>${sgn(win.ra)}</b></span></div>`)
+    + st(1, "Team strength, from results", `<small>Points better or worse than an average side in the league. Each game counts for at most 30 points, and recent games count more.</small><div class="wbb"><u style="left:${pos(win.rh).toFixed(1)}%" class="wbh"></u><u style="left:${pos(win.ra).toFixed(1)}%" class="wba"></u></div><div class="wbl"><span><i class="wbh"></i>${e(hn)} <b>${sgn(win.rh)}</b></span><span><i class="wba"></i>${e(an)} <b>${sgn(win.ra)}</b></span></div>`)
     + st(2, "Gap between the sides", `<small>${better ? e(better) + " are rated <b>" + r0(gap) + " point" + (r0(gap) === 1 ? "" : "s") + "</b> better on results." : "The sides are rated level on results."}</small>`)
     + st(3, "Home advantage", `<small>${e(hn)} are at home, worth about <b>${r0(ha)} point${r0(ha) === 1 ? "" : "s"}</b> to them.</small>`)
     + st(4, "Expected result", `<div class="wbe">${Math.abs(win.mu) < 1 ? "Too close to call" : e(fav) + " by about <b>" + r0(Math.abs(win.mu)) + "</b>"}</div><small>Results in this league usually swing by about ${r0(win.sg)} points either way.</small>`)
@@ -8876,10 +8891,10 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         const idHome = String(nextHomeId), idAway = String(nextAwayId), idMe = String(teamId), idOpp = String(nextSide.home ? nextAwayId : nextHomeId);
         const divIds = new Set(table.map(t => String(t.id)));
         if (!divIds.has(idHome) || !divIds.has(idAway)) return null;
-        const key = ["v35", season, competition, division, idHome, idAway, resultObjects.length].join("|");
+        const key = ["v36", season, competition, division, idHome, idAway, resultObjects.length].join("|");
         const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 86400000) return hit.v;
         { const sh = await sharedGet("wp|" + key); if (sh && sh.ok) { WC_CACHE.set(key, { at: Date.now(), v: sh.v }); return sh.v; } }
-        const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm), hn: String((mm.homeTeam && mm.homeTeam.name) || "").slice(0, 40), an: String((mm.awayTeam && mm.awayTeam.name) || "").slice(0, 40) }; };
+        const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, ts: Date.parse(mm.date || mm.time || ""), k: matchKey(mm), hn: String((mm.homeTeam && mm.homeTeam.name) || "").slice(0, 40), an: String((mm.awayTeam && mm.awayTeam.name) || "").slice(0, 40) }; };
         const seen = new Set(), games = []; let priorOk = 0;
         for (const mm of resultObjects) { const g = toGame(mm, 1); if (g && !seen.has(g.k)) { seen.add(g.k); games.push(g); } }
         const mS = /^(\d{4})-(\d{4})$/.exec(String(season));

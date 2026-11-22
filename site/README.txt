@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.55.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.1_win_cap_form.zip | v3.55.0
 v3.55.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.0_danger_position.zip | v3.54.1
 v3.54.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.1_win_buildup_cache.zip | v3.54.0
 v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
@@ -356,6 +357,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.55.1 - Win chance: big wins capped, recent form counts
+- Owner report (22-Nov-2026): Nailsea & Backwell (1 win in their last 5) were rated well above Ivybridge 1XV (7 wins from 8), giving Ivybridge 17%.
+- Cause: the ratings used each game's full points margin with no limit, so a couple of 50-point wins outweighed everything else, and form played no part.
+- Fixed: each game's margin now counts at most 30 points (about four scores), including for home advantage and the spread of results. Games this season also lose weight as they age (half weight after about six weeks, never below half), so recent form shows. Earlier seasons keep their half and quarter weights.
+- Changed: the build-up panel (step 1) says so. Stored win chances use a new key, so every game is worked out afresh once.
+- Request limit: no change.
+- Docs: What's new, Admin guide
 
 v3.55.0 - Danger players show their usual position
 - Owner request (22-Nov-2026): show each danger player's usual position.
