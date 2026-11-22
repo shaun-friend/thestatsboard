@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.54.1 22-Nov-2026 Win chance: stored answers from before v3.52.0 are dropped so the build-up panel shows straight away
 //   v3.54.0 22-Nov-2026 Opposition report: Danger players (their top three try scorers over the last five games and anyone who recently wore a different shirt group); the DEV Opposition check also lists any shirt number change.
 //   v3.53.3 22-Nov-2026 DEV probe Opposition check: the opponent's side on a team sheet is found by the side number that appears in most of its games (the match record numbers do not match the sheet).
 //   v3.53.2 22-Nov-2026 Fixtures TV board: banner colour is the team colour saved in Our teams (it was taken from the crest picture).
@@ -350,7 +351,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.54.0";
+const VERSION = "v3.54.1";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -397,6 +398,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.54.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.1_win_buildup_cache.zip | v3.54.0
 v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
 v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
 v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
@@ -710,6 +712,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.54.1 - Win chance build-up panel missing on some games
+- Owner report (22-Nov-2026): the new build-up explainer did not show. Cause: win chances stored for a day before v3.52.0 lacked the extra figures the panel needs, so the old one-line explanation was shown instead.
+- Fixed: the stored win chance key is bumped so every game is worked out afresh and shows the build-up.
+- Request limit: no change. Each game is worked out once, then kept for a day as before.
+- Docs: What's new
 
 v3.54.0 - Opposition report: Danger players
 - Owner request (22-Nov-2026): show the opponent's top try scorers and anyone who recently played out of their usual position. Real data from the DEV check showed sheets and named scorers for all five recent games.
@@ -3067,6 +3075,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.54.1", "Win chance: the build-up panel now shows on every game straight away (older stored answers no longer hide it)."],
       ["v3.54.0", "Opposition report: a Danger players card shows their top three try scorers from the last five games and anyone who recently played in a different position."],
       ["v3.53.3", "Testing only: the Opposition check on the DEV probe page now finds the right side of each team sheet."],
       ["v3.53.2", "Fixtures TV board: the banner uses the team colour saved in Our teams."],
@@ -8847,7 +8856,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         const idHome = String(nextHomeId), idAway = String(nextAwayId), idMe = String(teamId), idOpp = String(nextSide.home ? nextAwayId : nextHomeId);
         const divIds = new Set(table.map(t => String(t.id)));
         if (!divIds.has(idHome) || !divIds.has(idAway)) return null;
-        const key = ["v34", season, competition, division, idHome, idAway, resultObjects.length].join("|");
+        const key = ["v35", season, competition, division, idHome, idAway, resultObjects.length].join("|");
         const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 86400000) return hit.v;
         { const sh = await sharedGet("wp|" + key); if (sh && sh.ok) { WC_CACHE.set(key, { at: Date.now(), v: sh.v }); return sh.v; } }
         const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm), hn: String((mm.homeTeam && mm.homeTeam.name) || "").slice(0, 40), an: String((mm.awayTeam && mm.awayTeam.name) || "").slice(0, 40) }; };

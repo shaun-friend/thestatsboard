@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.54.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.1_win_buildup_cache.zip | v3.54.0
 v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
 v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
 v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
@@ -354,6 +355,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.54.1 - Win chance build-up panel missing on some games
+- Owner report (22-Nov-2026): the new build-up explainer did not show. Cause: win chances stored for a day before v3.52.0 lacked the extra figures the panel needs, so the old one-line explanation was shown instead.
+- Fixed: the stored win chance key is bumped so every game is worked out afresh and shows the build-up.
+- Request limit: no change. Each game is worked out once, then kept for a day as before.
+- Docs: What's new
 
 v3.54.0 - Opposition report: Danger players
 - Owner request (22-Nov-2026): show the opponent's top try scorers and anyone who recently played out of their usual position. Real data from the DEV check showed sheets and named scorers for all five recent games.
