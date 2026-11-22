@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.59.7 22-Nov-2026 Match day timing check: fixed its answer pattern (it never matched, so it always said it got no answer).
 //   v3.59.6 22-Nov-2026 Match day timing check reads its answer from a response header (X-Md-Sim) as well as the page comment, and shows the page status if it gets none.
 //   v3.59.5 22-Nov-2026 Match day timing check can use the real team sheet of a game already played (DEV Probe page).
 //   v3.59.4 22-Nov-2026 Match day TV preview and timing check moved to the DEV Probe page; they now say why when a team has no game to test.
@@ -371,7 +372,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.59.6";
+const VERSION = "v3.59.7";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -418,6 +419,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
 v3.59.6 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.6_match_day_check_header.zip | v3.59.5
 v3.59.5 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.5_match_day_played_sheet.zip | v3.59.4
 v3.59.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.4_match_day_tools.zip | v3.59.3
@@ -752,6 +754,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.7 - Match day timing check: fixed the answer pattern
+- Owner report (22-Nov-2026): the timing check still said it got no answer (status 200).
+- Cause: the pattern that reads the answer lost its backslashes when the page was built, so it could never match. The server was answering correctly all along.
+- Change: the pattern is written without backslashes. A test now takes the pattern from the served Probe page and runs it against a real answer.
+- Request limit: no change.
+- Docs: Link variables
 
 v3.59.6 - Match day timing check: read the answer from a header
 - Owner report (22-Nov-2026): the timing check said it could not read the page although the page opened.
@@ -3258,6 +3267,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.59.7", "Test site only: the Match day timing check now shows its answer (its answer pattern was broken)."],
       ["v3.59.6", "Test site only: the Match day timing check reads its answer more reliably."],
       ["v3.59.5", "Test site only: the Match day timing check on the Probe page can use the real team sheet of a game already played."],
       ["v3.59.4", "Test site only: the Match day TV preview and timing check moved to the Probe page, and they say why when a team has no game to test."],
@@ -6884,7 +6894,7 @@ function pick(){var id=gs.value;if(!id){$("smp").style.display="none";return}$("
 sel.onchange=loadGames;gs.onchange=pick;loadGames();
 var WHY={off:"it is not the game day, or the switch is off",pre:"it is before 10:00",over:"it is at or after the stop time",score:"a score is in",wait:"no game found for the day yet",few:"the sheet has fewer than 10 players",nosheet:"there is no sheet yet",found:"the sheet is published",nodata:"the RFU data for this team could not be read just now",nonext:"the RFU lists no upcoming game for this team, so there is no game day to test",nostats:"the next game has no league stats (for example a cup tie), so the Match day page is not used for it",notv:"the check page was not a TV page",nomatch:"the match details for the next game were not available",nogame:"that played game was not found in the team fixtures",preview:"this is a preview of a played game"};
 function url(){return base()+"&mdnow="+encodeURIComponent($("smh").value||"12:00")+($("sms").value==="played"?(gs.value?"&mdsheet="+gs.value:""):$("sms").value)+($("smc").checked?"&mdscore=1":"")}
-g.onclick=function(){var u=url();if(!u)return;$("smr").textContent="Checking...";$("smo").style.display="none";fetch(u,{credentials:"same-origin",cache:"no-store"}).then(function(r){var hd=r.headers.get("X-Md-Sim")||"",st=r.status;return r.text().then(function(h){return{h:hd?"<!--mdsim "+hd+"-->":h,st:st}})}).then(function(o){var h=o.h,m=/<!--mdsim why=(\w+) show=(\d) hold=(\d+) read=(\d) count=(\d+) lineup=(\d)-->/.exec(h);if(!m){$("smr").textContent="Match Stats page (the check got no answer from the page; web address status "+o.st+").";}else{$("smr").textContent=(m[2]==="1"?"The screen gets the Match day page":"The screen gets the normal Match Stats page")+" because "+(WHY[m[1]]||m[1])+". RFU team sheet read: "+(m[4]==="1"?"yes":"no")+(m[5]!=="0"?" ("+m[5]+" players"+(m[6]==="1"?", marked final":", not marked final")+")":"")+". The built page would be kept for "+(m[3]==="0"?"the normal time":m[3]==="86400"?"until 10:00":(+m[3]/60)+" minutes")+" (and always rebuilt at 10:00 and at the stop time)."}$("smo").href=u;$("smo").style.display=""}).catch(function(){$("smr").textContent="Could not check."})}})();
+g.onclick=function(){var u=url();if(!u)return;$("smr").textContent="Checking...";$("smo").style.display="none";fetch(u,{credentials:"same-origin",cache:"no-store"}).then(function(r){var hd=r.headers.get("X-Md-Sim")||"",st=r.status;return r.text().then(function(h){return{h:hd?"<!--mdsim "+hd+"-->":h,st:st}})}).then(function(o){var h=o.h,m=/<!--mdsim why=([a-z]+) show=([0-9]) hold=([0-9]+) read=([0-9]) count=([0-9]+) lineup=([0-9])-->/.exec(h);if(!m){$("smr").textContent="Match Stats page (the check got no answer from the page; web address status "+o.st+").";}else{$("smr").textContent=(m[2]==="1"?"The screen gets the Match day page":"The screen gets the normal Match Stats page")+" because "+(WHY[m[1]]||m[1])+". RFU team sheet read: "+(m[4]==="1"?"yes":"no")+(m[5]!=="0"?" ("+m[5]+" players"+(m[6]==="1"?", marked final":", not marked final")+")":"")+". The built page would be kept for "+(m[3]==="0"?"the normal time":m[3]==="86400"?"until 10:00":(+m[3]/60)+" minutes")+" (and always rebuilt at 10:00 and at the stop time)."}$("smo").href=u;$("smo").style.display=""}).catch(function(){$("smr").textContent="Could not check."})}})();
 })();</script>`;
 }
 function probePage(url, th) {

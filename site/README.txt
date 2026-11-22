@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
 v3.59.6 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.6_match_day_check_header.zip | v3.59.5
 v3.59.5 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.5_match_day_played_sheet.zip | v3.59.4
 v3.59.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.4_match_day_tools.zip | v3.59.3
@@ -375,6 +376,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.7 - Match day timing check: fixed the answer pattern
+- Owner report (22-Nov-2026): the timing check still said it got no answer (status 200).
+- Cause: the pattern that reads the answer lost its backslashes when the page was built, so it could never match. The server was answering correctly all along.
+- Change: the pattern is written without backslashes. A test now takes the pattern from the served Probe page and runs it against a real answer.
+- Request limit: no change.
+- Docs: Link variables
 
 v3.59.6 - Match day timing check: read the answer from a header
 - Owner report (22-Nov-2026): the timing check said it could not read the page although the page opened.
