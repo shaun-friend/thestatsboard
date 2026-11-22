@@ -35,7 +35,7 @@ let r=await post({features:{winchance:true}});c('save ok',(await r.json()).ok===
 d=await oppJ();c('on: report data carries the win chance',!!d.win&&d.win.home.pct+d.win.away.pct===100&&d.win.home.id==='11039');
 t=await opp();(await import('fs')).writeFileSync(new URL('./w/opp_wc.html',import.meta.url),t);
 c('on: Win Predictor shown under "This game"',/This game<\/h2><div class="gbox"><div class="card"><div class="wc"/.test(t.replace(/<style>[\s\S]*?<\/style>/g,'')));
-c('on: the how-it-works text is open',/<details class="wcx" open>/.test(t)&&/rated about/.test(t));
+c('on: the how-it-works text is open',/<details class="wcx wcf" open>/.test(t)&&(/rated about/.test(t)||/class="wbs"/.test(t)));
 c('on: both team names on the bar',/Ivybridge 1XV/.test(t)&&/Okehampton/.test(t));
 // the team page's lazy "This game" block is not slowed by it
 let g=await (await get('/?'+base+'&format=summary&detail=opposition&frag=gd&nowx=1')).text();c('team page block is unchanged (no bar)',!/Win Predictor/.test(g));

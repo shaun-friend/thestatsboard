@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.52.0 22-Nov-2026 Opposition report: the win chance now shows its build-up (strength, gap, home advantage, expected result, chance) and the results behind it.
 //   v3.51.4 22-Nov-2026 Opposition report: the At a glance rows and the jump chips work again inside the app (the app shell was swallowing in-page links).
 //   v3.51.3 21-Nov-2026 Admin menu: one entry for Player names and sponsors (Sponsors is the first tab inside it).
 //   v3.51.2 21-Nov-2026 Sponsors: No players filter (sponsors with no player this season).
@@ -344,7 +345,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.51.4";
+const VERSION = "v3.52.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -391,6 +392,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
 v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
 v3.51.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.3_menu_one_sponsor_entry.zip | v3.51.2
 v3.51.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.2_sponsors_no_players_filter.zip | v3.51.1
@@ -698,6 +700,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.52.0 - Opposition report: how the win chance was worked out
+- Owner request (22-Nov-2026): see the calculation behind the win chance.
+- Added: on the Opposition report the Win chance now has a five-step build-up: each side's strength from results, the gap, home advantage, the expected result with the usual swing, and how that becomes the chance (with a note when the chance is capped at 85/15 or 80/20). Below it: how many games it is based on, whether earlier seasons counted, and each side's biggest result this season.
+- Older saved calculations do not hold the extra figures, so for up to a day they show the earlier one-sentence explanation until they refresh.
+- Request limit: none; the figures come from the calculation the page already makes.
+- Docs: What's new
 
 v3.51.4 - Opposition report: jump links work in the app
 - Owner report (22-Nov-2026): the At a glance rows and the This game / Their form / You v them / Season buttons did nothing.
@@ -3014,6 +3023,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.52.0", "Opposition report: the win chance now shows how it was worked out, step by step, with the results behind it."],
       ["v3.51.4", "Opposition report: the At a glance rows and the jump buttons (This game, Their form, You v them, Season) work again in the app."],
       ["v3.51.3", "Admin menu: one entry for Player names and sponsors; Sponsors is the first tab inside it."],
       ["v3.51.2", "Sponsors: a No players filter lists sponsors with no player this season."],
@@ -3534,7 +3544,7 @@ function winModel(games, homeId, awayId, cfg) {
   let se = 0, sw = 0; for (const g of gs) { const e = g.hs - g.as - (r[g.h] - r[g.a] + ha); se += g.w * e * e; sw += g.w; }
   const sigma = Math.max(C.sigmaMin, Math.min(C.sigmaMax, Math.sqrt((se + C.sigmaK * C.sigma0 * C.sigma0) / (sw + C.sigmaK)) * 1.1));
   const gap = r[homeId] - r[awayId], mu = gap + ha;
-  return { pHome: normCdf(mu / sigma), mu, gap, ha, sigma, nHome: nH, nAway: nA, games: gs.length };
+  return { pHome: normCdf(mu / sigma), mu, gap, ha, sigma, nHome: nH, nAway: nA, games: gs.length, rHome: r[homeId], rAway: r[awayId] };
 }
 // v3.34.0: the most lopsided chance shown depends on how many league games the thinner side has had this season: 80/20 under eight games (early ratings are rough),
 // 85/15 from eight. Called without a game count (older callers and tests) the old 97/3 limit applies.
@@ -3556,9 +3566,38 @@ function winBacktest(games) {
   return { predicted: n, finished: all.length, favouriteWon: favN ? r2(fav / favN) : null, favouriteGames: favN, brier: n ? r2(brier / n) : null, brierAlways5050: 0.25, homeWinRate: n ? r2(homeW / homeN) : null, avgMarginError: n ? Math.round(mae / n * 10) / 10 : null,
     buckets: ["50-59", "60-69", "70-79", "80-89", "90+"].filter(k => bk[k]).map(k => ({ band: k, games: bk[k].n, said: r2(bk[k].p / bk[k].n), happened: r2(bk[k].w / bk[k].n) })) };
 }
-const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wce{display:none}.wcm .wce{text-align:center}@media(min-width:900px){.wce{display:block;font-size:.78em;font-weight:700;opacity:.85;margin-top:.5em;letter-spacing:.02em}.wcp{visibility:hidden}.hero .wcp{display:none}}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
+const WIN_CSS = `<style>.wc{font-size:var(--wcfs,16px);margin:.7em 0 .3em;text-align:left;color:inherit}.wcn{display:flex;justify-content:space-between;align-items:flex-end;gap:1em}.wcn>span{min-width:0;display:flex;flex-direction:column}.wcn>.wr{align-items:flex-end;text-align:right}.wcn b{font-size:1.9em;line-height:1;font-weight:800}.wcn small{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;opacity:.85;margin-top:.2em;max-width:100%}.wcn small em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wcn small i{width:.7em;height:.7em;border-radius:50%;background:var(--wcl);flex:none}.wcn .wr small i{background:var(--wcr)}.wcb{display:flex;height:.9em;border-radius:99px;overflow:hidden;gap:.18em;margin-top:.5em}.wcb i{display:block;min-width:.4em}.wcb .wl{background:var(--wcl)}.wcb .wr{background:var(--wcr)}.wce{display:none}.wcm .wce{text-align:center}@media(min-width:900px){.wce{display:block;font-size:.78em;font-weight:700;opacity:.85;margin-top:.5em;letter-spacing:.02em}.wcp{visibility:hidden}.hero .wcp{display:none}}.wcx{display:none;font-size:.8em;margin-top:.7em;opacity:.9}.wcx summary{cursor:pointer;font-weight:700}.wcx p{margin:.4em 0 0;line-height:1.4}.wcx.wcf{display:block;font-size:.92em}.wbd{margin-top:.5em}.wbs{display:flex;gap:.8em;padding:.7em 0;border-top:1px solid rgba(127,147,163,.25)}.wbs>i{flex:none;width:1.7em;height:1.7em;border-radius:50%;background:rgba(47,158,91,.22);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:.85em}.wbs b{display:inline}.wbs>div>b:first-child{display:block;font-size:1.02em}.wbs small{display:block;margin-top:.2em;opacity:.8;line-height:1.4;font-size:.92em}.wbe{margin-top:.3em;padding:.5em .7em;border-radius:.6em;background:rgba(127,147,163,.14)}.wbb{position:relative;height:.6em;border-radius:.4em;background:rgba(127,147,163,.28);margin:.9em 0 .5em}.wbb u{position:absolute;top:-.2em;width:1em;height:1em;margin-left:-.5em;border-radius:50%;border:2px solid #0a0f10}.wbh{background:var(--wcl)}.wba{background:var(--wcr)}.wbl{display:flex;justify-content:space-between;gap:.8em;flex-wrap:wrap;font-size:.92em}.wbl i{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:.4em}.wbx{margin-top:.4em;border-top:1px solid rgba(127,147,163,.25);padding-top:.6em}.wbr{display:flex;justify-content:space-between;gap:1em;padding:.35em 0;border-top:1px solid rgba(127,147,163,.15);font-size:.95em}.wbr span:last-child{opacity:.8;text-align:right}.wbh2{font-weight:700}.wch{font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-bottom:.45em}.wcm{margin:.55em 0 .2em;width:100%;max-width:30em}.wcm .wch{margin-bottom:.35em;text-align:center}.wcm .wcb{height:2em;margin-top:0;border-radius:.5em;gap:.2em}.wcm .wcb i{display:flex;align-items:center;position:relative;overflow:hidden;padding:0 .7em;min-width:3.6em;font-style:normal;font-weight:800;font-size:.95em;box-sizing:border-box}.wcm .wcb i b{font-weight:800;flex:none}.wcm .wcb i em{font-style:normal;font-weight:700;font-size:1em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 .1em}.wcm .wcb i.wl em{margin-left:.6em}.wcm .wcb i.wr em{margin-right:.6em}.wcm .wcb i.wl{justify-content:flex-start;color:var(--wclt,#fff)}.wcm .wcb i.wr{justify-content:flex-end;color:var(--wcrt,#0b1218)}@media(max-width:800px){.wcx{display:block}}</style>`;
 // Win chance bar (v3.30). win = { home: {name, pct}, away: {name, pct}, gap, ha }; home is on the left, as everywhere else on the site.
 // o.left / o.right are the two colours (CSS values); o.fs the font size the bar is scaled from.
+// v3.52.0: the result that moved a side's rating most this season (largest winning or losing margin), as a short phrase for the build-up panel.
+function winBiggest(games, id) {
+  let best = null;
+  for (const g of games || []) {
+    if (!(g.w >= 1) || (g.h !== id && g.a !== id) || !g.hn || !g.an) continue;
+    const mine = g.h === id, f = mine ? g.hs : g.as, a = mine ? g.as : g.hs, d = Math.abs(f - a);
+    if (!best || d > best.d) best = { d, t: (f > a ? "won " : f < a ? "lost " : "drew ") + f + "-" + a + (mine ? " v " + g.an : " at " + g.hn) };
+  }
+  return best ? best.t : "";
+}
+// v3.52.0: the five-step build-up behind a win chance. Needs the extra figures in win (rh, ra, mu, sg, raw); older saved results do not have them and get the short sentence instead.
+function winBuild(win) {
+  if (!win || typeof win.rh !== "number" || typeof win.ra !== "number" || typeof win.mu !== "number" || typeof win.sg !== "number") return "";
+  const e = noticeEsc, hn = win.home.name, an = win.away.name, r0 = x => Math.round(x), sgn = x => (x > 0 ? "+" : x < 0 ? "-" : "") + Math.abs(Math.round(x));
+  const sc = Math.max(15, Math.abs(win.rh), Math.abs(win.ra)), pos = x => Math.max(4, Math.min(96, 50 + 46 * x / sc));
+  const gap = Math.abs(win.rh - win.ra), ha = Math.max(0, win.ha), favHome = win.mu >= 0, fav = favHome ? hn : an, dog = favHome ? an : hn, dogPct = favHome ? win.away.pct : win.home.pct;
+  const better = r0(gap) < 1 ? "" : win.rh > win.ra ? hn : an;
+  const shownH = win.home.pct, rawH = Math.round(win.raw);
+  const capNote = Number.isFinite(win.raw) && rawH !== shownH ? `<small>The calculation gave ${rawH}% for ${e(hn)}. A chance is never shown beyond 85/15, or 80/20 early in the season, because the ratings are only estimates.</small>` : "";
+  const st = (n, h, b) => `<div class="wbs"><i>${n}</i><div><b>${h}</b>${b}</div></div>`;
+  const big = win.big || {}, bigRows = [[hn, big.h], [an, big.a]].filter(x => x[1]).map(x => `<div class="wbr"><span>${e(x[0])}</span><span>${e(x[1])}</span></div>`).join("");
+  return `<div class="wbd">`
+    + st(1, "Team strength, from results", `<small>Points better or worse than an average side in the league.</small><div class="wbb"><u style="left:${pos(win.rh).toFixed(1)}%" class="wbh"></u><u style="left:${pos(win.ra).toFixed(1)}%" class="wba"></u></div><div class="wbl"><span><i class="wbh"></i>${e(hn)} <b>${sgn(win.rh)}</b></span><span><i class="wba"></i>${e(an)} <b>${sgn(win.ra)}</b></span></div>`)
+    + st(2, "Gap between the sides", `<small>${better ? e(better) + " are rated <b>" + r0(gap) + " point" + (r0(gap) === 1 ? "" : "s") + "</b> better on results." : "The sides are rated level on results."}</small>`)
+    + st(3, "Home advantage", `<small>${e(hn)} are at home, worth about <b>${r0(ha)} point${r0(ha) === 1 ? "" : "s"}</b> to them.</small>`)
+    + st(4, "Expected result", `<div class="wbe">${Math.abs(win.mu) < 1 ? "Too close to call" : e(fav) + " by about <b>" + r0(Math.abs(win.mu)) + "</b>"}</div><small>Results in this league usually swing by about ${r0(win.sg)} points either way.</small>`)
+    + st(5, "Turned into a chance", `<div class="wbe">${e(dog)} win about <b>1 game in ${Math.max(2, Math.round(100 / Math.max(1, dogPct)))}</b></div><small>Shown as <b>${win.home.pct}%</b> ${e(hn)}, <b>${win.away.pct}%</b> ${e(an)}.</small>${capNote}`)
+    + `<div class="wbx"><b>The results behind the ratings</b><div class="wbr"><span>Based on</span><span>${e(String(win.n))} league game${win.n === 1 ? "" : "s"} each this season</span></div><div class="wbr"><span>Earlier seasons</span><span>${win.prior ? "last season counts half, the season before a quarter" : "not available, so this season only"}</span></div>${bigRows ? `<div class="wbr wbh2"><span>Biggest result this season</span><span></span></div>${bigRows}` : ""}</div></div>`;
+}
 function winHow(win) {
   const g = Math.round(Math.abs(win.gap)), ha = Math.max(0, Math.round(win.ha)), hn = win.home.name, an = win.away.name;
   const lead = g < 1 ? hn + " and " + an + " are rated level on results" : win.gap > 0 ? hn + " are rated about " + g + " points better than " + an + " on results" : an + " are rated about " + g + " points better than " + hn + " on results";
@@ -3569,7 +3608,7 @@ function winBarHtml(win, o) {
   const e = noticeEsc, op = o || {};
   const label = "Win Predictor: " + win.home.name + " " + win.home.pct + " percent, " + win.away.name + " " + win.away.pct + " percent";
   const st = `--wcl:${e(op.left || "#2f9e5b")};--wcr:${e(op.right || "#7f93a3")};--wcfs:${e(op.fs || "16px")}${op.leftFg ? ";--wclt:" + e(op.leftFg) : ""}${op.rightFg ? ";--wcrt:" + e(op.rightFg) : ""}`;
-  const how = (win.early ? `<div class="wce">Early season: based on ${e(String(win.n))} games each</div>` : op.compact ? `<div class="wce wcp" aria-hidden="true">&nbsp;</div>` : "") + `<details class="wcx"${op.open ? " open" : ""}><summary>How is this worked out?</summary><p>${e(winHow(win))}</p></details>`;
+  const how = (win.early ? `<div class="wce">Early season: based on ${e(String(win.n))} games each</div>` : op.compact ? `<div class="wce wcp" aria-hidden="true">&nbsp;</div>` : "") + `<details class="wcx${op.open ? " wcf" : ""}"${op.open ? " open" : ""}><summary>How is this worked out?</summary>${op.open && winBuild(win) ? winBuild(win) : `<p>${e(winHow(win))}</p>`}</details>`;
   if (op.compact) return WIN_CSS + `<div class="wc wcm" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor / Game Difficulty</div><div class="wcb"><i class="wl" style="flex:${win.home.pct}"><b>${win.home.pct}%</b>${win.home.pct >= 28 ? `<em>${e(win.home.name)}</em>` : ""}</i><i class="wr" style="flex:${win.away.pct}">${win.away.pct >= 28 ? `<em>${e(win.away.name)}</em>` : ""}<b>${win.away.pct}%</b></i></div>${how}</div>`;
   return WIN_CSS + `<div class="wc" role="group" aria-label="${e(label)}" style="${st}"><div class="wch">Win Predictor / Game Difficulty</div><div class="wcn"><span class="wl"><b>${win.home.pct}%</b><small><i></i><em>${e(win.home.name)}</em></small></span><span class="wr"><b>${win.away.pct}%</b><small><em>${e(win.away.name)}</em><i></i></small></span></div><div class="wcb" aria-hidden="true"><i class="wl" style="flex:${win.home.pct}"></i><i class="wr" style="flex:${win.away.pct}"></i></div>${how}</div>`;
 }
@@ -8658,7 +8697,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         const key = ["v34", season, competition, division, idHome, idAway, resultObjects.length].join("|");
         const hit = WC_CACHE.get(key); if (hit && Date.now() - hit.at < 86400000) return hit.v;
         { const sh = await sharedGet("wp|" + key); if (sh && sh.ok) { WC_CACHE.set(key, { at: Date.now(), v: sh.v }); return sh.v; } }
-        const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm) }; };
+        const toGame = (mm, wt) => { if (walkoverInfo(mm)) return null; const hs = num(mm.homeTeam?.score), as = num(mm.awayTeam?.score); if (hs === null || as === null || (hs === 0 && as === 0)) return null; return { h: String(teamIdOf(mm.homeTeam)), a: String(teamIdOf(mm.awayTeam)), hs, as, w: wt, k: matchKey(mm), hn: String((mm.homeTeam && mm.homeTeam.name) || "").slice(0, 40), an: String((mm.awayTeam && mm.awayTeam.name) || "").slice(0, 40) }; };
         const seen = new Set(), games = []; let priorOk = 0;
         for (const mm of resultObjects) { const g = toGame(mm, 1); if (g && !seen.has(g.k)) { seen.add(g.k); games.push(g); } }
         const mS = /^(\d{4})-(\d{4})$/.exec(String(season));
@@ -8677,7 +8716,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
         }
         const m = winModel(games, idHome, idAway);
         let v = null;
-        if (m) { const nMin = Math.min(m.nHome, m.nAway), pc = winPercents(m.pHome, nMin); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk, n: nMin, early: nMin < WIN_CFG.fullGames }; }
+        if (m) { const nMin = Math.min(m.nHome, m.nAway), pc = winPercents(m.pHome, nMin); v = { home: { id: idHome, name: nextHomeName, pct: pc.home }, away: { id: idAway, name: nextAwayName, pct: pc.away }, gap: Math.round(m.gap * 10) / 10, ha: Math.round(m.ha * 10) / 10, games: m.games, prior: priorOk, n: nMin, early: nMin < WIN_CFG.fullGames, rh: Math.round(m.rHome * 10) / 10, ra: Math.round(m.rAway * 10) / 10, mu: Math.round(m.mu * 10) / 10, sg: Math.round(m.sigma * 10) / 10, raw: Math.round(m.pHome * 1000) / 10, big: { h: winBiggest(games, idHome), a: winBiggest(games, idAway) } }; }
         if (WC_CACHE.size > 300) WC_CACHE.clear(); WC_CACHE.set(key, { at: Date.now(), v }); await sharedPut("wp|" + key, { ok: true, v }, 86400); return v;
       };
       let nextWin = null;

@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
 v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
 v3.51.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.3_menu_one_sponsor_entry.zip | v3.51.2
 v3.51.2 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.2_sponsors_no_players_filter.zip | v3.51.1
@@ -348,6 +349,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.52.0 - Opposition report: how the win chance was worked out
+- Owner request (22-Nov-2026): see the calculation behind the win chance.
+- Added: on the Opposition report the Win chance now has a five-step build-up: each side's strength from results, the gap, home advantage, the expected result with the usual swing, and how that becomes the chance (with a note when the chance is capped at 85/15 or 80/20). Below it: how many games it is based on, whether earlier seasons counted, and each side's biggest result this season.
+- Older saved calculations do not hold the extra figures, so for up to a day they show the earlier one-sentence explanation until they refresh.
+- Request limit: none; the figures come from the calculation the page already makes.
+- Docs: What's new
 
 v3.51.4 - Opposition report: jump links work in the app
 - Owner report (22-Nov-2026): the At a glance rows and the This game / Their form / You v them / Season buttons did nothing.

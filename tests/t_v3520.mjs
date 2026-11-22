@@ -1,0 +1,31 @@
+import fs from 'fs';
+const src=fs.readFileSync(process.argv[2],'utf8');
+const m=await import(process.argv[2]);
+let pass=0,fail=0;const c=(n,ok)=>{if(ok)pass++;else{fail++;console.log('FAIL',n)}};
+// run the model through the real functions by evaluating them from source
+const grab=n=>{const i=src.indexOf('function '+n+'(');let d=0,j=src.indexOf('{',i);for(let k=j;k<src.length;k++){if(src[k]==='{')d++;if(src[k]==='}'){d--;if(!d)return src.slice(i,k+1)}}};
+const code=['normCdf','winFloor','winPercents','winModel','winBiggest','winBuild'].map(grab).join('\n');
+const WIN_CFG=src.match(/const WIN_CFG = [^\n]*/)[0];
+const noticeEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const f=new Function('noticeEsc',WIN_CFG+'\n'+code+'\nreturn {winModel,winBiggest,winBuild,winPercents}');
+const L=f(noticeEsc);
+const teams=['1','2','3','4'],games=[];let t=0;
+for(const h of teams)for(const a of teams)if(h!==a){games.push({h,a,hs:h==='1'?40:10+t%7,as:a==='1'?40:8,w:1,hn:'T'+h,an:'T'+a});t++}
+const mo=L.winModel(games,'2','1');
+c('model returns ratings',mo&&typeof mo.rHome==='number'&&typeof mo.rAway==='number');
+c('stronger side is rated higher',mo.rAway>mo.rHome);
+const pc=L.winPercents(mo.pHome,Math.min(mo.nHome,mo.nAway));
+const win={home:{id:'2',name:'Home RFC',pct:pc.home},away:{id:'1',name:'Away RFC',pct:pc.away},gap:mo.gap,ha:mo.ha,n:6,prior:2,early:false,rh:Math.round(mo.rHome*10)/10,ra:Math.round(mo.rAway*10)/10,mu:Math.round(mo.mu*10)/10,sg:Math.round(mo.sigma*10)/10,raw:Math.round(mo.pHome*1000)/10,big:{h:L.winBiggest(games,'2'),a:L.winBiggest(games,'1')}};
+const h=L.winBuild(win);
+c('five steps shown',(h.match(/class="wbs"/g)||[]).length===5);
+c('names step 4 favourite','Away RFC by about'.length>0&&/Away RFC by about/.test(h));
+c('shows both percentages',h.includes(win.home.pct+'%')&&h.includes(win.away.pct+'%'));
+c('says earlier seasons counted',/last season counts half/.test(h));
+c('biggest results listed',/won 40-/.test(h)||/lost /.test(h));
+c('older saved result gives nothing (falls back)',L.winBuild({home:{name:'A',pct:50},away:{name:'B',pct:50},gap:0,ha:3})==='');
+c('no prior seasons wording',/not available, so this season only/.test(L.winBuild({...win,prior:0})));
+c('cap note when shown differs from raw',/never shown beyond 85\/15/.test(L.winBuild({...win,raw:99,home:{...win.home,pct:15},away:{...win.away,pct:85}})));
+c('names are escaped',!/<img/.test(L.winBuild({...win,home:{...win.home,name:'<img src=x>'}})));
+c('worker wires build-up into the report bar only',/op\.open && winBuild\(win\)/.test(src));
+c('version',/const VERSION = "v3\.52\.0"/.test(src));
+console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0);
