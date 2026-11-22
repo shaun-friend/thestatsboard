@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.53.2 22-Nov-2026 Fixtures TV board: banner colour is the team colour saved in Our teams (it was taken from the crest picture).
 //   v3.53.1 22-Nov-2026 Match Stats and Opposition report: our side now keeps the colour saved in Our teams (it was being replaced by a colour taken from the crest, so the 1XV and Vandals could show the wrong colours).
 //   v3.53.0 22-Nov-2026 DEV probe: Opposition check card (opponent's last 5 games: team sheets, scorers, top try scorers, players who changed shirt group). Testing only.
 //   v3.52.0 22-Nov-2026 Opposition report: the win chance now shows its build-up (strength, gap, home advantage, expected result, chance) and the results behind it.
@@ -347,7 +348,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.53.1";
+const VERSION = "v3.53.2";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -394,6 +395,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
 v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
 v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
 v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
@@ -704,6 +706,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.2 - Fixtures TV board: our team colour from Our teams
+- Owner question (22-Nov-2026): does the colour fix cover the other pages, such as the TV pages?
+- Checked: the Match Centre and its next-game panel already used the saved colour. The Fixtures TV board took its main banner colour from the crest picture, so teams sharing a crest could show the wrong colour.
+- Fixed: the Fixtures TV board now uses the colour saved in Our teams (or the link's colour=) for the main banner colour; the second colour still comes from the crest.
+- Request limit: none.
+- Docs: What's new
 
 v3.53.1 - Match Stats and Opposition report: our team colour is the one saved in Our teams
 - Owner report (22-Nov-2026): the Ivybridge 1XV showed amber and the Vandals green on Match Stats, although Our teams has 1XV green and the Vandals amber.
@@ -3040,6 +3049,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.53.2", "Fixtures TV board: the banner uses the team colour saved in Our teams."],
       ["v3.53.1", "Match Stats and the Opposition report now use the team colour saved in Our teams for your side, instead of a colour taken from the crest."],
       ["v3.53.0", "Testing only: a new Opposition check on the DEV probe page shows whether opposition top try scorers and position changes can be shown. Nothing changes on the public pages."],
       ["v3.52.0", "Opposition report: the win chance now shows how it was worked out, step by step, with the results behind it."],
@@ -7495,7 +7505,7 @@ ${bannerHtml}
 ${tvBody}
 ${aroundHtml}
 ${S.features.checked === false ? "" : `<div class="ftl">Data from the RFU fixtures feed &middot; last checked ${e(londonStamp(Number(d && d.updatedAt) || Date.now()))}</div>`}
-${TV_BRAND_SCRIPT.replace("__OV__", hexParam(url.searchParams.get("colour"))).replace("__ID__", encodeURIComponent(String(team || "")))}
+${TV_BRAND_SCRIPT.replace("__OV__", hexParam(url.searchParams.get("colour")) || hexParam((TEAMS.find(t => String(t.team) === String(team)) || {}).accent)).replace("__ID__", encodeURIComponent(String(team || "")))}
 <script>(function(){var MAX=${pageReloadSeconds() * 1000},t0=Date.now();setInterval(function(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible")(window.rfuSoft?rfuSoft():location.reload())},60000)})();</script>
 </body></html>`;
         return new Response(tv, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });

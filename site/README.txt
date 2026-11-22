@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
 v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
 v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
 v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
@@ -351,6 +352,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.2 - Fixtures TV board: our team colour from Our teams
+- Owner question (22-Nov-2026): does the colour fix cover the other pages, such as the TV pages?
+- Checked: the Match Centre and its next-game panel already used the saved colour. The Fixtures TV board took its main banner colour from the crest picture, so teams sharing a crest could show the wrong colour.
+- Fixed: the Fixtures TV board now uses the colour saved in Our teams (or the link's colour=) for the main banner colour; the second colour still comes from the crest.
+- Request limit: none.
+- Docs: What's new
 
 v3.53.1 - Match Stats and Opposition report: our team colour is the one saved in Our teams
 - Owner report (22-Nov-2026): the Ivybridge 1XV showed amber and the Vandals green on Match Stats, although Our teams has 1XV green and the Vandals amber.

@@ -11,4 +11,5 @@ c('our crest is marked fixed (saved colour kept)',imgs.length===0||imgs.some(i=>
 c('the other crest is not fixed',imgs.length===0||imgs.some(i=>!i.fixed&&i.id!=='11039'));
 c('script keeps a fixed side and changes only the free one',/function alt\(p,o\)/.test(src)&&/fa\?cssc\("ca"\)/.test(src)&&/fb\?cssc\("cb"\)/.test(src));
 c('report passes the saved colour',/a: hexParam\(url\.searchParams\.get\("colour"\)\) \|\| hexParam\(\(TEAMS\.find/.test(src));
+c('fixtures TV board also uses the saved colour',/TV_BRAND_SCRIPT\.replace\("__OV__", hexParam\(url\.searchParams\.get\("colour"\)\) \|\| hexParam\(\(TEAMS\.find/.test(src));
 console.log(pass+' passed, '+fail+' failed, crests '+JSON.stringify(imgs));process.exit(fail?1:0);
