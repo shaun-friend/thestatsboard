@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.55.0 22-Nov-2026 Opposition report: Danger players shows each try scorer's usual position
 //   v3.54.1 22-Nov-2026 Win chance: stored answers from before v3.52.0 are dropped so the build-up panel shows straight away
 //   v3.54.0 22-Nov-2026 Opposition report: Danger players (their top three try scorers over the last five games and anyone who recently wore a different shirt group); the DEV Opposition check also lists any shirt number change.
 //   v3.53.3 22-Nov-2026 DEV probe Opposition check: the opponent's side on a team sheet is found by the side number that appears in most of its games (the match record numbers do not match the sheet).
@@ -351,7 +352,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.54.1";
+const VERSION = "v3.55.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -398,6 +399,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.55.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.0_danger_position.zip | v3.54.1
 v3.54.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.1_win_buildup_cache.zip | v3.54.0
 v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
 v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
@@ -712,6 +714,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.55.0 - Danger players show their usual position
+- Owner request (22-Nov-2026): show each danger player's usual position.
+- Added: a small position (prop, hooker, lock, flanker, number 8, scrum half, fly half, wing, centre, full back, or replacement) beside each name. It is the position of the shirt they wore most often as a starter in their last five games.
+- Changed: stored Danger players answers use a new key, so every opponent is read afresh once.
+- Request limit: no change (same calls as v3.54.0; the position comes from the sheets already read).
+- Docs: What's new, Other addresses
 
 v3.54.1 - Win chance build-up panel missing on some games
 - Owner report (22-Nov-2026): the new build-up explainer did not show. Cause: win chances stored for a day before v3.52.0 lacked the extra figures the panel needs, so the old one-line explanation was shown instead.
@@ -3075,6 +3084,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.55.0", "Opposition report: each danger player now shows their usual position beside their name."],
       ["v3.54.1", "Win chance: the build-up panel now shows on every game straight away (older stored answers no longer hide it)."],
       ["v3.54.0", "Opposition report: a Danger players card shows their top three try scorers from the last five games and anyone who recently played in a different position."],
       ["v3.53.3", "Testing only: the Opposition check on the DEV probe page now finds the right side of each team sheet."],
@@ -5850,7 +5860,7 @@ function ds(x){var m=/^\d{4}-(\d{2})-(\d{2})$/.exec(x||"");if(!m)return"";var mo
 fetch("/api/danger?opp="+encodeURIComponent(C.o)+"&season="+encodeURIComponent(C.s)).then(function(r){return r.json()}).then(function(j){
 if(!j||!j.ok||!j.show||(!j.top.length&&!j.moved.length))return;
 var h="<h2>Danger players</h2>";
-if(j.top.length){h+='<p class="note" style="margin:0 0 6px">Most tries in their last '+j.games+" games</p>";j.top.forEach(function(x){h+='<div class="row"><span>'+esc(x.name)+"</span><b>"+x.n+" "+(x.n===1?"try":"tries")+"</b></div>"})}
+if(j.top.length){h+='<p class="note" style="margin:0 0 6px">Most tries in their last '+j.games+" games</p>";j.top.forEach(function(x){h+='<div class="row"><span>'+esc(x.name)+(x.pos?' <small style="color:#6b7c73">'+esc(x.pos)+"</small>":"")+"</span><b>"+x.n+" "+(x.n===1?"try":"tries")+"</b></div>"})}
 if(j.moved.length){h+='<p class="note" style="margin:10px 0 6px">Recently played somewhere different</p>';j.moved.forEach(function(x){h+='<div class="row"><span>'+esc(x.name)+"</span><b>"+esc(x.last)+" ("+esc(x.no)+") "+esc(ds(x.d))+"</b></div>";h+='<p class="note" style="margin:0 0 4px">Usually '+esc(x.usual)+"</p>"})}
 h+='<p class="note">From the team sheets and scorers the RFU lists for their last '+j.games+" games ("+j.tryNamed+" of "+j.tryTotal+" tries have a named scorer). Names the RFU withholds are left out.</p>";
 el.innerHTML=h;el.hidden=false}).catch(function(){})})();</script>
@@ -6242,6 +6252,16 @@ function shirtGroup(no) {
   const n = /^\d+$/.test(String(no || "")) ? +no : 0;
   return n >= 1 && n <= 3 ? "front row" : n >= 4 && n <= 5 ? "lock" : n >= 6 && n <= 8 ? "back row" : n === 9 ? "scrum half" : n === 10 ? "fly half" : n === 11 || n === 14 ? "wing" : n === 12 || n === 13 ? "centre" : n === 15 ? "full back" : n >= 16 ? "bench" : "";
 }
+// v3.55.0: a plain position name for a shirt number, used for the usual position shown beside a danger player.
+function posLabel(no) {
+  const n = /^\d+$/.test(String(no || "")) ? +no : 0;
+  return n === 1 || n === 3 ? "prop" : n === 2 ? "hooker" : n === 4 || n === 5 ? "lock" : n === 6 || n === 7 ? "flanker" : n === 8 ? "number 8" : n === 9 ? "scrum half" : n === 10 ? "fly half" : n === 11 || n === 14 ? "wing" : n === 12 || n === 13 ? "centre" : n === 15 ? "full back" : n >= 16 ? "replacement" : "";
+}
+function usualPos(gs) {
+  const st = (gs || []).filter(x => x.no <= 15), use = st.length ? st : (gs || []), c = {};
+  for (const x of use) { const l = posLabel(x.no); if (l) c[l] = (c[l] || 0) + 1; }
+  const k = Object.keys(c).sort((a, b) => c[b] - c[a])[0]; return k || "";
+}
 // v3.54.0: the opponent's recent games, shared by the DEV probe card and the Danger players panel on the Opposition report (/api/danger). Reads the last five played games
 // (1 results call + a team sheet and scorers for each, up to 11 RFU calls) and returns top try scorers and players whose shirt changed. Names are an initial and surname; withheld names and under-18s are only counted.
 async function oppDangerCore(teamId, season, useCache) {
@@ -6253,7 +6273,7 @@ async function oppDangerCore(teamId, season, useCache) {
   const idOf = t => String((t && (t.commonId ?? t.id)) ?? "");
   const played = all.filter(m => m.id && Number.isFinite(Number(m.homeTeam.score)) && Number.isFinite(Number(m.awayTeam.score)) && m.homeTeam.score !== null && m.awayTeam.score !== null && !walkoverInfo(m) && !(Number(m.homeTeam.score) === 0 && Number(m.awayTeam.score) === 0))
     .sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 5);
-  const key = "dg|" + teamId + "|" + season + "|" + played.map(m => m.id).join(",");
+  const key = "dg2|" + teamId + "|" + season + "|" + played.map(m => m.id).join(",");
   if (useCache) { const sh = await sharedGet(key); if (sh && sh.ok && sh.v) return sh.v; }
   const per = await Promise.all(played.map(async m => {
     const mid = String(m.id), [ppl, evs] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + mid), sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + mid)]);
@@ -6284,7 +6304,7 @@ async function oppDangerCore(teamId, season, useCache) {
     for (const x of theirTries) { const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18, individualId: x.individualId }; const nm = nameOf(pl); if (nm) { named++; const k3 = String(pl.individualId || x.matchParticipantId || nm); const t = tries[k3] || (tries[k3] = { name: nm, n: 0 }); t.n++; } }
     games.push({ date: when, v: (homeIsThem ? "home v " : "away at ") + vs, score: m.homeTeam.score + "-" + m.awayTeam.score, sheetFound: !!ppl, sideIds: sideIds.slice(0, 3), opponentSideBy: how, players: ours.length, withShirtNumber: withNo.length, namesWithheld: ours.filter(p => p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))).length, under18: ours.filter(p => p.isU18 === true).length, eventsFound: Array.isArray(evs), eventsInGame: evList.length, triesForThem: theirTries.length, triesWithNamedScorer: named });
   }
-  const top = Object.values(tries).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 3);
+  const top = Object.entries(tries).sort((x, y) => y[1].n - x[1].n || x[1].name.localeCompare(y[1].name)).slice(0, 3).map(([k, t]) => ({ name: t.name, n: t.n, pos: usualPos((wore[k] || {}).g) }));
   const moved = Object.values(wore).filter(o => o.name && o.g.length >= 2).map(o => { const gs = o.g.slice().sort((a, b) => b.d.localeCompare(a.d)), last = gs[0], cnt = {}; for (const x of gs) if (x.grp && x.grp !== "bench") cnt[x.grp] = (cnt[x.grp] || 0) + 1; const usual = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || ""; return { name: o.name, usual, usualGames: cnt[usual] || 0, counts: cnt, last: last.grp, lastNo: last.no, lastDate: last.d, seen: gs.length, all: gs.map(x => x.no).join(", ") }; })
     .filter(o => o.usual && o.last && o.last !== "bench" && o.last !== o.usual && o.usualGames > (o.counts[o.last] || 0)).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
   // any change of shirt number between games (starting 1-15), even inside a group, so the probe can show what real changes look like
@@ -6303,7 +6323,7 @@ async function oppCheck(ep, v) {
     out.ms = Date.now() - t0;
     out.json = { note: "The opponent's last played games from the RFU results. Names are an initial and surname; withheld names and under-18s are counted but not named. Shirt groups: 1-3 front row, 4-5 lock, 6-8 back row, 9 scrum half, 10 fly half, 11 and 14 wing, 12 and 13 centre, 15 full back, 16+ bench.", gamesRead: games.length, rfuCalls: r.rfuCalls,
       verdict: { sheetsFound: r.sheets + " of " + games.length, gamesWithScorersListed: games.filter(g => g.eventsFound && g.eventsInGame > 0).length + " of " + games.length, gamesWithNamedTryScorers: games.filter(g => g.triesWithNamedScorer > 0).length + " of " + games.length, triesNamed: r.tryNamed + " of " + r.tryTotal },
-      topTryScorers: r.top.map(x => x.name + ": " + x.n), playersWhoMovedShirtGroup: r.moved.slice(0, 12).map(o => o.name + ": usually " + o.usual + " (" + o.usualGames + " of " + o.seen + " games), last wore " + o.lastNo + " (" + o.last + ") on " + o.lastDate + "; shirts " + o.all),
+      topTryScorers: r.top.map(x => x.name + ": " + x.n + (x.pos ? " (usually " + x.pos + ")" : "")), playersWhoMovedShirtGroup: r.moved.slice(0, 12).map(o => o.name + ": usually " + o.usual + " (" + o.usualGames + " of " + o.seen + " games), last wore " + o.lastNo + " (" + o.last + ") on " + o.lastDate + "; shirts " + o.all),
       anyShirtNumberChange: r.shirtChanges.slice(0, 15).map(o => o.name + ": shirts " + o.shirts + " (newest first, " + o.games + " games)"), positionFieldsOnASheet: r.fieldsSeen, games };
   } catch (e) { out.ok = false; out.status = 0; out.json = { error: String(e && e.message || e).slice(0, 200) }; }
   return out;
@@ -7064,7 +7084,7 @@ const worker = {
         const r = await oppDangerCore(opp, season, true);
         if (r.error) return out({ ok: false });
         const ok = r.sheets >= 3 && r.tryNamed > 0;
-        return out({ ok: true, show: ok, games: r.games.length, tryNamed: r.tryNamed, tryTotal: r.tryTotal, top: ok ? r.top.map(x => ({ name: x.name, n: x.n })) : [], moved: ok ? r.moved.slice(0, 4).map(o => ({ name: o.name, usual: o.usual, last: o.last, no: o.lastNo, d: o.lastDate })) : [] });
+        return out({ ok: true, show: ok, games: r.games.length, tryNamed: r.tryNamed, tryTotal: r.tryTotal, top: ok ? r.top.map(x => ({ name: x.name, n: x.n, pos: x.pos || "" })) : [], moved: ok ? r.moved.slice(0, 4).map(o => ({ name: o.name, usual: o.usual, last: o.last, no: o.lastNo, d: o.lastDate })) : [] });
       } catch (_) { return out({ ok: false }); }
     }
     if (url.pathname === "/api/crest") {

@@ -18,6 +18,7 @@ const j=await r.json();
 c('endpoint answers ok',r.status===200&&j.ok===true);
 c('shows when sheets and scorers are there',j.show===true);
 c('top scorer is our side, 8 tries',j.top&&j.top[0]&&/Name7$/.test(j.top[0].name)&&j.top[0].n===8);
+c('top scorer shows a usual position (v3.55.0)',j.top&&j.top[0]&&typeof j.top[0].pos==='string'&&j.top[0].pos.length>0);
 c('second scorer',j.top&&j.top[1]&&/Name11$/.test(j.top[1].name)&&j.top[1].n===4);
 c('other sides scorers not counted',!(j.top||[]).some(x=>/b\dL?_/.test(x.name)));
 c('position change reported (9 to 10: scrum half to fly half)',(j.moved||[]).some(x=>/Name9$/.test(x.name)&&x.usual==='scrum half'&&x.last==='fly half'));

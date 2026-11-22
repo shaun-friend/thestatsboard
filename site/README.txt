@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.55.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.0_danger_position.zip | v3.54.1
 v3.54.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.1_win_buildup_cache.zip | v3.54.0
 v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
 v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
@@ -355,6 +356,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.55.0 - Danger players show their usual position
+- Owner request (22-Nov-2026): show each danger player's usual position.
+- Added: a small position (prop, hooker, lock, flanker, number 8, scrum half, fly half, wing, centre, full back, or replacement) beside each name. It is the position of the shirt they wore most often as a starter in their last five games.
+- Changed: stored Danger players answers use a new key, so every opponent is read afresh once.
+- Request limit: no change (same calls as v3.54.0; the position comes from the sheets already read).
+- Docs: What's new, Other addresses
 
 v3.54.1 - Win chance build-up panel missing on some games
 - Owner report (22-Nov-2026): the new build-up explainer did not show. Cause: win chances stored for a day before v3.52.0 lacked the extra figures the panel needs, so the old one-line explanation was shown instead.
