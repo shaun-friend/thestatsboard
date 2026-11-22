@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.53.0 22-Nov-2026 DEV probe: Opposition check card (opponent's last 5 games: team sheets, scorers, top try scorers, players who changed shirt group). Testing only.
 //   v3.52.0 22-Nov-2026 Opposition report: the win chance now shows its build-up (strength, gap, home advantage, expected result, chance) and the results behind it.
 //   v3.51.4 22-Nov-2026 Opposition report: the At a glance rows and the jump chips work again inside the app (the app shell was swallowing in-page links).
 //   v3.51.3 21-Nov-2026 Admin menu: one entry for Player names and sponsors (Sponsors is the first tab inside it).
@@ -345,7 +346,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.52.0";
+const VERSION = "v3.53.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -392,6 +393,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
 v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
 v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
 v3.51.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.3_menu_one_sponsor_entry.zip | v3.51.2
@@ -700,6 +702,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.0 - DEV probe: Opposition check (testing only)
+- Owner request (22-Nov-2026): find out whether opposition top try scorers and players who changed position can be shown on the Opposition report.
+- Added: a new card on the DEV /probe page, Opposition check. Give it the opponent's team ID and the season; it reads the opponent's last five played games and reports, for each, whether a team sheet and scorers are there, then the top three try scorers and anyone who wore a different shirt group recently (front row, lock, back row, and so on). Nothing is shown to the public and nothing is saved.
+- Request limit: it makes about 11 RFU calls only when the card is run on DEV by an admin; the public pages are unchanged.
+- Docs: Other addresses
 
 v3.52.0 - Opposition report: how the win chance was worked out
 - Owner request (22-Nov-2026): see the calculation behind the win chance.
@@ -3023,6 +3031,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.53.0", "Testing only: a new Opposition check on the DEV probe page shows whether opposition top try scorers and position changes can be shown. Nothing changes on the public pages."],
       ["v3.52.0", "Opposition report: the win chance now shows how it was worked out, step by step, with the results behind it."],
       ["v3.51.4", "Opposition report: the At a glance rows and the jump buttons (This game, Their form, You v them, Season) work again in the app."],
       ["v3.51.3", "Admin menu: one entry for Player names and sponsors; Sponsors is the first tab inside it."],
@@ -6160,10 +6169,65 @@ const PROBE_EPS = [
   { k: "sheetcensus", label: "Field census 2: every field on a team sheet (status, role, registration-like fields) with counts and values (needs matchId; no names shown)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId"], pick: "census" },
   { k: "specplayers", label: "Spec check: every player, registration or person endpoint and field in the RFU API description (needs teamId; summary only)", m: "GET", p: "/players/playersByTeam", q: { teamId: "{teamId}" }, need: ["teamId"], pick: "specPlayers" },
   { k: "idcheck", label: "ID check: do the person numbers on a team sheet match the squad list? (needs teamId and matchId; summary only, no full lists)", m: "GET", p: "/gms/matchparticipants", q: { matchId: "{matchId}" }, need: ["matchId", "teamId"], pick: "idCheck" },
+  { k: "oppcheck", label: "Opposition check (v3.53.0): the opponent's last 5 played games: is a team sheet there, are scorers listed, top try scorers, and players who wore a different shirt group recently (needs teamId = the opponent and season; about 11 RFU calls)", m: "GET", p: "", need: ["teamId", "season"], custom: "oppcheck" },
   { k: "gms_events", label: "New 4: tries, conversions and cards in a match (GMS match events; needs a match ID)", m: "GET", p: "/gms/matchevents", q: { matchId: "{matchId}" }, need: ["matchId"] },
   { k: "mc_stats", label: "New 5: match stats for one match (stats/matchCentreStats; usually elite games only)", m: "GET", p: "/stats/matchCentreStats", q: { matchId: "{matchId}" }, need: ["matchId"] },
 ];
 const PROBE_FIELDS = ["teamId", "opponentId", "season", "competitionId", "groupId", "name", "matchId", "clubId"];
+// v3.53.0 (testing only, DEV /probe): how useful would an "opposition players" view be? For the opponent's last five played games this reads each team sheet and the scorers, and reports
+// what is there: sheets found, how many players have a shirt number, whether tries are listed with a scorer, the top try scorers and anyone whose shirt group changed recently
+// (1-3 front row, 4-5 lock, 6-8 back row, 9 scrum half, 10 fly half, 11 and 14 wing, 12 and 13 centre, 15 full back). Names are shown as an initial and surname; withheld names and under-18s are only counted.
+function shirtGroup(no) {
+  const n = /^\d+$/.test(String(no || "")) ? +no : 0;
+  return n >= 1 && n <= 3 ? "front row" : n >= 4 && n <= 5 ? "lock" : n >= 6 && n <= 8 ? "back row" : n === 9 ? "scrum half" : n === 10 ? "fly half" : n === 11 || n === 14 ? "wing" : n === 12 || n === 13 ? "centre" : n === 15 ? "full back" : n >= 16 ? "bench" : "";
+}
+async function oppCheck(ep, v) {
+  const t0 = Date.now(), out = { ep: ep.k, label: ep.label, method: "GET", ok: true, status: 200 };
+  try {
+    const u = new URL(PROBE_BASE + "/fixtures-and-results/full-matches"); u.searchParams.set("season", v.season); u.searchParams.set("teamId", v.teamId);
+    const fr = await cachedText(u, "application/json, text/plain, */*", true);
+    if (!fr.ok) { out.ok = false; out.status = fr.status || 0; out.json = { error: "Could not read the opponent's results" }; return out; }
+    const dd = JSON.parse(fr.text), all = [], seen = new WeakSet();
+    (function visit(o) { if (!o || typeof o !== "object" || seen.has(o)) return; seen.add(o); if (Array.isArray(o)) { o.forEach(visit); return; } if (o.homeTeam && o.awayTeam && typeof o.homeTeam === "object" && typeof o.awayTeam === "object") { all.push(o); return; } Object.values(o).forEach(visit); })(dd.results !== undefined ? dd.results : dd);
+    const idOf = t => String((t && (t.commonId ?? t.id)) ?? "");
+    const played = all.filter(m => m.id && Number.isFinite(Number(m.homeTeam.score)) && Number.isFinite(Number(m.awayTeam.score)) && m.homeTeam.score !== null && m.awayTeam.score !== null && !walkoverInfo(m) && !(Number(m.homeTeam.score) === 0 && Number(m.awayTeam.score) === 0))
+      .sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 5);
+    const per = await Promise.all(played.map(async m => {
+      const mid = String(m.id), [ppl, evs] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + mid), sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + mid)]);
+      return { m, ppl, evs };
+    }));
+    const nameOf = p => p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "" : (String(p.firstName || "").trim().charAt(0).toUpperCase() ? String(p.firstName).trim().charAt(0).toUpperCase() + " " : "") + String(p.lastName || "").trim();
+    const wore = {}, tries = {}, games = [], fieldsSeen = {};
+    for (const { m, ppl, evs } of per) {
+      const homeIsThem = idOf(m.homeTeam) === String(v.teamId), side = homeIsThem ? m.homeTeam : m.awayTeam;
+      const list = ppl && Array.isArray(ppl.participants) ? ppl.participants : [];
+      const sideIds = [...new Set(list.map(p => String(p.teamId)))];
+      // which side of the sheet is the opponent: the one whose teamId matches the match record for them, else the larger side
+      let ours = list.filter(p => String(p.teamId) === idOf(side));
+      let how = "match record team id";
+      if (!ours.length && list.length) { const g = {}; for (const p of list) (g[String(p.teamId)] || (g[String(p.teamId)] = [])).push(p); const k = Object.keys(g).sort((a, b) => g[b].length - g[a].length)[0]; ours = g[k] || []; how = "larger side (ids did not match)"; }
+      for (const p of ours.slice(0, 1)) for (const k of Object.keys(p)) if (/pos|role|number|no$|shirt|status/i.test(k) && Object.keys(fieldsSeen).length < 14) fieldsSeen[k] = typeof p[k] === "object" && p[k] ? JSON.stringify(p[k]).slice(0, 60) : String(p[k]).slice(0, 40);
+      const withNo = ours.filter(p => /^\d+$/.test(String(p.playingPositionNo || "")) && +p.playingPositionNo <= 23);
+      const when = String(m.date || "").slice(0, 10), vs = homeIsThem ? (m.awayTeam.name || "") : (m.homeTeam.name || "");
+      for (const p of withNo) { const key = String(p.individualId || p.id || ""); if (!key) continue; const o = wore[key] || (wore[key] = { name: nameOf(p), g: [] }); o.g.push({ d: when, no: +p.playingPositionNo, grp: shirtGroup(p.playingPositionNo) }); }
+      const evList = Array.isArray(evs) ? evs : [];
+      const tryEv = evList.filter(x => x && x.eventSubType && /SCORETRY$/.test(String(x.eventSubType.value || "")));
+      const byPid = new Map(list.map(p => [p.id, p]));
+      const theirTries = tryEv.filter(x => ours.some(p => p.id === x.matchParticipantId) || String(x.teamId) === idOf(side));
+      let named = 0;
+      for (const x of theirTries) { const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18, individualId: x.individualId }; const nm = nameOf(pl); if (nm) { named++; const key = String(pl.individualId || x.matchParticipantId || nm); const t = tries[key] || (tries[key] = { name: nm, n: 0 }); t.n++; } }
+      games.push({ date: when, v: (homeIsThem ? "home v " : "away at ") + vs, score: m.homeTeam.score + "-" + m.awayTeam.score, sheetFound: !!ppl, sideIds: sideIds.slice(0, 3), opponentSideBy: how, players: ours.length, withShirtNumber: withNo.length, namesWithheld: ours.filter(p => p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))).length, under18: ours.filter(p => p.isU18 === true).length, eventsFound: Array.isArray(evs), eventsInGame: evList.length, triesForThem: theirTries.length, triesWithNamedScorer: named });
+    }
+    const top = Object.values(tries).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 3);
+    const moved = Object.values(wore).filter(o => o.name && o.g.length >= 2).map(o => { const gs = o.g.slice().sort((a, b) => b.d.localeCompare(a.d)), last = gs[0], cnt = {}; for (const x of gs) if (x.grp && x.grp !== "bench") cnt[x.grp] = (cnt[x.grp] || 0) + 1; const usual = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || ""; return { name: o.name, usual, usualGames: cnt[usual] || 0, counts: cnt, last: last.grp, lastNo: last.no, lastDate: last.d, seen: gs.length, all: gs.map(x => x.no).join(", ") }; })
+      .filter(o => o.usual && o.last && o.last !== "bench" && o.last !== o.usual && o.usualGames > (o.counts[o.last] || 0)).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+    out.ms = Date.now() - t0;
+    out.json = { note: "The opponent's last played games from the RFU results. Names are an initial and surname; withheld names and under-18s are counted but not named. Shirt groups: 1-3 front row, 4-5 lock, 6-8 back row, 9 scrum half, 10 fly half, 11 and 14 wing, 12 and 13 centre, 15 full back, 16+ bench.", gamesRead: games.length, rfuCalls: 1 + games.length * 2,
+      verdict: { sheetsFound: games.filter(g => g.sheetFound && g.withShirtNumber >= 15).length + " of " + games.length, gamesWithScorersListed: games.filter(g => g.eventsFound && g.eventsInGame > 0).length + " of " + games.length, gamesWithNamedTryScorers: games.filter(g => g.triesWithNamedScorer > 0).length + " of " + games.length },
+      topTryScorers: top.map(x => x.name + ": " + x.n), playersWhoMovedShirtGroup: moved.slice(0, 12).map(o => o.name + ": usually " + o.usual + " (" + o.usualGames + " of " + o.seen + " games), last wore " + o.lastNo + " (" + o.last + ") on " + o.lastDate + "; shirts " + o.all), positionFieldsOnASheet: fieldsSeen, games };
+  } catch (e) { out.ok = false; out.status = 0; out.json = { error: String(e && e.message || e).slice(0, 200) }; }
+  return out;
+}
 async function probeRun(url) {
   const ep = PROBE_EPS.find(e => e.k === url.searchParams.get("ep"));
   if (!ep) return { error: "Unknown endpoint" };
@@ -6178,6 +6242,7 @@ async function probeRun(url) {
   v.prevSeason = /^(\d{4})-(\d{4})$/.test(v.season) ? (Number(v.season.slice(0, 4)) - 1) + "-" + (Number(v.season.slice(5)) - 1) : "";
   const miss = ep.need.filter(f => !v[f]);
   if (miss.length) return { ep: ep.k, label: ep.label, skipped: true, error: "Needs: " + miss.join(", ") };
+  if (ep.custom === "oppcheck") return await oppCheck(ep, v);
   const fill = s => String(s).replace(/\{(\w+)\}/g, (_, f) => v[f] ?? "");
   const target = new URL(PROBE_BASE + fill(ep.p));
   for (const [k, val] of Object.entries(ep.q || {})) { const x = fill(val); if (x !== "") target.searchParams.set(k, x); }

@@ -27,5 +27,5 @@ c('no prior seasons wording',/not available, so this season only/.test(L.winBuil
 c('cap note when shown differs from raw',/never shown beyond 85\/15/.test(L.winBuild({...win,raw:99,home:{...win.home,pct:15},away:{...win.away,pct:85}})));
 c('names are escaped',!/<img/.test(L.winBuild({...win,home:{...win.home,name:'<img src=x>'}})));
 c('worker wires build-up into the report bar only',/op\.open && winBuild\(win\)/.test(src));
-c('version',/const VERSION = "v3\.52\.0"/.test(src));
+c('build-up helper present',/function winBuild\(/.test(src));
 console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0);

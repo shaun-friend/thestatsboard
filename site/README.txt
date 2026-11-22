@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
 v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
 v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
 v3.51.3 | 21-Nov-2026 | RFU_Club_Dashboard_v3.51.3_menu_one_sponsor_entry.zip | v3.51.2
@@ -349,6 +350,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.0 - DEV probe: Opposition check (testing only)
+- Owner request (22-Nov-2026): find out whether opposition top try scorers and players who changed position can be shown on the Opposition report.
+- Added: a new card on the DEV /probe page, Opposition check. Give it the opponent's team ID and the season; it reads the opponent's last five played games and reports, for each, whether a team sheet and scorers are there, then the top three try scorers and anyone who wore a different shirt group recently (front row, lock, back row, and so on). Nothing is shown to the public and nothing is saved.
+- Request limit: it makes about 11 RFU calls only when the card is run on DEV by an admin; the public pages are unchanged.
+- Docs: Other addresses
 
 v3.52.0 - Opposition report: how the win chance was worked out
 - Owner request (22-Nov-2026): see the calculation behind the win chance.
