@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.59.4 22-Nov-2026 Match day TV preview and timing check moved to the DEV Probe page; they now say why when a team has no game to test.
 //   v3.59.3 22-Nov-2026 Match day TV page: team name sits centred under its crest in the stats panel header.
 //   v3.59.2 22-Nov-2026 Match day TV page: team names are never cut off (head to head names written in full under the bar; panel and header names wrap).
 //   v3.59.1 22-Nov-2026 Match day TV page preview (DEV): pick a game already played this season and see the page with its real line-up and sponsors; the timing simulator is folded away under it.
@@ -368,7 +369,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.59.3";
+const VERSION = "v3.59.4";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -415,6 +416,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.4_match_day_tools.zip | v3.59.3
 v3.59.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.3_match_day_tidy_names.zip | v3.59.2
 v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
 v3.59.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.1_match_day_preview.zip | v3.59.0
@@ -746,6 +748,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.4 - Match day TV test tools moved to the Probe page, with a reason when a team has no game to test
+- Owner request (22-Nov-2026): the preview and timing check are diagnostics and should not sit on the Match day page; and on DEV they showed nothing even with the switch on.
+- Change: the preview box and the game-day timing check are now a card at the top of the DEV Probe page (Admin menu, Probe (DEV)). The Match day page is back to the team sheet viewer only. When the check cannot find a game to test it now says why: no upcoming game on the RFU feed, a next game with no league stats (for example a cup tie), or data not readable just now.
+- Request limit: no change.
+- Docs: Admin guide, Link variables
 
 v3.59.3 - Match day TV page: tidier team names
 - Owner request (22-Nov-2026): a two-line team name (Nailsea & Backwell) looked untidy beside its crest.
@@ -3234,6 +3242,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.59.4", "Test site only: the Match day TV preview and timing check moved to the Probe page, and they say why when a team has no game to test."],
       ["v3.59.3", "Match day TV page: in the stats panel each team crest now sits above its name, centred, so two-line names look tidy."],
       ["v3.59.2", "Match day TV page: team names are never cut short. In the head to head the bar shows the win counts and the full team names are written underneath; long names wrap in the header and the stats panel."],
       ["v3.59.1", "Match day TV page preview (DEV only): on the Match day admin page, pick a team and a game already played this season and open the new TV page with that game's real line-up and sponsors, so it can be checked before a real game day."],
@@ -4652,7 +4661,6 @@ function matchDayPage(theme, isDev, teams) {
 <div class="msg2" id="ms" role="status"></div>
 <div class="rw2" id="tw" style="display:none;margin:8px 0"><select class="in2" id="tm" aria-label="Choose a team"></select></div>
 <div id="out"></div>
-${isDev ? `<div class="cd2" id="sim"><b>Preview the Match day TV page (DEV only)</b><p class="sub" style="margin:4px 0 8px">Pick a team and a game it has already played this season. The page opens with that game's real line-up and sponsors, next to the team's real stats for its next game, so you can see how it looks on a TV.</p><div class="rw2"><select class="in2" id="smt" aria-label="Team"></select><select class="in2" id="smg2" aria-label="Game played this season"><option value="">Loading games...</option></select><a class="b2" id="smp" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open preview</a></div><div class="msg2" id="smm" role="status"></div><details style="margin-top:10px"><summary class="sub" style="cursor:pointer">Test the game-day timing rules instead</summary><p class="sub" style="margin:6px 0 8px">Pretend it is a time on the next game day and see which page a screen would get. The team needs its Match day switch on in Admin.</p><div class="rw2"><input class="in2" id="smh" type="time" value="12:00" aria-label="Time on game day"><select class="in2" id="sms" aria-label="Team sheet"><option value="">Real sheet from the RFU</option><option value="&amp;mdfake=1">Made-up full sheet</option><option value="&amp;mdsheet=0">No sheet yet</option></select><label style="font:14px Arial"><input type="checkbox" id="smc"> Score in</label><button type="button" class="b2" id="smg">Check</button><a class="b2" id="smo" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open page</a></div><div class="msg2" id="smr" role="status"></div></details></div>` : ""}
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
 <script>(function(){var T=${tl},info={},sheets={},day="",today="",busy=false,wait=0;
 function $(i){return document.getElementById(i)}
@@ -4700,19 +4708,6 @@ function fb(text){var a=document.createElement("textarea");a.value=text;a.setAtt
 function step(n){var z=idx(),x=z.a[z.i+n];if(x)loadDay(x.d)}$("pv").onclick=function(){step(-1)};$("nx").onclick=function(){step(1)};
 $("out").onclick=function(ev){var sw=ev.target.closest("button[data-v]");if(sw){V[sw.getAttribute("data-t")]=sw.getAttribute("data-v");draw();return}var b=ev.target.closest("button[data-c]");if(!b)return;var t=T.filter(function(x){return x.team===b.getAttribute("data-c")})[0],r=sheets[t.team];if(t&&r&&r.sheet)copy(lines(t,r))};
 $("tm").onchange=function(){pick=this.value;userPick=true;draw()};
-(function(){var g=$("smg");if(!g)return;var sel=$("smt"),gs=$("smg2");T.forEach(function(t){var o=document.createElement("option");o.value=t.team;o.textContent=t.name;sel.appendChild(o)});
-function tm(){return T.filter(function(x){return x.team===sel.value})[0]}
-function base(){var t=tm();if(!t)return"";return"/?view=match&layout=tv&theme=dark&competition="+encodeURIComponent(t.c)+"&division="+encodeURIComponent(t.d)+"&team="+encodeURIComponent(t.team)+"&teamName="+encodeURIComponent(t.tn)}
-function season(){var d=new Date(),y=d.getFullYear();return d.getMonth()>=7?y+"-"+(y+1):(y-1)+"-"+y}
-function loadGames(){var t=tm();gs.innerHTML='<option value="">Loading games...</option>';$("smp").style.display="none";if(!t)return;
-fetch("/?season="+season()+"&competition="+encodeURIComponent(t.c)+"&division="+encodeURIComponent(t.d)+"&team="+encodeURIComponent(t.team)+"&teamName="+encodeURIComponent(t.tn)+"&format=summary&detail=fixtures",{credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var now=Date.now(),L=(j.games||[]).filter(function(x){return x&&x.id&&x.iso&&x.status!=="void"&&Date.parse(x.iso)<now}).sort(function(a,b){return a.iso<b.iso?1:-1});
-if(!L.length){gs.innerHTML='<option value="">No games played yet this season</option>';return}
-gs.innerHTML=L.map(function(x){var d=new Date(x.iso);return'<option value="'+String(x.id).replace(/[^0-9]/g,"")+'">'+d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+" "+(x.home?"v":"at")+" "+String(x.oppName||"").replace(/[<>&"]/g,"")+"</option>"}).join("");pick()}).catch(function(){gs.innerHTML='<option value="">Could not load games</option>'})}
-function pick(){var id=gs.value;if(!id){$("smp").style.display="none";return}$("smp").href=base()+"&mdgame="+id;$("smp").style.display="";$("smm").textContent="Opens in a new tab. If the line-up for that game is no longer on the RFU system, the normal Match Stats page shows."}
-sel.onchange=loadGames;gs.onchange=pick;loadGames();
-var WHY={off:"it is not the game day, or the switch is off",pre:"it is before 10:00",over:"it is at or after the stop time",score:"a score is in",wait:"no game found for the day yet",few:"the sheet has fewer than 10 players",nosheet:"there is no sheet yet",found:"the sheet is published"};
-function url(){return base()+"&mdnow="+encodeURIComponent($("smh").value||"12:00")+$("sms").value+($("smc").checked?"&mdscore=1":"")}
-g.onclick=function(){var u=url();if(!u)return;$("smr").textContent="Checking...";$("smo").style.display="none";fetch(u,{credentials:"same-origin"}).then(function(r){return r.text()}).then(function(h){var m=/<!--mdsim why=(\w+) show=(\d) hold=(\d+) read=(\d) count=(\d+) lineup=(\d)-->/.exec(h);if(!m){$("smr").textContent="Match Stats page (the Match day page does not apply: the team switch is off, or there is no upcoming game).";}else{$("smr").textContent=(m[2]==="1"?"The screen gets the Match day page":"The screen gets the normal Match Stats page")+" because "+(WHY[m[1]]||m[1])+". RFU team sheet read: "+(m[4]==="1"?"yes":"no")+(m[5]!=="0"?" ("+m[5]+" players"+(m[6]==="1"?", marked final":", not marked final")+")":"")+". The built page would be kept for "+(m[3]==="0"?"the normal time":m[3]==="86400"?"until 10:00":(+m[3]/60)+" minutes")+" (and always rebuilt at 10:00 and at the stop time)."}$("smo").href=u;$("smo").style.display=""}).catch(function(){$("smr").textContent="Could not check."})}})();
 $("ca").onclick=function(){var o=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&r.sheet)o.push(lines(t,r))});if(o.length)copy(o.join(String.fromCharCode(10)+String.fromCharCode(10)))};
 if(!T.length)say("No teams are set up in Admin, Our teams.");else start()})();</script></body></html>`;
 }
@@ -6849,6 +6844,27 @@ async function probeRun(url) {
   } catch (e) { out.ms = Date.now() - t0; out.error = String(e && e.message || e); }
   return out;
 }
+// v3.59.4: the Match day TV page test card on the DEV /probe page (moved from the Match day admin page: it is a diagnostic, not an everyday tool).
+function mdTestCard(teams) {
+  const tl = JSON.stringify(teams.filter(x => !x.hidden).map(x => ({ team: String(x.team), name: x.name, c: String(x.competition), d: String(x.division), tn: String(x.teamName || ""), md: x.matchday === true }))).replace(/</g, "\\u003c");
+  return `<style>#sim .rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#sim .in2{flex:1;min-width:120px;font:14px Arial;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}#sim .b2{font:700 13px Arial;border-radius:9px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);padding:8px 12px;cursor:pointer}#sim .msg2{font-size:13px;margin:6px 0;color:var(--mu)}</style>
+<div class="card" id="sim"><b>Preview the Match day TV page (DEV only)</b><p class="m" style="word-break:normal;font-size:13px;margin:4px 0 8px">Pick a team and a game it has already played this season. The page opens with that game's real line-up and sponsors, next to the team's real stats for its next game, so you can see how it looks on a TV.</p><div class="rw2"><select class="in2" id="smt" aria-label="Team"></select><select class="in2" id="smg2" aria-label="Game played this season"><option value="">Loading games...</option></select><a class="b2 bt" id="smp" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open preview</a></div><div class="msg2" id="smm" role="status"></div><details style="margin-top:10px"><summary class="m" style="cursor:pointer;word-break:normal;font-size:13px">Test the game-day timing rules instead</summary><p class="m" style="word-break:normal;font-size:13px;margin:6px 0 8px">Pretend it is a time on the next game day and see which page a screen would get. The team needs its Match day switch on in Admin.</p><div class="rw2"><input class="in2" id="smh" type="time" value="12:00" aria-label="Time on game day"><select class="in2" id="sms" aria-label="Team sheet"><option value="">Real sheet from the RFU</option><option value="&amp;mdfake=1">Made-up full sheet</option><option value="&amp;mdsheet=0">No sheet yet</option></select><label style="font:14px Arial"><input type="checkbox" id="smc"> Score in</label><button type="button" class="b2" id="smg">Check</button><a class="b2 bt" id="smo" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open page</a></div><div class="msg2" id="smr" role="status"></div></details></div>
+<script>(function(){var T=${tl};function $(i){return document.getElementById(i)}
+(function(){var g=$("smg");if(!g)return;var sel=$("smt"),gs=$("smg2");T.forEach(function(t){var o=document.createElement("option");o.value=t.team;o.textContent=t.name;sel.appendChild(o)});
+function tm(){return T.filter(function(x){return x.team===sel.value})[0]}
+function base(){var t=tm();if(!t)return"";return"/?view=match&layout=tv&theme=dark&competition="+encodeURIComponent(t.c)+"&division="+encodeURIComponent(t.d)+"&team="+encodeURIComponent(t.team)+"&teamName="+encodeURIComponent(t.tn)}
+function season(){var d=new Date(),y=d.getFullYear();return d.getMonth()>=7?y+"-"+(y+1):(y-1)+"-"+y}
+function loadGames(){var t=tm();gs.innerHTML='<option value="">Loading games...</option>';$("smp").style.display="none";if(!t)return;
+fetch("/?season="+season()+"&competition="+encodeURIComponent(t.c)+"&division="+encodeURIComponent(t.d)+"&team="+encodeURIComponent(t.team)+"&teamName="+encodeURIComponent(t.tn)+"&format=summary&detail=fixtures",{credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var now=Date.now(),L=(j.games||[]).filter(function(x){return x&&x.id&&x.iso&&x.status!=="void"&&Date.parse(x.iso)<now}).sort(function(a,b){return a.iso<b.iso?1:-1});
+if(!L.length){gs.innerHTML='<option value="">No games played yet this season</option>';return}
+gs.innerHTML=L.map(function(x){var d=new Date(x.iso);return'<option value="'+String(x.id).replace(/[^0-9]/g,"")+'">'+d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+" "+(x.home?"v":"at")+" "+String(x.oppName||"").replace(/[<>&"]/g,"")+"</option>"}).join("");pick()}).catch(function(){gs.innerHTML='<option value="">Could not load games</option>'})}
+function pick(){var id=gs.value;if(!id){$("smp").style.display="none";return}$("smp").href=base()+"&mdgame="+id;$("smp").style.display="";$("smm").textContent="Opens in a new tab. If the line-up for that game is no longer on the RFU system, the normal Match Stats page shows."}
+sel.onchange=loadGames;gs.onchange=pick;loadGames();
+var WHY={off:"it is not the game day, or the switch is off",pre:"it is before 10:00",over:"it is at or after the stop time",score:"a score is in",wait:"no game found for the day yet",few:"the sheet has fewer than 10 players",nosheet:"there is no sheet yet",found:"the sheet is published",nodata:"the RFU data for this team could not be read just now",nonext:"the RFU lists no upcoming game for this team, so there is no game day to test",nostats:"the next game has no league stats (for example a cup tie), so the Match day page is not used for it",notv:"the check page was not a TV page",nomatch:"the match details for the next game were not available",nogame:"that played game was not found in the team fixtures",preview:"this is a preview of a played game"};
+function url(){return base()+"&mdnow="+encodeURIComponent($("smh").value||"12:00")+$("sms").value+($("smc").checked?"&mdscore=1":"")}
+g.onclick=function(){var u=url();if(!u)return;$("smr").textContent="Checking...";$("smo").style.display="none";fetch(u,{credentials:"same-origin"}).then(function(r){return r.text()}).then(function(h){var m=/<!--mdsim why=(\w+) show=(\d) hold=(\d+) read=(\d) count=(\d+) lineup=(\d)-->/.exec(h);if(!m){$("smr").textContent="Match Stats page (the check could not read the page).";}else{$("smr").textContent=(m[2]==="1"?"The screen gets the Match day page":"The screen gets the normal Match Stats page")+" because "+(WHY[m[1]]||m[1])+". RFU team sheet read: "+(m[4]==="1"?"yes":"no")+(m[5]!=="0"?" ("+m[5]+" players"+(m[6]==="1"?", marked final":", not marked final")+")":"")+". The built page would be kept for "+(m[3]==="0"?"the normal time":m[3]==="86400"?"until 10:00":(+m[3]/60)+" minutes")+" (and always rebuilt at 10:00 and at the stop time)."}$("smo").href=u;$("smo").style.display=""}).catch(function(){$("smr").textContent="Could not check."})}})();
+})();</script>`;
+}
 function probePage(url, th) {
   const e = x => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const g = k => url.searchParams.get(k) || "";
@@ -6869,6 +6885,7 @@ button{font:700 13px Arial;border-radius:9px;border:1px solid var(--bd);backgrou
 .k{font-size:13px;margin:6px 0}pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px;max-height:320px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-word;margin:6px 0 0}
 </style></head><body class="${th}"><h1>RFU API probe</h1><p class="s">DEV only. Calls a fixed list of cluster.england-rfu.com endpoints with the IDs below and shows what comes back. Nothing is saved or changed.</p>
 <div class="f">${PROBE_FIELDS.map(f => `<div><label for="f_${f}">${f}</label><input id="f_${f}" value="${e(init[f])}" autocomplete="off"></div>`).join("")}</div>
+${mdTestCard(TEAMS)}
 <div class="bar"><button class="go" id="all">Run all</button><button id="copy">Copy all results</button><span class="s" id="st" style="margin:0"></span></div><div id="out"></div>
 <script>(function(){var EPS=${JSON.stringify(eps).replace(/</g, "\\u003c")},TQ=${JSON.stringify(q.toString())},R={};
 function $(i){return document.getElementById(i)}function val(f){return $("f_"+f).value.trim()}
@@ -7878,7 +7895,7 @@ document.addEventListener("load",later,true);
 try{new MutationObserver(later).observe(B,{childList:true,subtree:true,characterData:true})}catch(e){}
 try{var ro=new ResizeObserver(later);[".top",".hd",".bars",".h2h",".ft"].forEach(function(q){var e=document.querySelector(q);if(e)ro.observe(e)})}catch(e){}
 setInterval(check,2000)})();</script></body></html>`;
-      return new Response(page + (isDev && mdv ? `<!--mdsim why=${mdv.why} show=${mdv.show ? 1 : 0} hold=${mdv.hold ? mdv.hold.secs : 0} read=${mdv.read ? 1 : 0} count=${mdv.sheet ? mdv.sheet.count : 0} lineup=${mdv.sheet && mdv.sheet.lineup ? 1 : 0}-->` : ""), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache", ...(mdv && mdv.hold ? { "X-Md-Hold": mdHoldHeader(mdv.hold) } : {}) } });
+      return new Response(page + (isDev && !mdv && (url.searchParams.has("mdnow") || url.searchParams.has("mdgame")) ? `<!--mdsim why=${err ? "nodata" : !n ? "nonext" : m && m.noStats ? "nostats" : url.searchParams.get("layout") !== "tv" ? "notv" : "nomatch"} show=0 hold=0 read=0 count=0 lineup=0-->` : "") + (isDev && mdv ? `<!--mdsim why=${mdv.why} show=${mdv.show ? 1 : 0} hold=${mdv.hold ? mdv.hold.secs : 0} read=${mdv.read ? 1 : 0} count=${mdv.sheet ? mdv.sheet.count : 0} lineup=${mdv.sheet && mdv.sheet.lineup ? 1 : 0}-->` : ""), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache", ...(mdv && mdv.hold ? { "X-Md-Hold": mdHoldHeader(mdv.hold) } : {}) } });
     }
 
     // Fixtures and results: /?view=fixtures&team=..&competition=..&division=..  The whole season for one team.

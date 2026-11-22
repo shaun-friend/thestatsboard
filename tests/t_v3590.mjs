@@ -79,7 +79,7 @@ ok('preview: game already played shows the page even with the switch off and no 
 ok('preview: footer says which game the line-up is from, and nothing is held',/Preview: line-up from/.test(r.h)&&!r.r.headers.get('X-Md-Hold'));
 r=await get('&mdgame=99999');ok('preview: unknown game id gives the normal page',!isMd(r.h));
 {const rp=await w.fetch(new Request('https://thestatsboard.co.uk'+Q+'&mdgame=1',{headers:{'User-Agent':'Mozilla/5.0'}}),{...env,ENV_LABEL:''},{waitUntil(){}});ok('PROD ignores mdgame',!isMd(await rp.text()));}
-ok('Admin preview box: past games list and Open preview',/id="smg2"/.test(src)&&/Open preview/.test(src)&&/Preview the Match day TV page/.test(src));
+ok('Probe page has the preview box and timing check, Match day page does not',/mdTestCard\(TEAMS\)/.test(src)&&/id="smg2"/.test(src)&&!/function matchDayPage[^]*id="smg2"[^]*function mdTestCard/.test(src)&&/nonext:"/.test(src));
 // Admin
 let ra=await w.fetch(new Request('https://thestatsboard.co.uk/admin',{headers:{Cookie:''}}),{...env},{waitUntil(){}});
 ok('Admin source has the Match day switch and Stop showing at',/class="tmd"/.test(src)&&/Stop showing at/.test(src)&&/MDE=\$\{JSON\.stringify\(MD_ENDS\)\}/.test(src));

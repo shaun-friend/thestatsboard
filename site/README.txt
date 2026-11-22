@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.4_match_day_tools.zip | v3.59.3
 v3.59.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.3_match_day_tidy_names.zip | v3.59.2
 v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
 v3.59.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.1_match_day_preview.zip | v3.59.0
@@ -372,6 +373,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.4 - Match day TV test tools moved to the Probe page, with a reason when a team has no game to test
+- Owner request (22-Nov-2026): the preview and timing check are diagnostics and should not sit on the Match day page; and on DEV they showed nothing even with the switch on.
+- Change: the preview box and the game-day timing check are now a card at the top of the DEV Probe page (Admin menu, Probe (DEV)). The Match day page is back to the team sheet viewer only. When the check cannot find a game to test it now says why: no upcoming game on the RFU feed, a next game with no league stats (for example a cup tie), or data not readable just now.
+- Request limit: no change.
+- Docs: Admin guide, Link variables
 
 v3.59.3 - Match day TV page: tidier team names
 - Owner request (22-Nov-2026): a two-line team name (Nailsea & Backwell) looked untidy beside its crest.
