@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
 v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
 v3.56.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.4_win_bonus10.zip | v3.56.3
 v3.56.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.3_win_history_less.zip | v3.56.2
@@ -364,6 +365,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.57.1 - Laptop app view: scrollbar and single column
+- Owner report (22-Nov-2026): an unnecessary white scrollbar in the middle of the page in the laptop app view.
+- Cause: v3.57.0 capped the content frame at 1040 px wide, so the frame's own scrollbar sat at the edge of that column rather than the window, drawn in the light colour; and a frame that wide switched the page to its two-column layout (it does at 900 px).
+- Fixed: with a mouse the frame is full width again (scrollbar at the window edge, in the dark or light theme colour) and the page content inside is one centred column no wider than 820 px, never two columns. Tablets and phones are unchanged.
+- Request limit: no change.
+- Docs: What's new
 
 v3.57.0 - App view for laptops
 - Owner request (22-Nov-2026): on a laptop the links page offered only the TV views, and the mobile view split several pages onto one screen with scrollbars.

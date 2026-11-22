@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.57.1 22-Nov-2026 Laptop app view: page content is one centred column (never two) and the scrollbar sits at the window edge in the theme colour
 //   v3.57.0 22-Nov-2026 Laptops: App view on the links page, one page at a time in a centred column with a single scrollbar (no side-by-side panes with a mouse)
 //   v3.56.4 22-Nov-2026 Win chance: a win or defeat now counts for 10 points on top of the margin (was 6), so steady winners are rated higher
 //   v3.56.3 22-Nov-2026 Win chance: earlier seasons together count at most 15% of this season's games (was 60%), so a climbing side is rated on this season
@@ -360,7 +361,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.57.0";
+const VERSION = "v3.57.1";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -407,6 +408,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
 v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
 v3.56.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.4_win_bonus10.zip | v3.56.3
 v3.56.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.3_win_history_less.zip | v3.56.2
@@ -730,6 +732,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.57.1 - Laptop app view: scrollbar and single column
+- Owner report (22-Nov-2026): an unnecessary white scrollbar in the middle of the page in the laptop app view.
+- Cause: v3.57.0 capped the content frame at 1040 px wide, so the frame's own scrollbar sat at the edge of that column rather than the window, drawn in the light colour; and a frame that wide switched the page to its two-column layout (it does at 900 px).
+- Fixed: with a mouse the frame is full width again (scrollbar at the window edge, in the dark or light theme colour) and the page content inside is one centred column no wider than 820 px, never two columns. Tablets and phones are unchanged.
+- Request limit: no change.
+- Docs: What's new
 
 v3.57.0 - App view for laptops
 - Owner request (22-Nov-2026): on a laptop the links page offered only the TV views, and the mobile view split several pages onto one screen with scrollbars.
@@ -3160,6 +3169,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.57.1", "Laptop app view: the page is one centred column, never two, and the scrollbar now sits at the window edge and follows the dark or light theme."],
       ["v3.57.0", "Laptops: the links page now has an App view button for laptops, and with a mouse the app view shows one page at a time in a centred column with a single scrollbar."],
       ["v3.56.4", "Win chance: winning now counts for more (10 points on top of the margin), so a side that keeps winning is rated higher."],
       ["v3.56.3", "Win chance: older seasons now carry much less weight, so a side that has climbed is rated on this season's results."],
@@ -6070,8 +6080,7 @@ body.light{background:#eef2ef}
 .sbx-hr{height:1px;background:var(--bd);margin:12px 0}.sbx-ver{margin:10px 0 0;text-align:center;color:var(--mu);font-size:11px}
 .sbx-chip:focus-visible,.sbx-rt{display:flex;gap:8px;align-items:center}.sbx-bulb{padding:0;width:40px;justify-content:center}.sbx-ic:focus-visible,.sbx-tab:focus-visible,.sbx-sg:focus-visible,.opt:focus-visible,.sbx-b:focus-visible,.sbx-x:focus-visible{outline:3px solid #7fd89a;outline-offset:2px}
 #sbv{display:none!important}
-/* v3.57.0: laptops and desktops (mouse): one page at a time in a centred column with a single scrollbar; the side-by-side Next game panes stay for tablets */
-@media (hover:hover) and (pointer:fine){.sbx-main{justify-content:center}.sbx-fr{max-width:1040px}}
+
 @media (min-width:900px) and (min-height:600px) and (orientation:landscape){
  .sbx-app{flex-direction:row}
  .sbx-main{padding-left:0}
@@ -6254,7 +6263,7 @@ function boot(){mount();rotateNote();d.body.appendChild(dim);d.body.appendChild(
 `;
 const APP_GATE_JS = `<script>(function(){try{var q=new URLSearchParams(location.search);if(q.get("embed")||q.get("app")||window.top!==window.self)return;var lay=(q.get("layout")||"").toLowerCase();if(lay==="tv"||lay==="wide")return;var mm=function(s){try{return matchMedia(s).matches}catch(e){return false}};var ok=lay==="mobile"||mm("(max-width:820px)")||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100);if(!ok)return;if(lay==="mobile")q.set("force","1");q.delete("layout");q.set("app","1");location.replace("/?"+q.toString())}catch(e){}})();</script>`;
 const appWelcomeJs = () => `<script>(function(){try{var CT=${JSON.stringify(TEAMS.map(t => String(t.team)))};var q=new URLSearchParams(location.search);if(q.get("choose"))return;var mm=function(s){try{return matchMedia(s).matches}catch(e){return false}};if(!(mm("(max-width:820px)")||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100)))return;var a=JSON.parse(localStorage.getItem("statsBoardRecent")||"[]"),r=null;if(Array.isArray(a))for(var i=0;i<a.length;i++){var x=a[i];if(x&&/^\\d+$/.test(x.team)&&/^\\d+$/.test(x.competition)&&/^\\d+$/.test(x.division)&&/^\\d{4}-\\d{4}$/.test(x.season)&&typeof x.name==="string"){r=x;break}}if(!r)return;var p=new URLSearchParams({season:r.season,competition:r.competition,division:r.division,team:r.team,teamName:r.tn||r.name,app:"1"});if(CT.indexOf(r.team)<0)p.set("friendlyName",r.name);location.replace("/?"+p.toString())}catch(e){}})();</script>`;
-const EMBED_CSS = `<style>.mbar,#sbv,.envsw,div[role=note][style*="position:fixed"]{display:none!important}@media(min-width:700px) and (max-width:899px){html.layout-mobile body{max-width:680px;margin-left:auto;margin-right:auto}}@media(min-width:900px){html.layout-mobile body{display:block!important;column-count:2;column-gap:16px;max-width:1100px;margin-left:auto;margin-right:auto}html.layout-mobile body>*{margin-bottom:10px}html.layout-mobile .topline,html.layout-mobile .clubhead,html.layout-mobile .stats,html.layout-mobile .foot{column-span:all}html.layout-mobile .panel,html.layout-mobile .table-panel,html.layout-mobile .main>*{break-inside:avoid}html.layout-mobile .main{display:block!important}html.layout-mobile .main>*{margin-bottom:10px}}</style>`;
+const EMBED_CSS = `<style>.mbar,#sbv,.envsw,div[role=note][style*="position:fixed"]{display:none!important}@media(min-width:700px) and (max-width:899px){html.layout-mobile body{max-width:680px;margin-left:auto;margin-right:auto}}@media(min-width:900px){html.layout-mobile body{display:block!important;column-count:2;column-gap:16px;max-width:1100px;margin-left:auto;margin-right:auto}html.layout-mobile body>*{margin-bottom:10px}html.layout-mobile .topline,html.layout-mobile .clubhead,html.layout-mobile .stats,html.layout-mobile .foot{column-span:all}html.layout-mobile .panel,html.layout-mobile .table-panel,html.layout-mobile .main>*{break-inside:avoid}html.layout-mobile .main{display:block!important}html.layout-mobile .main>*{margin-bottom:10px}}/* v3.57.1: with a mouse (laptop, desktop) the page is one centred column, never two, and the scrollbar follows the theme and sits at the window edge */@media (hover:hover) and (pointer:fine){html body{max-width:820px!important;margin-left:auto!important;margin-right:auto!important}html.layout-mobile body{column-count:1!important}html{color-scheme:dark}html:has(body.light){color-scheme:light}}</style>`;
 const APP_VIEWS = ["", "fixtures", "leaders", "match", "opposition"];
 function appShellPage(url) {
   const q = url.searchParams;
