@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.0_match_day_tv.zip | v3.58.1
 v3.58.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.1_no_polling.zip | v3.58.0
 v3.58.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.0_refresh_scores.zip | v3.57.2
 v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
@@ -368,6 +369,17 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.0 - Match day TV page (DEV first)
+- Owner request (22-Nov-2026): on game day show the team sheet on the club screens without changing the rotation or its timings.
+- New: a team's Match Stats slot on the TV shows a Match day page on game day once the team sheet is on the RFU system: header with both crests, names, Home or Away and "Today · kick-off"; our line-up 1 to 15 in one column with a shirt in the team colour, each player's sponsor in the team colour or "Available to sponsor" in amber (white or blue if the team colour is amber); captain marks; a Substitutes box; six stat rows, recent form with the latest result and date, and a head to head bar over the last five seasons. No danger players and no opposition line-up.
+- Rules: Admin, Our teams, per team: Match day TV page switch (off until turned on) and Stop showing at (30-minute steps from 15:00 to 22:00, default 18:00). Game day only; nothing before 10:00 (fixed); it shows once the sheet has at least 10 players (the match minimum); it stops at the stop time or as soon as the RFU has a score (the next game then moves on); no sheet means the normal Match Stats page. TV layout only; phones are unchanged.
+- Cost: the built page is kept 5 minutes while waiting for the sheet and 30 minutes once it is found, and is always rebuilt at 10:00 and at the stop time (header X-Md-Hold). Simulated game day (tests): about 27 team sheet reads per team for the day, none before 10:00. A score takes up to the feed delay (10 to 20 minutes) plus the 30-minute page hold to remove the line-up; Refresh scores now shortens the feed part.
+- DEV: a simulator on the Match day admin page (pretend time, made-up sheet or none, score in) shows which page a screen would get and why; links use mdnow, mdfake, mdsheet and mdscore (ignored on PROD).
+- Request limit: one extra RFU read per page build (the team sheet and match record, kept 2 minutes), inside the 50 per visit.
+- Tests: new t_v3590 (rules, pages, DEV-only simulator, hold, Admin) and t_v3590sim (simulated game day). Two older tests had been crashing silently since v3.55.0 and v3.44 (a missing helper in the test, not the site) and are repaired; the build script now fails if any test crashes.
+- Not tested on a real GMS sheet from the build machine: the first DEV game day with a published sheet is the check (withheld names, long names, final flag).
+- Docs: What's new, Admin guide, Which page is which, Link variables
 
 v3.58.1 - Refresh scores now: no polling
 - Owner decision (22-Nov-2026): leave screens on their normal 10-minute weekend reload rather than add a request a minute per screen (the longest wait is then 10 minutes).

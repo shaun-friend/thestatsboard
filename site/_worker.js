@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.59.0 22-Nov-2026 Match day TV page: on game day, once the team sheet is on the RFU system, a team's Match Stats TV slot shows the line-up, sponsors, head to head and substitutes (per-team Admin switch, off by default; stop time per team, default 18:00; checks from 10:00; DEV simulator). Timings of the rotation do not change.
 //   v3.58.1 22-Nov-2026 Refresh scores now: screens no longer poll; they pick the refresh up on their normal reload (10 minutes at weekends, hourly otherwise)
 //   v3.58.0 22-Nov-2026 Admin Overview: Refresh scores now button (results fetched before that time count as old; open screens check once a minute); help text says 30 minutes at weekends
 //   v3.57.2 22-Nov-2026 Fixtures TV board: the Last game banner border is now the team colour (as the Next game banner and highlighted row already were), not green/red/amber by result
@@ -364,7 +365,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.58.1";
+const VERSION = "v3.59.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -411,6 +412,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.0_match_day_tv.zip | v3.58.1
 v3.58.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.1_no_polling.zip | v3.58.0
 v3.58.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.0_refresh_scores.zip | v3.57.2
 v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
@@ -738,6 +740,17 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.0 - Match day TV page (DEV first)
+- Owner request (22-Nov-2026): on game day show the team sheet on the club screens without changing the rotation or its timings.
+- New: a team's Match Stats slot on the TV shows a Match day page on game day once the team sheet is on the RFU system: header with both crests, names, Home or Away and "Today · kick-off"; our line-up 1 to 15 in one column with a shirt in the team colour, each player's sponsor in the team colour or "Available to sponsor" in amber (white or blue if the team colour is amber); captain marks; a Substitutes box; six stat rows, recent form with the latest result and date, and a head to head bar over the last five seasons. No danger players and no opposition line-up.
+- Rules: Admin, Our teams, per team: Match day TV page switch (off until turned on) and Stop showing at (30-minute steps from 15:00 to 22:00, default 18:00). Game day only; nothing before 10:00 (fixed); it shows once the sheet has at least 10 players (the match minimum); it stops at the stop time or as soon as the RFU has a score (the next game then moves on); no sheet means the normal Match Stats page. TV layout only; phones are unchanged.
+- Cost: the built page is kept 5 minutes while waiting for the sheet and 30 minutes once it is found, and is always rebuilt at 10:00 and at the stop time (header X-Md-Hold). Simulated game day (tests): about 27 team sheet reads per team for the day, none before 10:00. A score takes up to the feed delay (10 to 20 minutes) plus the 30-minute page hold to remove the line-up; Refresh scores now shortens the feed part.
+- DEV: a simulator on the Match day admin page (pretend time, made-up sheet or none, score in) shows which page a screen would get and why; links use mdnow, mdfake, mdsheet and mdscore (ignored on PROD).
+- Request limit: one extra RFU read per page build (the team sheet and match record, kept 2 minutes), inside the 50 per visit.
+- Tests: new t_v3590 (rules, pages, DEV-only simulator, hold, Admin) and t_v3590sim (simulated game day). Two older tests had been crashing silently since v3.55.0 and v3.44 (a missing helper in the test, not the site) and are repaired; the build script now fails if any test crashes.
+- Not tested on a real GMS sheet from the build machine: the first DEV game day with a published sheet is the check (withheld names, long names, final flag).
+- Docs: What's new, Admin guide, Which page is which, Link variables
 
 v3.58.1 - Refresh scores now: no polling
 - Owner decision (22-Nov-2026): leave screens on their normal 10-minute weekend reload rather than add a request a minute per screen (the longest wait is then 10 minutes).
@@ -2844,6 +2857,7 @@ const DOCS = [
   ] },
   { id: "diag", title: "Diagnostics and testing", intro: "For checking and testing. Not needed on a live screen.", items: [
     { v: "debug", values: "fixtures · season · venue · weather", where: "With format=summary", what: "Adds diagnostic detail to the data. fixtures: which feeds were used. season: how the season was chosen (DEV only). venue and weather: the venue lookup and forecast steps.", ex: [["Fixtures debug", "?format=summary&detail=fixtures&debug=fixtures&" + DOCS_TEAM], ["Season debug (DEV)", "?debug=season&" + DOCS_TEAM, "dev"]] },
+    { v: "mdnow", values: "12:00", where: "DEV only", what: "Pretends it is this time (UK) on the team's next game day, to test the Match day TV page. Also mdfake=1 (a made-up full team sheet), mdsheet=0 (no sheet) and mdscore=1 (a score is in). The Match day admin page has a simulator that builds these links.", ex: [["Match day at noon with a made-up sheet", "?view=match&layout=tv&mdnow=12:00&mdfake=1&" + DOCS_TEAM, "dev"]] },
     { v: "today", values: "2026-12-01", where: "DEV only", what: "Pretends it is another date, to test automatic season changes and the summer gap.", ex: [["Pretend it is 1 July 2027", "?today=2027-07-01&" + DOCS_TEAM, "dev"]] },
     { v: "nowx", values: "any value", where: "Match data", what: "Turns off the weather lookup.", ex: [["No weather", "?format=summary&detail=opposition&nowx=1&" + DOCS_TEAM]] },
     { v: "frag", values: "gd", where: "Internal", what: "Returns just a block of the page for the page's own script to load. Not for typing.", ex: [] },
@@ -2896,7 +2910,7 @@ const DOC_SECTIONS = [
     { dl: [
       ["League table page (the default)", "The team's league table, form, results, next fixture and season snapshot. On a big screen it fits the screen; on a phone it is a set of tabs (Home, Fixtures, Next game, Leaders)."],
       ["Fixtures and Results", "Every game the team plays this season, league and cups, with results as they come in. On a phone it is a list; with layout=tv it becomes the season board for a clubhouse screen."],
-      ["Match Stats", "A head-to-head comparison for the next game: the two teams side by side, recent form and earlier meetings."],
+      ["Match Stats", "A head-to-head comparison for the next game: the two teams side by side, recent form and earlier meetings. On a TV, for a team with Match day TV page switched on in Admin, Our teams, the page changes on game day: from 10:00, once the team sheet is on the RFU system (at least 10 players), it shows the line-up with each player's sponsor (or Available to sponsor), the substitutes and a short head to head instead, until the RFU has a score or the team's stop time. Without a sheet the normal Match Stats page shows. The rotation, its slots and its timings are not changed."],
       ["Opposition report", "A phone page about the next opponent: this game, their form, you against them, and their season."],
       ["League leaders", "Who leads the league in the main statistics, with where your team sits."],
       ["Match Centre", "All of a club's teams on one screen: last game and next game for each. Made for a clubhouse TV (view=stack), in a Modern or Classic layout chosen in Admin."],
@@ -2994,7 +3008,7 @@ const DOC_SECTIONS = [
       ["Overview", "Quick links, anything that needs attention, status cards, the next game day for each team, sponsor counts and what the TV rotation shows today."],
       ["Match day", "Opens the Match day page (team sheets, sponsors, opposition and scoring)."],
       ["Club set-up: Link builder", "Opens the Link builder for team and screen links."],
-      ["Club set-up: Our teams", "Your teams: friendly name, colour, crest, league and order, used across the whole site."],
+      ["Club set-up: Our teams", "Your teams: friendly name, colour, crest, league and order, used across the whole site. Each team also has a Match day TV page switch (off until you turn it on) and a Stop showing at time (default 6:00pm): see Match Stats."],
       ["Club set-up: Player names and sponsors", "Opens the sponsors and players pages, with three tabs along the top: 1. Sponsors (the club's sponsor list, with a No players filter and the Sponsor list export), 2. Players (the name we use for each player and their sponsor, by team and season, with filters) and 3. Season set-up."],
       ["Screens and notices: Paired screens", "Screens set up with the quick setup page, with Kick out."],
       ["Screens and notices: Screen settings", "What appears on the clubhouse TVs and the Match Centre: strips, weather, the credit line, the Match Centre layout and walkover colours."],
@@ -3196,6 +3210,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.59.0", "Match day TV page: on game day, once the team sheet is on the RFU system, a team's Match Stats slot on the TV shows its line-up with sponsors, the substitutes and a short head to head. Switch it on per team in Admin, Our teams (off until you do), and choose the time it stops (6:00pm unless you change it). It starts at 10:00, never shows the day before, and the normal Match Stats page shows when there is no sheet. The TV rotation and its timings do not change."],
       ["v3.58.1", "Refresh scores now: open screens no longer check for a refresh every minute; they pick it up on their normal reload, so at weekends a score shows within 10 minutes of pressing the button."],
       ["v3.58.0", "Admin, Overview: a Refresh scores now button. Press it when a score is in GMS and you want the screens to show it sooner: results are fetched from the RFU again on the next visit, and open screens show them on their next reload. The Updated time on each screen moves to the new fetch, and the usual weekend timing carries on from there."],
       ["v3.57.2", "Fixtures screen: the Last game banner outline now uses the team colour, matching the Next game banner and the highlighted row. The W/L stripes on played rows are unchanged."],
@@ -3679,6 +3694,8 @@ setInterval(chk,300000);
 // Our teams (v3.29): the club's own team list, kept in the settings record. Each entry: team (RFU number), teamName (the RFU's own name),
 // name (the friendly name shown everywhere), short (phone jump bar label), accent (team colour), league, competition, division.
 const TEAM_PALETTE = ["#2f9e5b", "#d9a21b", "#c0303f", "#3d8fd6", "#8a63d2", "#e07b39", "#2aa5a5", "#c45a9a"];
+// v3.59.0: Match day TV page. Per team: matchday (switch, off by default) and mdEnd (stop showing at, 30-minute steps, default 18:00).
+const MD_ENDS = ["15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"], MD_END_DEFAULT = "18:00", MD_START = "10:00";
 const MAX_CLUB_TEAMS = 6; // v3.30.14: the Match Centre and the screens are laid out for up to six teams showing at once
 const MAX_CLUB_ALL = 12; // v3.31.1: teams can also be hidden (kept but not shown anywhere), up to twelve in the list
 function cleanClubTeams(arr) {
@@ -3692,7 +3709,7 @@ function cleanClubTeams(arr) {
     seen.add(team);
     const teamName = txt(r.teamName, 40) || txt(r.name, 40) || "Team", name = txt(r.name, 40) || teamName;
     const hide = r.hidden === true && true;
-    out.push({ ...(hide ? { hidden: true } : {}), ...(r.nowin === true ? { nowin: true } : {}), name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
+    out.push({ ...(hide ? { hidden: true } : {}), ...(r.nowin === true ? { nowin: true } : {}), ...(r.matchday === true ? { matchday: true } : {}), ...(MD_ENDS.includes(String(r.mdEnd)) && String(r.mdEnd) !== MD_END_DEFAULT ? { mdEnd: String(r.mdEnd) } : {}), name, short: "", accent: /^#[0-9a-fA-F]{6}$/.test(String(r.accent || "")) ? String(r.accent).toLowerCase() : TEAM_PALETTE[out.length % TEAM_PALETTE.length], league: txt(r.league, 70), competition: comp, division: div, team, teamName });
   }
   // v3.31.1: at most six showing at once (any more are hidden), and never an empty screen: if everything is hidden the first team shows.
   let shown = 0; for (const t of out) { if (t.hidden) continue; if (shown >= MAX_CLUB_TEAMS) t.hidden = true; else shown++; }
@@ -4200,12 +4217,12 @@ $("mlb").addEventListener("click",function(){$("mlc").hidden=!$("mlc").hidden});
 $("mad").addEventListener("click",function(){var v=$("mnl").value.replace(/\\s+/g," ").trim();if(!v||lines.length>=20||lines.indexOf(v)>=0)return;sync();lines.push(v);$("mnl").value="";rl()});
 $("mrs").addEventListener("click",function(){lines=DEFL.slice();rl()});
 rl();cnt("mex","mxc",120);var wasOn=$("mon").checked;function pv(){$("mpr").hidden=!($("mon").checked&&!wasOn)}$("mon").addEventListener("change",pv);pv();
-var MAXT=${MAX_CLUB_TEAMS},MAXALL=${MAX_CLUB_ALL},club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)};
+var MAXT=${MAX_CLUB_TEAMS},MAXALL=${MAX_CLUB_ALL},club=${JSON.stringify(s.club.teams).replace(/</g, "\\u003c")},addAt=-1,PAL=${JSON.stringify(TEAM_PALETTE)},MDE=${JSON.stringify(MD_ENDS)};
 function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function ini(n){var w=String(n||"").trim().split(/\\s+/);return((w[0]||"?").charAt(0)+(w.length>1?w[w.length-1].charAt(0):"")).toUpperCase()}
 function shown(){return club.filter(function(t){return!t.hidden}).length}
-function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span>'+(/^[0-9]+$/.test(String(t.team))?'<img class="tmi" alt="" width="40" height="40" src="/api/crest?id='+esc(t.team)+'" onload="this.name=1" onerror="this.remove()">':'')+'<div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><div class="r tms"><div><b>Win Predictor</b><small>Switch off to stop the win chance showing for this team. Only matters while Win Predictor is on under Screens.</small></div><label class="tg"><input type="checkbox" class="twp"'+(t.nowin?"":" checked")+'><span></span></label></div><p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
-$("tml").addEventListener("change",function(e){var r=e.target.closest(".tm");if(r&&e.target.classList.contains("twp")){var tw=club[+r.getAttribute("data-i")];if(e.target.checked)delete tw.nowin;else tw.nowin=true;md();return}if(!r||!e.target.classList.contains("thd"))return;var t=club[+r.getAttribute("data-i")],on=e.target.checked;if(!on&&shown()<2){e.target.checked=true;$("tm1").textContent="At least one team has to stay on.";return}if(on&&shown()>=MAXT){e.target.checked=false;$("tm1").textContent="Six teams can show at once. Hide another team first.";return}if(on)delete t.hidden;else t.hidden=true;rt();md()});
+function rt(){var h="";club.forEach(function(t,i){h+='<div class="tm'+(t.hidden?" tmh":"")+'" data-i="'+i+'"><div class="tmt"><span class="tmc" style="background:'+esc(t.accent)+'">'+esc(ini(t.name))+'</span>'+(/^[0-9]+$/.test(String(t.team))?'<img class="tmi" alt="" width="40" height="40" src="/api/crest?id='+esc(t.team)+'" onload="this.name=1" onerror="this.remove()">':'')+'<div class="tmf"><div class="l">Friendly name</div><input class="in tn" maxlength="40" value="'+esc(t.name)+'" style="margin-top:4px"></div></div><div class="tmr"><div><div class="l">Colour</div><input class="in tcol" type="color" value="'+esc(t.accent)+'" style="margin-top:4px"></div></div><div class="r tms"><div><b>Show on screens</b><small>Switch off to hide this team everywhere without deleting it.</small></div><label class="tg"><input type="checkbox" class="thd"'+(t.hidden?"":" checked")+'><span></span></label></div><div class="r tms"><div><b>Win Predictor</b><small>Switch off to stop the win chance showing for this team. Only matters while Win Predictor is on under Screens.</small></div><label class="tg"><input type="checkbox" class="twp"'+(t.nowin?"":" checked")+'><span></span></label></div><div class="r tms"><div><b>Match day TV page</b><small>On game day, once the team sheet is on the RFU system, the Match Stats slot for this team on the TV shows the line-up, sponsors and head to head instead. Starts at 10:00. The slot and its timing do not change.</small></div><label class="tg"><input type="checkbox" class="tmd"'+(t.matchday?" checked":"")+'><span></span></label></div>'+(t.matchday?'<div class="r tms"><div><b>Stop showing at</b><small>Game days only. It also stops as soon as the RFU has a score.</small></div><select class="in tme" style="width:auto;margin:0">'+MDE.map(function(x){return'<option value="'+x+'"'+((t.mdEnd||"18:00")===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></div>':"")+'<p class="n tmm">RFU name: '+esc(t.teamName)+' &middot; no. '+esc(t.team)+'<br>'+esc(t.league||"League not set")+'</p><div class="tmb"><button type="button" class="btn tb up"'+(i?"":" disabled")+'>Move up</button><button type="button" class="btn tb dn"'+(i<club.length-1?"":" disabled")+'>Move down</button><button type="button" class="btn tb ch">Change league</button><button type="button" class="btn tb rm"'+(club.length>1&&(t.hidden||shown()>1)?"":" disabled")+'>Remove</button></div></div>'});$("tml").innerHTML=h;var full=shown()>=MAXT||club.length>=MAXALL;$("tgo").disabled=full;$("tq").disabled=full;if(full&&$("tm1").textContent.indexOf("six teams")<0)$("tm1").textContent=($("tm1").textContent+" Six teams can show at once. Hide or remove a team to add another.").trim()}
+$("tml").addEventListener("change",function(e){var r=e.target.closest(".tm");if(r&&e.target.classList.contains("tmd")){var tz=club[+r.getAttribute("data-i")];if(e.target.checked)tz.matchday=true;else{delete tz.matchday;delete tz.mdEnd}rt();md();return}if(r&&e.target.classList.contains("tme")){var ty=club[+r.getAttribute("data-i")];if(e.target.value==="18:00")delete ty.mdEnd;else ty.mdEnd=e.target.value;md();return}if(r&&e.target.classList.contains("twp")){var tw=club[+r.getAttribute("data-i")];if(e.target.checked)delete tw.nowin;else tw.nowin=true;md();return}if(!r||!e.target.classList.contains("thd"))return;var t=club[+r.getAttribute("data-i")],on=e.target.checked;if(!on&&shown()<2){e.target.checked=true;$("tm1").textContent="At least one team has to stay on.";return}if(on&&shown()>=MAXT){e.target.checked=false;$("tm1").textContent="Six teams can show at once. Hide another team first.";return}if(on)delete t.hidden;else t.hidden=true;rt();md()});
 $("tml").addEventListener("input",function(e){var r=e.target.closest(".tm");if(!r)return;var t=club[+r.getAttribute("data-i")],c=e.target.classList;if(c.contains("tn"))t.name=e.target.value;else if(c.contains("tcol")){t.accent=e.target.value;r.querySelector(".tmc").style.background=t.accent}});
 $("tml").addEventListener("click",function(e){var b=e.target.closest(".tb"),r=e.target.closest(".tm");if(!b||!r||b.disabled)return;var i=+r.getAttribute("data-i"),c=b.classList;
 if(c.contains("up")&&i>0){club.splice(i-1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("dn")&&i<club.length-1){club.splice(i+1,0,club.splice(i,1)[0]);rt();md()}else if(c.contains("rm")&&club.length>1&&(club[i].hidden||shown()>1)){club.splice(i,1);rt();md()}else if(c.contains("ch")){addAt=i;lgs(club[i].team,club[i].teamName)}});
@@ -4354,6 +4371,151 @@ async function sheetJson(target) {
   try { const r = await cachedText(target, "application/json"); return r.ok ? JSON.parse(r.text) : null; } catch (_) { return null; }
 }
 function sheetOrder(no) { const n = String(no || ""); return /^\d+$/.test(n) ? +n : /^S\d+$/i.test(n) ? 15 + +n.slice(1) : 99; }
+// ---- Match day TV page (v3.59.0) --------------------------------------------------------------------------------
+// On a game day, once the team sheet is on the RFU system, a team's Match Stats slot on the TV shows the line-up with sponsors, a short head to head and the
+// substitutes instead. Per team in Admin (switch, off by default; stop time, default 18:00). Checking starts at 10:00 UK time and stops at the end time or as soon
+// as the results feed has a score (the next game then moves on, so the game is no longer today's). The slot and its timing never change.
+// The page is kept at the edge for 5 minutes while waiting for the sheet and 30 minutes once it is found (header X-Md-Hold, read by pageState); both end at the stop time.
+const MD_MIN_PLAYERS = 10; // the match minimum (RFU Game On and BUCS): a sheet with fewer named players counts as not published yet
+const MD_WAIT_SECS = 300, MD_FOUND_SECS = 1800;
+function mdParts(ms) {
+  const p = {}; for (const x of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date(ms))) p[x.type] = x.value;
+  return { day: p.year + "-" + p.month + "-" + p.day, min: (Number(p.hour) % 24) * 60 + Number(p.minute) };
+}
+function mdEpoch(day, hm) { // the moment (ms) a UK clock time on a UK day happens
+  const [y, m, d] = day.split("-").map(Number), [h, mi] = hm.split(":").map(Number), want = Date.UTC(y, m - 1, d, h, mi);
+  let t = want;
+  for (let i = 0; i < 2; i++) { const q = mdParts(t), [qy, qm, qd] = q.day.split("-").map(Number); t -= Date.UTC(qy, qm - 1, qd, Math.floor(q.min / 60), q.min % 60) - want; }
+  return t;
+}
+// Where a game day is in the Match day window: "off" (not the game day), "pre" (before 10:00), "live", "over" (at or after the stop time).
+function mdPhase(nowMs, gameDay, endHm) {
+  if (mdParts(nowMs).day !== gameDay) return { phase: "off" };
+  const startMs = mdEpoch(gameDay, MD_START), endMs = mdEpoch(gameDay, MD_ENDS.includes(endHm) ? endHm : MD_END_DEFAULT);
+  return { phase: nowMs < startMs ? "pre" : nowMs >= endMs ? "over" : "live", startMs, endMs };
+}
+function mdHoldHeader(h) { return h ? Math.round(h.secs) + ";" + Math.round(h.until) : ""; }
+function mdHoldOf(v) { const m = /^(\d{1,6});(\d{10,14})$/.exec(String(v || "")); return m ? { secs: Number(m[1]), until: Number(m[2]) } : null; }
+function mdSimOf(url, isDev) { // DEV only: pretend the clock, the score or the sheet (mdnow=HH:MM on the game day, mdscore=1, mdsheet=0 none, mdfake=1 made-up sheet)
+  if (!isDev) return null; const sp = url.searchParams, t = sp.get("mdnow") || "";
+  return { now: /^\d{2}:\d{2}$/.test(t) ? t : "", score: sp.get("mdscore") === "1", none: sp.get("mdsheet") === "0", fake: sp.get("mdfake") === "1" };
+}
+const MD_FAKE = ["Sam Pearce", "Jack Dunn", "Rob Medway", "Tom Reid", "Joel Stone", "Ned Cross", "Lee Park", "Ryan Ames", "Kai Boyd", "Fin Hart", "Sean Ray", "Max Lowe", "Ben Hale", "Cal Moss", "Dan Roe", "Gus Penn", "Ian Webb", "Joe Frost", "Kit Vale", "Leo Marsh", "Ollie Fry", "Pat Quinn", "Rex Dale"];
+const MD_FAKE_SP = ["Mill Garage", "Tamar Plumbing", "The Old Inn", "", "Dartmoor Print", "", "Moor Motors", "Ivy Bakery", "", "Ridgeway Roofing", "Station Cafe", "", "Fore Street Dental", "", "Harbour Fisheries"];
+// The team sheet for one of our games, reduced to what the screen shows: starters 1 to 15 with sponsor and captain marks, and the substitutes' names.
+async function mdLoadSheet(tm, g, day, sim) {
+  if (sim && sim.none) return null;
+  if (sim && sim.fake) {
+    const pl = MD_FAKE.map((nm, i) => ({ no: String(i + 1), name: nm, hidden: false, sponsor: i < 15 ? MD_FAKE_SP[i] : "", avail: i < 15 && !MD_FAKE_SP[i], tag: i === 8 ? "Captain" : i === 0 ? "Vice captain" : "" }));
+    return { starters: pl.slice(0, 15), subs: pl.slice(15).map(x => x.name), lineup: true, count: pl.length, fake: true };
+  }
+  const id = String(g.id);
+  const [mrec, ppl] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matches/" + id), sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id)]);
+  if (!mrec || !ppl) return null;
+  let sponsors = [], rec = null; const kv = kvOf();
+  if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
+  const sname = new Map(sponsors.map(x => [x.id, x.name])), by = {}, altOf = {};
+  if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", nm: "" }); if (!h.s && e0.s) h.s = e0.s; if (!h.nm && e0.nm) h.nm = e0.nm; for (const a of (e0.a || [])) altOf[a] = no; }
+  const side = String(g.home === true ? mrec.homeTeamId : mrec.awayTeamId), list = Array.isArray(ppl.participants) ? ppl.participants : [];
+  let mine = list.filter(p => String(p.teamId) === side);
+  if (!mine.length && list.length) { // the match record's side number can differ from the sheet's before game day: take the side with most players we already know
+    const grp = {}; for (const p of list) (grp[String(p.teamId)] || (grp[String(p.teamId)] = [])).push(p);
+    let best = null, bn = 0; for (const k of Object.keys(grp)) { const n = grp[k].filter(p => { const no = personNo(p.individualId); return !!(by[altOf[no] || no]); }).length; if (n > bn) { bn = n; best = grp[k]; } }
+    if (best) mine = best;
+  }
+  const hideSide = sheetHidesNames(tm.name + " " + (tm.league || "") + " " + tm.teamName) || sheetHidesNames((mrec.competitionName || "") + " " + (mrec.groupName || ""));
+  const all = mine.map(p => {
+    const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", nm: "" };
+    const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
+    const rfu = withheld ? "" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
+    const hidden = hideSide || p.isU18 === true, name = hidden ? "" : (h.nm || rfu), sponsor = hidden ? "" : (sname.get(h.s) || "");
+    return { no: String(p.playingPositionNo || ""), name, hidden, sponsor, avail: !hidden && !sponsor, tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" };
+  }).filter(x => x.no).sort((a, b) => sheetOrder(a.no) - sheetOrder(b.no));
+  const starters = all.filter(x => sheetOrder(x.no) <= 15), subs = all.filter(x => sheetOrder(x.no) > 15).map(x => x.hidden ? "Name not shown" : (x.name || "Name redacted"));
+  return { starters, subs, lineup: !!ppl.lineup, count: all.length };
+}
+// Decides, for one team and one request, whether the Match day page shows and how long the built page may be kept. Pure apart from the sheet read.
+async function mdDecide(tm, games, nextIso, url, isDev, nowMs) {
+  const none = { show: false, hold: null, sheet: null, why: "off" };
+  if (!tm || !tm.matchday || !nextIso) return none;
+  const sim = mdSimOf(url, isDev), gameDay = mdParts(new Date(nextIso).getTime()).day;
+  const now = sim && sim.now ? mdEpoch(gameDay, sim.now) : (nowMs || Date.now());
+  const ph = mdPhase(now, gameDay, tm.mdEnd || MD_END_DEFAULT);
+  if (ph.phase === "off" || ph.phase === "over") return { ...none, why: ph.phase };
+  if (ph.phase === "pre") return { ...none, why: "pre", hold: { secs: 86400, until: ph.startMs } };
+  if (sim && sim.score) return { ...none, why: "score" };
+  const g = (games || []).filter(x => x && x.iso && x.id && /^\d{1,10}$/.test(String(x.id)) && x.status !== "void" && x.status !== "done" && mdParts(new Date(x.iso).getTime()).day === gameDay).sort((a, b) => a.iso < b.iso ? -1 : 1)[0];
+  const wait = { ...none, why: "wait", hold: { secs: MD_WAIT_SECS, until: ph.endMs } };
+  if (!g) return wait;
+  const sheet = await mdLoadSheet(tm, g, gameDay, sim);
+  if (!sheet || sheet.count < MD_MIN_PLAYERS) return { ...wait, sheet, read: true, why: sheet ? "few" : "nosheet" };
+  return { show: true, hold: { secs: MD_FOUND_SECS, until: ph.endMs }, sheet, why: "found", read: true };
+}
+function mdLegible(hex, light) { // a colour that reads on the page: lightened on the dark theme, darkened on the light one
+  let c = [1, 3, 5].map(k => parseInt(hex.slice(k, k + 2), 16)); const lum = v => (0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]) / 255;
+  for (let i = 0; i < 12 && (light ? lum(c) > 0.42 : lum(c) < 0.38); i++) c = c.map(v => light ? v * 0.85 : v + (255 - v) * 0.18);
+  return "#" + c.map(v => ("0" + Math.round(v).toString(16)).slice(-2)).join("");
+}
+function mdAvailColour(teamHex, light) { // amber that stands out from the team colour; white or blue when the team colour is itself amber or gold
+  const t = [1, 3, 5].map(k => parseInt(teamHex.slice(k, k + 2), 16)), a = [240, 170, 40], d = Math.sqrt(t.reduce((s, v, i) => s + (v - a[i]) ** 2, 0));
+  return d < 110 ? (light ? "#1f5fa8" : "#8ecbff") : (light ? "#9a6a00" : "#ffd978");
+}
+function mdShirt(n, ac) {
+  const h = ac.replace("#", ""), l = (0.299 * parseInt(h.substr(0, 2), 16) + 0.587 * parseInt(h.substr(2, 2), 16) + 0.114 * parseInt(h.substr(4, 2), 16)) / 255, tc = l > 0.62 ? "#101814" : "#ffffff", s = String(n);
+  return `<svg class="sh" viewBox="0 0 40 36" aria-hidden="true"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="${ac}" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="25" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${s.length > 2 ? 10 : 15}" fill="${tc}">${s.replace(/[^0-9A-Za-z]/g, "")}</text></svg>`;
+}
+const MD_TV_CSS = `body.md .top{display:none}
+.mdh{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem}
+.mdh .tl{display:flex;align-items:center;gap:1.3rem;min-width:0}.mdh .tl.r{justify-content:flex-end;text-align:right}
+.mdh .big{margin:0;width:7.2rem;height:7.2rem;flex:none}.mdh .nm{font-size:3.4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.mdh .tag{font-size:1.25rem;margin-top:.5rem}.mdh .vv{text-align:center}.mdh .vv b{display:block;font-size:4.2rem;line-height:.9;color:var(--mu)}.mdh .vv span{display:block;margin-top:.4rem;font-size:1.3rem;letter-spacing:.14em;font-weight:700;color:var(--mu);text-transform:uppercase;white-space:nowrap}
+.mdb{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.lu{display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
+.rw{display:flex;align-items:center;gap:.7rem;min-width:0;background:var(--card);border:1px solid var(--bd);border-radius:.45rem;padding:0 .7rem;font-size:1.45rem;overflow:hidden}
+.rw .sh{height:88%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
+.rw .sp{flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.15rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
+.rc{display:flex;flex-direction:column;gap:.8rem;min-height:0}
+.pn{flex:1 1 auto;min-height:0;background:var(--card);border:1px solid var(--bd);border-radius:.8rem;padding:1rem 1.3rem;display:flex;flex-direction:column;gap:.5rem;overflow:hidden}
+.st{display:grid;grid-template-columns:1fr auto 1fr;gap:.25rem .8rem;align-items:center;text-align:center}.st .hh2{display:flex;align-items:center;justify-content:center;gap:.6rem;min-width:0}.st .hh2 b{font-size:1.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st .cr{width:2.6rem;height:2.6rem;border-radius:50%;background:#fff;border:.2rem solid var(--c);position:relative;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#333}.st .cr img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain}
+.st .v{font-size:1.7rem;font-weight:700}.st .l{color:var(--mu);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase;min-width:9rem}
+.mdh3{margin:.5rem 0 0;text-align:center;letter-spacing:.18em;font-size:.95rem;color:var(--mu);font-weight:700;text-transform:uppercase}
+.fm2{display:flex;justify-content:space-between;gap:1rem;padding:.3rem .3rem 0}.fm2>div{display:flex;flex-direction:column;gap:.45rem;align-items:flex-start;min-width:0}.fm2>div:last-child{align-items:flex-end;text-align:right}.fm2 .fd{padding-bottom:0;gap:.4rem}.fm2 .dot{width:1.7rem;height:1.7rem}.fm2 .ll{font-size:1.05rem;color:var(--tx)}.fm2 .ll small{display:block;color:var(--mu);font-size:.95rem}
+.hb{display:flex;height:2.2rem;gap:.15rem;border-radius:.5rem;overflow:hidden;margin:.3rem .3rem 0}.hb>div{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;white-space:nowrap;overflow:hidden;min-width:0}
+.hb .a{background:var(--ca);color:var(--ka)}.hb .b{background:var(--cb);color:var(--kb)}.hb .d{background:#5d7066;color:#fff}
+.hl2{text-align:center;color:var(--mu);font-size:1.05rem;margin-top:.3rem}
+.sb{flex:none;background:var(--sbg);border:2px solid var(--sbd);border-radius:.7rem;padding:.7rem 1.3rem}.sb .fh{font-size:.9rem;letter-spacing:.18em;color:var(--mu);margin-bottom:.3rem}.sb div.sn{font-size:1.35rem;line-height:1.3;color:var(--tx);overflow:hidden;max-height:4.2rem}
+body.light .st .cr{background:#fff}
+:root{--av:#ffd978;--sbg:#26332d;--sbd:#3f5a4c}body.light{--sbg:#e1ece5;--sbd:#9db8a8}`;
+function mdTvInner(o) {
+  const { e, ord, light, me, opp, n, sheet, crest, meCol, tm, h2hAll, league, season, stamp } = o;
+  const sCol = mdLegible(meCol, light), avCol = mdAvailColour(meCol, light);
+  const show = v => v === null || v === undefined || v === "" ? "-" : String(v);
+  const nameCell = p => p.hidden ? `<em>Name not shown</em>` : p.name ? e(p.name) + (p.tag === "Captain" ? "<i>(C)</i>" : p.tag === "Vice captain" ? "<i>(VC)</i>" : "") : `<em>Name redacted</em>`;
+  const rows = sheet.starters.map(p => `<div class="rw">${mdShirt(p.no, meCol)}<span class="pn1">${nameCell(p)}</span>${p.hidden ? "" : p.sponsor ? `<span class="sp">${e(p.sponsor)}</span>` : `<span class="sp av">Available to sponsor</span>`}</div>`).join("");
+  const sm = (id, name, c) => `<div class="hh2" style="--c:${c}"><span class="cr"><span>${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" onerror="this.remove()">` : ""}</span><b style="color:${mdLegible(c, light)}">${e(name)}</b></div>`;
+  const pos = v => v ? ord(Number(v)) : "-";
+  const stat = (lab, a, b) => `<b class="v">${e(show(a))}</b><div class="l">${lab}</div><b class="v">${e(show(b))}</b>`;
+  const dots = f => (f || []).map((x, i) => `<span class="fx"><span class="dot ${e(x)}${i === 0 ? " new" : ""}">${e(x)}</span></span>`).join("");
+  const latest = s => { const l = s && s.latest; if (!l) return `<div class="ll">No results yet</div>`; const w = l.out === "W" ? "Won" : l.out === "L" ? "Lost" : "Drew"; return `<div class="ll">Latest: ${w}${l.wo ? " (walkover)" : " " + e(l.f) + "&ndash;" + e(l.a)} v ${e(l.vs)}<small>${e(l.date)}</small></div>`; };
+  const form = s => `<div><div class="fd">${dots(s.form) || `<span class="mu">No results yet</span>`}</div>${latest(s)}</div>`;
+  const idMe = String(me.id), idOpp = String(opp.id), ha = Array.isArray(h2hAll) ? h2hAll : [];
+  const cA = ha.filter(g => String(g.winId) === idMe).length, cB = ha.filter(g => String(g.winId) === idOpp).length, cD = ha.length - cA - cB;
+  const short = nm => String(nm || "").split(/\s+/)[0];
+  const lm = ha[0], lmTxt = lm ? (lm.wo ? (String(lm.winId) === idMe ? e(me.name) : e(opp.name)) + " won (walkover)" : (() => { const mine = String(lm.homeId) === idMe ? lm.homeScore : lm.awayScore, theirs = String(lm.homeId) === idMe ? lm.awayScore : lm.homeScore; return (mine > theirs ? e(me.name) + " won " : mine < theirs ? e(opp.name) + " won " : "Drawn ") + e(Math.max(mine, theirs)) + "&ndash;" + e(Math.min(mine, theirs)); })()) : "";
+  const h2h = ha.length ? `<div class="hb">${cA ? `<div class="a" style="flex:${cA}">${e(short(me.name))} won ${cA}</div>` : ""}${cD ? `<div class="d" style="flex:${cD}">Drew ${cD}</div>` : ""}${cB ? `<div class="b" style="flex:${cB}">${e(short(opp.name))} won ${cB}</div>` : ""}</div><div class="hl2">Last meeting: ${lmTxt}</div>` : `<div class="hl2">No league meetings in the last 5 seasons</div>`;
+  const kick = /^\d{1,2}:\d{2}$/.test(String(n.time || "")) ? String(n.time) : "";
+  const home = !!n.mineHome, tag = (h, cls) => `<span class="tag" style="background:var(--${cls === "a" ? "ca" : "cb"});color:var(--${cls === "a" ? "ka" : "kb"})">${h ? "Home" : "Away"}</span>`;
+  const subs = sheet.subs.length ? `<div class="sb"><div class="fh">Substitutes</div><div class="sn">${sheet.subs.map(e).join(" &middot; ")}</div></div>` : "";
+  return `<div class="mdh"><div class="tl">${crest(me.id, me.name, "a", true)}<div style="min-width:0"><div class="nm">${e(me.name)}</div>${tag(home, "a")}</div></div>
+<div class="vv"><b>v</b><span>Today${kick ? " &middot; " + e(kick) : ""}</span></div>
+<div class="tl r"><div style="min-width:0"><div class="nm">${e(opp.name)}</div>${tag(!home, "b")}</div>${crest(opp.id, opp.name, "b", false)}</div></div>
+<div class="mdb"><div class="lu" style="--ca:${sCol};--av:${avCol}">${rows}</div>
+<div class="rc"><div class="pn"><div class="st">${sm(me.id, me.name, meCol)}<div class="l"></div>${sm(opp.id, opp.name, "var(--cb)")}${stat("Position", pos(me.position), pos(opp.position))}${stat("League points", me.points, opp.points)}${stat("Played", me.played, opp.played)}${stat("Wins", me.wins, opp.wins)}${stat("Points scored", me.pf, opp.pf)}${stat("Points conceded", me.pa, opp.pa)}</div>
+<div class="mdh3">Recent form &middot; newest first</div><div class="fm2">${form(me)}${form(opp)}</div>
+<div class="mdh3">Head to head &middot; last 5 seasons</div>${h2h}</div>${subs}</div></div>
+<div class="upd">${e(league || "")} &middot; Team sheet from GMS &middot; Season ${e(season)} &middot; Last updated ${e(stamp)}</div>`;
+}
 // ---- Match day page (v3.46.0) -----------------------------------------------------------------------------------
 // For one of our teams and one match day: the team sheet the club has submitted on the RFU system (shirt order), with the sponsor of each player, who is still
 // available to sponsor, names the RFU withholds and players not seen on a sheet before. Club PIN only. The page asks for one team per request (POST), so each
@@ -4442,7 +4604,7 @@ async function matchDayApi(request, url, worker) {
 }
 function matchDayPage(theme, isDev, teams) {
   const t = theme === "light" ? "light" : "dark";
-  const tl = JSON.stringify(teams.filter(x => !x.hidden).map(x => ({ team: String(x.team), name: x.name }))).replace(/</g, "\\u003c");
+  const tl = JSON.stringify(teams.filter(x => !x.hidden).map(x => ({ team: String(x.team), name: x.name, c: String(x.competition), d: String(x.division), tn: String(x.teamName || ""), md: x.matchday === true }))).replace(/</g, "\\u003c");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Match day</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:10px 0}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2:disabled{opacity:.55;cursor:default}.b2.sm{padding:6px 14px;min-height:36px;font-size:13px}.nv{display:flex;gap:8px;align-items:stretch;margin:12px 0 0}.nv .b2{flex:none;width:52px;font-size:22px;padding:0}.nd{flex:1;min-width:0;border:1px solid #2c3a34;border-radius:12px;background:#111719;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;text-align:center}.nd b{font-size:17px}.nd small{color:#91a49a;font-size:12px;line-height:1.35}body.light .nd{background:#fff;border-color:#c9dccd}.dys{display:flex}.dy{font:700 14px Arial,Helvetica,sans-serif;border-radius:12px;padding:8px 14px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#cfd8d3;text-align:left}.dy small{display:block;font-weight:400;font-size:12px;color:#91a49a}.dy.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.dy.on small{color:#e6fff0}.sub{color:#91a49a;font-size:14px;line-height:1.5;margin:10px 0 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}.tt b{font-size:17px}.tt small{display:block;color:#91a49a;font-size:12px;margin-top:2px}.cn{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.cn span{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;border:1px solid #2c3a34;color:#cfd8d3}.cn .am{color:#f2b866;border-color:#5b4b1a}.pr{display:grid;grid-template-columns:44px minmax(0,1fr) fit-content(58%);gap:8px;align-items:center;min-height:42px;padding:4px 0;border-top:1px solid #243a2e}.no{display:flex;align-items:center}.no svg{display:block}.pn{min-width:0;display:flex;align-items:baseline;gap:6px}.pn b{overflow-wrap:anywhere;min-width:0}.pn small{color:#91a49a;flex:none;white-space:nowrap}.ha{display:inline-block;font:700 11px Arial,Helvetica,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:1px 6px;background:#15301f;color:#7fe0a6}.ha.a{background:#33280f;color:#f2b866}body.light .ha{background:#dff3e5;color:#1b6b3a}body.light .ha.a{background:#fdeccc;color:#9a5b00}.in2{flex:1;min-width:0;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}.sh+.pr{border-top:0}.sh{height:34px;position:relative}.sh:after{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px solid #3f5a4c}body.light .sh{border-top-color:#b7cbbd;color:#5b6f63}.sh:after{border-top-color:#9db8a6}.sg{display:grid;grid-template-columns:repeat(3,1fr);margin:10px 0;border:1px solid #2c3a34;border-radius:10px;overflow:hidden}.sg button{border:0;background:transparent;color:#cfd8d3;font:700 13px Arial,Helvetica,sans-serif;min-height:40px;cursor:pointer}.sg button.on{background:#2f9d57;color:#fff}.ev{display:grid;grid-template-columns:38px 112px 1fr;gap:8px;align-items:center;min-height:38px;padding:2px 0;border-top:1px solid #243a2e;font-size:14px}.ev .m{color:#91a49a;font-weight:700}.ev .k{font-weight:700;color:#91a49a}.ev .k.ty{color:#7fd89a}.ev .k.cv{color:#f2b866}body.light .sg{border-color:#c9dccd}body.light .sg button{color:#14301e}body.light .sg button.on{color:#fff}body.light .ev{border-color:#d9e5dc}.nw{flex:none;font-size:11px;font-weight:700;color:#07100b;background:#7fd89a;border-radius:6px;padding:1px 6px}.sp{font-size:13px;font-weight:700;color:#7fdc9a;text-align:right;min-width:0;overflow-wrap:anywhere}.sp.av{color:#f2b866}.sp.rd{color:#91a49a;font-weight:400}.none{color:#91a49a;padding:10px 0;line-height:1.5}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2.er{color:#f0a0a0}.msg2:empty{display:none}.ver{color:#91a49a;font-size:12px;text-align:center}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .b2,body.light .dy{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .dy.on,body.light .b2.go{background:#2f9d57;color:#fff;border-color:#2f9d57}body.light .pr{border-color:#d9e5dc}body.light .cn span{color:#14301e;border-color:#c9dccd}body.light .sp{color:#1f7a42}body.light .sp.av{color:#9a5b00}
 </style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
@@ -4453,6 +4615,7 @@ function matchDayPage(theme, isDev, teams) {
 <div class="msg2" id="ms" role="status"></div>
 <div class="rw2" id="tw" style="display:none;margin:8px 0"><select class="in2" id="tm" aria-label="Choose a team"></select></div>
 <div id="out"></div>
+${isDev ? `<div class="cd2" id="sim"><b>Match day TV simulator (DEV only)</b><p class="sub" style="margin:4px 0 8px">Pretend it is a time on the game day and see which page a screen would get. The team needs its Match day switch on in Admin.</p><div class="rw2"><select class="in2" id="smt" aria-label="Team"></select><input class="in2" id="smh" type="time" value="12:00" aria-label="Time on game day"><select class="in2" id="sms" aria-label="Team sheet"><option value="">Real sheet from the RFU</option><option value="&amp;mdfake=1">Made-up full sheet</option><option value="&amp;mdsheet=0">No sheet yet</option></select><label style="font:14px Arial"><input type="checkbox" id="smc"> Score in</label><button type="button" class="b2" id="smg">Check</button><a class="b2" id="smo" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open page</a></div><div class="msg2" id="smr" role="status"></div></div>` : ""}
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
 <script>(function(){var T=${tl},info={},sheets={},day="",today="",busy=false,wait=0;
 function $(i){return document.getElementById(i)}
@@ -4500,6 +4663,10 @@ function fb(text){var a=document.createElement("textarea");a.value=text;a.setAtt
 function step(n){var z=idx(),x=z.a[z.i+n];if(x)loadDay(x.d)}$("pv").onclick=function(){step(-1)};$("nx").onclick=function(){step(1)};
 $("out").onclick=function(ev){var sw=ev.target.closest("button[data-v]");if(sw){V[sw.getAttribute("data-t")]=sw.getAttribute("data-v");draw();return}var b=ev.target.closest("button[data-c]");if(!b)return;var t=T.filter(function(x){return x.team===b.getAttribute("data-c")})[0],r=sheets[t.team];if(t&&r&&r.sheet)copy(lines(t,r))};
 $("tm").onchange=function(){pick=this.value;userPick=true;draw()};
+(function(){var g=$("smg");if(!g)return;var sel=$("smt");T.forEach(function(t){var o=document.createElement("option");o.value=t.team;o.textContent=t.name+(t.md?"":" (switch off)");sel.appendChild(o)});
+function url(){var t=T.filter(function(x){return x.team===sel.value})[0];if(!t)return"";return"/?view=match&layout=tv&theme=dark&competition="+encodeURIComponent(t.c)+"&division="+encodeURIComponent(t.d)+"&team="+encodeURIComponent(t.team)+"&teamName="+encodeURIComponent(t.tn)+"&mdnow="+encodeURIComponent($("smh").value||"12:00")+$("sms").value+($("smc").checked?"&mdscore=1":"")}
+var WHY={off:"it is not the game day, or the switch is off",pre:"it is before 10:00",over:"it is at or after the stop time",score:"a score is in",wait:"no game found for the day yet",few:"the sheet has fewer than 10 players",nosheet:"there is no sheet yet",found:"the sheet is published"};
+g.onclick=function(){var u=url();if(!u)return;$("smr").textContent="Checking...";$("smo").style.display="none";fetch(u,{credentials:"same-origin"}).then(function(r){return r.text()}).then(function(h){var m=/<!--mdsim why=(\w+) show=(\d) hold=(\d+) read=(\d) count=(\d+) lineup=(\d)-->/.exec(h);if(!m){$("smr").textContent="Match Stats page (the Match day page does not apply: the team switch is off, or there is no upcoming game).";}else{$("smr").textContent=(m[2]==="1"?"The screen gets the Match day page":"The screen gets the normal Match Stats page")+" because "+(WHY[m[1]]||m[1])+". RFU team sheet read: "+(m[4]==="1"?"yes":"no")+(m[5]!=="0"?" ("+m[5]+" players"+(m[6]==="1"?", marked final":", not marked final")+")":"")+". The built page would be kept for "+(m[3]==="0"?"the normal time":m[3]==="86400"?"until 10:00":(+m[3]/60)+" minutes")+" (and always rebuilt at 10:00 and at the stop time)."}$("smo").href=u;$("smo").style.display=""}).catch(function(){$("smr").textContent="Could not check."})}})();
 $("ca").onclick=function(){var o=[];T.forEach(function(t){var r=sheets[t.team];if(r&&r.ok&&r.sheet)o.push(lines(t,r))});if(o.length)copy(o.join(String.fromCharCode(10)+String.fromCharCode(10)))};
 if(!T.length)say("No teams are set up in Admin, Our teams.");else start()})();</script></body></html>`;
 }
@@ -7438,13 +7605,13 @@ const worker = {
       const onColour = hex => { const [r,g,b] = [1,3,5].map(k => parseInt(hex.slice(k,k+2),16)/255); return (0.2126*r + 0.7152*g + 0.0722*b) > 0.55 ? "#101010" : "#ffffff"; };
       const ord = n => { const v = n % 100; return n + (["th","st","nd","rd"][(v - 20) % 10] || ["th","st","nd","rd"][v] || "th"); };
       const menuHref = "/?" + new URLSearchParams({theme}).toString();
-      let d = null, err = "", cupG = null, cupNoIds = null;
+      let d = null, err = "", cupG = null, cupNoIds = null, fixGames = [];
       try {
         // v3.7: if the team's next game (any competition) is a cup game, Match Stats compares the two teams in that cup.
         try {
           const qf = new URLSearchParams({season, competition, division, team, teamName: url.searchParams.get("teamName") || "__none__", friendlyName: url.searchParams.get("friendlyName") || "", format: "summary", detail: "fixtures"});
           const fr = await worker.fetch(new Request(url.origin + "/?" + qf.toString()));
-          if (fr.ok) { const fj = await fr.json(); const ng = (fj.games || []).find(g => g.status === "upcoming"); if (ng && ng.cup && ng.competition && ng.division) cupG = ng; else if (ng && ng.cup) cupNoIds = ng; }
+          if (fr.ok) { const fj = await fr.json(); fixGames = Array.isArray(fj.games) ? fj.games : []; const ng = (fj.games || []).find(g => g.status === "upcoming"); if (ng && ng.cup && ng.competition && ng.division) cupG = ng; else if (ng && ng.cup) cupNoIds = ng; }
         } catch (_) { cupG = null; cupNoIds = null; }
         const q = new URLSearchParams({season, competition: cupG ? cupG.competition : competition, division: cupG ? cupG.division : division, team, teamName: url.searchParams.get("teamName") || "__none__", friendlyName: url.searchParams.get("friendlyName") || "", format: "summary", detail: "match"});
         const r = cupG ? await worker._main(new Request(url.origin + "/?" + q.toString()), isDev, { auto: false, season, competition: String(cupG.competition), division: String(cupG.division), banner: "" }) : await worker.fetch(new Request(url.origin + "/?" + q.toString()));
@@ -7468,16 +7635,19 @@ const worker = {
         }
       } catch (x) { err = String(x && x.message || x); }
       const m = d && d.match, n = d && d.next;
-      const meHome = !!(n && n.mineHome);
-      const L = m ? (meHome ? m.me : m.opp) : null, R = m ? (meHome ? m.opp : m.me) : null;
+      // v3.59.0: Match day TV page (see mdDecide). Only the TV layout, only for a team with the switch on in Admin.
+      const mdv = m && n && !m.noStats && url.searchParams.get("layout") === "tv" ? await mdDecide(TEAMS.find(t => String(t.team) === String(team)), fixGames, n.iso, url, isDev, Date.now()) : null;
+      const mdShow = !!(mdv && mdv.show);
+      const meHome = !!(n && n.mineHome), leftMe = meHome || mdShow;
+      const L = m ? (leftMe ? m.me : m.opp) : null, R = m ? (leftMe ? m.opp : m.me) : null;
       const meAccent = (TEAMS.find(t => String(t.team) === String(team)) || {}).accent;
       const meCol = hexOf(url.searchParams.get("colour")) || hexOf(meAccent) || "#2f9e5b";
       const oppCol = hexOf(url.searchParams.get("oppColour")) || "#4aa3df";
-      const colA = meHome ? meCol : oppCol, colB = meHome ? oppCol : meCol;
+      const colA = leftMe ? meCol : oppCol, colB = leftMe ? oppCol : meCol;
       // v3.53.1: our side keeps the colour saved in Our teams (or the link's colour=); only the other side is worked out from its crest
       const meFixed = !!hexOf(url.searchParams.get("colour")) || !!hexOf(meAccent);
-      const fixedA = meHome ? meFixed : !!hexOf(url.searchParams.get("oppColour"));
-      const fixedB = meHome ? !!hexOf(url.searchParams.get("oppColour")) : meFixed;
+      const fixedA = leftMe ? meFixed : !!hexOf(url.searchParams.get("oppColour"));
+      const fixedB = leftMe ? !!hexOf(url.searchParams.get("oppColour")) : meFixed;
       const crest = (id, name, side, fixed) => `<span class="big"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img data-side="${side}" ${fixed ? 'data-fixed="1" ' : ""}src="/api/crest?id=${encodeURIComponent(id)}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">` : ""}</span>`;
       // Form is shown latest -> oldest, left to right, for BOTH teams (as on the other pages), with the latest game ringed.
       const formBlock = (f, cls) => {
@@ -7522,7 +7692,9 @@ const worker = {
         return `<div class="r"><div class="t l"><div class="b${better === 2 ? " lo" : ""}" style="width:${wa.toFixed(1)}%">${show(a)}</div></div><div class="c">${e(label)}</div><div class="t rt"><div class="b${better === 1 ? " lo" : ""}" style="width:${wb.toFixed(1)}%">${show(b)}</div></div></div>`;
       };
       let inner;
-      if (!d || !m || !n) {
+      if (mdShow) {
+        inner = mdTvInner({ e, ord, light: theme === "light", me: m.me, opp: m.opp, n, sheet: mdv.sheet, crest, meCol, tm: TEAMS.find(t => String(t.team) === String(team)), h2hAll: m.h2hAll, league: d.league, season, stamp: londonStamp(Number(d.updatedAt) || Date.now()) });
+      } else if (!d || !m || !n) {
         const who = d && d.team ? d.team : "this team";
         inner = `${d && d.league ? `<div class="ttl"><p>${e(d.league)}</p></div>` : ""}<div class="note">${err ? "Couldn't load the match data just now. It will retry on the next refresh." : "No upcoming fixture found for " + e(who) + "."}</div>`;
       } else {
@@ -7641,7 +7813,7 @@ body{height:auto;overflow:visible;gap:.9rem;padding:max(.8rem,env(safe-area-inse
 .hsn{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:.7rem 0 .2rem;font-weight:700}.hrw{text-align:left;display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;padding:.3rem 0 .3rem .6rem;margin:.2rem 0;font-size:.95rem;border-left:.3rem solid #7a6a2a}.hrw.wa{border-color:var(--ca)}.hrw.wb{border-color:var(--cb)}.hrw small{display:block;color:var(--mu);font-size:.75rem}}
 @media (max-height:560px) and (orientation:landscape){html{font-size:14px}.top .dt{font-size:1.6rem}.big{width:3.8rem;height:3.8rem}.big .ini{font-size:1.3rem}.nm{font-size:1.1rem}.hd{gap:.4rem}.tag{margin-top:.3rem}.t{height:1.8rem}.b{font-size:.95rem}}`;
       const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="${theme === "light" ? "#eef2ef" : "#080b0d"}"><title>Match Stats</title>
-<!--rfu-fit: this page sizes itself, so the shared fitting script is not added--><style>${css}@media (min-width:801px) and (min-height:561px){body.fitwait{opacity:0}body.fitshow{transition:opacity .25s}}</style></head><body class="${theme}${m && Array.isArray(m.h2hAll) && m.h2hAll.length ? " hx" : ""} fitwait">${themeBoot('window.matchMedia("(max-width:800px),(max-height:560px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>
+<!--rfu-fit: this page sizes itself, so the shared fitting script is not added--><style>${css}${mdShow ? MD_TV_CSS : ""}@media (min-width:801px) and (min-height:561px){body.fitwait{opacity:0}body.fitshow{transition:opacity .25s}}</style></head><body class="${theme}${mdShow ? " md" : m && Array.isArray(m.h2hAll) && m.h2hAll.length ? " hx" : ""} fitwait">${themeBoot('window.matchMedia("(max-width:800px),(max-height:560px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav>
 ${inner}
 ${themeToggleScript}${colourScript}${refresh}<script>(function(){var H=document.documentElement,B=document.body,MQ="(min-width:801px) and (min-height:561px)";
 // TV / big screen: if everything does not fit the screen height (short browser window, long venue name, extra head-to-head text, weather or crests that arrive a moment after the page), shrink the text a step at a time until it does, with a gap kept between the bar rows. It re-checks whenever the page changes size or content, so it cannot slip back to bunched-up bars.
@@ -7660,7 +7832,7 @@ document.addEventListener("load",later,true);
 try{new MutationObserver(later).observe(B,{childList:true,subtree:true,characterData:true})}catch(e){}
 try{var ro=new ResizeObserver(later);[".top",".hd",".bars",".h2h",".ft"].forEach(function(q){var e=document.querySelector(q);if(e)ro.observe(e)})}catch(e){}
 setInterval(check,2000)})();</script></body></html>`;
-      return new Response(page, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });
+      return new Response(page + (isDev && mdv ? `<!--mdsim why=${mdv.why} show=${mdv.show ? 1 : 0} hold=${mdv.hold ? mdv.hold.secs : 0} read=${mdv.read ? 1 : 0} count=${mdv.sheet ? mdv.sheet.count : 0} lineup=${mdv.sheet && mdv.sheet.lineup ? 1 : 0}-->` : ""), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache", ...(mdv && mdv.hold ? { "X-Md-Hold": mdHoldHeader(mdv.hold) } : {}) } });
     }
 
     // Fixtures and results: /?view=fixtures&team=..&competition=..&division=..  The whole season for one team.
@@ -9648,7 +9820,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           const league = [...new Map(resultObjects.filter(mm => playedOk(mm) || walkoverInfo(mm)).map(mm => [matchKey(mm), mm])).values()]
             .sort((a, b) => (dateOf(b)?.getTime() || 0) - (dateOf(a)?.getTime() || 0));
           const profile = (id, row, label) => {
-            let hw = 0, aw = 0; const f = [];
+            let hw = 0, aw = 0, latest = null; const f = [];
             for (const mm of league) {
               const isHome = String(teamIdOf(mm.homeTeam)) === String(id), isAway = String(teamIdOf(mm.awayTeam)) === String(id);
               if (!isHome && !isAway) continue;
@@ -9656,9 +9828,10 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
               const wi = walkoverInfo(mm);
               const res = wi ? (wi.homeWins === isHome ? "W" : "L") : ms > os ? "W" : ms < os ? "L" : "D";
               if (f.length < 5) f.push(res);
+              if (!latest) latest = { out: res, wo: !!wi, f: wi ? null : ms, a: wi ? null : os, vs: teamNameOf((isHome ? mm.awayTeam : mm.homeTeam)), date: dateLabel(mm) }; // v3.59.0: newest result, for the Match day page
               if (res === "W") { if (isHome) hw++; else aw++; }
             }
-            return { id: String(id), name: label || (row && row.name) || "", position: row ? table.indexOf(row) + 1 : null, points: row ? row.pts : null, played: row ? row.p : null, wins: row ? row.w : null, pf: row ? row.pf : null, pa: row ? row.pa : null, homeWins: hw, awayWins: aw, form: f };
+            return { id: String(id), name: label || (row && row.name) || "", position: row ? table.indexOf(row) + 1 : null, points: row ? row.pts : null, played: row ? row.p : null, wins: row ? row.w : null, pf: row ? row.pf : null, pa: row ? row.pa : null, homeWins: hw, awayWins: aw, form: f, latest };
           };
           const oppId = teamIdOf(nextSide.opponent);
           const oppRow = table.find(t => String(t.id) === String(oppId)) || table.find(t => t.name.trim().toLowerCase() === teamNameOf(nextSide.opponent).trim().toLowerCase()) || null;
@@ -10208,7 +10381,7 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg", "sid"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg", "sid", "mdfake", "mdnow", "mdscore", "mdsheet"];
 function pageKeySearch(sp) {
   const out = [];
   for (const k of KNOWN_PARAMS) if (k !== "screen" && k !== "sid") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
@@ -10226,8 +10399,10 @@ function pageTtlFor(view, now) {
 // at weekends; at weekends an older copy from the same day (up to 6 hours old) is shown at once while a new one is built in the background.
 // A copy from an earlier London day is never shown, because words such as Today, Tomorrow and This Saturday would be wrong.
 function londonDay(ms) { return new Date(ms).toLocaleDateString("en-CA", { timeZone: "Europe/London" }); }
-function pageState(builtAt, now) {
+function pageState(builtAt, now, hold) {
   if (!Number.isFinite(builtAt) || londonDay(builtAt) !== londonDay(now)) return "old";
+  // v3.59.0: a Match day page for a team with the switch on carries its own hold (X-Md-Hold: seconds;until). It is rebuilt once the seconds have passed, and always at the stop or start time ("until").
+  if (hold) return now >= hold.until && builtAt < hold.until ? "old" : now - builtAt < hold.secs * 1000 ? "fresh" : "old";
   const wd = new Date(now).toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" });
   if (wd !== "Sat" && wd !== "Sun") return "fresh";
   const age = now - builtAt;
@@ -10418,7 +10593,7 @@ export default {
     let pageKey = null, pageCache = null;
     if (request.method === "GET") {
       const u0 = new URL(request.url), v0 = u0.searchParams.get("view") || "";
-      if (u0.pathname === "/" && !u0.searchParams.has("warm") && (["stack", "fixtures", "match", "leaders"].includes(v0) || (!v0 && u0.searchParams.has("team")) || !["team", "view", "format", "competition", "division"].some(k => u0.searchParams.has(k)))) { // v3.36.0: the Welcome page too (the bare address)
+      if (u0.pathname === "/" && !u0.searchParams.has("warm") && !u0.searchParams.has("mdnow") && (["stack", "fixtures", "match", "leaders"].includes(v0) || (!v0 && u0.searchParams.has("team")) || !["team", "view", "format", "competition", "division"].some(k => u0.searchParams.has(k)))) { // v3.36.0: the Welcome page too (the bare address)
         try { pageCache = typeof caches !== "undefined" && caches.default ? caches.default : null; } catch (_) { pageCache = null; }
         if (pageCache) {
           const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP) + "&_sv=" + encodeURIComponent(String((await siteSettings()).savedAt || "")) + "&_sa=" + SCORES_AT, { method: "GET" });
@@ -10464,7 +10639,7 @@ export default {
       try {
         const hit = await pageCache.match(pageKey);
         if (hit) {
-          const st = pageState(Number(hit.headers.get("X-Built-At")), Date.now());
+          const st = pageState(Number(hit.headers.get("X-Built-At")), Date.now(), mdHoldOf(hit.headers.get("X-Md-Hold")));
           if (st === "fresh" || st === "stale") {
             const hh = new Headers(hit.headers); hh.set("X-Page-Cache", "HIT"); hh.set("X-Page-State", st); hh.set("Cache-Control", "public, max-age=60");
             if (st === "stale" && ctx && typeof ctx.waitUntil === "function") {
