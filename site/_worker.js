@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.58.0 22-Nov-2026 Admin Overview: Refresh scores now button (results fetched before that time count as old; open screens check once a minute); help text says 30 minutes at weekends
 //   v3.57.2 22-Nov-2026 Fixtures TV board: the Last game banner border is now the team colour (as the Next game banner and highlighted row already were), not green/red/amber by result
 //   v3.57.1 22-Nov-2026 Laptop app view: page content is one centred column (never two) and the scrollbar sits at the window edge in the theme colour
 //   v3.57.0 22-Nov-2026 Laptops: App view on the links page, one page at a time in a centred column with a single scrollbar (no side-by-side panes with a mouse)
@@ -362,7 +363,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.57.2";
+const VERSION = "v3.58.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -409,6 +410,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.58.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.0_refresh_scores.zip | v3.57.2
 v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
 v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
 v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
@@ -734,6 +736,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.58.0 - Admin: Refresh scores now
+- Owner request (22-Nov-2026): a way to refresh the scores by hand when a result is known to be in GMS, without waiting for the usual timing (up to 30 minutes at weekends).
+- New: Admin, Overview, Scores card with a Refresh scores now button (club PIN). It saves the time. Results, fixtures, tables and team sheets fetched from the RFU before that time count as old, so the next visit fetches them again; kept finished pages (and the Match Centre summaries) are rebuilt too. Pressing again within a minute does nothing.
+- Open big screens (TV and tablet pages that reload themselves) ask for that time once a minute while visible and reload by crossfade when it changes, so a refresh shows within a few minutes. Phones are not reloaded.
+- The Updated time on each screen is when the data was last pulled from the RFU, so it moves to the manual refresh; the 30-minute weekend clock then runs from there. Admin shows when the button was last pressed.
+- Help text corrected: results are fresh for 30 minutes at weekends (it said 10).
+- Request limit: a refresh visit makes the same RFU calls as a cold load, inside the 50 per visit. Each open screen adds one tiny request a minute (no RFU calls, not counted as a visit). One small settings read at most every 20 seconds, one write per press.
+- Docs: What's new, Admin guide
 
 v3.57.2 - Fixtures screen: Last game banner uses the team colour
 - Owner report (22-Nov-2026): on the Vandals page the Last game banner was green (a win) while the next game outline in the list was yellow; the colour should always match the team colour.
@@ -2970,7 +2981,7 @@ const DOC_SECTIONS = [
   { id: "admin", title: "Admin guide", who: "Site owner", blocks: [
     { p: "The Admin page (/admin) changes site settings without editing code. It is where the Club access link on the welcome page leads, and it asks for the club PIN. Every club page (Link builder, Usage, Match day, Documentation) has an Admin link at the top to come back. Settings are stored per club in Cloudflare KV. With no storage connected every setting stays at its default." },
     { h: "How the Admin page is laid out" },
-    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. It is grouped by what each item is for, and each group is in A to Z order: Overview and Match day on their own at the top, then Club set-up, Screens and notices, Monitoring, and Settings and help. Items that open a section on this page (for example Our teams) and items that open their own page (for example Sponsors) sit side by side. The Overview opens first. It has quick links to Match day, the Sponsor list and the Link builder; a Needs attention strip that appears only when something is off (a team with no crest, no fixtures read for a team, no sponsors added) beside any live notices; the status cards (maintenance mode, today's visitors and TV screens, the website back-up); the next game day for each team; this season's sponsor counts; and what the TV rotation shows today and how many screens are paired. A section can be opened directly, for example /admin#data." },
+    { p: "A menu runs down the left; on a phone it is a row of tabs across the top that you swipe sideways. It is grouped by what each item is for, and each group is in A to Z order: Overview and Match day on their own at the top, then Club set-up, Screens and notices, Monitoring, and Settings and help. Items that open a section on this page (for example Our teams) and items that open their own page (for example Sponsors) sit side by side. The Overview opens first. It has quick links to Match day, the Sponsor list and the Link builder; a Needs attention strip that appears only when something is off (a team with no crest, no fixtures read for a team, no sponsors added) beside any live notices; the status cards (maintenance mode, today's visitors and TV screens, the website back-up); a Scores card with a Refresh scores now button (press it when a score is in GMS and you want the screens to show it sooner; open screens pick it up within a few minutes, and the Updated time moves to the new fetch); the next game day for each team; this season's sponsor counts; and what the TV rotation shows today and how many screens are paired. A section can be opened directly, for example /admin#data." },
     { dl: [
       ["Overview", "Quick links, anything that needs attention, status cards, the next game day for each team, sponsor counts and what the TV rotation shows today."],
       ["Match day", "Opens the Match day page (team sheets, sponsors, opposition and scoring)."],
@@ -3098,7 +3109,7 @@ const DOC_SECTIONS = [
   { id: "data", title: "How the data works", who: "Everyone", blocks: [
     { dl: [
       ["Where it comes from", "The public England Rugby (RFU) fixtures and results feed. Clubs enter results there; the Stats Board shows what the feed holds. Grounds come from the RFU match record, which also gives the map position. Forecasts come from Open-Meteo; postcodes.io and Open-Meteo's place search are only used when the record has no map position."],
-      ["How fresh it is", "Live results are treated as fresh for 10 minutes on Saturdays and Sundays and for an hour on other days. When they go out of date the previous copy is shown straight away (for up to six times that long, so up to an hour at weekends) while the site refreshes it in the background, so nobody waits; after that, or when there is no copy, the page waits for RFU (4 to 8 seconds at most). Postcodes and place lookups are kept for 30 days, the list of a team's competitions for 12 hours, a game's venue for 24 hours (a refused venue lookup is not tried again for 6 hours), the season list for a day and forecasts for 3 hours. On the live site, finished pages are also kept for 2 minutes. Fixtures TV boards reload themselves at the same pace; other screens reload hourly."],
+      ["How fresh it is", "Live results are treated as fresh for 30 minutes on Saturdays and Sundays and for a day on other days (Admin, Overview, Refresh scores now fetches them again on demand). When they go out of date the previous copy is shown straight away (for up to six times that long, so up to an hour at weekends) while the site refreshes it in the background, so nobody waits; after that, or when there is no copy, the page waits for RFU (4 to 8 seconds at most). Postcodes and place lookups are kept for 30 days, the list of a team's competitions for 12 hours, a game's venue for 24 hours (a refused venue lookup is not tried again for 6 hours), the season list for a day and forecasts for 3 hours. On the live site, finished pages are also kept for 2 minutes. Fixtures TV boards reload themselves at the same pace; other screens reload hourly."],
       ["Last checked", "The small line on the Fixtures board is when the Stats Board last read the feed. It is not a time supplied by the RFU, which is why it says checked and not updated."],
       ["If the feed is down", "The last good copy is kept for up to 7 days and shown meanwhile, so a screen carries on instead of going blank."],
       ["Seasons", "A link with no season follows the RFU season dates and moves on by itself each year. Between seasons a notice says the new fixtures are not published yet. A link with season=2025-2026 stays on that season."],
@@ -3177,6 +3188,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.58.0", "Admin, Overview: a Refresh scores now button. Press it when a score is in GMS and you want the screens to show it sooner: results are fetched from the RFU again on the next visit and open screens reload within a few minutes. The Updated time on each screen moves to the new fetch, and the usual weekend timing carries on from there."],
       ["v3.57.2", "Fixtures screen: the Last game banner outline now uses the team colour, matching the Next game banner and the highlighted row. The W/L stripes on played rows are unchanged."],
       ["v3.57.1", "Laptop app view: the page is one centred column, never two, and the scrollbar now sits at the window edge and follows the dark or light theme."],
       ["v3.57.0", "Laptops: the links page now has an App view button for laptops, and with a mouse the app view shows one page at a time in a centred column with a single scrollbar."],
@@ -3904,10 +3916,20 @@ function cleanSettings(raw) {
   d.savedAt = typeof r.savedAt === "string" ? r.savedAt.slice(0, 40) : "";
   return d;
 }
+// v3.58.0: "Refresh scores now" (Admin, Overview) saves a time. Results, fixtures, tables and team sheets fetched from the RFU before that time count as old, so the next visit fetches them again.
+const SCORES_KEY = "scores-refresh";
+let SCORES_AT = 0, SCORES_READ = 0;
+async function scoresAtLoad() {
+  const kv = kvOf(); if (!kv) return SCORES_AT;
+  if (SCORES_READ && Date.now() - SCORES_READ < 20000) return SCORES_AT;
+  try { const v = await kv.get(SCORES_KEY, { type: "json" }); SCORES_AT = Number(v && v.t) || 0; } catch (_) { /* keep the last time */ }
+  SCORES_READ = Date.now(); return SCORES_AT;
+}
 let SETTINGS_CACHE = { at: 0, v: null };
 async function siteSettings() {
   const kv = kvOf();
   if (!kv) return SETTINGS_DEFAULT();
+  await scoresAtLoad();
   if (SETTINGS_CACHE.v && Date.now() - SETTINGS_CACHE.at < 30000) return SETTINGS_CACHE.v;
   let v = null, failed = false;
   try { v = await kv.get(SETTINGS_KEY, { type: "json", cacheTtl: 60 }); } catch (_) { failed = true; }
@@ -4047,7 +4069,7 @@ ${setup}
 <a href="/docs">Documentation</a>
 <a href="#privacy" data-s="privacy">Privacy and counts</a>
 <a href="/winchance">Win Predictor test</a>${isDev ? '\n<a href="/probe">Probe (DEV)</a>' : ""}${isDev ? '\n<a href="/release-notes">Release notes</a>' : ""}</nav><div class="adm">
-<section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page.</p>
+<section class="sec" id="s-home"><h1>Overview</h1><p class="sub">What is switched on, and where to change it. Nothing is saved from this page except the Refresh scores button.</p>
 <div class="ovq"><a href="/matchday">Match day</a><a class="s" href="/sponsor-list">Sponsor list</a><a class="s" href="/?view=teams">Link builder</a></div>
 <div id="ovn"></div>
 <div class="ov">
@@ -4057,6 +4079,7 @@ ${setup}
 <div class="oc"><small>Website back-up</small><b class="${s.features.webfallback === false ? "bad" : "good"}">${s.features.webfallback === false ? "Off" : "On"}</b><span>${s.features.webfallback === false ? "RFU data service only" : "Used if the data service has nothing"}</span></div>
 </div>
 ${(() => { const out = []; if (h.on && h.text) out.push("Homepage notice is on: &ldquo;" + ea(h.text) + "&rdquo;" + (h.until ? " (until " + ea(h.until) + ")" : "")); if (v.on && v.text) out.push("TV notice is on: &ldquo;" + ea(v.text) + "&rdquo;" + (v.until ? " (until " + ea(v.until) + ")" : "")); if (m.on) out.push("Maintenance mode is on. Switch it off in Site status."); return out.length ? '<div class="warn">' + out.join("<br>") + "</div>" : '<p class="n" style="margin:14px 2px">No notices are live.</p>'; })()}
+<div class="ovc"><h2>Scores</h2><p class="n" style="margin:0 0 10px">Screens fetch results from the RFU at most every 30 minutes at weekends. If a score is in GMS and you want it on the screens sooner, press this. Open screens pick it up within a few minutes.</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button class="btn" id="ovsr" type="button">Refresh scores now</button><span class="n" id="ovsrm" style="margin:0"></span></div></div>
 <div class="ovc"><h2>Next game days <a href="/matchday">Open Match day &rsaquo;</a></h2><div id="ovg"></div></div>
 <div class="ovtw"><div class="ovc"><h2>Sponsors this season <a href="/sponsor-list">Sponsor list &rsaquo;</a></h2><div id="ovsp"><p class="n">Loading...</p></div></div>
 <div class="ovc"><h2><span id="ovtt">TV rotation today</span> <a href="#tv">Change &rsaquo;</a></h2><div id="ovtv"></div></div></div>
@@ -4244,6 +4267,10 @@ var dirty=false;function md(){if(dirty)return;dirty=true;$("sbar").classList.add
 $("af").addEventListener("input",md);$("af").addEventListener("change",md);$("dis").addEventListener("click",function(){dirty=false;location.reload()});
 addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue=""}});
 try{fetch("/api/usage?days=7",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var pd=(j.perDay||[]).slice(-1)[0],td=(j.tvDay||[]).slice(-1)[0];if(pd)$("ovp").textContent=pd.people;if(td)$("ovs").textContent=td.screens}).catch(function(){})}catch(e){}
+(function(){var b=$("ovsr"),m=$("ovsrm");if(!b)return;function hm(t){var d=new Date(t);return d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/London"})}
+function show(t,again){m.textContent=t?(again?"Just refreshed at ":"Last refreshed at ")+hm(t)+(again?" (wait a minute before pressing again)":" (manual)"):"Not pressed yet."}
+fetch("/api/scores-refresh",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){show(j&&j.t)}).catch(function(){});
+b.addEventListener("click",function(){b.disabled=true;m.textContent="Refreshing...";fetch("/api/scores-refresh",{method:"POST",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){b.disabled=false;if(j&&j.ok)show(j.t,j.again);else m.textContent=(j&&j.error)||"Could not refresh."}).catch(function(){b.disabled=false;m.textContent="Could not refresh."})})})();
 function ovE(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var OVN={};function ovNeed(k,t){OVN[k]=t;var a=[];for(var x in OVN)if(OVN[x])a.push(OVN[x]);$("ovn").innerHTML=a.length?'<div class="warn"><b>Needs attention:</b> '+a.map(ovE).join(" &middot; ")+"</div>":""}
 function ovGames(){var el=$("ovg"),ts=club.filter(function(t){return!t.hidden&&/^[0-9]+$/.test(String(t.team))});if(!ts.length){el.innerHTML='<p class="n">No teams are shown yet.</p>';return}
@@ -6744,6 +6771,8 @@ async function cachedText(target, accept, optional) {
   const key = String(target);
   const now = Date.now();
   const ttlS = ttlFor(key), ttl = ttlS * 1000;
+  const ep = (ttlS === liveDataSeconds() || ttlS === 120) ? SCORES_AT : 0; // v3.58.0: live data fetched before the last "Refresh scores now" counts as old
+  const isOld = fa => now - fa >= ttl || (ep > 0 && fa < ep);
   let stale = null;
   const useStale = fallback => (stale && now - stale.fetchedAt < Math.max(STALE_SECONDS, ttlS) * 1000) ? { ok: true, status: 200, text: stale.text, fetchedAt: stale.fetchedAt, stale: true } : fallback;
   let cache = null;
@@ -6763,7 +6792,7 @@ async function cachedText(target, accept, optional) {
     })());
   };
   const mem = memCache.get(key);
-  if (mem && now - mem.fetchedAt < ttl) { early(mem.fetchedAt); return mem; }
+  if (mem && !isOld(mem.fetchedAt)) { early(mem.fetchedAt); return mem; }
   if (mem) stale = mem;
   // v3.30.20: cache lookups count against the same 50 as outside requests, so once the budget is spent an uncached answer is simply not available.
   if (SUB.n >= ((optional || optionalKey(key)) ? subOpt() : SUB_ESSENTIAL)) { SUB.skipped++; return useStale({ ok: false, status: 0, text: "", fetchedAt: now, budget: true }); }
@@ -6785,7 +6814,7 @@ async function cachedText(target, accept, optional) {
       SUB.n++; const hit = await cache.match(key);
       if (hit) {
         const fetchedAt = Number(hit.headers.get("x-fetched-at")) || 0;
-        if (fetchedAt && now - fetchedAt < ttl) {
+        if (fetchedAt && !isOld(fetchedAt)) {
           const v = { ok: true, status: 200, text: await hit.text(), fetchedAt };
           memCache.set(key, v);
           early(fetchedAt);
@@ -6796,7 +6825,7 @@ async function cachedText(target, accept, optional) {
     } catch (_) { /* cache miss */ }
   }
   // Old but not too old: show it at once and refresh behind the scenes, so no visitor waits for the outside fetch.
-  if (stale && now - stale.fetchedAt < ttl * SWR_FACTOR && SITE_CTX && typeof SITE_CTX.waitUntil === "function") {
+  if (stale && !(ep > 0 && stale.fetchedAt < ep) && now - stale.fetchedAt < ttl * SWR_FACTOR && SITE_CTX && typeof SITE_CTX.waitUntil === "function") {
     const started = refreshing.get(key);
     if (!started || now - started > 15000) {
       refreshing.set(key, now);
@@ -8298,7 +8327,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       const wpOn = (await siteSettings()).features.winchance === true;
       // v3.31.0: one team's summary, worked out (or read from the 15-minute shared copy) by its own request, so every team gets its own 50-request budget.
       const qOf = t => new URLSearchParams({season: t.season || season, competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, friendlyName: t.name, format: "summary"});
-      const keysOf = t => { const q = qOf(t); return { q, skey: "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP, gkey: "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0) }; };
+      const keysOf = t => { const q = qOf(t); return { q, skey: "sum|" + q.toString() + "|" + (wpOn ? 1 : 0) + "|" + TEAMS_STAMP + "|" + SCORES_AT, gkey: "sumgood|" + q.toString() + "|" + (wpOn ? 1 : 0) }; };
       const compute = async t => {
         const { q, skey, gkey } = keysOf(t);
         try {
@@ -9926,7 +9955,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/sponsor-list" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/sponsor-list" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens" || path === "/api/scores-refresh";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -10010,6 +10039,21 @@ async function pairRoutes(request, url) {
     if (sp.get("check") === "1") return J({ ok: false, waiting: true });
     try { await kv.delete("pair:" + c); } catch (_) { /* expires on its own */ }
     return J({ ok: true, t: r.t, l: String(r.l || "") });
+  }
+  if (path === "/api/scores-at" && request.method === "GET") { // v3.58.0: tiny, public: the time of the last "Refresh scores now" (open screens check it once a minute)
+    return new Response(JSON.stringify({ t: await scoresAtLoad() }), { headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+  }
+  if (path === "/api/scores-refresh") { // behind the club PIN (clubGate)
+    const J2 = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+    const kv = kvOf(); if (!kv) return J2({ ok: false, error: "Settings storage is not connected." }, 503);
+    SCORES_READ = 0; const cur = await scoresAtLoad();
+    if (request.method === "GET") return J2({ ok: true, t: cur });
+    if (request.method !== "POST") return J2({ ok: false }, 405);
+    const now = Date.now();
+    if (cur && now - cur < 60000) return J2({ ok: true, t: cur, again: true });
+    try { await kv.put(SCORES_KEY, JSON.stringify({ t: now })); } catch (_) { return J2({ ok: false, error: "Could not save. Try again." }, 500); }
+    SCORES_AT = now; SCORES_READ = now;
+    return J2({ ok: true, t: now });
   }
   if (path === "/api/screens") { // behind the club PIN (clubGate)
     if (request.method === "GET") {
@@ -10320,6 +10364,7 @@ function stop(){removeEventListener("message",on);clearTimeout(tm)}
 function fail(){if(done)return;done=true;stop();busy=false;try{f.remove()}catch(e){}}
 function on(e){if(done||e.source!==f.contentWindow)return;if(e.data==="rfu-kicked"){done=true;stop();location.replace("/setup?reset=1");return}if(e.data!=="rfu-sr-ready")return;done=true;stop();LAST=Date.now();f.style.opacity="1";var prev=old;old=f;setTimeout(function(){try{if(prev)prev.remove()}catch(e){}busy=false},1500)}
 addEventListener("message",on);var tm=setTimeout(fail,20000);document.body.appendChild(f)};
+(function(){if(sr||top!==self||!matchMedia("(min-width:801px) and (min-height:561px)").matches||!document.querySelector(".clubhead,.rw,.fx,.lc"))return;var base=null;function p(){if(document.visibilityState!=="visible")return;fetch("/api/scores-at",{cache:"no-store",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){var t=Number(j&&j.t)||0;if(base===null){base=t;return}if(t>base){base=t;if(window.rfuSoft)rfuSoft()}}).catch(function(){})}setTimeout(p,5000);setInterval(p,60000)})();
 })();</script>`;
 // v3.30.15: the Admin name is filled into a request by withClubName, so the page then built links carrying it (friendlyName=Ivybridge+1XV). Those are left out again: a link for a team on the club's list follows Admin by itself. A different name in a link is kept.
 let CLUB_NAME_RE = null, CLUB_NAME_STAMP = "";
@@ -10371,7 +10416,7 @@ export default {
       if (u0.pathname === "/" && !u0.searchParams.has("warm") && (["stack", "fixtures", "match", "leaders"].includes(v0) || (!v0 && u0.searchParams.has("team")) || !["team", "view", "format", "competition", "division"].some(k => u0.searchParams.has(k)))) { // v3.36.0: the Welcome page too (the bare address)
         try { pageCache = typeof caches !== "undefined" && caches.default ? caches.default : null; } catch (_) { pageCache = null; }
         if (pageCache) {
-          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP) + "&_sv=" + encodeURIComponent(String((await siteSettings()).savedAt || "")), { method: "GET" });
+          const ks = pageKeySearch(u0.searchParams); pageKey = new Request(u0.origin + u0.pathname + ks + (ks ? "&" : "?") + "_pg=" + VERSION + "&_tm=" + String(TEAMS_STAMP) + "&_sv=" + encodeURIComponent(String((await siteSettings()).savedAt || "")) + "&_sa=" + SCORES_AT, { method: "GET" });
         }
       }
     }

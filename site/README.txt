@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.58.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.0_refresh_scores.zip | v3.57.2
 v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
 v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
 v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
@@ -366,6 +367,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.58.0 - Admin: Refresh scores now
+- Owner request (22-Nov-2026): a way to refresh the scores by hand when a result is known to be in GMS, without waiting for the usual timing (up to 30 minutes at weekends).
+- New: Admin, Overview, Scores card with a Refresh scores now button (club PIN). It saves the time. Results, fixtures, tables and team sheets fetched from the RFU before that time count as old, so the next visit fetches them again; kept finished pages (and the Match Centre summaries) are rebuilt too. Pressing again within a minute does nothing.
+- Open big screens (TV and tablet pages that reload themselves) ask for that time once a minute while visible and reload by crossfade when it changes, so a refresh shows within a few minutes. Phones are not reloaded.
+- The Updated time on each screen is when the data was last pulled from the RFU, so it moves to the manual refresh; the 30-minute weekend clock then runs from there. Admin shows when the button was last pressed.
+- Help text corrected: results are fresh for 30 minutes at weekends (it said 10).
+- Request limit: a refresh visit makes the same RFU calls as a cold load, inside the 50 per visit. Each open screen adds one tiny request a minute (no RFU calls, not counted as a visit). One small settings read at most every 20 seconds, one write per press.
+- Docs: What's new, Admin guide
 
 v3.57.2 - Fixtures screen: Last game banner uses the team colour
 - Owner report (22-Nov-2026): on the Vandals page the Last game banner was green (a win) while the next game outline in the list was yellow; the colour should always match the team colour.
