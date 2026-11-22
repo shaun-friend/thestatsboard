@@ -6,4 +6,5 @@ c('the App view row is shown only to mouse devices wider than a phone (and with 
 c('the app shell lets a mouse device stay in the app view',/capable=force\|\|mm\("\(max-width:820px\)"\)\|\|\(mm\("\(hover:hover\)"\)&&mm\("\(pointer:fine\)"\)\)/.test(src));
 c('side-by-side panes are for touch devices only',/function wantSplit\(\)\{return tabOf\(view\)==="next"&&!\(mm\("\(hover:hover\)"\)&&mm\("\(pointer:fine\)"\)\)/.test(src));
 c('mouse devices get one centred column inside a full-width frame',/hover:hover\) and \(pointer:fine\)\{html body\{max-width:820px!important/.test(src)&&!/\.sbx-fr\{max-width:1040px\}/.test(src));
+c('Last game banner border follows the team colour, not the result',/\.ban\.last\{border-color:var\(--b1,#3fb865\)\}/.test(src)&&!/\.ban\.last\.w\{border-color/.test(src));
 console.log(ok+' passed, '+bad+' failed');

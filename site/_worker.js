@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.57.2 22-Nov-2026 Fixtures TV board: the Last game banner border is now the team colour (as the Next game banner and highlighted row already were), not green/red/amber by result
 //   v3.57.1 22-Nov-2026 Laptop app view: page content is one centred column (never two) and the scrollbar sits at the window edge in the theme colour
 //   v3.57.0 22-Nov-2026 Laptops: App view on the links page, one page at a time in a centred column with a single scrollbar (no side-by-side panes with a mouse)
 //   v3.56.4 22-Nov-2026 Win chance: a win or defeat now counts for 10 points on top of the margin (was 6), so steady winners are rated higher
@@ -361,7 +362,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.57.1";
+const VERSION = "v3.57.2";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -408,6 +409,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.57.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.2_banner_colour.zip | v3.57.1
 v3.57.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.1_laptop_scrollbar.zip | v3.57.0
 v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
 v3.56.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.4_win_bonus10.zip | v3.56.3
@@ -732,6 +734,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.57.2 - Fixtures screen: Last game banner uses the team colour
+- Owner report (22-Nov-2026): on the Vandals page the Last game banner was green (a win) while the next game outline in the list was yellow; the colour should always match the team colour.
+- Fixed: the Last game banner outline is now the team colour, like the Next game banner and the highlighted next row. The green/red stripe and W/L badge on each played row still show the result.
+- Request limit: no change.
+- Docs: What's new
 
 v3.57.1 - Laptop app view: scrollbar and single column
 - Owner report (22-Nov-2026): an unnecessary white scrollbar in the middle of the page in the laptop app view.
@@ -3169,6 +3177,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.57.2", "Fixtures screen: the Last game banner outline now uses the team colour, matching the Next game banner and the highlighted row. The W/L stripes on played rows are unchanged."],
       ["v3.57.1", "Laptop app view: the page is one centred column, never two, and the scrollbar now sits at the window edge and follows the dark or light theme."],
       ["v3.57.0", "Laptops: the links page now has an App view button for laptops, and with a mouse the app view shows one page at a time in a centred column with a single scrollbar."],
       ["v3.56.4", "Win chance: winning now counts for more (10 points on top of the margin), so a side that keeps winning is rated higher."],
@@ -6037,7 +6046,7 @@ function bannerInfo(o) { // {todayStr, day, games, table, ownClub}
   return { mode: "next", opp: { id: nextG.oppId, name: nextG.oppName, position: posOf(nextG.oppId) }, home: nextG.home, tag: nextG.home ? "Home at " + o.ownClub : "Away at " + nextG.oppName,
     when, dateFull: new Date(nd + "T00:00:00Z").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }), date: new Date(nextG.iso), venue: nextG.venue || "" };
 }
-const BANNER_CSS = ".ban{display:grid;gap:0;background:#111719;border:.3vh solid #3fb865;border-radius:2vh;padding:1.2vh 1.6vw;margin-top:1.2vh;height:14.5vh;align-items:center}.ban.last.w{border-color:#3fb865}.ban.last.l{border-color:#d9534f}.ban.last.d{border-color:#e0a82e}.ban>div{padding:0 1.6vw;min-width:0}.ban>div:first-child{padding-left:0}.ban>div+div{border-left:1px solid #26312d}.ban .bl{font-size:1.6vh;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:0 0 .8vh}.ban .bt{display:flex;align-items:center;gap:1.2vw}.ban .bc{width:8.6vh;height:8.6vh;flex:0 0 8.6vh;border-radius:1.6vh;background:#f5f7f6;display:grid;place-items:center;overflow:hidden;position:relative}.ban .bc img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:.8vh}.ban .bc span{font-weight:900;font-size:2.8vh;color:#18221c}.ban .bn{font-size:4.2vh;font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:.7vh;margin-bottom:-.7vh}.ban .tg span{display:inline-block;background:#1d2b36;color:#9ccaf0;border-radius:99px;padding:.3vh 1vw;font-size:1.9vh;font-weight:700;margin:.6vh .5vw 0 0}.ban .bw{font-size:5.4vh;font-weight:900;line-height:1}.ban .bd{font-size:2.2vh;color:#a9b8af;margin-top:.8vh}.ban .bs{font-size:6vh;font-weight:900;line-height:1}.ban .bs i{font-style:normal;font-size:.5em;margin-left:.8vw;padding:.3vh .9vw;border-radius:99px;color:#fff;vertical-align:middle}.ban .bs i.w{background:#2f9e5b}.ban .bs i.l{background:#d9534f}.ban .bs i.d{background:#c58f1c}.ban .bwx{display:flex;align-items:center;gap:1vw}.ban .bwx .ic{font-size:6vh}.ban .bwx b{display:block;font-size:3vh}.ban .bwx small{font-size:2vh;color:#a9b8af}body.light .ban{background:#fff}body.light .ban>div+div{border-left-color:#e0e7e1}body.light .ban .bl,body.light .ban .bd,body.light .ban .bwx small{color:#53665a}body.light .ban .tg span{background:#dcebf6;color:#1d5a85}.fx.pd{opacity:.78}";
+const BANNER_CSS = ".ban{display:grid;gap:0;background:#111719;border:.3vh solid #3fb865;border-radius:2vh;padding:1.2vh 1.6vw;margin-top:1.2vh;height:14.5vh;align-items:center}.ban.last{border-color:var(--b1,#3fb865)}.ban>div{padding:0 1.6vw;min-width:0}.ban>div:first-child{padding-left:0}.ban>div+div{border-left:1px solid #26312d}.ban .bl{font-size:1.6vh;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:0 0 .8vh}.ban .bt{display:flex;align-items:center;gap:1.2vw}.ban .bc{width:8.6vh;height:8.6vh;flex:0 0 8.6vh;border-radius:1.6vh;background:#f5f7f6;display:grid;place-items:center;overflow:hidden;position:relative}.ban .bc img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:.8vh}.ban .bc span{font-weight:900;font-size:2.8vh;color:#18221c}.ban .bn{font-size:4.2vh;font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:.7vh;margin-bottom:-.7vh}.ban .tg span{display:inline-block;background:#1d2b36;color:#9ccaf0;border-radius:99px;padding:.3vh 1vw;font-size:1.9vh;font-weight:700;margin:.6vh .5vw 0 0}.ban .bw{font-size:5.4vh;font-weight:900;line-height:1}.ban .bd{font-size:2.2vh;color:#a9b8af;margin-top:.8vh}.ban .bs{font-size:6vh;font-weight:900;line-height:1}.ban .bs i{font-style:normal;font-size:.5em;margin-left:.8vw;padding:.3vh .9vw;border-radius:99px;color:#fff;vertical-align:middle}.ban .bs i.w{background:#2f9e5b}.ban .bs i.l{background:#d9534f}.ban .bs i.d{background:#c58f1c}.ban .bwx{display:flex;align-items:center;gap:1vw}.ban .bwx .ic{font-size:6vh}.ban .bwx b{display:block;font-size:3vh}.ban .bwx small{font-size:2vh;color:#a9b8af}body.light .ban{background:#fff}body.light .ban>div+div{border-left-color:#e0e7e1}body.light .ban .bl,body.light .ban .bd,body.light .ban .bwx small{color:#53665a}body.light .ban .tg span{background:#dcebf6;color:#1d5a85}.fx.pd{opacity:.78}";
 // ---------- v30 app navigation (phones and iPads) ----------
 // Touch devices up to iPad Pro size, and narrow windows, are moved to an "app shell" page (?app=1): a team chip,
 // a Share sheet and four tabs around the normal views, which load inside a frame (?embed=1) so each keeps its own
