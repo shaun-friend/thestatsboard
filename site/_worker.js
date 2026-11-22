@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.57.0 22-Nov-2026 Laptops: App view on the links page, one page at a time in a centred column with a single scrollbar (no side-by-side panes with a mouse)
 //   v3.56.4 22-Nov-2026 Win chance: a win or defeat now counts for 10 points on top of the margin (was 6), so steady winners are rated higher
 //   v3.56.3 22-Nov-2026 Win chance: earlier seasons together count at most 15% of this season's games (was 60%), so a climbing side is rated on this season
 //   v3.56.2 22-Nov-2026 Win chance: Games counted is a collapsed list with its own heading; the Test environment badge shows the version
@@ -359,7 +360,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.56.4";
+const VERSION = "v3.57.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -406,6 +407,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
 v3.56.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.4_win_bonus10.zip | v3.56.3
 v3.56.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.3_win_history_less.zip | v3.56.2
 v3.56.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.2_games_list_badge.zip | v3.56.1
@@ -728,6 +730,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.57.0 - App view for laptops
+- Owner request (22-Nov-2026): on a laptop the links page offered only the TV views, and the mobile view split several pages onto one screen with scrollbars.
+- Added: an App view (laptop and tablet) button at the top of the links page for laptops and desktops (a mouse and a window wider than a phone). Standard / TV view stays below it; the TV views and mobile views are still under Show all links.
+- Changed: with a mouse the app view shows one page at a time in a centred column with a single scrollbar, and Next game has the Match Stats / Opposition report switch instead of two panes side by side. Tablets on their side (touch) keep the two panes.
+- Changed: a laptop that opens an app view link (for example one shared from a phone) now stays in the app view instead of being sent back to the standard page.
+- Request limit: no change.
+- Docs: What's new, Other addresses
 
 v3.56.4 - Win chance: bigger win bonus
 - Owner request (22-Nov-2026): make winning count for more. Ivybridge 1XV (7 wins from 8) were rated level with Nailsea & Backwell (3 wins from 8) on results.
@@ -3150,6 +3160,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.57.0", "Laptops: the links page now has an App view button for laptops, and with a mouse the app view shows one page at a time in a centred column with a single scrollbar."],
       ["v3.56.4", "Win chance: winning now counts for more (10 points on top of the margin), so a side that keeps winning is rated higher."],
       ["v3.56.3", "Win chance: older seasons now carry much less weight, so a side that has climbed is rated on this season's results."],
       ["v3.56.2", "Win chance: the Games counted list is tidied and collapsed until opened. On the test site the yellow badge now shows the version."],
@@ -6059,6 +6070,8 @@ body.light{background:#eef2ef}
 .sbx-hr{height:1px;background:var(--bd);margin:12px 0}.sbx-ver{margin:10px 0 0;text-align:center;color:var(--mu);font-size:11px}
 .sbx-chip:focus-visible,.sbx-rt{display:flex;gap:8px;align-items:center}.sbx-bulb{padding:0;width:40px;justify-content:center}.sbx-ic:focus-visible,.sbx-tab:focus-visible,.sbx-sg:focus-visible,.opt:focus-visible,.sbx-b:focus-visible,.sbx-x:focus-visible{outline:3px solid #7fd89a;outline-offset:2px}
 #sbv{display:none!important}
+/* v3.57.0: laptops and desktops (mouse): one page at a time in a centred column with a single scrollbar; the side-by-side Next game panes stay for tablets */
+@media (hover:hover) and (pointer:fine){.sbx-main{justify-content:center}.sbx-fr{max-width:1040px}}
 @media (min-width:900px) and (min-height:600px) and (orientation:landscape){
  .sbx-app{flex-direction:row}
  .sbx-main{padding-left:0}
@@ -6088,7 +6101,7 @@ function $(i){return d.getElementById(i)}
 function el(t,c,x){var e=d.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 var q0=new URLSearchParams(L.search);
 var force=q0.get("force")==="1";
-var capable=force||mm("(max-width:820px)")||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100);
+var capable=force||mm("(max-width:820px)")||(mm("(hover:hover)")&&mm("(pointer:fine)"))||(navigator.maxTouchPoints>0&&mm("(hover:none)")&&mm("(pointer:coarse)")&&Math.min(screen.width,screen.height)<=1100);
 if(!capable){q0.delete("app");q0.delete("force");L.replace("/?"+q0.toString());return}
 var PK=["season","competition","division","team","teamName","friendlyName"];
 var T={};PK.forEach(function(k){T[k]=q0.get(k)||""});
@@ -6148,7 +6161,7 @@ function hook(f){try{var doc=f.contentDocument;if(!doc||doc.__sbx)return;doc.__s
  if((u.pathname==="/"||u.pathname==="")&&p.get("team")&&["","fixtures","leaders","match","opposition"].indexOf(v)>=0){ev.preventDefault();var t={};PK.forEach(function(k){t[k]=p.get(k)||""});T=t;remember(T);go(v,true);return}
  if(a.target==="_blank")return;
  ev.preventDefault();L.href=u.href},true)}catch(e){}}
-function wantSplit(){return tabOf(view)==="next"&&mm("(min-width:900px)")&&mm("(min-height:600px)")&&mm("(orientation:landscape)")}
+function wantSplit(){return tabOf(view)==="next"&&!(mm("(hover:hover)")&&mm("(pointer:fine)"))&&mm("(min-width:900px)")&&mm("(min-height:600px)")&&mm("(orientation:landscape)")}
 function setSrc(f,u){var had=f.getAttribute("data-u");f.setAttribute("data-u",u);if(had){try{f.contentWindow.location.replace(u);return}catch(e){}}f.src=u}
 // Other competitions (league, cups) for this team: a row of buttons under the team bar, only when there are two or more.
 var LG={};
@@ -6811,7 +6824,7 @@ const MENU_CSS = `*{box-sizing:border-box}body{margin:0;min-height:100vh;font-fa
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .card{background:#111719;border:1px solid #26312d;border-radius:16px;padding:16px 18px;margin-bottom:12px}.card h3{margin:0 0 2px;font-size:20px;font-weight:700}.grp{margin-top:26px}.gt{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7fd89a;margin:0 0 2px}.gn{margin:0 0 12px;color:#91a49a;font-size:14px}.lg{margin:0 0 12px;color:#9eafa5;font-size:14px}
 .ver{margin:28px 0 0;text-align:center;font-size:12px;color:#5f7168}body.light .ver{color:#6b7d72}.crest{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:56px;height:56px;border-radius:50%;background:#fff;border:1px solid #cbd8ce;overflow:hidden}.crest .ini{font:700 18px Arial,Helvetica,sans-serif;color:#33443a}.crest img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:5px;background:#fff}.tid{display:flex;align-items:center;gap:14px}.tid b{font-size:18px;font-weight:700;display:block}.tid span.sm{display:block;color:#91a49a;font-size:14px;margin-top:2px}body.light .tid span.sm{color:#53665a}
-.row{display:flex;gap:8px;margin-top:8px}.only-mob{display:none}@media (max-width:820px),(hover:none) and (pointer:coarse) and (max-width:1100px){.only-tv{display:none}.only-mob{display:flex}}body.dm .only-tv{display:none!important}body.dm .only-mob{display:flex!important}body.dd .only-mob{display:none!important}body.dd .only-tv{display:flex!important}body.all .only-tv,body.all .only-mob{display:flex!important}.btn{flex:1;display:block;text-align:center;text-decoration:none;color:#fff;background:#18512f;border:0;border-radius:10px;padding:12px 10px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}.btn.mob{background:#1d4f6b}.btn.lt{background:#4a5a52}.btn.share{background:#7a4d06}[hidden]{display:none!important}
+.row{display:flex;gap:8px;margin-top:8px}.only-mob{display:none}.only-lap{display:none}@media (min-width:821px) and (hover:hover) and (pointer:fine){.only-lap{display:flex}}body.all .only-lap,body.dd .only-lap{display:flex!important}body.dm .only-lap{display:none!important}@media (max-width:820px),(hover:none) and (pointer:coarse) and (max-width:1100px){.only-tv{display:none}.only-mob{display:flex}}body.dm .only-tv{display:none!important}body.dm .only-mob{display:flex!important}body.dd .only-mob{display:none!important}body.dd .only-tv{display:flex!important}body.all .only-tv,body.all .only-mob{display:flex!important}.btn{flex:1;display:block;text-align:center;text-decoration:none;color:#fff;background:#18512f;border:0;border-radius:10px;padding:12px 10px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}.btn.mob{background:#1d4f6b}.btn.lt{background:#4a5a52}.btn.share{background:#7a4d06}[hidden]{display:none!important}
 .copy{flex:0 0 auto;background:#19221e;color:#dce4df;border:1px solid #2c3a34;border-radius:10px;padding:0 14px;font-size:14px;font-family:inherit;cursor:pointer}
 .pill{font:700 14px Arial,Helvetica,sans-serif;color:#f5f7f6;background:#17211c;border:1px solid #294333;border-radius:99px;padding:8px 14px;text-decoration:none;cursor:pointer;white-space:nowrap}
 .mbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
@@ -6910,7 +6923,7 @@ function api(p,q){return fetch(p+"?"+new URLSearchParams(q)).then(function(r){re
 function theme(){return document.body.classList.contains("light")?"light":"dark"}
 function qs(o){return new URLSearchParams(o).toString()}
 function teamLink(layout){var o={season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()};if(layout)o.layout=layout;return SB_BASE+"/?"+qs(o)}
-function linkFor(k){return k==="match"?matchLink():k==="fixtures"?matchLink().replace("view=match","view=fixtures"):k==="fixturestv"?matchLink().replace("view=match","view=fixtures")+"&layout=tv":k==="leaders"?matchLink().replace("view=match","view=leaders"):k==="leaderstv"?matchLink().replace("view=match","view=leaders")+"&layout=tv":k==="opp"?matchLink().replace("view=match","view=opposition"):k==="oppwide"?matchLink().replace("view=match","view=opposition")+"&layout=wide":teamLink(k)}
+function linkFor(k){return k==="app"?SB_BASE+"/?"+qs({season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,app:"1"}):k==="match"?matchLink():k==="fixtures"?matchLink().replace("view=match","view=fixtures"):k==="fixturestv"?matchLink().replace("view=match","view=fixtures")+"&layout=tv":k==="leaders"?matchLink().replace("view=match","view=leaders"):k==="leaderstv"?matchLink().replace("view=match","view=leaders")+"&layout=tv":k==="opp"?matchLink().replace("view=match","view=opposition"):k==="oppwide"?matchLink().replace("view=match","view=opposition")+"&layout=wide":teamLink(k)}
 function matchLink(){return SB_BASE+"/?"+qs({view:"match",season:sel.season,competition:sel.competition,division:sel.division,team:sel.team,teamName:sel.name,friendlyName:sel.name,theme:theme()})}
 var KEY="statsBoardRecent";
 function okRec(r){return r&&/^\\d+$/.test(r.team)&&/^\\d+$/.test(r.competition)&&/^\\d+$/.test(r.division)&&/^\\d{4}-\\d{4}$/.test(r.season)&&typeof r.name==="string"&&typeof r.league==="string"}
@@ -6941,7 +6954,7 @@ function finish(lg,season){
  var ch=el("button","pill","Change team");ch.type="button";ch.addEventListener("click",showSearch);chip.appendChild(ch);out.appendChild(chip);
  var tip=el("p","tip","Showing the links that suit this device. "),al=el("a",null,"Show all links");al.href="#";al.addEventListener("click",function(ev){ev.preventDefault();var on=document.body.classList.toggle("all");al.textContent=on?"Show device links only":"Show all links"});tip.appendChild(al);out.appendChild(tip);
  var card=el("div","card");
- [["Standard / TV view","",""," only-tv"],["Mobile view","mobile","mob"," only-mob"],["Match Stats (next match)","match","lt",""],["Fixtures and Results (Mobile)","fixtures","mob"," only-mob"],["Fixtures and Results (TV View)","fixturestv","lt"," only-tv"],["League Leaders (Mobile)","leaders","mob"," only-mob"],["League Leaders (TV View)","leaderstv","lt"," only-tv"],["Opposition Report (Mobile)","opp","mob"," only-mob"],["Opposition Report (Wide Screen)","oppwide","lt"," only-tv"]].forEach(function(r){
+ [["App view (laptop and tablet)","app",""," only-lap"],["Standard / TV view","","lt"," only-tv"],["Mobile view","mobile","mob"," only-mob"],["Match Stats (next match)","match","lt",""],["Fixtures and Results (Mobile)","fixtures","mob"," only-mob"],["Fixtures and Results (TV View)","fixturestv","lt"," only-tv"],["League Leaders (Mobile)","leaders","mob"," only-mob"],["League Leaders (TV View)","leaderstv","lt"," only-tv"],["Opposition Report (Mobile)","opp","mob"," only-mob"],["Opposition Report (Wide Screen)","oppwide","lt"," only-tv"]].forEach(function(r){
   var row=el("div","row"+r[3]),a=el("a","btn "+r[2],r[0]);a.setAttribute("data-k",r[1]);a.href=linkFor(r[1]);row.appendChild(a);card.appendChild(row)});
  out.appendChild(card);
  var sr=el("div","row"),sb=el("button","btn share","Share links");sb.type="button";sr.appendChild(sb);out.appendChild(sr);

@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.57.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.57.0_laptop_app_view.zip | v3.56.4
 v3.56.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.4_win_bonus10.zip | v3.56.3
 v3.56.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.3_win_history_less.zip | v3.56.2
 v3.56.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.2_games_list_badge.zip | v3.56.1
@@ -363,6 +364,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.57.0 - App view for laptops
+- Owner request (22-Nov-2026): on a laptop the links page offered only the TV views, and the mobile view split several pages onto one screen with scrollbars.
+- Added: an App view (laptop and tablet) button at the top of the links page for laptops and desktops (a mouse and a window wider than a phone). Standard / TV view stays below it; the TV views and mobile views are still under Show all links.
+- Changed: with a mouse the app view shows one page at a time in a centred column with a single scrollbar, and Next game has the Match Stats / Opposition report switch instead of two panes side by side. Tablets on their side (touch) keep the two panes.
+- Changed: a laptop that opens an app view link (for example one shared from a phone) now stays in the app view instead of being sent back to the standard page.
+- Request limit: no change.
+- Docs: What's new, Other addresses
 
 v3.56.4 - Win chance: bigger win bonus
 - Owner request (22-Nov-2026): make winning count for more. Ivybridge 1XV (7 wins from 8) were rated level with Nailsea & Backwell (3 wins from 8) on results.
