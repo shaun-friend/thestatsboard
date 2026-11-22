@@ -4,7 +4,7 @@ const m=await import(process.argv[2]);
 let pass=0,fail=0;const c=(n,ok)=>{if(ok)pass++;else{fail++;console.log('FAIL',n)}};
 // run the model through the real functions by evaluating them from source
 const grab=n=>{const i=src.indexOf('function '+n+'(');let d=0,j=src.indexOf('{',i);for(let k=j;k<src.length;k++){if(src[k]==='{')d++;if(src[k]==='}'){d--;if(!d)return src.slice(i,k+1)}}};
-const code=['normCdf','winFloor','winPercents','winModel','winBiggest','winBuild'].map(grab).join('\n');
+const code=['normCdf','winFloor','winPercents','winModel','winBiggest','winGames','winBuild'].map(grab).join('\n');
 const WIN_CFG=src.match(/const WIN_CFG = [^\n]*/)[0];
 const noticeEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const f=new Function('noticeEsc',WIN_CFG+'\n'+code+'\nreturn {winModel,winBiggest,winBuild,winPercents}');
@@ -20,7 +20,7 @@ const h=L.winBuild(win);
 c('five steps shown',(h.match(/class="wbs"/g)||[]).length===5);
 c('names step 4 favourite','Away RFC by about'.length>0&&/Away RFC by about/.test(h));
 c('shows both percentages',h.includes(win.home.pct+'%')&&h.includes(win.away.pct+'%'));
-c('says earlier seasons counted',/last season counts half/.test(h));
+c('says earlier seasons counted',/older seasons count for less/.test(h));
 c('biggest results listed',/won 40-/.test(h)||/lost /.test(h));
 c('older saved result gives nothing (falls back)',L.winBuild({home:{name:'A',pct:50},away:{name:'B',pct:50},gap:0,ha:3})==='');
 c('no prior seasons wording',/not available, so this season only/.test(L.winBuild({...win,prior:0})));

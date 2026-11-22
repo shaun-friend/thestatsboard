@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.56.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.2_games_list_badge.zip | v3.56.1
 v3.56.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.1_win_history.zip | v3.56.0
 v3.56.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.0_win_bonus_games.zip | v3.55.2
 v3.55.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.2_matchday_divider.zip | v3.55.1
@@ -360,6 +361,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.56.2 - Games counted tidied and collapsed; version on the Test badge
+- Owner requests (22-Nov-2026): the Games counted heading ran into its explanation and the list was long; show the version in the yellow Test environment badge.
+- Changed: Games counted is a collapsed list (tap to open) with the heading on its own line and the explanation under it. The Earlier seasons line now says older seasons count for less and together never more than 60% of this season.
+- Added: on the test site only, the yellow badge reads for example TEST environment v3.56.2. The live site is unchanged.
+- Request limit: no change.
+- Docs: What's new, Other addresses
 
 v3.56.1 - Win chance: earlier seasons no longer outweigh this one
 - Owner report (22-Nov-2026): Ivybridge 1XV (7 wins from 8, top of the table) still rated barely above average; the Games counted list (new in v3.56.0) showed why.

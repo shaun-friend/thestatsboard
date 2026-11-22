@@ -46,4 +46,5 @@ c('panel shows the Games counted list', /Games counted/.test(html) && /Opp[PQ]/.
   c('old games still count a little (rating a bit lower than without them)', withOld.rHome < none.rHome);
   const rowsOld = withOld.gameRows('X').filter(r => !r.cur);
   c('old game weights shown are the reduced ones', rowsOld.length > 0 && rowsOld.every(r => r.w < 0.2)); }
+c('Games counted is collapsed until opened (details without open)', /<details class="wbx wgd"><summary><b>Games counted<\/b><\/summary>/.test(html) && !/wgd" open/.test(html));
 console.log(ok + ' passed, ' + bad + ' failed');
