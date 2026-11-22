@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.56.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.1_win_history.zip | v3.56.0
 v3.56.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.0_win_bonus_games.zip | v3.55.2
 v3.55.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.2_matchday_divider.zip | v3.55.1
 v3.55.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.55.1_win_cap_form.zip | v3.55.0
@@ -359,6 +360,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.56.1 - Win chance: earlier seasons no longer outweigh this one
+- Owner report (22-Nov-2026): Ivybridge 1XV (7 wins from 8, top of the table) still rated barely above average; the Games counted list (new in v3.56.0) showed why.
+- Cause: every earlier-season game counted at 0.5 (last season) or 0.25 (the season before), so a side that has played the same league for years carried about 40 old games against this season's 8, and last season's mid-table results outweighed this season's form. Nailsea & Backwell had almost no history in this league, so were not held back.
+- Fixed: each earlier season, taken together, now counts at most 0.6 of this season's games (times its 0.5 or 0.25), however many games it holds. Weights shown in Games counted are the real ones used.
+- Changed: stored win chances use a new key, so every game is worked out afresh once.
+- Request limit: no change.
+- Docs: What's new, Admin guide
 
 v3.56.0 - Win chance: win bonus and games counted
 - Owner report (22-Nov-2026): Ivybridge 1XV (7 wins from 8, top of the table) still rated below Nailsea & Backwell (1 win in 5).

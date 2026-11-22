@@ -37,4 +37,13 @@ c('games list rows carry score, counted margin and weight', rows.every(r => type
 c('names are never the word undefined', rows.every(r => !/undefined/.test(r.o) && r.o.length > 0));
 const html = __w.winBarHtml({ home: { name: 'Xs', pct: 60 }, away: { name: 'Zs', pct: 40 }, gap: 1, ha: 4, rh: 3, ra: 1, mu: 5, sg: 14, raw: 60, n: 8, gc: { h: rows, a: steady.gameRows('Z') } }, { open: true });
 c('panel shows the Games counted list', /Games counted/.test(html) && /Opp[PQ]/.test(html));
+// v3.56.1 history can not outweigh this season
+{ const gs = []; const opp = ['P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'];
+  for (let i = 0; i < 8; i++) { gs.push({ h: 'X', a: opp[i], hs: 38, as: 20, w: 1, ts: t0 + i * 7 * D }); gs.push({ h: 'Z', a: opp[i], hs: 24, as: 20, w: 1, ts: t0 + i * 7 * D }); }
+  const old = []; for (let i = 0; i < 40; i++) old.push({ h: 'X', a: opp[i % 8], hs: i % 2 ? 27 : 33, as: 30, w: 0.5, ts: t0 - (i + 1) * 7 * D });
+  const withOld = winModel([...gs, ...old], 'X', 'Z'), none = winModel(gs, 'X', 'Z');
+  c('forty ordinary old games do not bury a side that is winning now', withOld.rHome > withOld.rAway);
+  c('old games still count a little (rating a bit lower than without them)', withOld.rHome < none.rHome);
+  const rowsOld = withOld.gameRows('X').filter(r => !r.cur);
+  c('old game weights shown are the reduced ones', rowsOld.length > 0 && rowsOld.every(r => r.w < 0.2)); }
 console.log(ok + ' passed, ' + bad + ' failed');
