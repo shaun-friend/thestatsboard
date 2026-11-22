@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
 v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
 v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
 v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
@@ -350,6 +351,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.1 - Match Stats and Opposition report: our team colour is the one saved in Our teams
+- Owner report (22-Nov-2026): the Ivybridge 1XV showed amber and the Vandals green on Match Stats, although Our teams has 1XV green and the Vandals amber.
+- Cause: only a colour in the link was kept; otherwise the page worked our colour out from the crest picture, and both teams use the same crest, so the result depended on the opposing crest.
+- Fixed: our side always uses the colour saved in Our teams (or the link's colour=). The other side is still taken from its crest and is changed if it is too close to ours. The Opposition report does the same.
+- Request limit: none.
+- Docs: What's new
 
 v3.53.0 - DEV probe: Opposition check (testing only)
 - Owner request (22-Nov-2026): find out whether opposition top try scorers and players who changed position can be shown on the Opposition report.

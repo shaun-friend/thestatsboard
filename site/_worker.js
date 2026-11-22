@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.53.1 22-Nov-2026 Match Stats and Opposition report: our side now keeps the colour saved in Our teams (it was being replaced by a colour taken from the crest, so the 1XV and Vandals could show the wrong colours).
 //   v3.53.0 22-Nov-2026 DEV probe: Opposition check card (opponent's last 5 games: team sheets, scorers, top try scorers, players who changed shirt group). Testing only.
 //   v3.52.0 22-Nov-2026 Opposition report: the win chance now shows its build-up (strength, gap, home advantage, expected result, chance) and the results behind it.
 //   v3.51.4 22-Nov-2026 Opposition report: the At a glance rows and the jump chips work again inside the app (the app shell was swallowing in-page links).
@@ -346,7 +347,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.53.0";
+const VERSION = "v3.53.1";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -393,6 +394,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
 v3.53.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.0_opposition_check.zip | v3.52.0
 v3.52.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.52.0_win_buildup.zip | v3.51.4
 v3.51.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.51.4_report_jump_links_fix.zip | v3.51.3
@@ -702,6 +704,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.53.1 - Match Stats and Opposition report: our team colour is the one saved in Our teams
+- Owner report (22-Nov-2026): the Ivybridge 1XV showed amber and the Vandals green on Match Stats, although Our teams has 1XV green and the Vandals amber.
+- Cause: only a colour in the link was kept; otherwise the page worked our colour out from the crest picture, and both teams use the same crest, so the result depended on the opposing crest.
+- Fixed: our side always uses the colour saved in Our teams (or the link's colour=). The other side is still taken from its crest and is changed if it is too close to ours. The Opposition report does the same.
+- Request limit: none.
+- Docs: What's new
 
 v3.53.0 - DEV probe: Opposition check (testing only)
 - Owner request (22-Nov-2026): find out whether opposition top try scorers and players who changed position can be shown on the Opposition report.
@@ -3031,6 +3040,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.53.1", "Match Stats and the Opposition report now use the team colour saved in Our teams for your side, instead of a colour taken from the crest."],
       ["v3.53.0", "Testing only: a new Opposition check on the DEV probe page shows whether opposition top try scorers and position changes can be shown. Nothing changes on the public pages."],
       ["v3.52.0", "Opposition report: the win chance now shows how it was worked out, step by step, with the results behind it."],
       ["v3.51.4", "Opposition report: the At a glance rows and the jump buttons (This game, Their form, You v them, Season) work again in the app."],
@@ -7200,8 +7210,10 @@ const worker = {
       const meCol = hexOf(url.searchParams.get("colour")) || hexOf(meAccent) || "#2f9e5b";
       const oppCol = hexOf(url.searchParams.get("oppColour")) || "#4aa3df";
       const colA = meHome ? meCol : oppCol, colB = meHome ? oppCol : meCol;
-      const fixedA = meHome ? !!hexOf(url.searchParams.get("colour")) : !!hexOf(url.searchParams.get("oppColour"));
-      const fixedB = meHome ? !!hexOf(url.searchParams.get("oppColour")) : !!hexOf(url.searchParams.get("colour"));
+      // v3.53.1: our side keeps the colour saved in Our teams (or the link's colour=); only the other side is worked out from its crest
+      const meFixed = !!hexOf(url.searchParams.get("colour")) || !!hexOf(meAccent);
+      const fixedA = meHome ? meFixed : !!hexOf(url.searchParams.get("oppColour"));
+      const fixedB = meHome ? !!hexOf(url.searchParams.get("oppColour")) : meFixed;
       const crest = (id, name, side, fixed) => `<span class="big"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img data-side="${side}" ${fixed ? 'data-fixed="1" ' : ""}src="/api/crest?id=${encodeURIComponent(id)}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">` : ""}</span>`;
       // Form is shown latest -> oldest, left to right, for BOTH teams (as on the other pages), with the latest game ringed.
       const formBlock = (f, cls) => {
@@ -7302,8 +7314,10 @@ for(i=0;i<d.length;i+=4){if(d[i+3]<160)continue;var r=d[i],g=d[i+1],b=d[i+2],mx=
 return B.filter(function(z){return z.w>0}).sort(function(p,q){return q.w-p.w}).map(function(z){return [z.r/z.w,z.g/z.w,z.b/z.w]})}
 function ready(img){return new Promise(function(res){function go(){res(img)}if(img.complete&&img.naturalWidth)go();else{img.addEventListener("load",go);img.addEventListener("error",function(){res(null)})}})}
 var imgs={a:document.querySelector('img[data-side="a"]'),b:document.querySelector('img[data-side="b"]')};
-Promise.all([imgs.a?ready(imgs.a):null,imgs.b?ready(imgs.b):null]).then(function(r){var pa=r[0]&&!r[0].dataset.fixed?pal(r[0]):[],pb=r[1]&&!r[1].dataset.fixed?pal(r[1]):[];var ca=pa[0]?fix(pa[0]):null,cb=pb[0]?fix(pb[0]):null;
-if(ca&&cb&&dist(ca,cb)<110){cb=null;for(var i=1;i<pb.length;i++){var c=fix(pb[i]);if(dist(c,ca)>=110){cb=c;break}}if(!cb)cb=[240,160,32]}
+function cssc(n){var v=getComputedStyle(root).getPropertyValue("--"+n).trim();return /^#[0-9a-f]{6}$/i.test(v)?[1,3,5].map(function(k){return parseInt(v.slice(k,k+2),16)}):null}
+function alt(p,o){for(var i=1;i<p.length;i++){var c=fix(p[i]);if(dist(c,o)>=110)return c}return null}
+Promise.all([imgs.a?ready(imgs.a):null,imgs.b?ready(imgs.b):null]).then(function(r){var fa=!!(r[0]&&r[0].dataset.fixed),fb=!!(r[1]&&r[1].dataset.fixed),pa=r[0]&&!fa?pal(r[0]):[],pb=r[1]&&!fb?pal(r[1]):[];var ca=fa?cssc("ca"):pa[0]?fix(pa[0]):null,cb=fb?cssc("cb"):pb[0]?fix(pb[0]):null;
+if(ca&&cb&&dist(ca,cb)<110&&!(fa&&fb)){if(fb&&!fa){ca=alt(pa,cb)||[240,160,32]}else{cb=alt(pb,ca)||[240,160,32]}}
 if(ca){root.style.setProperty("--ca",hex(ca));root.style.setProperty("--ka",ink(ca[0],ca[1],ca[2]))}
 if(cb){root.style.setProperty("--cb",hex(cb));root.style.setProperty("--kb",ink(cb[0],cb[1],cb[2]))}})})();</script>`;
       const refresh = `<script>(function(){var MAX=${REFRESH_SECONDS * 1000},t0=Date.now(),phone=window.matchMedia("(max-width:800px),(max-height:560px)").matches;function tick(){if(Date.now()-t0>=MAX&&document.visibilityState==="visible"&&(!phone||window.scrollY<40))(window.rfuSoft?rfuSoft():location.reload())}setInterval(tick,60000);document.addEventListener("visibilitychange",tick)})();</script>`;
@@ -7834,7 +7848,7 @@ ${bodyHtml}
 <p class="ver">${VERSION_LABEL}</p>
 </div>
 ${themeToggleScript}
-${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: team, idb: d.opp.id, a: hexParam(url.searchParams.get("colour")), b: hexParam(url.searchParams.get("oppColour")) })) : ""}
+${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: team, idb: d.opp.id, a: hexParam(url.searchParams.get("colour")) || hexParam((TEAMS.find(t => String(t.team) === String(team)) || {}).accent), b: hexParam(url.searchParams.get("oppColour")) })) : ""}
 </body></html>`;
       return new Response(page, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });
     }

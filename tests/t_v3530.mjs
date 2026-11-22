@@ -34,5 +34,5 @@ c('opponent side picked by id',j.games[0].opponentSideBy==='match record team id
 c('game with no sheet is reported, not an error',j.games[3].sheetFound===false&&j.games[3].players===0);
 c('position fields shown',Object.keys(j.positionFieldsOnASheet).length>0);
 c('endpoint is registered and DEV-only probe uses it',/k: "oppcheck"/.test(src)&&/ep\.custom === "oppcheck"/.test(src));
-c('version',/const VERSION = "v3\.53\.0"/.test(src));
+c('opposition check helper present',/async function oppCheck\(/.test(src));
 console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0);
