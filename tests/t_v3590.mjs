@@ -60,6 +60,7 @@ r=await get('&mdnow=19:30');ok('and stops at 19:30',!isMd(r.h));
 await put({matchday:true});
 r=await get('&mdnow=12:00&mdscore=1');ok('score present: normal page',!isMd(r.h));
 sheetCalls=0;r=await get('&mdnow=12:00&mdsheet=0');ok('simulated no sheet: normal page and no RFU sheet call',!isMd(r.h)&&sheetCalls===0);
+sheetMode='full';sheetCalls=0;r=await get('&mdnow=12:00&mdsheet=1');ok('mdsheet=<played game id>: its real sheet is used on the simulated game day',isMd(r.h)&&sheetCalls===1,sheetCalls+' '+(/<!--mdsim[^>]*-->/.exec(r.h)||[''])[0]);
 r=await get('&mdnow=12:00&mdfake=1');ok('simulated made-up sheet shows the page',isMd(r.h));
 // not the TV layout
 r=await w.fetch(new Request('https://thestatsboard.co.uk'+Q.replace('&layout=tv','')+'&mdnow=12:00',{headers:{'User-Agent':'Mozilla/5.0',Cookie:CK}}),{...env,ENV_LABEL:'TEST'},{waitUntil(){}});ok('phone layout never gets the Match day page',!isMd(await r.text()));

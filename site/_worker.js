@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.59.5 22-Nov-2026 Match day timing check can use the real team sheet of a game already played (DEV Probe page).
 //   v3.59.4 22-Nov-2026 Match day TV preview and timing check moved to the DEV Probe page; they now say why when a team has no game to test.
 //   v3.59.3 22-Nov-2026 Match day TV page: team name sits centred under its crest in the stats panel header.
 //   v3.59.2 22-Nov-2026 Match day TV page: team names are never cut off (head to head names written in full under the bar; panel and header names wrap).
@@ -369,7 +370,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.59.4";
+const VERSION = "v3.59.5";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -416,6 +417,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.5 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.5_match_day_played_sheet.zip | v3.59.4
 v3.59.4 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.4_match_day_tools.zip | v3.59.3
 v3.59.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.3_match_day_tidy_names.zip | v3.59.2
 v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
@@ -748,6 +750,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.5 - Match day timing check: use a played game's real sheet
+- Owner request (22-Nov-2026): the sheet is not there yet before a game, so the timing check should be able to use earlier real data.
+- Change: on the DEV Probe page the timing check has a new Team sheet choice, "Real sheet of the played game picked above". It pretends the time you set on the next game day and uses the real line-up of the game chosen in the preview box above it. Link variable mdsheet=<match id> does the same.
+- Request limit: no change on screens; DEV testing reads one team sheet per check.
+- Docs: Link variables
 
 v3.59.4 - Match day TV test tools moved to the Probe page, with a reason when a team has no game to test
 - Owner request (22-Nov-2026): the preview and timing check are diagnostics and should not sit on the Match day page; and on DEV they showed nothing even with the switch on.
@@ -2889,7 +2897,7 @@ const DOCS = [
   ] },
   { id: "diag", title: "Diagnostics and testing", intro: "For checking and testing. Not needed on a live screen.", items: [
     { v: "debug", values: "fixtures · season · venue · weather", where: "With format=summary", what: "Adds diagnostic detail to the data. fixtures: which feeds were used. season: how the season was chosen (DEV only). venue and weather: the venue lookup and forecast steps.", ex: [["Fixtures debug", "?format=summary&detail=fixtures&debug=fixtures&" + DOCS_TEAM], ["Season debug (DEV)", "?debug=season&" + DOCS_TEAM, "dev"]] },
-    { v: "mdnow", values: "12:00", where: "DEV only", what: "Pretends it is this time (UK) on the team's next game day, to test the Match day TV page. Also mdfake=1 (a made-up full team sheet), mdsheet=0 (no sheet) and mdscore=1 (a score is in). mdgame=<match id> previews the page with the real line-up of a game already played. The Match day admin page has a preview and a simulator that build these links.", ex: [["Match day at noon with a made-up sheet", "?view=match&layout=tv&mdnow=12:00&mdfake=1&" + DOCS_TEAM, "dev"]] },
+    { v: "mdnow", values: "12:00", where: "DEV only", what: "Pretends it is this time (UK) on the team's next game day, to test the Match day TV page. Also mdfake=1 (a made-up full team sheet), mdsheet=0 (no sheet), mdsheet=<match id> (the real sheet of a game already played) and mdscore=1 (a score is in). mdgame=<match id> previews the page with the real line-up of a game already played. The DEV Probe page has a preview and a timing check that build these links.", ex: [["Match day at noon with a made-up sheet", "?view=match&layout=tv&mdnow=12:00&mdfake=1&" + DOCS_TEAM, "dev"]] },
     { v: "today", values: "2026-12-01", where: "DEV only", what: "Pretends it is another date, to test automatic season changes and the summer gap.", ex: [["Pretend it is 1 July 2027", "?today=2027-07-01&" + DOCS_TEAM, "dev"]] },
     { v: "nowx", values: "any value", where: "Match data", what: "Turns off the weather lookup.", ex: [["No weather", "?format=summary&detail=opposition&nowx=1&" + DOCS_TEAM]] },
     { v: "frag", values: "gd", where: "Internal", what: "Returns just a block of the page for the page's own script to load. Not for typing.", ex: [] },
@@ -3242,6 +3250,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.59.5", "Test site only: the Match day timing check on the Probe page can use the real team sheet of a game already played."],
       ["v3.59.4", "Test site only: the Match day TV preview and timing check moved to the Probe page, and they say why when a team has no game to test."],
       ["v3.59.3", "Match day TV page: in the stats panel each team crest now sits above its name, centred, so two-line names look tidy."],
       ["v3.59.2", "Match day TV page: team names are never cut short. In the head to head the bar shows the win counts and the full team names are written underneath; long names wrap in the header and the stats panel."],
@@ -4432,9 +4441,9 @@ function mdPhase(nowMs, gameDay, endHm) {
 }
 function mdHoldHeader(h) { return h ? Math.round(h.secs) + ";" + Math.round(h.until) : ""; }
 function mdHoldOf(v) { const m = /^(\d{1,6});(\d{10,14})$/.exec(String(v || "")); return m ? { secs: Number(m[1]), until: Number(m[2]) } : null; }
-function mdSimOf(url, isDev) { // DEV only: pretend the clock, the score or the sheet (mdnow=HH:MM on the game day, mdscore=1, mdsheet=0 none, mdfake=1 made-up sheet, mdgame=<match id> preview with the real line-up of a game already played)
+function mdSimOf(url, isDev) { // DEV only: pretend the clock, the score or the sheet (mdnow=HH:MM on the game day, mdscore=1, mdsheet=0 none, mdsheet=<match id> the real sheet of a played game, mdfake=1 made-up sheet, mdgame=<match id> preview with the real line-up of a game already played)
   if (!isDev) return null; const sp = url.searchParams, t = sp.get("mdnow") || "";
-  return { now: /^\d{2}:\d{2}$/.test(t) ? t : "", score: sp.get("mdscore") === "1", none: sp.get("mdsheet") === "0", fake: sp.get("mdfake") === "1", game: /^\d{1,10}$/.test(sp.get("mdgame") || "") ? sp.get("mdgame") : "" };
+  return { now: /^\d{2}:\d{2}$/.test(t) ? t : "", score: sp.get("mdscore") === "1", none: sp.get("mdsheet") === "0", from: /^[1-9]\d{0,9}$/.test(sp.get("mdsheet") || "") ? sp.get("mdsheet") : "", fake: sp.get("mdfake") === "1", game: /^\d{1,10}$/.test(sp.get("mdgame") || "") ? sp.get("mdgame") : "" };
 }
 const MD_FAKE = ["Sam Pearce", "Jack Dunn", "Rob Medway", "Tom Reid", "Joel Stone", "Ned Cross", "Lee Park", "Ryan Ames", "Kai Boyd", "Fin Hart", "Sean Ray", "Max Lowe", "Ben Hale", "Cal Moss", "Dan Roe", "Gus Penn", "Ian Webb", "Joe Frost", "Kit Vale", "Leo Marsh", "Ollie Fry", "Pat Quinn", "Rex Dale"];
 const MD_FAKE_SP = ["Mill Garage", "Tamar Plumbing", "The Old Inn", "", "Dartmoor Print", "", "Moor Motors", "Ivy Bakery", "", "Ridgeway Roofing", "Station Cafe", "", "Fore Street Dental", "", "Harbour Fisheries"];
@@ -4492,7 +4501,11 @@ async function mdDecide(tm, games, nextIso, url, isDev, nowMs) {
   const g = (games || []).filter(x => x && x.iso && x.id && /^\d{1,10}$/.test(String(x.id)) && x.status !== "void" && x.status !== "done" && mdParts(new Date(x.iso).getTime()).day === gameDay).sort((a, b) => a.iso < b.iso ? -1 : 1)[0];
   const wait = { ...none, why: "wait", hold: { secs: MD_WAIT_SECS, until: ph.endMs } };
   if (!g) return wait;
-  const sheet = await mdLoadSheet(tm, g, gameDay, sim);
+  let sheet;
+  if (sim && sim.from) { // DEV: use the real sheet of a game already played in place of the one that is not there yet
+    const pg = (games || []).find(x => x && String(x.id) === sim.from);
+    sheet = pg ? await mdLoadSheet(tm, pg, mdParts(new Date(pg.iso).getTime()).day, null) : null;
+  } else sheet = await mdLoadSheet(tm, g, gameDay, sim);
   if (!sheet || sheet.count < MD_MIN_PLAYERS) return { ...wait, sheet, read: true, why: sheet ? "few" : "nosheet" };
   return { show: true, hold: { secs: MD_FOUND_SECS, until: ph.endMs }, sheet, why: "found", read: true };
 }
@@ -6848,7 +6861,7 @@ async function probeRun(url) {
 function mdTestCard(teams) {
   const tl = JSON.stringify(teams.filter(x => !x.hidden).map(x => ({ team: String(x.team), name: x.name, c: String(x.competition), d: String(x.division), tn: String(x.teamName || ""), md: x.matchday === true }))).replace(/</g, "\\u003c");
   return `<style>#sim .rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#sim .in2{flex:1;min-width:120px;font:14px Arial;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}#sim .b2{font:700 13px Arial;border-radius:9px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);padding:8px 12px;cursor:pointer}#sim .msg2{font-size:13px;margin:6px 0;color:var(--mu)}</style>
-<div class="card" id="sim"><b>Preview the Match day TV page (DEV only)</b><p class="m" style="word-break:normal;font-size:13px;margin:4px 0 8px">Pick a team and a game it has already played this season. The page opens with that game's real line-up and sponsors, next to the team's real stats for its next game, so you can see how it looks on a TV.</p><div class="rw2"><select class="in2" id="smt" aria-label="Team"></select><select class="in2" id="smg2" aria-label="Game played this season"><option value="">Loading games...</option></select><a class="b2 bt" id="smp" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open preview</a></div><div class="msg2" id="smm" role="status"></div><details style="margin-top:10px"><summary class="m" style="cursor:pointer;word-break:normal;font-size:13px">Test the game-day timing rules instead</summary><p class="m" style="word-break:normal;font-size:13px;margin:6px 0 8px">Pretend it is a time on the next game day and see which page a screen would get. The team needs its Match day switch on in Admin.</p><div class="rw2"><input class="in2" id="smh" type="time" value="12:00" aria-label="Time on game day"><select class="in2" id="sms" aria-label="Team sheet"><option value="">Real sheet from the RFU</option><option value="&amp;mdfake=1">Made-up full sheet</option><option value="&amp;mdsheet=0">No sheet yet</option></select><label style="font:14px Arial"><input type="checkbox" id="smc"> Score in</label><button type="button" class="b2" id="smg">Check</button><a class="b2 bt" id="smo" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open page</a></div><div class="msg2" id="smr" role="status"></div></details></div>
+<div class="card" id="sim"><b>Preview the Match day TV page (DEV only)</b><p class="m" style="word-break:normal;font-size:13px;margin:4px 0 8px">Pick a team and a game it has already played this season. The page opens with that game's real line-up and sponsors, next to the team's real stats for its next game, so you can see how it looks on a TV.</p><div class="rw2"><select class="in2" id="smt" aria-label="Team"></select><select class="in2" id="smg2" aria-label="Game played this season"><option value="">Loading games...</option></select><a class="b2 bt" id="smp" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open preview</a></div><div class="msg2" id="smm" role="status"></div><details style="margin-top:10px"><summary class="m" style="cursor:pointer;word-break:normal;font-size:13px">Test the game-day timing rules instead</summary><p class="m" style="word-break:normal;font-size:13px;margin:6px 0 8px">Pretend it is a time on the next game day and see which page a screen would get. The team needs its Match day switch on in Admin.</p><div class="rw2"><input class="in2" id="smh" type="time" value="12:00" aria-label="Time on game day"><select class="in2" id="sms" aria-label="Team sheet"><option value="">Real sheet from the RFU</option><option value="&amp;mdfake=1">Made-up full sheet</option><option value="&amp;mdsheet=0">No sheet yet</option><option value="played">Real sheet of the played game picked above</option></select><label style="font:14px Arial"><input type="checkbox" id="smc"> Score in</label><button type="button" class="b2" id="smg">Check</button><a class="b2 bt" id="smo" target="_blank" rel="noopener" style="text-decoration:none;display:none">Open page</a></div><div class="msg2" id="smr" role="status"></div></details></div>
 <script>(function(){var T=${tl};function $(i){return document.getElementById(i)}
 (function(){var g=$("smg");if(!g)return;var sel=$("smt"),gs=$("smg2");T.forEach(function(t){var o=document.createElement("option");o.value=t.team;o.textContent=t.name;sel.appendChild(o)});
 function tm(){return T.filter(function(x){return x.team===sel.value})[0]}
@@ -6861,7 +6874,7 @@ gs.innerHTML=L.map(function(x){var d=new Date(x.iso);return'<option value="'+Str
 function pick(){var id=gs.value;if(!id){$("smp").style.display="none";return}$("smp").href=base()+"&mdgame="+id;$("smp").style.display="";$("smm").textContent="Opens in a new tab. If the line-up for that game is no longer on the RFU system, the normal Match Stats page shows."}
 sel.onchange=loadGames;gs.onchange=pick;loadGames();
 var WHY={off:"it is not the game day, or the switch is off",pre:"it is before 10:00",over:"it is at or after the stop time",score:"a score is in",wait:"no game found for the day yet",few:"the sheet has fewer than 10 players",nosheet:"there is no sheet yet",found:"the sheet is published",nodata:"the RFU data for this team could not be read just now",nonext:"the RFU lists no upcoming game for this team, so there is no game day to test",nostats:"the next game has no league stats (for example a cup tie), so the Match day page is not used for it",notv:"the check page was not a TV page",nomatch:"the match details for the next game were not available",nogame:"that played game was not found in the team fixtures",preview:"this is a preview of a played game"};
-function url(){return base()+"&mdnow="+encodeURIComponent($("smh").value||"12:00")+$("sms").value+($("smc").checked?"&mdscore=1":"")}
+function url(){return base()+"&mdnow="+encodeURIComponent($("smh").value||"12:00")+($("sms").value==="played"?(gs.value?"&mdsheet="+gs.value:""):$("sms").value)+($("smc").checked?"&mdscore=1":"")}
 g.onclick=function(){var u=url();if(!u)return;$("smr").textContent="Checking...";$("smo").style.display="none";fetch(u,{credentials:"same-origin"}).then(function(r){return r.text()}).then(function(h){var m=/<!--mdsim why=(\w+) show=(\d) hold=(\d+) read=(\d) count=(\d+) lineup=(\d)-->/.exec(h);if(!m){$("smr").textContent="Match Stats page (the check could not read the page).";}else{$("smr").textContent=(m[2]==="1"?"The screen gets the Match day page":"The screen gets the normal Match Stats page")+" because "+(WHY[m[1]]||m[1])+". RFU team sheet read: "+(m[4]==="1"?"yes":"no")+(m[5]!=="0"?" ("+m[5]+" players"+(m[6]==="1"?", marked final":", not marked final")+")":"")+". The built page would be kept for "+(m[3]==="0"?"the normal time":m[3]==="86400"?"until 10:00":(+m[3]/60)+" minutes")+" (and always rebuilt at 10:00 and at the stop time)."}$("smo").href=u;$("smo").style.display=""}).catch(function(){$("smr").textContent="Could not check."})}})();
 })();</script>`;
 }
