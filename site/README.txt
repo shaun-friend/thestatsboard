@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.56.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.3_win_history_less.zip | v3.56.2
 v3.56.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.2_games_list_badge.zip | v3.56.1
 v3.56.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.1_win_history.zip | v3.56.0
 v3.56.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.56.0_win_bonus_games.zip | v3.55.2
@@ -361,6 +362,14 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.56.3 - Win chance: older seasons count for much less
+- Owner report (22-Nov-2026): v3.56.1 still rated Ivybridge 1XV (7 wins from 8) below Nailsea & Backwell (31% for Ivybridge).
+- Cause: the v3.56.1 limit counted both sides' games together, but almost all the older games belong to Ivybridge, so their old results still weighed about as much as their whole current season. A test using both sides' real results (from the Games counted lists) reproduced the panel.
+- Fixed: all earlier seasons together now count at most 0.15 of this season's games (times 0.5 and 0.25), not 0.6. The same test now rates the two sides level on results; Nailsea stay slightly ahead only through home advantage.
+- Changed: stored win chances use a new key, so every game is worked out afresh once.
+- Request limit: no change.
+- Docs: What's new, Admin guide
 
 v3.56.2 - Games counted tidied and collapsed; version on the Test badge
 - Owner requests (22-Nov-2026): the Games counted heading ran into its explanation and the list was long; show the version in the yellow Test environment badge.
