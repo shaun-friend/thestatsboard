@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.54.0 22-Nov-2026 Opposition report: Danger players (their top three try scorers over the last five games and anyone who recently wore a different shirt group); the DEV Opposition check also lists any shirt number change.
 //   v3.53.3 22-Nov-2026 DEV probe Opposition check: the opponent's side on a team sheet is found by the side number that appears in most of its games (the match record numbers do not match the sheet).
 //   v3.53.2 22-Nov-2026 Fixtures TV board: banner colour is the team colour saved in Our teams (it was taken from the crest picture).
 //   v3.53.1 22-Nov-2026 Match Stats and Opposition report: our side now keeps the colour saved in Our teams (it was being replaced by a colour taken from the crest, so the 1XV and Vandals could show the wrong colours).
@@ -349,7 +350,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.53.3";
+const VERSION = "v3.54.0";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -396,6 +397,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
 v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
 v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
 v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
@@ -708,6 +710,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.54.0 - Opposition report: Danger players
+- Owner request (22-Nov-2026): show the opponent's top try scorers and anyone who recently played out of their usual position. Real data from the DEV check showed sheets and named scorers for all five recent games.
+- Added: a Danger players card under Their form. It lists their top three try scorers over their last five games and anyone who recently wore a shirt from a different group (for example usually back row, wore 10 last week). The card stays hidden unless there are at least three sheets and named scorers, so it never shows thin data. Names the RFU withholds, and under-18s, are left out.
+- Added: the DEV Opposition check also lists any shirt number change, with the shirts worn.
+- Request limit: the card is filled by the browser after the report loads, from a new address (/api/danger) that has its own allowance of 50 requests. A first look at an opponent makes about 11 RFU requests; the answer is then kept for a day (a new game gives a new answer) and the browser keeps it for 15 minutes. The report page itself makes no extra requests.
+- Docs: Other addresses
 
 v3.53.3 - DEV probe: Opposition check picks the right side (testing only)
 - Found from the first real run (22-Nov-2026): the team sheet side numbers do not match the match record, and with two sides of 18 the check guessed, so scorers and position changes could be mixed between teams.
@@ -2713,6 +2722,7 @@ const DOCS = [
   ] },
   { id: "addr", title: "Other addresses", intro: "Addresses other than the home page, and the variables they take.", items: [
     { v: "/calendar.ics", values: "team settings", where: "Calendar apps", what: "The team's upcoming fixtures as a calendar file.", ex: [["Download", "/calendar.ics?" + DOCS_TEAM]] },
+    { v: "/api/danger", values: "opp = opponent team id, season", where: "Opposition report", what: "Their top try scorers and recent position changes (read only; the Opposition report asks for it).", ex: [["Ivybridge, 2026-2027", "/api/danger?opp=11039&season=2026-2027"]] },
     { v: "/api/crest", values: "id = team id", where: "Images", what: "The team crest image.", ex: [["Ivybridge crest", "/api/crest?id=11039"]] },
     { v: "/manifest.webmanifest", values: "s = start page, n = app name", where: "Home screen", what: "Used by Add to Home Screen. Set automatically.", ex: [] },
     { v: "/version", values: "none", where: "Any", what: "Shows which version is live (compare PROD and DEV).", ex: [["Version", "/version"]] },
@@ -3057,6 +3067,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.54.0", "Opposition report: a Danger players card shows their top three try scorers from the last five games and anyone who recently played in a different position."],
       ["v3.53.3", "Testing only: the Opposition check on the DEV probe page now finds the right side of each team sheet."],
       ["v3.53.2", "Fixtures TV board: the banner uses the team colour saved in Our teams."],
       ["v3.53.1", "Match Stats and the Opposition report now use the team colour saved in Our teams for your side, instead of a colour taken from the crest."],
@@ -5823,6 +5834,18 @@ function positionHistory(table, results, ids, dayOf) { // results: [{d,hId,aId,h
   ids.forEach((id, k) => { if (actual[k] > 0) out.series[k][out.series[k].length - 1] = actual[k]; });
   return out;
 }
+// v3.54.0: fills the Danger players card on the Opposition report. Hidden unless the RFU has sheets and named scorers for the opponent's recent games.
+const DANGER_SCRIPT = String.raw`<script>(function(){var C=__CFG__,el=document.getElementById("dgc");if(!el)return;
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function ds(x){var m=/^\d{4}-(\d{2})-(\d{2})$/.exec(x||"");if(!m)return"";var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m[1]-1];return +m[2]+" "+mo}
+fetch("/api/danger?opp="+encodeURIComponent(C.o)+"&season="+encodeURIComponent(C.s)).then(function(r){return r.json()}).then(function(j){
+if(!j||!j.ok||!j.show||(!j.top.length&&!j.moved.length))return;
+var h="<h2>Danger players</h2>";
+if(j.top.length){h+='<p class="note" style="margin:0 0 6px">Most tries in their last '+j.games+" games</p>";j.top.forEach(function(x){h+='<div class="row"><span>'+esc(x.name)+"</span><b>"+x.n+" "+(x.n===1?"try":"tries")+"</b></div>"})}
+if(j.moved.length){h+='<p class="note" style="margin:10px 0 6px">Recently played somewhere different</p>';j.moved.forEach(function(x){h+='<div class="row"><span>'+esc(x.name)+"</span><b>"+esc(x.last)+" ("+esc(x.no)+") "+esc(ds(x.d))+"</b></div>";h+='<p class="note" style="margin:0 0 4px">Usually '+esc(x.usual)+"</p>"})}
+h+='<p class="note">From the team sheets and scorers the RFU lists for their last '+j.games+" games ("+j.tryNamed+" of "+j.tryTotal+" tries have a named scorer). Names the RFU withholds are left out.</p>";
+el.innerHTML=h;el.hidden=false}).catch(function(){})})();</script>
+`;
 const OPP_COLOUR_SCRIPT = String.raw`<script>(function(){var root=document.documentElement;var C=__CFG__;
 function lum(c){return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255}
 function fix(c){if(lum(c)<0.14){c=c.map(function(v){return v+(255-v)*0.38})}return c}
@@ -6210,54 +6233,69 @@ function shirtGroup(no) {
   const n = /^\d+$/.test(String(no || "")) ? +no : 0;
   return n >= 1 && n <= 3 ? "front row" : n >= 4 && n <= 5 ? "lock" : n >= 6 && n <= 8 ? "back row" : n === 9 ? "scrum half" : n === 10 ? "fly half" : n === 11 || n === 14 ? "wing" : n === 12 || n === 13 ? "centre" : n === 15 ? "full back" : n >= 16 ? "bench" : "";
 }
+// v3.54.0: the opponent's recent games, shared by the DEV probe card and the Danger players panel on the Opposition report (/api/danger). Reads the last five played games
+// (1 results call + a team sheet and scorers for each, up to 11 RFU calls) and returns top try scorers and players whose shirt changed. Names are an initial and surname; withheld names and under-18s are only counted.
+async function oppDangerCore(teamId, season, useCache) {
+  const u = new URL(PROBE_BASE + "/fixtures-and-results/full-matches"); u.searchParams.set("season", season); u.searchParams.set("teamId", teamId);
+  const fr = await cachedText(u, "application/json, text/plain, */*", true);
+  if (!fr.ok) return { error: "Could not read the opponent's results", status: fr.status || 0 };
+  const dd = JSON.parse(fr.text), all = [], seen = new WeakSet();
+  (function visit(o) { if (!o || typeof o !== "object" || seen.has(o)) return; seen.add(o); if (Array.isArray(o)) { o.forEach(visit); return; } if (o.homeTeam && o.awayTeam && typeof o.homeTeam === "object" && typeof o.awayTeam === "object") { all.push(o); return; } Object.values(o).forEach(visit); })(dd.results !== undefined ? dd.results : dd);
+  const idOf = t => String((t && (t.commonId ?? t.id)) ?? "");
+  const played = all.filter(m => m.id && Number.isFinite(Number(m.homeTeam.score)) && Number.isFinite(Number(m.awayTeam.score)) && m.homeTeam.score !== null && m.awayTeam.score !== null && !walkoverInfo(m) && !(Number(m.homeTeam.score) === 0 && Number(m.awayTeam.score) === 0))
+    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 5);
+  const key = "dg|" + teamId + "|" + season + "|" + played.map(m => m.id).join(",");
+  if (useCache) { const sh = await sharedGet(key); if (sh && sh.ok && sh.v) return sh.v; }
+  const per = await Promise.all(played.map(async m => {
+    const mid = String(m.id), [ppl, evs] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + mid), sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + mid)]);
+    return { m, ppl, evs };
+  }));
+  const nameOf = p => p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "" : (String(p.firstName || "").trim().charAt(0).toUpperCase() ? String(p.firstName).trim().charAt(0).toUpperCase() + " " : "") + String(p.lastName || "").trim();
+  const wore = {}, tries = {}, games = [], fieldsSeen = {};
+  // the sheet's side numbers are not the numbers in the results list, so the opponent's side is the sheet side number that turns up in the most of its games (an opposing side changes every game)
+  const sideCount = {}; for (const { ppl } of per) for (const id of new Set((ppl && Array.isArray(ppl.participants) ? ppl.participants : []).map(p => String(p.teamId)))) sideCount[id] = (sideCount[id] || 0) + 1;
+  const topSide = Object.keys(sideCount).sort((a, b) => sideCount[b] - sideCount[a])[0], topN = topSide ? sideCount[topSide] : 0, sideKnown = topN >= 2 && Object.keys(sideCount).filter(k => sideCount[k] === topN).length === 1;
+  for (const { m, ppl, evs } of per) {
+    const homeIsThem = idOf(m.homeTeam) === String(teamId), side = homeIsThem ? m.homeTeam : m.awayTeam, sideKey = sideKnown ? topSide : idOf(side);
+    const list = ppl && Array.isArray(ppl.participants) ? ppl.participants : [];
+    const sideIds = [...new Set(list.map(p => String(p.teamId)))];
+    let ours = list.filter(p => String(p.teamId) === idOf(side));
+    let how = "match record team id";
+    if (sideKnown && list.some(p => String(p.teamId) === topSide)) { ours = list.filter(p => String(p.teamId) === topSide); how = "side number seen in most games (" + topSide + ")"; }
+    else if (!ours.length && list.length) { const g = {}; for (const p of list) (g[String(p.teamId)] || (g[String(p.teamId)] = [])).push(p); const k = Object.keys(g).sort((a, b) => g[b].length - g[a].length)[0]; ours = g[k] || []; how = "larger side (ids did not match)"; }
+    for (const p of ours.slice(0, 1)) for (const k of Object.keys(p)) if (/pos|role|number|no$|shirt|status/i.test(k) && Object.keys(fieldsSeen).length < 14) fieldsSeen[k] = typeof p[k] === "object" && p[k] ? JSON.stringify(p[k]).slice(0, 60) : String(p[k]).slice(0, 40);
+    const withNo = ours.filter(p => /^\d+$/.test(String(p.playingPositionNo || "")) && +p.playingPositionNo <= 23);
+    const when = String(m.date || "").slice(0, 10), vs = homeIsThem ? (m.awayTeam.name || "") : (m.homeTeam.name || "");
+    for (const p of withNo) { const k2 = String(p.individualId || p.id || ""); if (!k2) continue; const o = wore[k2] || (wore[k2] = { name: nameOf(p), g: [] }); o.g.push({ d: when, no: +p.playingPositionNo, grp: shirtGroup(p.playingPositionNo) }); }
+    const evList = Array.isArray(evs) ? evs : [];
+    const tryEv = evList.filter(x => x && x.eventSubType && /SCORETRY$/.test(String(x.eventSubType.value || "")));
+    const byPid = new Map(list.map(p => [p.id, p]));
+    const theirTries = tryEv.filter(x => ours.some(p => p.id === x.matchParticipantId) || String(x.teamId) === sideKey);
+    let named = 0;
+    for (const x of theirTries) { const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18, individualId: x.individualId }; const nm = nameOf(pl); if (nm) { named++; const k3 = String(pl.individualId || x.matchParticipantId || nm); const t = tries[k3] || (tries[k3] = { name: nm, n: 0 }); t.n++; } }
+    games.push({ date: when, v: (homeIsThem ? "home v " : "away at ") + vs, score: m.homeTeam.score + "-" + m.awayTeam.score, sheetFound: !!ppl, sideIds: sideIds.slice(0, 3), opponentSideBy: how, players: ours.length, withShirtNumber: withNo.length, namesWithheld: ours.filter(p => p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))).length, under18: ours.filter(p => p.isU18 === true).length, eventsFound: Array.isArray(evs), eventsInGame: evList.length, triesForThem: theirTries.length, triesWithNamedScorer: named });
+  }
+  const top = Object.values(tries).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 3);
+  const moved = Object.values(wore).filter(o => o.name && o.g.length >= 2).map(o => { const gs = o.g.slice().sort((a, b) => b.d.localeCompare(a.d)), last = gs[0], cnt = {}; for (const x of gs) if (x.grp && x.grp !== "bench") cnt[x.grp] = (cnt[x.grp] || 0) + 1; const usual = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || ""; return { name: o.name, usual, usualGames: cnt[usual] || 0, counts: cnt, last: last.grp, lastNo: last.no, lastDate: last.d, seen: gs.length, all: gs.map(x => x.no).join(", ") }; })
+    .filter(o => o.usual && o.last && o.last !== "bench" && o.last !== o.usual && o.usualGames > (o.counts[o.last] || 0)).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+  // any change of shirt number between games (starting 1-15), even inside a group, so the probe can show what real changes look like
+  const shirtChanges = Object.values(wore).filter(o => o.name && o.g.length >= 2).map(o => { const st = o.g.filter(x => x.no <= 15).sort((a, b) => b.d.localeCompare(a.d)); return { name: o.name, shirts: st.map(x => x.no).join(", "), distinct: new Set(st.map(x => x.no)).size, games: st.length }; }).filter(o => o.distinct > 1).sort((a, b) => b.distinct - a.distinct || a.name.localeCompare(b.name));
+  const tryTotal = games.reduce((n, g) => n + g.triesForThem, 0), tryNamed = games.reduce((n, g) => n + g.triesWithNamedScorer, 0);
+  const result = { key, rfuCalls: 1 + games.length * 2, games, top, moved, shirtChanges, fieldsSeen, tryTotal, tryNamed, sheets: games.filter(g => g.sheetFound && g.withShirtNumber >= 15).length };
+  if (useCache) await sharedPut(key, { ok: true, v: result }, 86400);
+  return result;
+}
 async function oppCheck(ep, v) {
   const t0 = Date.now(), out = { ep: ep.k, label: ep.label, method: "GET", ok: true, status: 200 };
   try {
-    const u = new URL(PROBE_BASE + "/fixtures-and-results/full-matches"); u.searchParams.set("season", v.season); u.searchParams.set("teamId", v.teamId);
-    const fr = await cachedText(u, "application/json, text/plain, */*", true);
-    if (!fr.ok) { out.ok = false; out.status = fr.status || 0; out.json = { error: "Could not read the opponent's results" }; return out; }
-    const dd = JSON.parse(fr.text), all = [], seen = new WeakSet();
-    (function visit(o) { if (!o || typeof o !== "object" || seen.has(o)) return; seen.add(o); if (Array.isArray(o)) { o.forEach(visit); return; } if (o.homeTeam && o.awayTeam && typeof o.homeTeam === "object" && typeof o.awayTeam === "object") { all.push(o); return; } Object.values(o).forEach(visit); })(dd.results !== undefined ? dd.results : dd);
-    const idOf = t => String((t && (t.commonId ?? t.id)) ?? "");
-    const played = all.filter(m => m.id && Number.isFinite(Number(m.homeTeam.score)) && Number.isFinite(Number(m.awayTeam.score)) && m.homeTeam.score !== null && m.awayTeam.score !== null && !walkoverInfo(m) && !(Number(m.homeTeam.score) === 0 && Number(m.awayTeam.score) === 0))
-      .sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 5);
-    const per = await Promise.all(played.map(async m => {
-      const mid = String(m.id), [ppl, evs] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + mid), sheetJson("https://cluster.england-rfu.com/gms/matchevents?matchId=" + mid)]);
-      return { m, ppl, evs };
-    }));
-    const nameOf = p => p.isU18 === true ? "" : (p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))) ? "" : (String(p.firstName || "").trim().charAt(0).toUpperCase() ? String(p.firstName).trim().charAt(0).toUpperCase() + " " : "") + String(p.lastName || "").trim();
-    const wore = {}, tries = {}, games = [], fieldsSeen = {};
-    // v3.53.3: the sheet's side numbers are not the numbers in the results list, so the opponent's side is the sheet side number that turns up in the most of its games (an opposing side changes every game)
-    const sideCount = {}; for (const { ppl } of per) for (const id of new Set((ppl && Array.isArray(ppl.participants) ? ppl.participants : []).map(p => String(p.teamId)))) sideCount[id] = (sideCount[id] || 0) + 1;
-    const topSide = Object.keys(sideCount).sort((a, b) => sideCount[b] - sideCount[a])[0], topN = topSide ? sideCount[topSide] : 0, sideKnown = topN >= 2 && Object.keys(sideCount).filter(k => sideCount[k] === topN).length === 1;
-    for (const { m, ppl, evs } of per) {
-      const homeIsThem = idOf(m.homeTeam) === String(v.teamId), side = homeIsThem ? m.homeTeam : m.awayTeam, sideKey = sideKnown ? topSide : idOf(side);
-      const list = ppl && Array.isArray(ppl.participants) ? ppl.participants : [];
-      const sideIds = [...new Set(list.map(p => String(p.teamId)))];
-      // which side of the sheet is the opponent: the one whose teamId matches the match record for them, else the larger side
-      let ours = list.filter(p => String(p.teamId) === idOf(side));
-      let how = "match record team id";
-      if (sideKnown && list.some(p => String(p.teamId) === topSide)) { ours = list.filter(p => String(p.teamId) === topSide); how = "side number seen in most games (" + topSide + ")"; }
-      else if (!ours.length && list.length) { const g = {}; for (const p of list) (g[String(p.teamId)] || (g[String(p.teamId)] = [])).push(p); const k = Object.keys(g).sort((a, b) => g[b].length - g[a].length)[0]; ours = g[k] || []; how = "larger side (ids did not match)"; }
-      for (const p of ours.slice(0, 1)) for (const k of Object.keys(p)) if (/pos|role|number|no$|shirt|status/i.test(k) && Object.keys(fieldsSeen).length < 14) fieldsSeen[k] = typeof p[k] === "object" && p[k] ? JSON.stringify(p[k]).slice(0, 60) : String(p[k]).slice(0, 40);
-      const withNo = ours.filter(p => /^\d+$/.test(String(p.playingPositionNo || "")) && +p.playingPositionNo <= 23);
-      const when = String(m.date || "").slice(0, 10), vs = homeIsThem ? (m.awayTeam.name || "") : (m.homeTeam.name || "");
-      for (const p of withNo) { const key = String(p.individualId || p.id || ""); if (!key) continue; const o = wore[key] || (wore[key] = { name: nameOf(p), g: [] }); o.g.push({ d: when, no: +p.playingPositionNo, grp: shirtGroup(p.playingPositionNo) }); }
-      const evList = Array.isArray(evs) ? evs : [];
-      const tryEv = evList.filter(x => x && x.eventSubType && /SCORETRY$/.test(String(x.eventSubType.value || "")));
-      const byPid = new Map(list.map(p => [p.id, p]));
-      const theirTries = tryEv.filter(x => ours.some(p => p.id === x.matchParticipantId) || String(x.teamId) === sideKey);
-      let named = 0;
-      for (const x of theirTries) { const pl = byPid.get(x.matchParticipantId) || { firstName: x.firstName, lastName: x.lastName, hasDisclosure: x.hasDisclosure, isU18: x.isU18, individualId: x.individualId }; const nm = nameOf(pl); if (nm) { named++; const key = String(pl.individualId || x.matchParticipantId || nm); const t = tries[key] || (tries[key] = { name: nm, n: 0 }); t.n++; } }
-      games.push({ date: when, v: (homeIsThem ? "home v " : "away at ") + vs, score: m.homeTeam.score + "-" + m.awayTeam.score, sheetFound: !!ppl, sideIds: sideIds.slice(0, 3), opponentSideBy: how, players: ours.length, withShirtNumber: withNo.length, namesWithheld: ours.filter(p => p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""))).length, under18: ours.filter(p => p.isU18 === true).length, eventsFound: Array.isArray(evs), eventsInGame: evList.length, triesForThem: theirTries.length, triesWithNamedScorer: named });
-    }
-    const top = Object.values(tries).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 3);
-    const moved = Object.values(wore).filter(o => o.name && o.g.length >= 2).map(o => { const gs = o.g.slice().sort((a, b) => b.d.localeCompare(a.d)), last = gs[0], cnt = {}; for (const x of gs) if (x.grp && x.grp !== "bench") cnt[x.grp] = (cnt[x.grp] || 0) + 1; const usual = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || ""; return { name: o.name, usual, usualGames: cnt[usual] || 0, counts: cnt, last: last.grp, lastNo: last.no, lastDate: last.d, seen: gs.length, all: gs.map(x => x.no).join(", ") }; })
-      .filter(o => o.usual && o.last && o.last !== "bench" && o.last !== o.usual && o.usualGames > (o.counts[o.last] || 0)).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+    const r = await oppDangerCore(v.teamId, v.season);
+    if (r.error) { out.ok = false; out.status = r.status || 0; out.json = { error: r.error }; return out; }
+    const games = r.games;
     out.ms = Date.now() - t0;
-    out.json = { note: "The opponent's last played games from the RFU results. Names are an initial and surname; withheld names and under-18s are counted but not named. Shirt groups: 1-3 front row, 4-5 lock, 6-8 back row, 9 scrum half, 10 fly half, 11 and 14 wing, 12 and 13 centre, 15 full back, 16+ bench.", gamesRead: games.length, rfuCalls: 1 + games.length * 2,
-      verdict: { sheetsFound: games.filter(g => g.sheetFound && g.withShirtNumber >= 15).length + " of " + games.length, gamesWithScorersListed: games.filter(g => g.eventsFound && g.eventsInGame > 0).length + " of " + games.length, gamesWithNamedTryScorers: games.filter(g => g.triesWithNamedScorer > 0).length + " of " + games.length },
-      topTryScorers: top.map(x => x.name + ": " + x.n), playersWhoMovedShirtGroup: moved.slice(0, 12).map(o => o.name + ": usually " + o.usual + " (" + o.usualGames + " of " + o.seen + " games), last wore " + o.lastNo + " (" + o.last + ") on " + o.lastDate + "; shirts " + o.all), positionFieldsOnASheet: fieldsSeen, games };
+    out.json = { note: "The opponent's last played games from the RFU results. Names are an initial and surname; withheld names and under-18s are counted but not named. Shirt groups: 1-3 front row, 4-5 lock, 6-8 back row, 9 scrum half, 10 fly half, 11 and 14 wing, 12 and 13 centre, 15 full back, 16+ bench.", gamesRead: games.length, rfuCalls: r.rfuCalls,
+      verdict: { sheetsFound: r.sheets + " of " + games.length, gamesWithScorersListed: games.filter(g => g.eventsFound && g.eventsInGame > 0).length + " of " + games.length, gamesWithNamedTryScorers: games.filter(g => g.triesWithNamedScorer > 0).length + " of " + games.length, triesNamed: r.tryNamed + " of " + r.tryTotal },
+      topTryScorers: r.top.map(x => x.name + ": " + x.n), playersWhoMovedShirtGroup: r.moved.slice(0, 12).map(o => o.name + ": usually " + o.usual + " (" + o.usualGames + " of " + o.seen + " games), last wore " + o.lastNo + " (" + o.last + ") on " + o.lastDate + "; shirts " + o.all),
+      anyShirtNumberChange: r.shirtChanges.slice(0, 15).map(o => o.name + ": shirts " + o.shirts + " (newest first, " + o.games + " games)"), positionFieldsOnASheet: r.fieldsSeen, games };
   } catch (e) { out.ok = false; out.status = 0; out.json = { error: String(e && e.message || e).slice(0, 200) }; }
   return out;
 }
@@ -7007,6 +7045,19 @@ const worker = {
     const pubOrigin = /\.pages\.dev$/i.test(url.hostname) && /^https:\/\//.test(pubSite) ? pubSite : url.origin;
 
     // Crest proxy: serves club crests from this site so the Match Stats page can read their colours.
+    // v3.54.0: Danger players for the Opposition report. Public, read only: the opponent's top try scorers and shirt-group changes over their last five games. Asked for by the page after it loads,
+    // so it has its own request allowance; the answer is kept for a day (a new game gives a new key) and the browser may keep it for 15 minutes.
+    if (url.pathname === "/api/danger") {
+      const dgp = url.searchParams, opp = dgp.get("opp") || "", season = dgp.get("season") || "";
+      const out = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "public, max-age=900", "X-Robots-Tag": "noindex" } });
+      if (!/^\d{1,10}$/.test(opp) || !/^\d{4}-\d{4}$/.test(season)) return out({ ok: false, error: "Bad request" }, 400);
+      try {
+        const r = await oppDangerCore(opp, season, true);
+        if (r.error) return out({ ok: false });
+        const ok = r.sheets >= 3 && r.tryNamed > 0;
+        return out({ ok: true, show: ok, games: r.games.length, tryNamed: r.tryNamed, tryTotal: r.tryTotal, top: ok ? r.top.map(x => ({ name: x.name, n: x.n })) : [], moved: ok ? r.moved.slice(0, 4).map(o => ({ name: o.name, usual: o.usual, last: o.last, no: o.lastNo, d: o.lastDate })) : [] });
+      } catch (_) { return out({ ok: false }); }
+    }
     if (url.pathname === "/api/crest") {
       const id = url.searchParams.get("id") || "";
       if (!/^\d+$/.test(id)) return new Response("Bad id", { status: 400 });
@@ -7762,7 +7813,7 @@ ${themeToggleScript}
         const t2 = nL ? formTxt + (tr ? ", scoring " + f1(tr.scored) + " and conceding " + f1(tr.conceded) + " a game." : ".") : "";
         const t3 = commonTxt || h2hTxt ? (h2hTxt ? h2hTxt + "." : commonTxt + ".") : "";
         const g1 = grp(1, "This game", (C.win || "") + (C.diff || "") + (C.rest || "") + (C.wx || ""), t1);
-        const g2 = grp(2, "Their form", (C.last || "") + (C.trend || "") + (C.venue || ""), t2);
+        const g2 = grp(2, "Their form", (C.last || "") + (C.trend || "") + (C.venue || "") + (d.opp.id ? `<div class="card" id="dgc" hidden></div>` : ""), t2);
         const g3 = grp(3, "You v them", (C.h2h || "") + (C.common || "") + (C.hist || ""), t3);
         const sumBits = [];
         if (d.games) sumBits.push(c.close + " of " + d.games + " games close");
@@ -7871,7 +7922,7 @@ ${bodyHtml}
 <p class="ver">${VERSION_LABEL}</p>
 </div>
 ${themeToggleScript}
-${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: team, idb: d.opp.id, a: hexParam(url.searchParams.get("colour")) || hexParam((TEAMS.find(t => String(t.team) === String(team)) || {}).accent), b: hexParam(url.searchParams.get("oppColour")) })) : ""}
+${ok && d.opp && d.opp.id ? DANGER_SCRIPT.replace("__CFG__", JSON.stringify({ o: String(d.opp.id), s: String(season) })) : ""}${ok && d.history ? OPP_COLOUR_SCRIPT.replace("__CFG__", JSON.stringify({ ida: team, idb: d.opp.id, a: hexParam(url.searchParams.get("colour")) || hexParam((TEAMS.find(t => String(t.team) === String(team)) || {}).accent), b: hexParam(url.searchParams.get("oppColour")) })) : ""}
 </body></html>`;
       return new Response(page, { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-cache" } });
     }

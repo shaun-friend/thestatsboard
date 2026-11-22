@@ -2,7 +2,7 @@ import fs from 'fs';
 const src=fs.readFileSync(process.argv[2],'utf8');
 let pass=0,fail=0;const c=(n,ok)=>{if(ok)pass++;else{fail++;console.log('FAIL',n)}};
 const grab=n=>{const k=src.indexOf('function '+n+'(');const i=src.lastIndexOf('async function '+n+'(')===src.indexOf('async function '+n+'(')&&src.indexOf('async function '+n+'(')>=0?src.indexOf('async function '+n+'('):k;let d=0,j=src.indexOf('{',i);for(let q=j;q<src.length;q++){if(src[q]==='{')d++;if(src[q]==='}'){d--;if(!d)return src.slice(i,q+1)}}};
-const code=[grab('shirtGroup'),grab('oppCheck')].join('\n');
+const code=[grab('shirtGroup'),grab('oppDangerCore'),grab('oppCheck')].join('\n');
 // fake RFU: opponent id 500 played 3 games; a number 9 moves to 10; one try scorer twice; one game has no sheet
 const player=(id,fn,ln,no,team,pid)=>({id:pid,individualId:id,firstName:fn,lastName:ln,playingPositionNo:String(no),teamId:team});
 const sheet=(team,no9)=>({participants:[...Array.from({length:15},(_,i)=>player(1000+i+1,'P'+(i+1),'Name'+(i+1),i+1,team,'pp'+(i+1))),player(2000,'Sam','Hidden',16,team,'ppx')].map(p=>p.individualId===1009&&no9?{...p,playingPositionNo:String(no9)}:p)});
@@ -19,7 +19,7 @@ let calls=0;
 const cachedText=async u=>({ok:true,text:JSON.stringify(res)});
 const sheetJson=async u=>{calls++;const m=/matchId=(\d+)/.exec(u);const id=m[1];return /participants/.test(u)?sheets[id]:events[id]};
 const walkoverInfo=()=>false;const PROBE_BASE='https://x.test';
-const mk=new Function('cachedText','sheetJson','walkoverInfo','PROBE_BASE',code+'\nreturn oppCheck');
+const mk=(a,b,c2,d)=>new Function('cachedText','sheetJson','walkoverInfo','PROBE_BASE','sharedGet','sharedPut',code+'\nreturn oppCheck')(a,b,c2,d,async()=>null,async()=>{});
 const oppCheck=mk(cachedText,sheetJson,walkoverInfo,PROBE_BASE);
 const r=await oppCheck({k:'oppcheck',label:'x'},{teamId:'500',season:'2026-2027'});
 const j=r.json;

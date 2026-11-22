@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.54.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.54.0_danger_players.zip | v3.53.3
 v3.53.3 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.3_opposition_check_side.zip | v3.53.2
 v3.53.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.2_tv_board_colour.zip | v3.53.1
 v3.53.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.53.1_team_colour_fix.zip | v3.53.0
@@ -353,6 +354,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.54.0 - Opposition report: Danger players
+- Owner request (22-Nov-2026): show the opponent's top try scorers and anyone who recently played out of their usual position. Real data from the DEV check showed sheets and named scorers for all five recent games.
+- Added: a Danger players card under Their form. It lists their top three try scorers over their last five games and anyone who recently wore a shirt from a different group (for example usually back row, wore 10 last week). The card stays hidden unless there are at least three sheets and named scorers, so it never shows thin data. Names the RFU withholds, and under-18s, are left out.
+- Added: the DEV Opposition check also lists any shirt number change, with the shirts worn.
+- Request limit: the card is filled by the browser after the report loads, from a new address (/api/danger) that has its own allowance of 50 requests. A first look at an opponent makes about 11 RFU requests; the answer is then kept for a day (a new game gives a new answer) and the browser keeps it for 15 minutes. The report page itself makes no extra requests.
+- Docs: Other addresses
 
 v3.53.3 - DEV probe: Opposition check picks the right side (testing only)
 - Found from the first real run (22-Nov-2026): the team sheet side numbers do not match the match record, and with two sides of 18 the check guessed, so scorers and position changes could be mixed between teams.
