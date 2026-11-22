@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.59.2 22-Nov-2026 Match day TV page: team names are never cut off (head to head names written in full under the bar; panel and header names wrap).
 //   v3.59.1 22-Nov-2026 Match day TV page preview (DEV): pick a game already played this season and see the page with its real line-up and sponsors; the timing simulator is folded away under it.
 //   v3.59.0 22-Nov-2026 Match day TV page: on game day, once the team sheet is on the RFU system, a team's Match Stats TV slot shows the line-up, sponsors, head to head and substitutes (per-team Admin switch, off by default; stop time per team, default 18:00; checks from 10:00; DEV simulator). Timings of the rotation do not change.
 //   v3.58.1 22-Nov-2026 Refresh scores now: screens no longer poll; they pick the refresh up on their normal reload (10 minutes at weekends, hourly otherwise)
@@ -366,7 +367,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.59.1";
+const VERSION = "v3.59.2";
 const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -413,6 +414,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
 v3.59.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.1_match_day_preview.zip | v3.59.0
 v3.59.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.0_match_day_tv.zip | v3.58.1
 v3.58.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.1_no_polling.zip | v3.58.0
@@ -742,6 +744,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.2 - Match day TV page: names never cut off
+- Owner request (22-Nov-2026): team names in the head to head must never be cut off.
+- Change: the head to head bar now shows only the win counts; the full team names are written underneath in a legend that wraps. Names in the stats panel and the header wrap instead of ending in an ellipsis.
+- Request limit: no change.
+- Docs: What's new, Which page is which
 
 v3.59.1 - Match day TV page: preview with a real past game (DEV)
 - Owner request (22-Nov-2026): the simulator was hard to follow; let a real game from this season be used to check the page.
@@ -3218,6 +3226,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.59.2", "Match day TV page: team names are never cut short. In the head to head the bar shows the win counts and the full team names are written underneath; long names wrap in the header and the stats panel."],
       ["v3.59.1", "Match day TV page preview (DEV only): on the Match day admin page, pick a team and a game already played this season and open the new TV page with that game's real line-up and sponsors, so it can be checked before a real game day."],
       ["v3.59.0", "Match day TV page: on game day, once the team sheet is on the RFU system, a team's Match Stats slot on the TV shows its line-up with sponsors, the substitutes and a short head to head. Switch it on per team in Admin, Our teams (off until you do), and choose the time it stops (6:00pm unless you change it). It starts at 10:00, never shows the day before, and the normal Match Stats page shows when there is no sheet. The TV rotation and its timings do not change."],
       ["v3.58.1", "Refresh scores now: open screens no longer check for a refresh every minute; they pick it up on their normal reload, so at weekends a score shows within 10 minutes of pressing the button."],
@@ -4485,7 +4494,7 @@ function mdShirt(n, ac) {
 const MD_TV_CSS = `body.md .top{display:none}
 .mdh{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem}
 .mdh .tl{display:flex;align-items:center;gap:1.3rem;min-width:0}.mdh .tl.r{justify-content:flex-end;text-align:right}
-.mdh .big{margin:0;width:7.2rem;height:7.2rem;flex:none}.mdh .nm{font-size:3.4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.mdh .big{margin:0;width:7.2rem;height:7.2rem;flex:none}.mdh .nm{font-size:3.4rem;line-height:1.05;overflow-wrap:anywhere;min-width:0}
 .mdh .tag{font-size:1.25rem;margin-top:.5rem}.mdh .vv{text-align:center}.mdh .vv b{display:block;font-size:4.2rem;line-height:.9;color:var(--mu)}.mdh .vv span{display:block;margin-top:.4rem;font-size:1.3rem;letter-spacing:.14em;font-weight:700;color:var(--mu);text-transform:uppercase;white-space:nowrap}
 .mdb{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
 .lu{display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
@@ -4493,25 +4502,27 @@ const MD_TV_CSS = `body.md .top{display:none}
 .rw .sh{height:88%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
 .rw .sp{flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.15rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
 .rc{display:flex;flex-direction:column;gap:.8rem;min-height:0}
-.pn{flex:1 1 auto;min-height:0;background:var(--card);border:1px solid var(--bd);border-radius:.8rem;padding:1rem 1.3rem;display:flex;flex-direction:column;gap:.5rem;overflow:hidden}
-.st{display:grid;grid-template-columns:1fr auto 1fr;gap:.25rem .8rem;align-items:center;text-align:center}.st .hh2{display:flex;align-items:center;justify-content:center;gap:.6rem;min-width:0}.st .hh2 b{font-size:1.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn{flex:1 1 auto;min-height:0;background:var(--card);border:1px solid var(--bd);border-radius:.8rem;padding:.8rem 1.3rem;display:flex;flex-direction:column;gap:.25rem;overflow:hidden}
+.st{display:grid;grid-template-columns:1fr auto 1fr;gap:.25rem .8rem;align-items:center;text-align:center}.st .hh2{display:flex;align-items:center;justify-content:center;gap:.6rem;min-width:0}.st .hh2 b{font-size:1.5rem;line-height:1.1;overflow-wrap:anywhere}
 .st .cr{width:2.6rem;height:2.6rem;border-radius:50%;background:#fff;border:.2rem solid var(--c);position:relative;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#333}.st .cr img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain}
 .st .v{font-size:1.7rem;font-weight:700}.st .l{color:var(--mu);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase;min-width:9rem}
-.mdh3{margin:.5rem 0 0;text-align:center;letter-spacing:.18em;font-size:.95rem;color:var(--mu);font-weight:700;text-transform:uppercase}
+.mdh3{margin:.35rem 0 0;text-align:center;letter-spacing:.18em;font-size:.95rem;color:var(--mu);font-weight:700;text-transform:uppercase}
 .fm2{display:flex;justify-content:space-between;gap:1rem;padding:.3rem .3rem 0}.fm2>div{display:flex;flex-direction:column;gap:.45rem;align-items:flex-start;min-width:0}.fm2>div:last-child{align-items:flex-end;text-align:right}.fm2 .fd{padding-bottom:0;gap:.4rem}.fm2 .dot{width:1.7rem;height:1.7rem}.fm2 .ll{font-size:1.05rem;color:var(--tx)}.fm2 .ll small{display:block;color:var(--mu);font-size:.95rem}
-.hb{display:flex;height:2.2rem;gap:.15rem;border-radius:.5rem;overflow:hidden;margin:.3rem .3rem 0}.hb>div{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;white-space:nowrap;overflow:hidden;min-width:0}
+.pn>*{flex:none}.hb{display:flex;height:2.2rem;gap:.15rem;border-radius:.5rem;overflow:hidden;margin:.3rem .3rem 0}.hb>div{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;white-space:nowrap;overflow:hidden;min-width:0}
 .hb .a{background:var(--ca);color:var(--ka)}.hb .b{background:var(--cb);color:var(--kb)}.hb .d{background:#5d7066;color:#fff}
+.hk{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem 1.4rem;margin:.35rem .3rem 0;font-size:1.05rem;color:var(--tx)}.hk span{display:inline-flex;align-items:center;gap:.45rem}.hk i{width:.9rem;height:.9rem;border-radius:.2rem;flex:none;display:inline-block}.hk i.a{background:var(--ca)}.hk i.b{background:var(--cb)}.hk i.d{background:#5d7066}
 .hl2{text-align:center;color:var(--mu);font-size:1.05rem;margin-top:.3rem}
 .sb{flex:none;background:var(--sbg);border:2px solid var(--sbd);border-radius:.7rem;padding:.7rem 1.3rem}.sb .fh{font-size:.9rem;letter-spacing:.18em;color:var(--mu);margin-bottom:.3rem}.sb div.sn{font-size:1.35rem;line-height:1.3;color:var(--tx);overflow:hidden;max-height:4.2rem}
 body.light .st .cr{background:#fff}
 :root{--av:#ffd978;--sbg:#26332d;--sbd:#3f5a4c}body.light{--sbg:#e1ece5;--sbd:#9db8a8}`;
 function mdTvInner(o) {
   const { e, ord, light, me, opp, n, sheet, crest, meCol, tm, h2hAll, league, season, stamp } = o;
+  const bigSz = nm => { const k = String(nm || "").length; return k <= 18 ? 3.4 : k <= 28 ? 2.7 : k <= 40 ? 2.2 : 1.8; }, panSz = nm => { const k = String(nm || "").length; return k <= 20 ? 1.5 : k <= 32 ? 1.2 : 1; }; // long names get smaller type, never an ellipsis
   const sCol = mdLegible(meCol, light), avCol = mdAvailColour(meCol, light);
   const show = v => v === null || v === undefined || v === "" ? "-" : String(v);
   const nameCell = p => p.hidden ? `<em>Name not shown</em>` : p.name ? e(p.name) + (p.tag === "Captain" ? "<i>(C)</i>" : p.tag === "Vice captain" ? "<i>(VC)</i>" : "") : `<em>Name redacted</em>`;
   const rows = sheet.starters.map(p => `<div class="rw">${mdShirt(p.no, meCol)}<span class="pn1">${nameCell(p)}</span>${p.hidden ? "" : p.sponsor ? `<span class="sp">${e(p.sponsor)}</span>` : `<span class="sp av">Available to sponsor</span>`}</div>`).join("");
-  const sm = (id, name, c) => `<div class="hh2" style="--c:${c}"><span class="cr"><span>${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" onerror="this.remove()">` : ""}</span><b style="color:${mdLegible(c, light)}">${e(name)}</b></div>`;
+  const sm = (id, name, c) => `<div class="hh2" style="--c:${c}"><span class="cr"><span>${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" onerror="this.remove()">` : ""}</span><b style="color:${mdLegible(c, light)};font-size:${panSz(name)}rem">${e(name)}</b></div>`;
   const pos = v => v ? ord(Number(v)) : "-";
   const stat = (lab, a, b) => `<b class="v">${e(show(a))}</b><div class="l">${lab}</div><b class="v">${e(show(b))}</b>`;
   const dots = f => (f || []).map((x, i) => `<span class="fx"><span class="dot ${e(x)}${i === 0 ? " new" : ""}">${e(x)}</span></span>`).join("");
@@ -4519,15 +4530,14 @@ function mdTvInner(o) {
   const form = s => `<div><div class="fd">${dots(s.form) || `<span class="mu">No results yet</span>`}</div>${latest(s)}</div>`;
   const idMe = String(me.id), idOpp = String(opp.id), ha = Array.isArray(h2hAll) ? h2hAll : [];
   const cA = ha.filter(g => String(g.winId) === idMe).length, cB = ha.filter(g => String(g.winId) === idOpp).length, cD = ha.length - cA - cB;
-  const short = nm => String(nm || "").split(/\s+/)[0];
-  const lm = ha[0], lmTxt = lm ? (lm.wo ? (String(lm.winId) === idMe ? e(me.name) : e(opp.name)) + " won (walkover)" : (() => { const mine = String(lm.homeId) === idMe ? lm.homeScore : lm.awayScore, theirs = String(lm.homeId) === idMe ? lm.awayScore : lm.homeScore; return (mine > theirs ? e(me.name) + " won " : mine < theirs ? e(opp.name) + " won " : "Drawn ") + e(Math.max(mine, theirs)) + "&ndash;" + e(Math.min(mine, theirs)); })()) : "";
-  const h2h = ha.length ? `<div class="hb">${cA ? `<div class="a" style="flex:${cA}">${e(short(me.name))} won ${cA}</div>` : ""}${cD ? `<div class="d" style="flex:${cD}">Drew ${cD}</div>` : ""}${cB ? `<div class="b" style="flex:${cB}">${e(short(opp.name))} won ${cB}</div>` : ""}</div><div class="hl2">Last meeting: ${lmTxt}</div>` : `<div class="hl2">No league meetings in the last 5 seasons</div>`;
+    const lm = ha[0], lmTxt = lm ? (lm.wo ? (String(lm.winId) === idMe ? e(me.name) : e(opp.name)) + " won (walkover)" : (() => { const mine = String(lm.homeId) === idMe ? lm.homeScore : lm.awayScore, theirs = String(lm.homeId) === idMe ? lm.awayScore : lm.homeScore; return (mine > theirs ? e(me.name) + " won " : mine < theirs ? e(opp.name) + " won " : "Drawn ") + e(Math.max(mine, theirs)) + "&ndash;" + e(Math.min(mine, theirs)); })()) : "";
+  const h2h = ha.length ? `<div class="hb">${cA ? `<div class="a" style="flex:${cA}">${cA}</div>` : ""}${cD ? `<div class="d" style="flex:${cD}">${cD}</div>` : ""}${cB ? `<div class="b" style="flex:${cB}">${cB}</div>` : ""}</div><div class="hk"><span><i class="a"></i>${e(me.name)} won ${cA}</span><span><i class="d"></i>Drew ${cD}</span><span><i class="b"></i>${e(opp.name)} won ${cB}</span></div><div class="hl2">Last meeting: ${lmTxt}</div>` : `<div class="hl2">No league meetings in the last 5 seasons</div>`;
   const kick = /^\d{1,2}:\d{2}$/.test(String(n.time || "")) ? String(n.time) : "";
   const home = !!n.mineHome, tag = (h, cls) => `<span class="tag" style="background:var(--${cls === "a" ? "ca" : "cb"});color:var(--${cls === "a" ? "ka" : "kb"})">${h ? "Home" : "Away"}</span>`;
   const subs = sheet.subs.length ? `<div class="sb"><div class="fh">Substitutes</div><div class="sn">${sheet.subs.map(e).join(" &middot; ")}</div></div>` : "";
-  return `<div class="mdh"><div class="tl">${crest(me.id, me.name, "a", true)}<div style="min-width:0"><div class="nm">${e(me.name)}</div>${tag(home, "a")}</div></div>
+  return `<div class="mdh"><div class="tl">${crest(me.id, me.name, "a", true)}<div style="min-width:0"><div class="nm" style="font-size:${bigSz(me.name)}rem">${e(me.name)}</div>${tag(home, "a")}</div></div>
 <div class="vv"><b>v</b><span>Today${kick ? " &middot; " + e(kick) : ""}</span></div>
-<div class="tl r"><div style="min-width:0"><div class="nm">${e(opp.name)}</div>${tag(!home, "b")}</div>${crest(opp.id, opp.name, "b", false)}</div></div>
+<div class="tl r"><div style="min-width:0"><div class="nm" style="font-size:${bigSz(opp.name)}rem">${e(opp.name)}</div>${tag(!home, "b")}</div>${crest(opp.id, opp.name, "b", false)}</div></div>
 <div class="mdb"><div class="lu" style="--ca:${sCol};--av:${avCol}">${rows}</div>
 <div class="rc"><div class="pn"><div class="st">${sm(me.id, me.name, meCol)}<div class="l"></div>${sm(opp.id, opp.name, "var(--cb)")}${stat("Position", pos(me.position), pos(opp.position))}${stat("League points", me.points, opp.points)}${stat("Played", me.played, opp.played)}${stat("Wins", me.wins, opp.wins)}${stat("Points scored", me.pf, opp.pf)}${stat("Points conceded", me.pa, opp.pa)}</div>
 <div class="mdh3">Recent form &middot; newest first</div><div class="fm2">${form(me)}${form(opp)}</div>

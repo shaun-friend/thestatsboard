@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.59.2 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.2_match_day_names.zip | v3.59.1
 v3.59.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.1_match_day_preview.zip | v3.59.0
 v3.59.0 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.0_match_day_tv.zip | v3.58.1
 v3.58.1 | 22-Nov-2026 | RFU_Club_Dashboard_v3.58.1_no_polling.zip | v3.58.0
@@ -370,6 +371,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.59.2 - Match day TV page: names never cut off
+- Owner request (22-Nov-2026): team names in the head to head must never be cut off.
+- Change: the head to head bar now shows only the win counts; the full team names are written underneath in a legend that wraps. Names in the stats panel and the header wrap instead of ending in an ellipsis.
+- Request limit: no change.
+- Docs: What's new, Which page is which
 
 v3.59.1 - Match day TV page: preview with a real past game (DEV)
 - Owner request (22-Nov-2026): the simulator was hard to follow; let a real game from this season be used to check the page.
