@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.63.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.1_usage_storage_fix.zip | v3.63.0
 v3.63.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.0_usage_kv_storage.zip | v3.62.0
 v3.62.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.62.0_logos_in_list.zip | v3.61.2
 v3.61.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.2_no_match_day_logos.zip | v3.61.1
@@ -385,6 +386,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.63.1 - Usage page: stored data showed 0
+- Owner report (23-Nov-2026): the Stored data bar read 0 KB and 0 items for both stores.
+- Cause (likely): Cloudflare returned a row for today that had not been counted yet, and the page used the newest day whatever it held.
+- Change: each store uses its newest day that has data, falling back to 0 only if every day reads 0. If it still shows 0, the raw reply under "Show what Cloudflare returned" says why.
+- Request limit: no change.
+- Docs: What's new
 
 v3.63.0 - Usage page: stored data in the Cloudflare limits card
 - Owner request (23-Nov-2026): see the total size of the data held in Cloudflare, mainly to watch what logos add.

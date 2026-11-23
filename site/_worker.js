@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.63.1 23-Nov-2026 Usage page: stored data uses the newest day that has data (a day still being counted read 0).
 //   v3.63.0 23-Nov-2026 Usage page: Cloudflare limits card shows how much the settings stores hold (KV storage, logos included).
 //   v3.62.0 23-Nov-2026 Sponsors page: a small logo (or an empty dashed box) beside each sponsor in the list.
 //   v3.61.2 23-Nov-2026 Match day TV page no longer shows sponsor logos (sponsor names as text again).
@@ -381,7 +382,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.63.0";
+const VERSION = "v3.63.1";
 const BUILD_DATE = "23-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -428,6 +429,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.63.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.1_usage_storage_fix.zip | v3.63.0
 v3.63.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.0_usage_kv_storage.zip | v3.62.0
 v3.62.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.62.0_logos_in_list.zip | v3.61.2
 v3.61.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.2_no_match_day_logos.zip | v3.61.1
@@ -772,6 +774,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.63.1 - Usage page: stored data showed 0
+- Owner report (23-Nov-2026): the Stored data bar read 0 KB and 0 items for both stores.
+- Cause (likely): Cloudflare returned a row for today that had not been counted yet, and the page used the newest day whatever it held.
+- Change: each store uses its newest day that has data, falling back to 0 only if every day reads 0. If it still shows 0, the raw reply under "Show what Cloudflare returned" says why.
+- Request limit: no change.
+- Docs: What's new
 
 v3.63.0 - Usage page: stored data in the Cloudflare limits card
 - Owner request (23-Nov-2026): see the total size of the data held in Cloudflare, mainly to watch what logos add.
@@ -3349,6 +3358,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.63.1", "Usage page: stored data no longer shows 0 when Cloudflare has not finished counting today."],
       ["v3.63.0", "Usage page: the Cloudflare limits card now shows how much data the settings stores hold, against the 1 GB free allowance."],
       ["v3.62.0", "Sponsors page: each sponsor in the list shows a small logo, or an empty dashed box when it has none, so missing logos are easy to spot."],
       ["v3.61.2", "Match day TV page: sponsor names are shown as text again; logos are not shown there."],
@@ -5901,7 +5911,8 @@ function cflStorageShape(a) {
   for (const r of rows) {
     const ns = String(r.dimensions && r.dimensions.namespaceId || ""), dt = String(r.dimensions && r.dimensions.date || "");
     if (!ns) continue;
-    if (!latest[ns] || dt > latest[ns].dt) latest[ns] = { dt, bytes: Number(r.max && r.max.byteCount) || 0, keys: Number(r.max && r.max.keyCount) || 0 };
+    const b = Number(r.max && r.max.byteCount) || 0, k = Number(r.max && r.max.keyCount) || 0, cur = latest[ns]; // the newest day that has data; a day still being counted can read 0
+    if (!cur || (b > 0 && (cur.bytes === 0 || dt > cur.dt)) || (b === 0 && cur.bytes === 0 && dt > cur.dt)) latest[ns] = { dt, bytes: b, keys: k };
   }
   const labels = String(SITE_ENV.CF_KV_LABELS || "").split(",").map(x => x.split("=")).filter(x => x.length === 2 && x[0].trim() && x[1].trim()).map(x => [x[0].trim().toLowerCase(), x[1].trim().slice(0, 20)]);
   const stores = Object.keys(latest).map(id => ({ id: id.slice(0, 8), label: (labels.find(l => id.toLowerCase().startsWith(l[0])) || [])[1] || "", bytes: latest[id].bytes, keys: latest[id].keys, date: latest[id].dt })).sort((x, y) => y.bytes - x.bytes).slice(0, 6);
