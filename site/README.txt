@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.61.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.0_logo_tiles_match_day.zip | v3.60.3
 v3.60.3 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.3_sponsor_logos_on_open.zip | v3.60.2
 v3.60.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.2_sponsor_logo_cards.zip | v3.60.1
 v3.60.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.1_sponsor_logos_ci_fix.zip | v3.60.0
@@ -380,6 +381,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.61.0 - Sponsor logos: tile choice, and logos on the Match day TV page
+- Owner request (23-Nov-2026): a logo should remember whether it looks best on a dark or light background, and the logos should appear on the Match day TV page.
+- Change: each logo stores a tile (dark, light or as supplied). At upload the page picks one (a logo with a solid background is as supplied, a dark logo goes on light, otherwise dark); older logos are worked out when the sponsor is first opened. The Logo section has three buttons, Dark tile, Light tile and As supplied, and the chosen preview tile is outlined. The Match day TV page shows each sponsor's logo on its tile beside the player; a sponsor without a logo still shows its name, and a logo that fails to load falls back to the name.
+- Request limit: changing the tile is one setting write; an automatic choice for an older logo is one write the first time. Each logo is fetched once per screen then kept by the browser.
+- Tests: t_v3610.
+- Docs: What's new, Admin guide, Other addresses
 
 v3.60.3 - Sponsors page: logos only load when a sponsor is opened
 - Owner request (23-Nov-2026): logos in Admin should appear only when the sponsor is expanded.
