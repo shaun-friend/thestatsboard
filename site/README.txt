@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.60.3 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.3_sponsor_logos_on_open.zip | v3.60.2
 v3.60.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.2_sponsor_logo_cards.zip | v3.60.1
 v3.60.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.1_sponsor_logos_ci_fix.zip | v3.60.0
 v3.60.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.0_sponsor_logos.zip | v3.59.7
@@ -379,6 +380,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.60.3 - Sponsors page: logos only load when a sponsor is opened
+- Owner request (23-Nov-2026): logos in Admin should appear only when the sponsor is expanded.
+- Change: the small logo beside each sponsor in the list is gone. A logo is fetched only when you open that sponsor, so opening the Sponsors page makes no image requests however many logos there are.
+- Request limit: fewer requests than v3.60.2 (no images on opening the page).
+- Docs: What's new
 
 v3.60.2 - Sponsor logos: solid-background logos get a matching margin and round corners
 - Owner request (23-Nov-2026): on a dark screen a logo with a white background showed a bare white box with no margin round the lettering. Make the added margin the same colour as the file's own background, and round the corners.
