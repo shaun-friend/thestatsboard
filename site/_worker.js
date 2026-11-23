@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.60.1 23-Nov-2026 Test set-up fix only (the logo test could not find its browser on the automatic build). No change to the site.
 //   v3.60.0 23-Nov-2026 Sponsor logos: upload, trim and resize in the browser, replace, remove, preview, and a logos file to move them between DEV and PROD (stored one settings-store key per logo, served from /api/logo/<id>).
 //   v3.59.7 22-Nov-2026 Match day timing check: fixed its answer pattern (it never matched, so it always said it got no answer).
 //   v3.59.6 22-Nov-2026 Match day timing check reads its answer from a response header (X-Md-Sim) as well as the page comment, and shows the page status if it gets none.
@@ -373,7 +374,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.60.0";
+const VERSION = "v3.60.1";
 const BUILD_DATE = "23-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -420,6 +421,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.60.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.1_sponsor_logos_ci_fix.zip | v3.60.0
 v3.60.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.0_sponsor_logos.zip | v3.59.7
 v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
 v3.59.6 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.6_match_day_check_header.zip | v3.59.5
@@ -756,6 +758,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.60.1 - Test set-up fix (no change to the site)
+- Report (23-Nov-2026): v3.60.0 did not appear on DEV.
+- Cause: the automatic test run on GitHub stopped at the new logo test, because that test could not find the browser tool there (it could here), and the build script hid the reason. So the deploy to DEV never started.
+- Change: the logo test is given the browser tool's location, and the build script now prints a failing test's message instead of stopping silently. The site itself is unchanged from v3.60.0.
+- Request limit: no change.
+- Docs: What's new
 
 v3.60.0 - Sponsor logos
 - Owner request (23-Nov-2026): store a logo for each sponsor, upload it, have it resized to suit the screens, replace and delete it, with Match day screens in mind. A way to copy logos from DEV to PROD.
@@ -3282,6 +3291,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.60.1", "Behind the scenes: a test set-up fix so v3.60.0 can reach the test site. Nothing changes on the site."],
       ["v3.60.0", "Sponsors: each sponsor can have a logo. Open a sponsor, choose Upload logo, check the preview and save. The page trims empty margins and resizes it for the TV screens, and you can replace or remove it later. Move logos to another site copies them between DEV and PROD. They are not on the Match day page yet."],
       ["v3.59.7", "Test site only: the Match day timing check now shows its answer (its answer pattern was broken)."],
       ["v3.59.6", "Test site only: the Match day timing check reads its answer more reliably."],

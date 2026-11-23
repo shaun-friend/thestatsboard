@@ -10,7 +10,7 @@ python3 check_release.py ../site "$Z"
 cp ../site/_worker.js t_worker.mjs; node --check t_worker.mjs
 cp t_worker.mjs t_worker_exp.mjs; echo 'export const __t = { shortComp, weatherFor, pageTtlFor, pageKeySearch, KNOWN_PARAMS, cachedText, memCache, blockedMem, refreshing, ttlFor, setCtx(c){SITE_CTX=c}, setEnv(e){SITE_ENV=e} };' >> t_worker_exp.mjs
 echo 'export const __w = { winModel, winPercents, winBacktest, normCdf, winBarHtml };' >> t_worker_exp.mjs
-run(){ out=$("$@" 2>&1); rc=$?; o=$(echo "$out" | tail -1); echo "$o"; if [ $rc -ne 0 ] || echo "$o" | grep -qE "[1-9][0-9]* (fail|bad)|^FAILED"; then echo "$out" | tail -8; echo "TESTS FAILED (exit $rc): $*"; exit 1; fi; } # v3.59.0: a test that crashes now fails the build (it used to be hidden by the pipe to tail)
+run(){ out=$("$@" 2>&1) && rc=0 || rc=$?; o=$(echo "$out" | tail -1); echo "$o"; if [ $rc -ne 0 ] || echo "$o" | grep -qE "[1-9][0-9]* (fail|bad)|^FAILED"; then echo "$out" | tail -8; echo "TESTS FAILED (exit $rc): $*"; exit 1; fi; } # v3.59.0: a test that crashes now fails the build (it used to be hidden by the pipe to tail)
 for t in t_v310.mjs t_v36.mjs t_v35.mjs; do run node $t "$S/t_worker.mjs"; done
 run node t_v313.mjs "$S/t_worker_exp.mjs"
 run node t_v314.mjs "$S/t_worker_exp.mjs"
@@ -66,7 +66,7 @@ run node t_v3570.mjs "$S/t_worker.mjs"
 run node t_v3580.mjs "$S/t_worker.mjs"
 run node t_v3590.mjs "$S/t_worker.mjs"
 run node t_v3590sim.mjs "$S/t_worker.mjs"
-run node t_v3600.mjs "$S/t_worker.mjs"
+NODE_PATH=$(npm root -g) run node t_v3600.mjs "$S/t_worker.mjs"
 run node t_v3551.mjs "$S/t_worker_exp.mjs"
 run node t_v3540.mjs "$S/t_worker.mjs"
 run node t_v3531.mjs "$S/t_worker.mjs"

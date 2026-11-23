@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.60.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.1_sponsor_logos_ci_fix.zip | v3.60.0
 v3.60.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.0_sponsor_logos.zip | v3.59.7
 v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
 v3.59.6 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.6_match_day_check_header.zip | v3.59.5
@@ -377,6 +378,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.60.1 - Test set-up fix (no change to the site)
+- Report (23-Nov-2026): v3.60.0 did not appear on DEV.
+- Cause: the automatic test run on GitHub stopped at the new logo test, because that test could not find the browser tool there (it could here), and the build script hid the reason. So the deploy to DEV never started.
+- Change: the logo test is given the browser tool's location, and the build script now prints a failing test's message instead of stopping silently. The site itself is unchanged from v3.60.0.
+- Request limit: no change.
+- Docs: What's new
 
 v3.60.0 - Sponsor logos
 - Owner request (23-Nov-2026): store a logo for each sponsor, upload it, have it resized to suit the screens, replace and delete it, with Match day screens in mind. A way to copy logos from DEV to PROD.
