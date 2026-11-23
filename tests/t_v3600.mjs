@@ -73,7 +73,7 @@ c('a bad marker is dropped and sizes are clamped',!lst.items.find(x=>x.id==='000
 // --- the page
 const pg=await w.fetch(new Request('https://thestatsboard.co.uk/sponsors',{headers:{Cookie:ck}}),env,ctx).then(x=>x.text());
 c('the Sponsors page has the logo section and the Move logos tool',/Keep the empty margins/.test(pg)&&/Move logos to another site/.test(pg)&&/id="ld"/.test(pg));
-c('no logo thumbnail is loaded in the sponsor list',!/class="lgi"/.test(pg.replace(/\.sr \.lgi\{[^}]*\}/,'')));
+c('the sponsor list shows a small logo or an empty box (v3.62.0)',/class="lgm /.test(pg)&&/lgm no/.test(pg)&&/loading="lazy"/.test(pg));
 const scr=[...pg.matchAll(/<script>([^]*?)<\/script>/g)].map(m=>m[1]);let syn=0;for(const x of scr){try{new Function(x)}catch(e){syn++;console.log(e.message)}}c('the page script parses',syn===0&&scr.length>0);
 import fs from 'fs';fs.writeFileSync('/tmp/sp_page.html',pg);
 // --- browser: trim and resize on real images
