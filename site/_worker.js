@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.60.0 23-Nov-2026 Sponsor logos: upload, trim and resize in the browser, replace, remove, preview, and a logos file to move them between DEV and PROD (stored one settings-store key per logo, served from /api/logo/<id>).
 //   v3.59.7 22-Nov-2026 Match day timing check: fixed its answer pattern (it never matched, so it always said it got no answer).
 //   v3.59.6 22-Nov-2026 Match day timing check reads its answer from a response header (X-Md-Sim) as well as the page comment, and shows the page status if it gets none.
 //   v3.59.5 22-Nov-2026 Match day timing check can use the real team sheet of a game already played (DEV Probe page).
@@ -372,8 +373,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.59.7";
-const BUILD_DATE = "22-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.60.0";
+const BUILD_DATE = "23-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -419,6 +420,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.60.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.0_sponsor_logos.zip | v3.59.7
 v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
 v3.59.6 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.6_match_day_check_header.zip | v3.59.5
 v3.59.5 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.5_match_day_played_sheet.zip | v3.59.4
@@ -754,6 +756,18 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.60.0 - Sponsor logos
+- Owner request (23-Nov-2026): store a logo for each sponsor, upload it, have it resized to suit the screens, replace and delete it, with Match day screens in mind. A way to copy logos from DEV to PROD.
+- New: on the Sponsors page, open a sponsor and use the Logo section: Upload logo (PNG, JPG, WebP or SVG), a preview on a dark and a light tile at TV size, then Save logo. Replace logo and Remove logo work the same way. Sponsors with a logo show a small version of it in the list.
+- Resizing: done by the page before it uploads (the site itself cannot resize images on the free plan). Empty margins are trimmed by default and an even 4% border is added back, the logo is fitted inside 600 x 300 pixels without cropping or stretching and is never enlarged, and it is saved as WebP (PNG where the browser cannot make WebP) at under 200 KB. White artwork on a transparent background is kept. A tickbox, Keep the empty margins (do not trim), turns the trimming off. A small logo is flagged, and a blank picture is refused.
+- Storage: each logo is its own settings-store key ("splogo:" plus the sponsor's hidden ID), with a small marker on the sponsor in the sponsor list. Removing a sponsor removes its logo. Renaming keeps it. Loading a sponsor backup file never brings logos in, and keeps this site's own.
+- Address: /api/logo/<id>?v=<version> serves the image. It needs no PIN (the TV pages will use it). With the version in the address it is kept a year, in the edge cache and by the screen, so a screen reads each logo once; a replaced logo has a new version so it shows at once.
+- Move logos to another site (Sponsors page, Tools): Download logos file on one site, Load a logos file on the other. Each logo goes to the sponsor with the same hidden ID, or failing that the same name; it shows what will happen first, and then adds the logos one by one. This needs no extra set-up on either site.
+- Not yet: logos are not shown on the Match day page. That is the next release.
+- Request limit: opening the page is unchanged (the sponsors list read, plus one image per sponsor with a logo, kept by the browser). A logo upload is 2 settings-store writes and 1 or 2 reads; the daily limit is 1,000 writes. Screens read each logo once, then from the edge cache. No RFU reads.
+- Docs: What's new, Admin guide, Which page is which
+- Tests: t_v3600 (44 checks, including real images in a browser: wide, tall, small, square, white on transparent, blank, very large, with corner markers to prove nothing is cut off).
 
 v3.59.7 - Match day timing check: fixed the answer pattern
 - Owner report (22-Nov-2026): the timing check still said it got no answer (status 200).
@@ -3106,6 +3120,7 @@ const DOC_SECTIONS = [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
       "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
       "Players (Admin, Tools, Players, or the Players tab on the Sponsors page): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. On the Sponsors page you can also tap a sponsor and add several players to it at once. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
+      "Sponsor logos: open a sponsor on the Sponsors page and use the Logo section. Upload logo takes a PNG, JPG, WebP or SVG file. The page trims the empty margins, fits the logo inside 600 x 300 pixels without cropping it and shows it on a dark and a light tile as it will look on a TV; press Save logo to keep it. Replace logo and Remove logo do what they say. Tick Keep the empty margins (do not trim) if the trimming is wrong for a logo. Logos are stored per site, so DEV and PROD each have their own: to copy them, open Move logos to another site, press Download logos file on one site and Load a logos file on the other (copy the sponsors across first with Back up or move to another site). The Match day page does not show logos yet.",
       "Back up or move the sponsors: at the foot of the Sponsors page, open Back up or move to another site. Download backup saves one file with every sponsor and each player's sponsor for last season, this season and next season. To copy your setup to another site (for example from the test site to the live site), open the Sponsors page there, press Load a backup file and choose the file. It shows what is in the file and what is on the site now, and nothing changes until you press Replace this site's sponsors with this file. Loading replaces the sponsors and the player sponsors for those three seasons, and clears a season the file has nothing for. Keep the file as a backup too.",
       "All sponsors and their players: on the Sponsors page, press the green All sponsors and their players button (address /sponsor-list). It lists every sponsor with the players they sponsor this season, with the team beside each player. Choose a team to see only that team's players (sponsors with no players in that team are left out). Export downloads what is on screen as a CSV file (Sponsor, Player, Team) that opens in Excel or Sheets. Under-18 teams are listed without names.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
@@ -3267,6 +3282,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.60.0", "Sponsors: each sponsor can have a logo. Open a sponsor, choose Upload logo, check the preview and save. The page trims empty margins and resizes it for the TV screens, and you can replace or remove it later. Move logos to another site copies them between DEV and PROD. They are not on the Match day page yet."],
       ["v3.59.7", "Test site only: the Match day timing check now shows its answer (its answer pattern was broken)."],
       ["v3.59.6", "Test site only: the Match day timing check reads its answer more reliably."],
       ["v3.59.5", "Test site only: the Match day timing check on the Probe page can use the real team sheet of a game already played."],
@@ -4913,13 +4929,49 @@ b.disabled=true;fetch("/api/contact",{method:"POST",headers:{"Content-Type":"app
 // Each sponsor has a hidden ID (8 hex characters) so a rename never breaks a later link to a player. Behind the club PIN; one settings-store read per
 // page load and one read plus one write per change. No outside calls. Later stages link sponsors to players, season by season.
 const SPONSOR_KEY = "sponsors", SPONSOR_MAX = 300;
+// v3.60.0: sponsor logos. One settings-store key per logo ("splogo:<sponsor id>", the image itself, with its type, size and version as metadata); the sponsor list only carries a
+// small marker (logo: {v, t, w, h}). The page shrinks and trims the logo before upload, so what arrives is already a small PNG or WebP. Served from /api/logo/<id>?v=<version>.
+const SPLOGO_PREFIX = "splogo:", SPLOGO_MAX = 200000;
+const spInt = (v, lo, hi) => { const n = Math.floor(Number(v)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : lo; };
+function spLogoMark(lg) {
+  if (!lg || typeof lg !== "object" || (lg.t !== "webp" && lg.t !== "png")) return null;
+  const v = Math.floor(Number(lg.v)); if (!Number.isFinite(v) || v <= 0) return null;
+  return { v, t: lg.t, w: spInt(lg.w, 1, 1200), h: spInt(lg.h, 1, 1200) };
+}
+// Reads the type and size from the image bytes themselves (PNG header, or the WebP VP8X / VP8L / VP8 header) so a bad or mislabelled upload is refused.
+function spLogoCheck(b) {
+  if (!b || b.length < 30) return { error: "That is not a usable image." };
+  if (b.length > SPLOGO_MAX) return { error: "That logo is too big (over " + Math.round(SPLOGO_MAX / 1000) + " KB after resizing)." };
+  const asc = (o, t) => { for (let i = 0; i < t.length; i++) if (b[o + i] !== t.charCodeAt(i)) return false; return true; };
+  if (b[0] === 0x89 && asc(1, "PNG") && b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a && asc(12, "IHDR")) {
+    const w = ((b[16] << 24) | (b[17] << 16) | (b[18] << 8) | b[19]) >>> 0, h = ((b[20] << 24) | (b[21] << 16) | (b[22] << 8) | b[23]) >>> 0;
+    if (w < 1 || h < 1 || w > 1200 || h > 1200) return { error: "That logo is the wrong size." };
+    return { t: "png", w, h };
+  }
+  if (asc(0, "RIFF") && asc(8, "WEBP")) {
+    let w = 0, h = 0;
+    if (asc(12, "VP8X")) { w = 1 + (b[24] | (b[25] << 8) | (b[26] << 16)); h = 1 + (b[27] | (b[28] << 8) | (b[29] << 16)); }
+    else if (asc(12, "VP8L") && b[20] === 0x2f) { const x = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24); w = 1 + (x & 0x3fff); h = 1 + ((x >>> 14) & 0x3fff); }
+    else if (asc(12, "VP8 ") && b[23] === 0x9d && b[24] === 0x01 && b[25] === 0x2a) { w = (b[26] | (b[27] << 8)) & 0x3fff; h = (b[28] | (b[29] << 8)) & 0x3fff; }
+    if (w < 1 || h < 1 || w > 1200 || h > 1200) return { error: "That logo is the wrong size." };
+    return { t: "webp", w, h };
+  }
+  return { error: "That is not a PNG or WebP image." };
+}
+function spB64(v) {
+  const t = String(v == null ? "" : v);
+  if (!t || t.length > 280000 || /[^A-Za-z0-9+/=]/.test(t)) return null;
+  let bin = ""; try { bin = atob(t); } catch (_) { return null; }
+  const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
 const sponsorName = v => String(v == null ? "" : v).replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
 function cleanSponsors(v) {
   const out = [], seen = new Set();
   for (const r of (v && Array.isArray(v.items) ? v.items : [])) {
     const id = String(r && r.id || ""), name = sponsorName(r && r.name);
     if (!/^[0-9a-f]{8}$/.test(id) || !name || seen.has(id)) continue;
-    seen.add(id); out.push({ id, name });
+    seen.add(id); const logo = spLogoMark(r && r.logo); out.push(logo ? { id, name, logo } : { id, name });
     if (out.length >= SPONSOR_MAX) break;
   }
   return out;
@@ -4983,6 +5035,7 @@ async function sponsorsApi(request, url) {
     const f = b.file;
     if (!f || typeof f !== "object" || f.format !== "stats-board-sponsors" || f.version !== 1 || !Array.isArray(f.sponsors)) return J({ ok: false, error: "That is not a Stats Board sponsor backup file." }, 400);
     const sp = cleanSponsors({ items: f.sponsors }), ids = new Set(sp.map(x => x.id)), recs = {}, ignored = [];
+    for (const x of sp) { const cur = items.find(i => i.id === x.id); if (cur && cur.logo) x.logo = cur.logo; else delete x.logo; } // a backup file carries no logos: keep only the ones this site really has
     let dropped = 0;
     const fs = f.seasons && typeof f.seasons === "object" ? f.seasons : {};
     for (const sn of Object.keys(fs)) {
@@ -4997,9 +5050,30 @@ async function sponsorsApi(request, url) {
     if (b.confirm !== true) return J({ ok: true, applied: false, summary });
     try {
       await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items: sp, savedAt: new Date().toISOString() }));
+      if (typeof kv.delete === "function") { let dl = 0; for (const x of items) if (x.logo && !ids.has(x.id) && dl++ < 10) { try { await kv.delete(SPLOGO_PREFIX + x.id); } catch (_) { /* a stray logo is harmless */ } } }
       for (const sn of wanted) await kv.put(SPLINK_PREFIX + sn, recJson(recs[sn] || cleanLinks(null)));
     } catch (_) { return J({ ok: false, error: "Could not save everything. Load the file again to finish." }, 502); }
     return J({ ok: true, applied: true, summary });
+  }
+  if (b.act === "logo" || b.act === "logo-remove") {
+    const it = items.find(x => x.id === String(b.id || ""));
+    if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    try {
+      if (b.act === "logo-remove") {
+        if (!it.logo) return J({ ok: false, error: "That sponsor has no logo." }, 404);
+        if (typeof kv.delete === "function") await kv.delete(SPLOGO_PREFIX + it.id);
+        delete it.logo;
+      } else {
+        const bytes = spB64(b.data); if (!bytes) return J({ ok: false, error: "That logo did not arrive properly. Try again." }, 400);
+        const c = spLogoCheck(bytes); if (c.error) return J({ ok: false, error: c.error }, 400);
+        const v = Date.now();
+        await kv.put(SPLOGO_PREFIX + it.id, bytes, { metadata: { t: c.t, w: c.w, h: c.h, v } });
+        it.logo = { v, t: c.t, w: c.w, h: c.h };
+      }
+      await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() }));
+    } catch (_) { return J({ ok: false, error: "Could not save the logo. Try again." }, 502); }
+    const use3 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use3[x.id] = u.length; }
+    return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use: use3, season });
   }
   const has = (name, skipId) => items.some(x => x.id !== skipId && x.name.toLowerCase() === name.toLowerCase());
   let added = 0, skipped = 0;
@@ -5027,12 +5101,30 @@ async function sponsorsApi(request, url) {
   } else if (b.act === "remove") {
     const rid = String(b.id || ""), users = useOf(rid);
     if (users.length && b.force !== true) return J({ ok: false, inUse: users.slice(0, 12), count: users.length, error: "Used by " + users.length + " player" + (users.length === 1 ? "" : "s") + " in " + season + "." }, 409);
-    const n = items.length; items = items.filter(x => x.id !== rid);
+    const n = items.length, gone = items.find(x => x.id === rid); items = items.filter(x => x.id !== rid);
     if (items.length === n) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    if (gone && gone.logo && typeof kv.delete === "function") { try { await kv.delete(SPLOGO_PREFIX + rid); } catch (_) { /* a stray logo is harmless */ } }
   } else return J({ ok: false, error: "Unknown action." }, 400);
   try { await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
   const use2 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use2[x.id] = u.length; }
   return J({ ok: true, items: sponsorSorted(items), added, skipped, max: SPONSOR_MAX, use: use2, season });
+}
+// GET /api/logo/<id>?v=<version>: the stored logo. Not behind the club PIN (the TV pages show it), the id is a random 8-character code. With ?v the answer is kept for a year
+// (the version changes whenever the logo does) and in the edge cache, so a screen reads it once; without ?v it is kept five minutes.
+async function logoGet(request, url) {
+  const nf = () => new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain;charset=utf-8", "Cache-Control": "public, max-age=60", "X-Robots-Tag": "noindex" } });
+  const m = /^\/api\/logo\/([0-9a-f]{8})$/.exec(url.pathname);
+  const kv = kvOf(); if (!m || !kv || (request.method !== "GET" && request.method !== "HEAD")) return nf();
+  const vm = /^[?]v=([0-9]{6,16})$/.exec(url.search), versioned = !!vm;
+  let cache = null; if (versioned) { try { cache = typeof caches !== "undefined" && caches.default ? caches.default : null; } catch (_) { cache = null; } }
+  const key = new Request(url.origin + url.pathname + "?v=" + (vm ? vm[1] : ""), { method: "GET" });
+  if (cache) { try { const hit = await cache.match(key); if (hit) return hit; } catch (_) { /* build it */ } }
+  let r = null; try { r = await kv.getWithMetadata(SPLOGO_PREFIX + m[1], { type: "arrayBuffer" }); } catch (_) { return new Response("Try again", { status: 502, headers: { "Cache-Control": "no-store" } }); }
+  const md = (r && r.metadata) || {};
+  if (!r || !r.value || (md.t !== "webp" && md.t !== "png")) return nf();
+  const res = new Response(r.value, { headers: { "Content-Type": md.t === "webp" ? "image/webp" : "image/png", "Cache-Control": versioned ? "public, max-age=31536000, immutable" : "public, max-age=300", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex" } });
+  if (cache) { try { await cache.put(key, res.clone()); } catch (_) { /* fine */ } }
+  return res;
 }
 const SP_LAYOUT_CSS = "[hidden]{display:none!important}.zl{display:flex;align-items:center;gap:10px;margin:18px 2px 8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7fb98f}.zl:after{content:'';flex:1;height:1px;background:#1f2b26}.spl>.zl:first-child,.spr>.zl:first-child{margin-top:14px}.cd2.add{border-left:5px solid #2f9d57;background:#12201a}.sum div{border-top:4px solid #3f8f64}.sum div:nth-child(2){border-top-color:#c9a23a}.sum div:nth-child(2) b{color:#f0cf6a}.sum div:nth-child(3){border-top-color:#5b8fd0}.sum div:nth-child(3) b{color:#9cc3f3}.tl{display:block;border-radius:14px;padding:12px 16px;margin:0 0 10px;background:#141b24;border:1px solid #27364a;color:#bcd3f0;font-weight:700;text-decoration:none}.tl small{display:block;font-weight:400;color:#8ba3c0;margin-top:2px;font-size:13px}.tl summary{color:#bcd3f0}.lst{padding:0;overflow:clip;background:#0e1415}.lsh{position:sticky;top:0;z-index:3;background:#18232a;padding:12px 14px 8px;border-bottom:1px solid #2a3832}.az{display:flex;gap:4px;overflow-x:auto;margin-top:8px;padding-bottom:2px}.az:empty{display:none}.fcs{display:flex;gap:8px;margin-top:8px}.fcs button{font:700 13px Arial,Helvetica,sans-serif;border-radius:999px;padding:7px 14px;min-height:36px;cursor:pointer;border:1px solid #2c3a34;background:#111719;color:#e6efe9}.fcs button.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.fcs button.am{border-color:#b8902f;color:#f0cf6a}.fcs button.am.on{background:#b8902f;color:#14100a}body.light .fcs button{background:#fff;border-color:#c9dccd;color:#1f2d26}body.light .fcs button.am{color:#8a6a00;border-color:#d4b25a}body.light .fcs button.am.on{color:#fff}.azb{flex:none;min-width:30px;height:30px;border-radius:8px;border:1px solid #2c3a34;background:#111719;color:#7fb98f;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer}.azb.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.lt{padding:7px 16px;background:#0b1214;color:#7fb98f;font-weight:700;font-size:13px;letter-spacing:.1em;border-top:1px solid #1d2a27;border-bottom:1px solid #1d2a27;scroll-margin-top:110px}#ls .sr{padding:14px 16px;min-height:54px}#ls .sr b{font-size:17px}#ls .sr:nth-of-type(even){background:#111a1b}.lst .pn{margin:4px 12px 12px}@media(min-width:980px){.wrap.wcp{max-width:1180px}.spg{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;align-items:start}.spl .sum{display:grid;gap:10px}.spl .sum div{display:flex;align-items:baseline;gap:12px;border-top:1px solid #1f3a30;border-left:5px solid #3f8f64}.spl .sum div:nth-child(2){border-left-color:#c9a23a}.spl .sum div:nth-child(3){border-left-color:#5b8fd0}.spl .sum b{font-size:28px}}body.light .zl{color:#1f7a42}body.light .zl:after{background:#cfe0d4}body.light .cd2.add{background:#eaf6ee}body.light .sum div:nth-child(2) b{color:#8a6a00}body.light .sum div:nth-child(3) b{color:#2a5f9e}body.light .tl{background:#eef3fb;border-color:#c5d3e8;color:#23477a}body.light .tl small{color:#4d6a8f}body.light .tl summary{color:#23477a}body.light .lst{background:#fff}body.light .lsh{background:#eef3ef;border-color:#cfe0d4}body.light .azb{background:#fff;border-color:#c9dccd;color:#1f7a42}body.light .azb.on{background:#2f9d57;color:#fff}body.light .lt{background:#f1f6f2;color:#1f7a42;border-color:#dbe8de}body.light #ls .sr:nth-of-type(even){background:#f6faf7}";
 const SP_PLAYERS_CSS = ".spl select.in2{flex:1 1 100%}#ls .li{padding:14px 16px;border-left:6px solid #3f8f64;border-bottom:1px solid #1d2a27}#ls .li:nth-of-type(even){background:#111a1b}#ls .li.av{border-left-color:#d9a43c;background:#1a1810}#ls .li.nc{border-left-color:#4a5650}#ls .li small{color:#7f9288}#ls .ed{padding:14px 16px;border-left:6px solid #2f9d57;background:#12201a}.fc.am{border-color:#b8902f;color:#f0cf6a}.fc.am.on{background:#b8902f;border-color:#b8902f;color:#14100a}.key{display:flex;flex-direction:column;gap:6px;color:#91a49a;font-size:13px;padding:0 2px}.key i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}body.light #ls .li{border-bottom-color:#dbe8de}body.light #ls .li:nth-of-type(even){background:#f6faf7}body.light #ls .li.av{background:#fff4dc}body.light #ls .ed{background:#eaf6ee}body.light .fc.am{color:#8a6a00;border-color:#d4b25a}body.light .fc.am.on{color:#fff}body.light .key{color:#4d6656}";
@@ -5071,7 +5163,7 @@ function sponsorsPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Sponsors</title>
 <style>${MENU_CSS}.wrap.wcp{max-width:760px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:180px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2.rm{color:#f0a0a0}.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #243a2e}.li:last-child{border-bottom:0}.li b{font-size:16px;overflow-wrap:anywhere}.li small{display:block;color:#91a49a;font-size:12px;margin-top:1px;line-height:1.35}.ac2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sr{display:flex;align-items:center;gap:10px;width:100%;padding:10px 4px;background:none;border:0;border-bottom:1px solid #243a2e;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:48px}.sr b{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sr .bd{font-size:12px;font-weight:700;border-radius:99px;padding:3px 9px;background:#1a2a22;color:#7fdc9a;flex:none}.sr .cv{color:#91a49a;flex:none;font-size:18px;width:14px;text-align:center}.pn{background:#0f1517;border:1px solid #26312d;border-radius:12px;padding:10px;margin:4px 0 10px}.sec{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#91a49a;margin:12px 0 6px}.pr{display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid #243a2e}.pr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}.pr small,.pk small{color:#91a49a;font-size:12px;margin-left:6px}.pl{max-height:320px;overflow:auto;border:1px solid #26312d;border-radius:10px;margin-top:8px}.pk{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #243a2e;font-size:15px;cursor:pointer}.pk:last-child{border-bottom:0}.pk input{width:20px;height:20px;flex:none;margin:0}.pk span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.b2.sm{padding:6px 12px;min-height:36px;font-size:13px}.tk2{font-size:13px;color:#cfd8d3;display:flex;align-items:center;gap:6px;min-height:32px}.tk2 input{width:18px;height:18px;margin:0}select.in2{min-width:150px}.b2:disabled{opacity:.5;cursor:default}.msg2{font-size:14px;margin:6px 0;color:#91a49a}.msg2:empty{display:none}.msg2.er{color:#f0a0a0}.msg2.ok{color:#7fd89a}textarea.in2{min-height:120px;width:100%;flex:none}.sum{display:flex;gap:8px;margin:10px 0 0}.sum div{flex:1;min-width:0;background:#111719;border:1px solid #26312d;border-radius:12px;padding:8px 10px}.sum b{display:block;font-size:22px;line-height:1.15;color:#7fd89a}.sum span{display:block;font-size:12px;color:#91a49a;line-height:1.3}body.light .sum div{background:#fff;border-color:#c9dccd}body.light .sum b{color:#1f7a42}body.light .sum span{color:#4d6656}.xw{position:relative;flex:1;min-width:150px;display:block}.xw .in2{width:100%;box-sizing:border-box;padding-right:42px}.xb{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:#91a49a;font:24px/1 Arial,Helvetica,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center}.xb[hidden]{display:none}.xb:hover{color:#f2f6f4;background:#26312d}body.light .xb:hover{color:#14301e;background:#e3ece5}.tb{display:flex;gap:8px;margin:12px 0 0}.tb a{flex:1;min-width:0;display:block;text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid #2c3a34;background:#111719;color:#cfd8d3}.tb a b{display:block;font-size:15px;color:#7fd89a}.tb a span{display:block;font-size:12px;line-height:1.35;color:#91a49a;margin-top:2px}.tb a.on{background:#2f9d57;border-color:#2f9d57}.tb a.on b,.tb a.on span{color:#fff}body.light .tb a{background:#fff;border-color:#c9dccd;color:#14301e}body.light .tb a b{color:#1f7a42}body.light .tb a span{color:#4d6656}body.light .tb a.on{background:#2f9d57;border-color:#2f9d57}body.light .tb a.on b,body.light .tb a.on span{color:#fff}summary{cursor:pointer;color:#7fd89a;font-weight:700;font-size:14px}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .in2{background:#fff;color:#14301e;border-color:#b7cbbd}body.light .b2{background:#eef3ef;color:#14301e;border-color:#c9dccd}body.light .li,body.light .sr,body.light .pr,body.light .pk{border-color:#dbe8de}body.light .pn{background:#f4f8f5;border-color:#c9dccd}body.light .pl{border-color:#c9dccd}body.light .sr .bd{background:#e1f3e6;color:#1b6b3a}body.light .tk2{color:#14301e}
-${SP_LAYOUT_CSS}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+${SP_LAYOUT_CSS}.lgs{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}.lgt{width:190px;height:96px;border-radius:10px;border:1px solid #2c3a34;display:flex;align-items:center;justify-content:center;padding:8px;box-sizing:border-box}.lgt.d{background:#0c1113}.lgt.l{background:#f4f6f5}.lgt img{max-width:100%;max-height:100%;object-fit:contain;display:block}.sr .lgi{width:44px;height:28px;object-fit:contain;flex:none;background:#f4f6f5;border-radius:5px;padding:2px;box-sizing:border-box}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
 <h1>Sponsors</h1><div class="tb"><a href="/sponsors" class="on"><b>1. Sponsors</b><span>Add and edit the club's sponsors</span></a><a href="/sponsor-players"><b>2. Players</b><span>Give a player a sponsor</span></a><a href="/sponsor-players#setup" id="t3"><b>3. Season set-up</b><span>Once a season</span></a></div><p class="sub" id="sub" style="margin:10px 0 0">${hasKv ? "Add each sponsor once for the club, then tap a sponsor to add its players. Many players can share one sponsor." : "No settings storage is connected, so sponsors cannot be kept."}</p>
 <div class="spg"><div class="spl"><div class="zl">Add a sponsor</div>
 <div class="cd2 add"><div class="rw2"><input class="in2" id="nm" maxlength="60" placeholder="Sponsor name" autocomplete="off"><button type="button" class="b2 go" id="ad">Add</button></div>
@@ -5082,6 +5174,7 @@ ${SP_LAYOUT_CSS}</style></head><body class="${t}">${themeBoot("true")}<div class
 <div class="zl">Tools</div>
 <a class="tl" href="/sponsor-list">All sponsors and their players &rsaquo;<small>See and export the full list</small></a>
 <details class="cd2 tl" id="bkp"><summary>Back up or move to another site</summary><p class="sub" style="margin:8px 0">Download one file with all the sponsors and each player's sponsor for last season, this season and next season. Load that file on another site, for example PROD, to copy it there. Loading a file replaces what is on the site you load it on.</p><div class="rw2"><button type="button" class="b2 go" id="bd">Download backup</button><button type="button" class="b2" id="bl">Load a backup file</button><input type="file" id="bf" accept=".json,application/json" hidden></div><div id="br" style="margin-top:8px"></div></details>
+<details class="cd2 tl" id="lgd"><summary>Move logos to another site</summary><p class="sub" style="margin:8px 0">Download one file with every sponsor logo on this site. Load it on another site, for example PROD, to copy the logos there. Each logo goes to the sponsor with the same hidden ID, or failing that the same name, so copy the sponsors across first (Back up or move to another site, above). A sponsor that already has a logo gets the new one instead.</p><div class="rw2"><button type="button" class="b2 go" id="ld">Download logos file</button><button type="button" class="b2" id="ll">Load a logos file</button><input type="file" id="lf" accept=".json,application/json" hidden></div><div id="lr" style="margin-top:8px"></div></details>
 </div>
 <div class="spr"><div class="zl">Your sponsors</div>
 <div class="cd2 lst"><div class="lsh" id="lsh"><div class="rw2" style="margin:0"><span class="xw"><input class="in2" id="fq" placeholder="Search sponsors" autocomplete="off"><button type="button" class="xb" hidden aria-label="Clear search">&times;</button></span><small id="ct" style="color:#91a49a"></small></div><div class="fcs" id="fcs"></div><div class="az" id="az"></div></div><div id="ls"></div></div>
@@ -5094,14 +5187,35 @@ function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:
 function sh(n,m){n=String(n||"");return n.length>m?n.slice(0,m-1)+"…":n}
 function sumr(){var u=0,p=0;for(var k in use){u++;p+=use[k]}$("sm").innerHTML="<div><b>"+items.length+"</b><span>Sponsors</span></div><div><b>"+p+"</b><span>Sponsored players</span></div><div><b>"+u+"</b><span>Sponsors with players</span></div>"}
 function draw(){sumr();var q=$("fq").value.trim().toLowerCase(),h="",n=0,lastL="",letters=[],nn=0;items.forEach(function(x){if(!use[x.id])nn++});if(nn===0)nof=false;$("fcs").innerHTML='<button type="button" data-n="0" class="'+(nof?"":"on")+'">All '+items.length+'</button><button type="button" data-n="1" class="am'+(nof?" on":"")+'">No players '+nn+"</button>";items.forEach(function(x){if(nof&&use[x.id])return;if(q&&x.name.toLowerCase().indexOf(q)<0)return;n++;var op=open===x.id,L=String(x.name||"").charAt(0).toUpperCase();if(!/[A-Z]/.test(L))L="#";if(L!==lastL){lastL=L;letters.push(L);h+='<div class="lt" id="lt-'+(L==="#"?"0":L)+'">'+L+"</div>"}
-h+='<button type="button" class="sr" data-a="open" data-i="'+x.id+'"><b>'+e(x.name)+'</b>'+(use[x.id]?'<span class="bd">'+use[x.id]+"</span>":"")+'<span class="cv">'+(op?"⌄":"›")+"</span></button>";
+h+='<button type="button" class="sr" data-a="open" data-i="'+x.id+'">'+(x.logo?'<img class="lgi" alt="" src="/api/logo/'+x.id+'?v='+x.logo.v+'">':"")+'<b>'+e(x.name)+'</b>'+(use[x.id]?'<span class="bd">'+use[x.id]+"</span>":"")+'<span class="cv">'+(op?"⌄":"›")+"</span></button>";
 if(op)h+=panel(x)});
 var az="";letters.forEach(function(L){az+='<button type="button" class="azb" data-l="'+(L==="#"?"0":L)+'">'+L+"</button>"});$("az").innerHTML=letters.length>1?az:"";$("ls").innerHTML=h||'<p class="sub" style="margin:8px 0">'+(items.length?(nof?"Every sponsor has at least one player this season.":"No sponsor matches that search."):"No sponsors yet. Add the first one above.")+"</p>";
 $("ct").textContent=(nof||q?n+" shown, ":"")+items.length+" of "+max;if(open){drawPlayers();drawPool()}}
+var LGMAX=200000,LG={cur:null,file:null,arm:"",trim:true};
+function lgWebp(){try{var c=document.createElement("canvas");c.width=c.height=1;return c.toDataURL("image/webp").indexOf("data:image/webp")===0}catch(x){return false}}
+function lgBox(d,w,h){var A=[w,h,-1,-1],B=[w,h,-1,-1],hasT=false,x,y,i,a,k;for(y=0;y<h;y++){for(x=0;x<w;x++){i=(y*w+x)*4;a=d[i+3];if(a<250)hasT=true;if(a<=16)continue;k=A;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y;if(a>=240&&d[i]>=240&&d[i+1]>=240&&d[i+2]>=240)continue;k=B;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y}}
+var r=hasT?A:B;return r[2]<0?null:r}
+function lgMake(img,svg,trim,cb){var W=img.naturalWidth||300,H=img.naturalHeight||300,bs=svg?1200/Math.max(W,H):Math.min(1,2400/Math.max(W,H)),BW=Math.max(1,Math.round(W*bs)),BH=Math.max(1,Math.round(H*bs));
+var base=document.createElement("canvas");base.width=BW;base.height=BH;var bx=base.getContext("2d",{willReadFrequently:true});bx.imageSmoothingQuality="high";bx.drawImage(img,0,0,BW,BH);
+var bo=trim?lgBox(bx.getImageData(0,0,BW,BH).data,BW,BH):[0,0,BW-1,BH-1];if(!bo)return cb("That image looks blank. Try another file.");
+var l=bo[0],t=bo[1],bw=bo[2]-bo[0]+1,bh=bo[3]-bo[1]+1;if(bw<8||bh<8)return cb("That image is too small to use.");
+var pad=trim?Math.max(2,Math.round(Math.max(bw,bh)*.04)):0,ow=bw+2*pad,oh=bh+2*pad,tr=[1,.8,.64,.5],ti=0,want=lgWebp();
+function enc(){var s=Math.min(1,600/ow,300/oh)*tr[ti],cw=Math.max(1,Math.ceil(ow*s)),ch=Math.max(1,Math.ceil(oh*s)),o=document.createElement("canvas");o.width=cw;o.height=ch;var q=o.getContext("2d");q.imageSmoothingEnabled=true;q.imageSmoothingQuality="high";q.drawImage(base,l,t,bw,bh,pad*s,pad*s,bw*s,bh*s);
+o.toBlob(function(bl){if(!bl)return cb("Could not make the logo. Try another file.");if(bl.size>LGMAX&&ti<tr.length-1){ti++;enc();return}if(bl.size>LGMAX)return cb("That logo is still too big after resizing. Try a simpler file.");cb(null,{blob:bl,w:cw,h:ch,t:bl.type==="image/webp"?"webp":"png",small:Math.max(cw,ch)<150,trimmed:trim&&(bw<BW||bh<BH)})},want?"image/webp":"image/png",.92)}
+enc()}
+function lgPick(f){if(!f)return;if(f.size>12000000){say("That file is too big. Choose one under 12 MB.","er");return}LG.file=f;lgRun()}
+function lgRun(){var f=LG.file;if(!f)return;say("Preparing the logo...");var u=URL.createObjectURL(f),im=new Image();im.onload=function(){URL.revokeObjectURL(u);lgMake(im,/svg/i.test(f.type)||/[.]svg$/i.test(f.name),LG.trim,function(er,r){if(er){LG.cur=null;say(er,"er");draw();return}if(LG.cur&&LG.cur.url)URL.revokeObjectURL(LG.cur.url);r.id=open;r.url=URL.createObjectURL(r.blob);LG.cur=r;say("");draw()})};im.onerror=function(){URL.revokeObjectURL(u);say("That file could not be read as an image. Use PNG, JPG, WebP or SVG.","er")};im.src=u}
+function lgSave(){var c=LG.cur;if(!c||busy)return;var rd=new FileReader();rd.onload=function(){var s=String(rd.result);post({act:"logo",id:c.id,t:c.t,w:c.w,h:c.h,data:s.slice(s.indexOf(",")+1)},function(){say("Logo saved.","ok");URL.revokeObjectURL(c.url);LG.cur=null;LG.file=null;draw()})};rd.readAsDataURL(c.blob)}
+function lgTiles(u){return'<div class="lgs"><div class="lgt d"><img alt="" src="'+u+'"></div><div class="lgt l"><img alt="" src="'+u+'"></div></div>'}
+function lgBlock(x){var h='<div class="sec">Logo</div>',c=LG.cur&&LG.cur.id===x.id?LG.cur:null;
+if(c){h+=lgTiles(c.url)+'<p class="sub" style="margin:4px 0">'+c.w+" x "+c.h+" px, "+Math.round(c.blob.size/1024)+" KB, "+c.t.toUpperCase()+(c.trimmed?", empty margins trimmed":"")+(c.small?". This logo is small and may look soft on a TV.":"")+'</p><div class="rw2"><button type="button" class="b2 go sm" data-a="lgsave" data-i="'+x.id+'">'+(x.logo?"Replace logo":"Save logo")+'</button><button type="button" class="b2 sm" data-a="lgup">Choose another file</button><button type="button" class="b2 sm" data-a="lgcan">Cancel</button></div>'}
+else if(x.logo){h+=lgTiles("/api/logo/"+x.id+"?v="+x.logo.v)+'<p class="sub" style="margin:4px 0">'+x.logo.w+" x "+x.logo.h+" px</p><div class='rw2'><button type='button' class='b2 sm' data-a='lgup'>Replace logo</button>"+(LG.arm===x.id?"<span class='sub' style='font-size:13px'>Remove this logo?</span><button type='button' class='b2 sm rm' data-a='lgrmy' data-i='"+x.id+"'>Yes, remove</button><button type='button' class='b2 sm' data-a='lgrmn'>No</button>":"<button type='button' class='b2 sm rm' data-a='lgrm' data-i='"+x.id+"'>Remove logo</button>")+"</div>"}
+else h+='<p class="sub" style="margin:4px 0">No logo yet. Use a PNG, JPG, WebP or SVG file. It is resized for the TV screens.</p><div class="rw2"><button type="button" class="b2 sm" data-a="lgup">Upload logo</button></div>';
+return h+'<label class="tk2" style="margin-top:6px"><input type="checkbox" id="lgn"'+(LG.trim?"":" checked")+'> Keep the empty margins (do not trim)</label><input type="file" id="lgf" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>'}
 function panel(x){var t="";(det&&det.teams||[]).forEach(function(z){t+='<option value="'+z.team+'"'+(z.team===pt?" selected":"")+">"+e(z.name)+"</option>"});
 var rm=armed===x.id?'<span class="sub" style="font-size:13px;margin-right:6px">'+(why.length?"In use by "+why.length+" player"+(why.length===1?"":"s")+". They will become Available to sponsor.":"Remove this sponsor?")+'</span><button type="button" class="b2 sm rm" data-a="yes" data-i="'+x.id+'">'+(why.length?"Yes, remove anyway":"Yes, remove")+'</button><button type="button" class="b2 sm" data-a="no">No</button>':'<button type="button" class="b2 sm rm" data-a="rm" data-i="'+x.id+'">Remove sponsor</button>';
 return '<div class="pn"><div class="rw2"><input class="in2" id="ei" maxlength="60" value="'+e(x.name)+'" aria-label="Sponsor name"><button type="button" class="b2 sm" data-a="save" data-i="'+x.id+'">Rename</button></div>'
-+'<div class="sec">Players with this sponsor in '+e(season)+'</div><div id="pp"><p class="sub" style="margin:4px 0">Loading...</p></div>'
++lgBlock(x)+'<div class="sec">Players with this sponsor in '+e(season)+'</div><div id="pp"><p class="sub" style="margin:4px 0">Loading...</p></div>'
 +'<div class="sec">Add players</div><div class="rw2"><select class="in2" id="at" aria-label="Team">'+t+'</select><span class="xw"><input class="in2" id="aq" placeholder="Search players" autocomplete="off"><button type="button" class="xb" hidden aria-label="Clear search">&times;</button></span></div><label class="tk2" style="margin-top:6px"><input type="checkbox" id="ac"'+(onlyCur?" checked":"")+'> Current players only</label><label class="tk2" style="margin-top:2px"><input type="checkbox" id="af"'+(onlyFree?" checked":"")+'> Only players without a sponsor</label><div class="pl" id="pl"><p class="sub" style="margin:8px">Loading...</p></div><div class="rw2" style="margin-top:8px"><button type="button" class="b2 go" id="aa" data-a="addp">Add selected</button></div>'
 +'<div class="rw2" style="margin-top:12px;justify-content:flex-end">'+rm+"</div></div>"}
 function drawPlayers(){var el=$("pp");if(!el)return;if(!det||det.id!==open){el.innerHTML='<p class="sub" style="margin:4px 0">Loading...</p>';return}
@@ -5127,15 +5241,29 @@ function bsum(m,done){var h="<p class='sub' style='margin:0 0 6px'>"+(done?"<b>L
 $("bd").onclick=function(){bsay("Preparing the file...");bapi({act:"backup"},function(j){if(!j||!j.ok){bsay("<span class='msg2 er'>"+e((j&&j.error)||"Could not make the backup.")+"</span>");return}var d=new Blob([JSON.stringify(j.file,null,1)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(d);a.download="sponsors-backup-"+location.hostname+"-"+j.file.exported.slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000);bsay("<span class='msg2'>Downloaded "+e(a.download)+".</span>")})};
 $("bl").onclick=function(){$("bf").value="";$("bf").click()};
 $("bf").onchange=function(){var f=this.files&&this.files[0];if(!f)return;bfile=null;if(f.size>600000){bsay("<span class='msg2 er'>That file is too big to be a sponsor backup.</span>");return}var rd=new FileReader();rd.onload=function(){var o=null;try{o=JSON.parse(String(rd.result))}catch(x){o=null}if(!o){bsay("<span class='msg2 er'>That file could not be read. Choose a sponsor backup file.</span>");return}bfile=o;bsay("Checking the file...");bapi({act:"restore",file:o,confirm:false},function(j){if(!j||!j.ok){bfile=null;bsay("<span class='msg2 er'>"+e((j&&j.error)||"That file could not be checked.")+"</span>");return}bsay(bsum(j.summary,false)+"<div class='rw2'><button type='button' class='b2 go' id='bg'>Replace this site's sponsors with this file</button><button type='button' class='b2' id='bc'>Cancel</button></div>");$("bc").onclick=function(){bfile=null;bsay("")};$("bg").onclick=function(){$("bg").disabled=true;bsay("Loading...");bapi({act:"restore",file:bfile,confirm:true},function(k){bfile=null;if(!k||!k.ok){bsay("<span class='msg2 er'>"+e((k&&k.error)||"Could not load the file.")+"</span>");return}bsay(bsum(k.summary,true));load()})}})};rd.readAsText(f)};
+function lsay(h){$("lr").innerHTML=h}
+function lerr(t){lsay("<span class='msg2 er'>"+e(t)+"</span>")}
+$("ld").onclick=function(){var L=items.filter(function(x){return x.logo});if(!L.length){lerr("No logos on this site yet.");return}lsay("Preparing "+L.length+" logo"+(L.length===1?"":"s")+"...");var out=[],i=0;
+(function nx(){if(i>=L.length){var f={format:"stats-board-logos",version:1,exported:new Date().toISOString(),from:location.hostname,logos:out},d=new Blob([JSON.stringify(f)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(d);a.download="sponsor-logos-"+location.hostname+"-"+f.exported.slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000);lsay("<span class='msg2'>Downloaded "+e(a.download)+" with "+out.length+" logo"+(out.length===1?"":"s")+".</span>");return}
+var x=L[i];fetch("/api/logo/"+x.id+"?v="+x.logo.v).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(bl){var rd=new FileReader();rd.onload=function(){var s=String(rd.result);out.push({id:x.id,name:x.name,t:x.logo.t,w:x.logo.w,h:x.logo.h,data:s.slice(s.indexOf(",")+1)});i++;nx()};rd.readAsDataURL(bl)}).catch(function(){lerr("Could not read the logo for "+x.name+". Try again.")})})()};
+$("ll").onclick=function(){$("lf").value="";$("lf").click()};
+$("lf").onchange=function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>60000000){lerr("That file is too big to be a logos file.");return}var rd=new FileReader();rd.onload=function(){var o=null;try{o=JSON.parse(String(rd.result))}catch(x){o=null}
+if(!o||o.format!=="stats-board-logos"||o.version!==1||!Array.isArray(o.logos)){lerr("That is not a Stats Board logos file.");return}
+var jobs=[],miss=[],rep=0;o.logos.forEach(function(g){var t=null;items.forEach(function(x){if(x.id===g.id)t=x});if(!t)items.forEach(function(x){if(!t&&x.name.toLowerCase()===String(g.name||"").toLowerCase())t=x});if(!t){miss.push(String(g.name||g.id));return}if(t.logo)rep++;jobs.push({id:t.id,name:t.name,g:g})});
+if(!jobs.length){lerr("None of the "+o.logos.length+" logos in that file match a sponsor on this site. Copy the sponsors across first.");return}
+lsay("<p class='sub' style='margin:0 0 6px'>This file has "+o.logos.length+" logo"+(o.logos.length===1?"":"s")+(o.from?" from "+e(o.from):"")+(o.exported?" ("+e(o.exported.slice(0,10))+")":"")+". "+jobs.length+" match a sponsor here"+(rep?", and "+rep+" of those already "+(rep===1?"has":"have")+" a logo that will be replaced":"")+"."+(miss.length?" "+miss.length+(miss.length===1?" has":" have")+" no sponsor here and will be skipped: "+e(miss.slice(0,8).join(", "))+(miss.length>8?" and more":"")+".":"")+"</p><div class='rw2'><button type='button' class='b2 go' id='lg1'>Add "+jobs.length+" logo"+(jobs.length===1?"":"s")+"</button><button type='button' class='b2' id='lg2'>Cancel</button></div>");
+$("lg2").onclick=function(){lsay("")};$("lg1").onclick=function(){$("lg1").disabled=true;var n=0,bad=[];(function nx(){if(n>=jobs.length){lsay("<span class='msg2'>"+(jobs.length-bad.length)+" logo"+(jobs.length-bad.length===1?"":"s")+" added."+(bad.length?" Could not add: "+e(bad.join(", "))+".":"")+"</span>");load();return}
+var j=jobs[n];lsay("Adding "+(n+1)+" of "+jobs.length+": "+e(j.name)+"...");bapi({act:"logo",id:j.id,t:j.g.t,w:j.g.w,h:j.g.h,data:j.g.data},function(k){if(!k||!k.ok)bad.push(j.name);n++;nx()})})()}};rd.readAsText(f)};
 $("fcs").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;nof=b.getAttribute("data-n")==="1";draw()};
  $("az").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var t=$("lt-"+b.getAttribute("data-l"));if(t)t.scrollIntoView({block:"start"})};
 window.addEventListener("scroll",function(){var hb=$("lsh").getBoundingClientRect().bottom+6,cur="";document.querySelectorAll(".lt").forEach(function(t){if(t.getBoundingClientRect().top<=hb)cur=t.id.slice(3)});document.querySelectorAll(".azb").forEach(function(b){b.className="azb"+(b.getAttribute("data-l")===cur?" on":"")})},{passive:true});
 $("ab").onclick=function(){post({act:"bulk",text:$("bk").value},function(j){$("bk").value="";say("Added "+j.added+(j.skipped?", skipped "+j.skipped+" already in the list":"")+".","ok")})};
 $("fq").oninput=draw;(function(){function sy(i){var b=i.parentNode.querySelector(".xb");if(b)b.hidden=!i.value}document.addEventListener("input",function(e){if(e.target.classList&&e.target.classList.contains("in2"))sy(e.target)});document.addEventListener("click",function(e){var b=e.target.closest?e.target.closest(".xb"):null;if(!b)return;var i=b.parentNode.querySelector("input");i.value="";b.hidden=true;i.dispatchEvent(new Event("input",{bubbles:true}));i.focus()})})();
-$("ls").onchange=function(ev){var c=ev.target;if(c.id==="at"){pt=c.value;loadPool();return}if(c.id==="ac"){onlyCur=c.checked;drawPool();return}if(c.id==="af"){onlyFree=c.checked;drawPool();return}var no=c.getAttribute&&c.getAttribute("data-no");if(no){if(c.checked)sel[no]=1;else delete sel[no];drawPool()}};
+$("ls").onchange=function(ev){var c=ev.target;if(c.id==="lgf"){lgPick(c.files&&c.files[0]);return}if(c.id==="lgn"){LG.trim=!c.checked;if(LG.file)lgRun();else draw();return}if(c.id==="at"){pt=c.value;loadPool();return}if(c.id==="ac"){onlyCur=c.checked;drawPool();return}if(c.id==="af"){onlyFree=c.checked;drawPool();return}var no=c.getAttribute&&c.getAttribute("data-no");if(no){if(c.checked)sel[no]=1;else delete sel[no];drawPool()}};
 $("ls").oninput=function(ev){if(ev.target.id==="aq")drawPool()};
 $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
-if(a==="open"){if(open===i){open="";armed="";why=[];draw();return}open=i;armed="";why=[];det=null;pool=null;sel={};draw();loadDet(i)}
+if(a==="open"){if(open===i){open="";armed="";why=[];draw();return}open=i;armed="";why=[];det=null;pool=null;sel={};LG.cur=null;LG.file=null;LG.arm="";draw();loadDet(i)}
+else if(a==="lgup"){$("lgf").value="";$("lgf").click()}else if(a==="lgsave")lgSave();else if(a==="lgcan"){LG.cur=null;LG.file=null;draw()}else if(a==="lgrm"){LG.arm=i;draw()}else if(a==="lgrmn"){LG.arm="";draw()}else if(a==="lgrmy"){LG.arm="";post({act:"logo-remove",id:i},function(){say("Logo removed.","ok")})}
 else if(a==="rm"){armed=i;why=[];draw()}else if(a==="no"){armed="";why=[];draw()}
 else if(a==="save"){post({act:"rename",id:i,name:$("ei").value},function(){say("Renamed.","ok");loadDet(open);draw()})}
 else if(a==="yes"){post({act:"remove",id:i,force:why.length>0},function(){say("Removed.","ok")})}
@@ -7534,6 +7662,7 @@ const worker = {
     if (url.pathname === "/api/cflimits") return cflLimitsApi(url);
     if (url.pathname === "/api/contact") return contactApi(request, url);
     if (url.pathname === "/api/inbox") return inboxApi(request, url);
+    if (url.pathname.startsWith("/api/logo/")) return logoGet(request, url);
     if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
     if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url, worker);
     if (url.pathname === "/api/matchday") return matchDayApi(request, url, worker);

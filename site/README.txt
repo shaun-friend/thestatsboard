@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.60.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.0_sponsor_logos.zip | v3.59.7
 v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
 v3.59.6 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.6_match_day_check_header.zip | v3.59.5
 v3.59.5 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.5_match_day_played_sheet.zip | v3.59.4
@@ -376,6 +377,18 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.60.0 - Sponsor logos
+- Owner request (23-Nov-2026): store a logo for each sponsor, upload it, have it resized to suit the screens, replace and delete it, with Match day screens in mind. A way to copy logos from DEV to PROD.
+- New: on the Sponsors page, open a sponsor and use the Logo section: Upload logo (PNG, JPG, WebP or SVG), a preview on a dark and a light tile at TV size, then Save logo. Replace logo and Remove logo work the same way. Sponsors with a logo show a small version of it in the list.
+- Resizing: done by the page before it uploads (the site itself cannot resize images on the free plan). Empty margins are trimmed by default and an even 4% border is added back, the logo is fitted inside 600 x 300 pixels without cropping or stretching and is never enlarged, and it is saved as WebP (PNG where the browser cannot make WebP) at under 200 KB. White artwork on a transparent background is kept. A tickbox, Keep the empty margins (do not trim), turns the trimming off. A small logo is flagged, and a blank picture is refused.
+- Storage: each logo is its own settings-store key ("splogo:" plus the sponsor's hidden ID), with a small marker on the sponsor in the sponsor list. Removing a sponsor removes its logo. Renaming keeps it. Loading a sponsor backup file never brings logos in, and keeps this site's own.
+- Address: /api/logo/<id>?v=<version> serves the image. It needs no PIN (the TV pages will use it). With the version in the address it is kept a year, in the edge cache and by the screen, so a screen reads each logo once; a replaced logo has a new version so it shows at once.
+- Move logos to another site (Sponsors page, Tools): Download logos file on one site, Load a logos file on the other. Each logo goes to the sponsor with the same hidden ID, or failing that the same name; it shows what will happen first, and then adds the logos one by one. This needs no extra set-up on either site.
+- Not yet: logos are not shown on the Match day page. That is the next release.
+- Request limit: opening the page is unchanged (the sponsors list read, plus one image per sponsor with a logo, kept by the browser). A logo upload is 2 settings-store writes and 1 or 2 reads; the daily limit is 1,000 writes. Screens read each logo once, then from the edge cache. No RFU reads.
+- Docs: What's new, Admin guide, Which page is which
+- Tests: t_v3600 (44 checks, including real images in a browser: wide, tall, small, square, white on transparent, blank, very large, with corner markers to prove nothing is cut off).
 
 v3.59.7 - Match day timing check: fixed the answer pattern
 - Owner report (22-Nov-2026): the timing check still said it got no answer (status 200).
