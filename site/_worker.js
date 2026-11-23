@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.64.0 23-Nov-2026 Sponsors page: total size of all logos; Usage page: the Stored data bar (it read 0) is removed.
 //   v3.63.1 23-Nov-2026 Usage page: stored data uses the newest day that has data (a day still being counted read 0).
 //   v3.63.0 23-Nov-2026 Usage page: Cloudflare limits card shows how much the settings stores hold (KV storage, logos included).
 //   v3.62.0 23-Nov-2026 Sponsors page: a small logo (or an empty dashed box) beside each sponsor in the list.
@@ -382,7 +383,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.63.1";
+const VERSION = "v3.64.0";
 const BUILD_DATE = "23-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -429,6 +430,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.64.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.64.0_logo_total_size.zip | v3.63.1
 v3.63.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.1_usage_storage_fix.zip | v3.63.0
 v3.63.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.0_usage_kv_storage.zip | v3.62.0
 v3.62.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.62.0_logos_in_list.zip | v3.61.2
@@ -774,6 +776,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.64.0 - Sponsors page: total size of all logos
+- Owner request (23-Nov-2026): see the total size of the logos, to watch Cloudflare usage. Cloudflare's own storage figure read 0 for every day (raw reply seen), so it is replaced.
+- Change: a line under the Sponsors summary reads "N logos, X MB in total, largest Y KB". Each logo's size in bytes is now recorded when it is saved. Logos saved earlier have no size: a Check logo sizes button reads them once (at most 40 reads a press, then one settings write) and fills it in. The Stored data bar on the Usage page is removed.
+- Request limit: no ongoing cost. A press of Check logo sizes is up to 40 reads and 1 write, once.
+- Docs: What's new
 
 v3.63.1 - Usage page: stored data showed 0
 - Owner report (23-Nov-2026): the Stored data bar read 0 KB and 0 items for both stores.
@@ -3358,6 +3366,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.64.0", "Sponsors page: shows how many logos there are and their total size, with a Check logo sizes button for older logos. The Stored data bar on the Usage page is gone (Cloudflare gave 0)."],
       ["v3.63.1", "Usage page: stored data no longer shows 0 when Cloudflare has not finished counting today."],
       ["v3.63.0", "Usage page: the Cloudflare limits card now shows how much data the settings stores hold, against the 1 GB free allowance."],
       ["v3.62.0", "Sponsors page: each sponsor in the list shows a small logo, or an empty dashed box when it has none, so missing logos are easy to spot."],
@@ -5022,6 +5031,7 @@ function spLogoMark(lg) {
   if (!lg || typeof lg !== "object" || (lg.t !== "webp" && lg.t !== "png")) return null;
   const v = Math.floor(Number(lg.v)); if (!Number.isFinite(v) || v <= 0) return null;
   const o = { v, t: lg.t, w: spInt(lg.w, 1, 1200), h: spInt(lg.h, 1, 1200) };
+  if (Number(lg.n) > 0 && Number(lg.n) <= 300000) o.n = Math.round(Number(lg.n)); // size in bytes, for the total on the Sponsors page
   if (lg.bg === "d" || lg.bg === "l" || lg.bg === "c") { o.bg = lg.bg; o.au = lg.au === 1 || lg.au === true ? 1 : 0; } // which tile suits the logo: d dark, l light, c it brings its own background; au 1 = chosen by the page
   return o;
 }
@@ -5151,6 +5161,19 @@ async function sponsorsApi(request, url) {
     const use4 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use4[x.id] = u.length; }
     return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use: use4, season });
   }
+  if (b.act === "logo-sizes") { // fills in the size of logos saved before sizes were recorded: one read each, at most 40 a press
+    let done = 0;
+    try {
+      for (const it of items) {
+        if (!it.logo || it.logo.n || done >= 40) continue;
+        const buf = await kv.get(SPLOGO_PREFIX + it.id, { type: "arrayBuffer" }); done++;
+        if (buf && buf.byteLength) it.logo.n = buf.byteLength;
+      }
+      if (done) await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() }));
+    } catch (_) { return J({ ok: false, error: "Could not check the sizes. Try again." }, 502); }
+    const use5 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use5[x.id] = u.length; }
+    return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use: use5, season });
+  }
   if (b.act === "logo" || b.act === "logo-remove") {
     const it = items.find(x => x.id === String(b.id || ""));
     if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
@@ -5164,7 +5187,7 @@ async function sponsorsApi(request, url) {
         const c = spLogoCheck(bytes); if (c.error) return J({ ok: false, error: c.error }, 400);
         const v = Date.now();
         await kv.put(SPLOGO_PREFIX + it.id, bytes, { metadata: { t: c.t, w: c.w, h: c.h, v } });
-        it.logo = { v, t: c.t, w: c.w, h: c.h };
+        it.logo = { v, t: c.t, w: c.w, h: c.h, n: bytes.length };
         if (b.bg === "d" || b.bg === "l" || b.bg === "c") { it.logo.bg = b.bg; it.logo.au = b.au === 1 ? 1 : 0; }
       }
       await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() }));
@@ -5267,7 +5290,7 @@ ${SP_LAYOUT_CSS}.lgs{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}.lgt{widt
 <details style="margin-top:10px"><summary>Paste a list</summary><p class="sub" style="margin:8px 0">One sponsor per line. Names already in the list are skipped.</p><textarea class="in2" id="bk" placeholder="Dart Motors"></textarea><div class="rw2" style="margin-top:8px"><button type="button" class="b2 go" id="ab">Add all</button></div></details></div>
 <div class="msg2" id="ms" role="status"></div>
 <div class="zl">This season</div>
-<div class="sum" id="sm"></div>
+<div class="sum" id="sm"></div><div class="sub" id="lgsum" style="margin:6px 2px;font-size:13px"></div>
 <div class="zl">Tools</div>
 <a class="tl" href="/sponsor-list">All sponsors and their players &rsaquo;<small>See and export the full list</small></a>
 <details class="cd2 tl" id="bkp"><summary>Back up or move to another site</summary><p class="sub" style="margin:8px 0">Download one file with all the sponsors and each player's sponsor for last season, this season and next season. Load that file on another site, for example PROD, to copy it there. Loading a file replaces what is on the site you load it on.</p><div class="rw2"><button type="button" class="b2 go" id="bd">Download backup</button><button type="button" class="b2" id="bl">Load a backup file</button><input type="file" id="bf" accept=".json,application/json" hidden></div><div id="br" style="margin-top:8px"></div></details>
@@ -5282,7 +5305,10 @@ function $(i){return document.getElementById(i)}
 function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
 function sh(n,m){n=String(n||"");return n.length>m?n.slice(0,m-1)+"…":n}
-function sumr(){var u=0,p=0;for(var k in use){u++;p+=use[k]}$("sm").innerHTML="<div><b>"+items.length+"</b><span>Sponsors</span></div><div><b>"+p+"</b><span>Sponsored players</span></div><div><b>"+u+"</b><span>Sponsors with players</span></div>"}
+function kbs(n){return n>=1048576?(Math.round(n/104857.6)/10)+" MB":Math.max(1,Math.round(n/1024))+" KB"}
+function sumr(){var u=0,p=0;for(var k in use){u++;p+=use[k]}$("sm").innerHTML="<div><b>"+items.length+"</b><span>Sponsors</span></div><div><b>"+p+"</b><span>Sponsored players</span></div><div><b>"+u+"</b><span>Sponsors with players</span></div>";
+var nl=0,tot=0,big=0,nos=0;items.forEach(function(x){if(x.logo){nl++;if(x.logo.n){tot+=x.logo.n;if(x.logo.n>big)big=x.logo.n}else nos++}});var e2=$("lgsum");if(!e2)return;
+e2.innerHTML=nl?"<b>"+nl+"</b> logos"+(tot?", <b>"+kbs(tot)+"</b> in total, largest "+kbs(big):"")+(nos?' <span class="mu">('+nos+" without a size yet.</span> <button type='button' id='lgszb' class='b2 sm'>Check logo sizes</button><span class='mu'>)</span>":""):"No logos yet.";var bb=$("lgszb");if(bb)bb.onclick=function(){post({act:"logo-sizes"},function(){say("Logo sizes checked.","ok")})}}
 function draw(){sumr();var q=$("fq").value.trim().toLowerCase(),h="",n=0,lastL="",letters=[],nn=0;items.forEach(function(x){if(!use[x.id])nn++});if(nn===0)nof=false;$("fcs").innerHTML='<button type="button" data-n="0" class="'+(nof?"":"on")+'">All '+items.length+'</button><button type="button" data-n="1" class="am'+(nof?" on":"")+'">No players '+nn+"</button>";items.forEach(function(x){if(nof&&use[x.id])return;if(q&&x.name.toLowerCase().indexOf(q)<0)return;n++;var op=open===x.id,L=String(x.name||"").charAt(0).toUpperCase();if(!/[A-Z]/.test(L))L="#";if(L!==lastL){lastL=L;letters.push(L);h+='<div class="lt" id="lt-'+(L==="#"?"0":L)+'">'+L+"</div>"}
 h+='<button type="button" class="sr" data-a="open" data-i="'+x.id+'">'+(x.logo?'<span class="lgm '+(x.logo.bg==="l"?"l":x.logo.bg==="c"?"c":"d")+'"><img alt="" loading="lazy" decoding="async" src="/api/logo/'+x.id+"?v="+x.logo.v+'"></span>':'<span class="lgm no" title="No logo yet"></span>')+'<b>'+e(x.name)+'</b>'+(use[x.id]?'<span class="bd">'+use[x.id]+"</span>":"")+'<span class="cv">'+(op?"⌄":"›")+"</span></button>";
 if(op)h+=panel(x)});
@@ -5850,7 +5876,7 @@ async function usageApi(url) {
 // Uses the same CF_ACCOUNT_ID and CF_API_TOKEN secrets as the Usage counts (Account Analytics Read) and asks Cloudflare's
 // GraphQL analytics. Three separate questions (settings store, Pages Functions, Workers) so a refusal loses only its own part.
 // The answer is kept in memory for 5 minutes, so opening the Usage page does not ask Cloudflare every time. Club PIN only.
-const CFL_FREE = { storageBytes: 1073741824, read: 100000, write: 1000, delete: 1000, list: 1000, requests: 100000, cpuMs: 10 };
+const CFL_FREE = { read: 100000, write: 1000, delete: 1000, list: 1000, requests: 100000, cpuMs: 10 };
 const CFL_KEEP_MS = 300000, CFL_MIN_GAP_MS = 60000;
 let CFL_MEM = null;
 async function cflGraphql(query) {
@@ -5878,13 +5904,12 @@ async function cflLimitsApi(url) {
   const acc = JSON.stringify(String(SITE_ENV.CF_ACCOUNT_ID)), d0 = new Date(now), pad = n => String(n).padStart(2, "0");
   const dayOf = t => t.getUTCFullYear() + "-" + pad(t.getUTCMonth() + 1) + "-" + pad(t.getUTCDate());
   const today = dayOf(d0), from = dayOf(new Date(now - 6 * 86400000)), dayStart = today + "T00:00:00Z", nowIso = d0.toISOString().slice(0, 19) + "Z";
-  const [kv, pages, workers, storage] = await Promise.all([
+  const [kv, pages, workers] = await Promise.all([
     cflKv(acc, from, today),
     cflPages(acc, dayStart, nowIso),
-    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){w:workersInvocationsAdaptive(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{scriptName status}}}}}`, a => cflInvocations(a.w, "scriptName")),
-    cflStorage(acc, from, today)
+    cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){w:workersInvocationsAdaptive(limit:200,filter:{datetime_geq:"${dayStart}",datetime_leq:"${nowIso}"}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{scriptName status}}}}}`, a => cflInvocations(a.w, "scriptName"))
   ]);
-  const body = { ok: true, at: d0.toISOString(), free: CFL_FREE, day: today, kv, pages, workers, storage, cached: false };
+  const body = { ok: true, at: d0.toISOString(), free: CFL_FREE, day: today, kv, pages, workers, cached: false };
   CFL_MEM = { at: now, body };
   return J(body);
 }
@@ -5904,22 +5929,6 @@ function cflKvShape(a) {
   const labels = String(SITE_ENV.CF_KV_LABELS || "").split(",").map(x => x.split("=")).filter(x => x.length === 2 && x[0].trim() && x[1].trim()).map(x => [x[0].trim().toLowerCase(), x[1].trim().slice(0, 20)]);
   const byStore = Object.keys(stores).map(id => ({ id: id.slice(0, 8), label: (labels.find(l => id.toLowerCase().startsWith(l[0])) || [])[1] || "", today: stores[id] })).sort((x, y) => (y.today.read || 0) - (x.today.read || 0)).slice(0, 6);
   return { today: todayN, peak: peaks, byStore };
-}
-// v3.63.0: how much the settings store holds (KV storage), from Cloudflare's own figures. Latest day per store, summed.
-function cflStorageShape(a) {
-  const rows = Array.isArray(a.st) ? a.st : [], latest = {};
-  for (const r of rows) {
-    const ns = String(r.dimensions && r.dimensions.namespaceId || ""), dt = String(r.dimensions && r.dimensions.date || "");
-    if (!ns) continue;
-    const b = Number(r.max && r.max.byteCount) || 0, k = Number(r.max && r.max.keyCount) || 0, cur = latest[ns]; // the newest day that has data; a day still being counted can read 0
-    if (!cur || (b > 0 && (cur.bytes === 0 || dt > cur.dt)) || (b === 0 && cur.bytes === 0 && dt > cur.dt)) latest[ns] = { dt, bytes: b, keys: k };
-  }
-  const labels = String(SITE_ENV.CF_KV_LABELS || "").split(",").map(x => x.split("=")).filter(x => x.length === 2 && x[0].trim() && x[1].trim()).map(x => [x[0].trim().toLowerCase(), x[1].trim().slice(0, 20)]);
-  const stores = Object.keys(latest).map(id => ({ id: id.slice(0, 8), label: (labels.find(l => id.toLowerCase().startsWith(l[0])) || [])[1] || "", bytes: latest[id].bytes, keys: latest[id].keys, date: latest[id].dt })).sort((x, y) => y.bytes - x.bytes).slice(0, 6);
-  return { total: stores.reduce((n, x) => n + x.bytes, 0), keys: stores.reduce((n, x) => n + x.keys, 0), stores };
-}
-async function cflStorage(acc, from, today) {
-  return cflPart(`{viewer{accounts(filter:{accountTag:${acc}}){st:kvStorageAdaptiveGroups(limit:200,filter:{date_geq:"${from}",date_leq:"${today}"},orderBy:[date_DESC]){dimensions{date namespaceId} max{byteCount keyCount}}}}}`, cflStorageShape);
 }
 async function cflKv(acc, from, today) {
   const q = ns => `{viewer{accounts(filter:{accountTag:${acc}}){kv:kvOperationsAdaptiveGroups(limit:1000,filter:{date_geq:"${from}",date_leq:"${today}"}){sum{requests} dimensions{date actionType${ns ? " namespaceId" : ""}}}}}}`;
@@ -6051,8 +6060,6 @@ function show(d){
  clubCard(d)+screenCard(d)+secCard(d)+upDayCard(d)+speedCard(d)+cutCard(d)+'<div class="tw"><div class="cd"><h2>Device</h2><p class="n">Share of people</p>'+rows(dv,function(r){return"<tr><td>"+esc(DN[r.device]||r.device)+'</td><td class="nu">'+num(r.who)+'</td><td class="nu mu">'+Math.round(Number(r.who)/dt2*100)+"%</td></tr>"})+"</div>"+
  '<div class="cd"><h2>Cloudflare free limit</h2><p class="n">'+(d.limitBasis==="utcday"?"Requests counted so far today, since midnight UTC (1am UK time in summer), which is when Cloudflare's daily limit restarts.":"Requests counted in the last 24 hours (the start of Cloudflare's day could not be used, so this is a rolling figure).")+'</p><p class="msg"><b>'+num(d.today)+"</b> of 100,000 a day ("+(Math.round(Number(d.today)/100)/10)+"%). Cloudflare's limit also counts requests this page does not (robots, images), so treat this as a lower bound. If it nears the limit, move to the $5 a month Workers Paid plan.</p></div></div><div id=cfl></div>";
  [].forEach.call(o.querySelectorAll(".rng button"),function(b){b.onclick=function(){days=+b.getAttribute("data-d");load()}});loadCfl(false)}
-function cflSize(b){return b>=1073741824?(Math.round(b/1073741824*100)/100)+" GB":b>=1048576?(Math.round(b/1048576*10)/10)+" MB":Math.max(0,Math.round(b/1024))+" KB"}
-function cflStore2(c,f){var s=c.storage;if(!s)return"";if(!s.ok)return'<p class="msg"><b>Stored data:</b> Cloudflare would not give this figure ('+esc(s.error||"no reason given")+'). Open "Show what Cloudflare returned" below.</p>';var p=Math.min(100,s.total/f.storageBytes*100),col=p>=90?"#d65a4a":p>=70?"#d6a640":"#3f8f62",rows=(s.stores||[]).map(function(x){return"<tr><td>"+esc(x.label||(x.id+"..."))+'</td><td class="nu">'+cflSize(x.bytes)+'</td><td class="nu">'+num(x.keys)+"</td></tr>"}).join("");return'<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>Stored data (settings stores)</span><span><b>'+cflSize(s.total)+'</b> of '+cflSize(f.storageBytes)+" ("+(p<10?(Math.round(p*10)/10):Math.round(p))+'%)</span></div><div style="height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin-top:5px;overflow:hidden"><div style="height:8px;width:'+Math.max(p>0?2:0,p)+'%;background:'+col+'"></div></div><div class="mu" style="font-size:12px;margin-top:4px">Everything kept in the stores, sponsor logos included ('+num(s.keys)+' items). Cloudflare updates this about once a day.</div></div>'+(rows?'<table style="margin-top:6px"><tr><td class="mu">Store</td><td class="nu mu">Size</td><td class="nu mu">Items</td></tr>'+rows+"</table>":"")}
 function cflRow(lab,n,lim,note){var p=lim?Math.min(100,n/lim*100):0,col=p>=90?"#d65a4a":p>=70?"#d6a640":"#3f8f62";return'<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>'+lab+'</span><span><b>'+num(n)+'</b> of '+num(lim)+' ('+(p<10?(Math.round(p*10)/10):Math.round(p))+'%)</span></div><div style="height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin-top:5px;overflow:hidden"><div style="height:8px;width:'+Math.max(p>0?2:0,p)+'%;background:'+col+'"></div></div>'+(note?'<div class="mu" style="font-size:12px;margin-top:3px">'+note+'</div>':"")+'</div>'}
 function cflPart(title,p,build){return p.ok?build(p):'<p class="msg"><b>'+title+':</b> Cloudflare would not give this figure ('+esc(p.error||"no reason given")+'). Open "Show what Cloudflare returned" below.</p>'}
 function cflStores(k){var s=k.byStore||[];if(!s.length)return k.splitError?'<p class="mu" style="font-size:12px">Split by store not available: '+esc(k.splitError)+'</p>':'';
@@ -6064,14 +6071,14 @@ function cflCard(c){
  var f=c.free,SN={success:"Worked",clientDisconnected:"Visitor left before the reply",scriptThrewException:"Code error",exceededResources:"Over a resource limit (includes the 10 ms processing limit)",internalError:"Cloudflare internal error",unknown:"Unknown"};
  var kv=cflPart("Settings store",c.kv,function(k){var t=k.today||{},pk=k.peak||{};
   function pkNote(a){var q=pk[a];return q&&q.n?"Busiest day in the last 7: "+num(q.n)+" ("+new Date(q.date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"})+")":""}
-  return cflRow("Reads",t.read||0,f.read,pkNote("read"))+cflRow("Writes",t.write||0,f.write,pkNote("write"))+cflRow("Deletes",t["delete"]||0,f["delete"],pkNote("delete"))+cflRow("Lists",t.list||0,f.list,pkNote("list"))+cflStores(k)})+cflStore2(c,f);
+  return cflRow("Reads",t.read||0,f.read,pkNote("read"))+cflRow("Writes",t.write||0,f.write,pkNote("write"))+cflRow("Deletes",t["delete"]||0,f["delete"],pkNote("delete"))+cflRow("Lists",t.list||0,f.list,pkNote("list"))+cflStores(k)});
  var inv=c.pages&&c.pages.ok?c.pages:(c.workers&&c.workers.ok?c.workers:null),src=c.pages&&c.pages.ok?"Pages Functions":"Workers";
  var rq=inv?cflRow("Site requests ("+src+")",inv.requests,f.requests,"Counts page and data requests that run our code. Pictures and other plain files are not counted by Cloudflare here."):cflPart("Requests",c.pages&&!c.pages.ok?c.pages:c.workers,function(){return""});
  var by="";if(inv){var ss=(inv.scripts||[]).filter(function(s){return s.name});if(ss.length>1)by='<p class="msg"><b>By site:</b> '+ss.map(function(s){return esc(s.name)+" "+num(s.requests)}).join(" &middot; ")+"</p>";else if(c.pages&&c.pages.ok&&c.pages.splitError)by='<p class="mu" style="font-size:12px">Split by site not available: '+esc(c.pages.splitError)+"</p>"}
  var st="";if(inv){var ks=Object.keys(inv.byStatus||{}).filter(function(s){return s!=="success"&&inv.byStatus[s]});st=ks.length?'<p class="msg"><b>Not completed today:</b> '+ks.map(function(s){return esc(SN[s]||s)+" "+num(inv.byStatus[s])}).join(" &middot; ")+"</p>":'<p class="msg">Every request today completed normally.</p>'}
  var cpu="";if(inv){var s0=(inv.scripts||[]).filter(function(s){return s.p50ms||s.p99ms})[0];if(s0)cpu='<p class="msg"><b>Processing time per request'+(s0.name?" ("+esc(s0.name)+")":"")+':</b> typical '+s0.p50ms+' ms, slowest 1 in 100 '+s0.p99ms+' ms. The free plan allows '+f.cpuMs+' ms of processing per request'+(s0.p99ms>f.cpuMs?'; the slowest 1 in 100 is above that':'')+'.</p>'}
  var at=new Date(c.at),hm=at.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
- return'<div class="cd"><h2>Cloudflare limits</h2><p class="n">Straight from Cloudflare, for the whole account (the test and live sites together), counted since midnight UTC (1am UK time in summer), which is when the daily limits restart. Figures can lag by a few minutes. Updated '+hm+(c.cached?" (kept for up to 5 minutes)":"")+'.</p>'+kv+rq+by+st+cpu+'<p style="margin-top:10px"><button id="cflr" style="padding:8px 16px;border-radius:8px;cursor:pointer">Refresh</button></p><details style="margin-top:8px"><summary class="mu" style="cursor:pointer">Show what Cloudflare returned</summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:260px;overflow:auto">'+esc("Settings store:"+String.fromCharCode(10)+(c.kv.raw||c.kv.error||"")+String.fromCharCode(10,10)+"Pages Functions:"+String.fromCharCode(10)+(c.pages.raw||c.pages.error||"")+String.fromCharCode(10,10)+"Workers:"+String.fromCharCode(10)+(c.workers.raw||c.workers.error||"")+String.fromCharCode(10,10)+"Stored data:"+String.fromCharCode(10)+(c.storage?(c.storage.raw||c.storage.error||""):""))+'</pre></details></div>'}
+ return'<div class="cd"><h2>Cloudflare limits</h2><p class="n">Straight from Cloudflare, for the whole account (the test and live sites together), counted since midnight UTC (1am UK time in summer), which is when the daily limits restart. Figures can lag by a few minutes. Updated '+hm+(c.cached?" (kept for up to 5 minutes)":"")+'.</p>'+kv+rq+by+st+cpu+'<p style="margin-top:10px"><button id="cflr" style="padding:8px 16px;border-radius:8px;cursor:pointer">Refresh</button></p><details style="margin-top:8px"><summary class="mu" style="cursor:pointer">Show what Cloudflare returned</summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;max-height:260px;overflow:auto">'+esc("Settings store:"+String.fromCharCode(10)+(c.kv.raw||c.kv.error||"")+String.fromCharCode(10,10)+"Pages Functions:"+String.fromCharCode(10)+(c.pages.raw||c.pages.error||"")+String.fromCharCode(10,10)+"Workers:"+String.fromCharCode(10)+(c.workers.raw||c.workers.error||""))+'</pre></details></div>'}
 function loadCfl(fresh){var h=document.getElementById("cfl");if(!h)return;if(!fresh||!h.firstChild)h.innerHTML='<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Asking Cloudflare&hellip;</p></div>';fetch("/api/cflimits"+(fresh?"?fresh=1":""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(c){h.innerHTML=cflCard(c);var b=document.getElementById("cflr");if(b)b.onclick=function(){b.disabled=true;b.textContent="Asking Cloudflare...";loadCfl(true)}}).catch(function(){h.innerHTML='<div class="cd"><h2>Cloudflare limits</h2><p class="msg">Sorry, the Cloudflare figures could not be loaded.</p></div>'})}
 function load(){o.innerHTML='<p class="msg">Loading&hellip;</p>';fetch("/api/usage?days="+days,{cache:"no-store"}).then(function(r){return r.json()}).then(show).catch(function(){o.innerHTML='<div class="cd"><p class="msg">Sorry, the usage data could not be loaded.</p></div>'})}
 load()})();</script></body></html>`;

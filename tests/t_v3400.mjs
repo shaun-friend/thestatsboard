@@ -31,7 +31,7 @@ const get=async q=>{const r=await ctx.api(new URL('https://x.test/api/cflimits'+
 ctx.SITE_ENV={};let r=await get();c('no secrets: says not connected and asks nothing',r.setup===true&&calls.length===0,JSON.stringify(r));
 ctx.SITE_ENV={CF_ACCOUNT_ID:'acct123',CF_API_TOKEN:'SECRET-TOKEN',CF_KV_LABELS:'aaaa1111=PROD'};
 r=await get();
-c('KV, Workers and stored data asked once each, Pages asked with the site then without it when refused (v3.63.0 adds the stored data question)',calls.length===5,String(calls.length));
+c('KV and Workers asked once each, Pages asked with the site then without it when refused',calls.length===4,String(calls.length));
 c('they go to the Cloudflare GraphQL address with the token',calls.every(x=>x.u==='https://api.cloudflare.com/client/v4/graphql'&&x.h.Authorization==='Bearer SECRET-TOKEN'));
 c('every question names the account',calls.every(x=>x.b.includes('"acct123"')));
 c('the KV question covers the last 7 days up to today',calls.some(x=>/kvOperationsAdaptiveGroups/.test(x.b)&&x.b.includes('date_leq:"'+today+'"')));
