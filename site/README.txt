@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.60.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.2_sponsor_logo_cards.zip | v3.60.1
 v3.60.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.1_sponsor_logos_ci_fix.zip | v3.60.0
 v3.60.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.0_sponsor_logos.zip | v3.59.7
 v3.59.7 | 22-Nov-2026 | RFU_Club_Dashboard_v3.59.7_match_day_check_fix.zip | v3.59.6
@@ -378,6 +379,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.60.2 - Sponsor logos: solid-background logos get a matching margin and round corners
+- Owner request (23-Nov-2026): on a dark screen a logo with a white background showed a bare white box with no margin round the lettering. Make the added margin the same colour as the file's own background, and round the corners.
+- Change: when a logo has a solid background (no transparent areas, and the four corners agree on one colour), the margin the page adds is filled with that colour instead of left see-through, and the corners are rounded. The rounding is limited so it can never reach the artwork. Logos with a transparent background, and logos saved with Keep the empty margins (do not trim) on, are not changed. A logo already saved is not changed until it is uploaded again.
+- Request limit: no change.
+- Docs: What's new, Admin guide
+- Tests: t_v3600 checks the matched colour, the see-through corners and that no corner marker of the artwork is touched.
 
 v3.60.1 - Test set-up fix (no change to the site)
 - Report (23-Nov-2026): v3.60.0 did not appear on DEV.

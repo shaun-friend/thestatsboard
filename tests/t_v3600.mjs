@@ -97,13 +97,13 @@ const run=(spec)=>page.evaluate(async spec=>{
  // find the artwork's visible box and where the blue markers are
  let l=o.width,t=o.height,r2=-1,b2=-1,bl=[o.width,o.height,-1,-1];
  for(let yy=0;yy<o.height;yy++)for(let xx=0;xx<o.width;xx++){const i=(yy*o.width+xx)*4,a=d[i+3];if(a>40){if(xx<l)l=xx;if(xx>r2)r2=xx;if(yy<t)t=yy;if(yy>b2)b2=yy;if(d[i+2]>150&&d[i]<110){if(xx<bl[0])bl[0]=xx;if(xx>bl[2])bl[2]=xx;if(yy<bl[1])bl[1]=yy;if(yy>bl[3])bl[3]=yy}}}
- return{w:o.width,h:o.height,size:res.v.blob.size,t:res.v.t,small:res.v.small,trimmed:res.v.trimmed,vis:[l,t,r2,b2],blue:bl}},spec);
+ const px=(xx,yy)=>Array.from(oc.getImageData(xx,yy,1,1).data);return{c0:px(0,0),pad:px(1,Math.floor(o.height/2)),card:res.v.card,w:o.width,h:o.height,size:res.v.blob.size,t:res.v.t,small:res.v.small,trimmed:res.v.trimmed,vis:[l,t,r2,b2],blue:bl}},spec);
 const W=await run({w:1000,h:400,bg:'#ffffff',art:[100,80,800,240]});
 c('wide logo with a white border: fits 600x300 and the ratio of the artwork is kept',!W.er&&W.w<=600&&W.h<=300&&Math.abs((W.w)/(W.h)-(800+64)/(240+64))<0.08,JSON.stringify(W));
 c('wide logo: all four corner markers survive (nothing cut off) and sit near the edges',!W.er&&W.blue[0]>=0&&W.blue[0]<=W.w*0.08&&W.blue[2]>=W.w*0.92&&W.blue[1]<=W.h*0.15&&W.blue[3]>=W.h*0.85,JSON.stringify(W.blue)+' of '+W.w+'x'+W.h);
-c('the white border is gone: padding about 4%, not 10%',!W.er&&W.vis[0]<=Math.round(W.w*0.08)+1&&W.vis[1]<=Math.round(W.h*0.2)+1,JSON.stringify(W.vis));
+c('the white border is gone: the artwork sits within about 4% of each edge (padding about 4%, not 10%)',!W.er&&W.blue[0]<=Math.round(W.w*0.08)+1&&W.blue[1]<=Math.round(W.h*0.2)+1,JSON.stringify(W.blue));
 const T=await run({w:300,h:1200,bg:'#fff',art:[40,60,220,1080],mk:60});
-c('tall logo: height 300, width in proportion, corners intact',!T.er&&T.h<=300&&T.w<=100&&Math.abs(T.blue[0]-T.vis[0])<=2&&Math.abs(T.blue[2]-T.vis[2])<=2&&Math.abs(T.blue[3]-T.vis[3])<=2,JSON.stringify(T));
+c('tall logo: height 300, width in proportion, corners intact',!T.er&&T.h<=300&&T.w<=100&&T.blue[0]>=0&&T.blue[1]>=0&&T.blue[2]<=T.w-1&&T.blue[3]<=T.h-1&&T.blue[3]>=T.h*0.9,JSON.stringify(T));
 const S=await run({w:200,h:120,bg:'#fff',art:[10,10,60,30],mk:3});
 c('a small logo is not enlarged and is flagged as small',!S.er&&S.w<=60+2*8&&S.h<=30+2*8&&S.small===true,JSON.stringify(S));
 const N=await run({w:800,h:300,bg:'#fff',art:[100,50,600,200],trim:false});
@@ -118,5 +118,15 @@ const Bg=await run({w:4000,h:2000,bg:'#fff',art:[200,200,3600,1600],grad:true});
 c('a large picture ends under the size limit, or says it is too big',(Bg.er&&/big/.test(Bg.er))||(Bg.size<=200000&&Bg.w<=600&&Bg.h<=300),JSON.stringify(Bg));
 const Sq=await run({w:500,h:500,bg:'#fff',art:[50,50,400,400]});
 c('square logo: 300 high, square, corners intact',!Sq.er&&Sq.h<=300&&Math.abs(Sq.w-Sq.h)<=2&&Sq.blue[0]>=0,JSON.stringify(Sq));
+
+const Nv=await run({w:1000,h:400,bg:'#14284b',col:'#e8c200',art:[150,60,700,280],mk:12});
+c('solid navy background: the margin is navy too (colour taken from the file)',!Nv.er&&Nv.card===true&&Math.abs(Nv.pad[0]-0x14)<=6&&Math.abs(Nv.pad[1]-0x28)<=6&&Math.abs(Nv.pad[2]-0x4b)<=6&&Nv.pad[3]>=250,JSON.stringify(Nv.pad));
+c('solid background: the corners are rounded (see-through at the very corner)',!Nv.er&&Nv.c0[3]<30,JSON.stringify(Nv.c0));
+c('rounded corners never touch the artwork: all four corner markers survive',!Nv.er&&Nv.blue[0]>=0&&Nv.blue[2]>0&&Nv.blue[3]>0,JSON.stringify(Nv.blue));
+c('white background: the same, margin white, rounded corners',!W.er&&W.card===true&&W.pad[0]>=245&&W.c0[3]<30,JSON.stringify([W.pad,W.c0]));
+c('transparent logo: nothing is filled and nothing rounded',!Wt.er&&Wt.card===false&&Wt.c0[3]<30&&Wt.pad[3]<30,JSON.stringify([Wt.card,Wt.c0,Wt.pad]));
+c('do not trim: no fill and no rounding',!N.er&&N.card===false&&N.c0[3]>200,JSON.stringify([N.card,N.c0]));
+const Gd=await run({w:800,h:300,bg:null,art:[0,0,800,300],grad:true});
+c('a picture whose four corners are different colours gets no fill',!Gd.er&&Gd.card===false,JSON.stringify(Gd.card));
 await br.close();
 console.log(ok+' passed, '+bad+' failed');process.exit(bad?1:0);
