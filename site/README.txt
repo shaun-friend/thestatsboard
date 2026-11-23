@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.63.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.0_usage_kv_storage.zip | v3.62.0
 v3.62.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.62.0_logos_in_list.zip | v3.61.2
 v3.61.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.2_no_match_day_logos.zip | v3.61.1
 v3.61.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.1_logo_button_layout.zip | v3.61.0
@@ -384,6 +385,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.63.0 - Usage page: stored data in the Cloudflare limits card
+- Owner request (23-Nov-2026): see the total size of the data held in Cloudflare, mainly to watch what logos add.
+- Change: the Cloudflare limits card has a Stored data bar (total size against the 1 GB free allowance) and a table per store with size and number of items. It is Cloudflare's own figure for everything in the settings stores, sponsor logos included (logos cannot be separated out). Cloudflare updates it about once a day. If Cloudflare refuses the question the card says so and the rest still works.
+- Request limit: one more question to Cloudflare's analytics whenever the card loads (kept in memory for 5 minutes as before); no extra settings reads or writes.
+- Docs: What's new
 
 v3.62.0 - Sponsors page: small logo in each list row
 - Owner request (23-Nov-2026): show the logos in the sponsor list so a missing one is easy to see.
