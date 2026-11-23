@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.61.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.1_logo_button_layout.zip | v3.61.0
 v3.61.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.0_logo_tiles_match_day.zip | v3.60.3
 v3.60.3 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.3_sponsor_logos_on_open.zip | v3.60.2
 v3.60.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.2_sponsor_logo_cards.zip | v3.60.1
@@ -381,6 +382,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.61.1 - Sponsors page: logo tile buttons line up on a phone
+- Owner request (23-Nov-2026): the Dark tile, Light tile and As supplied buttons wrapped untidily on a phone.
+- Change: "Looks best on" is a line of its own with the three buttons in one even row beneath it.
+- Request limit: no change.
+- Docs: What's new
 
 v3.61.0 - Sponsor logos: tile choice, and logos on the Match day TV page
 - Owner request (23-Nov-2026): a logo should remember whether it looks best on a dark or light background, and the logos should appear on the Match day TV page.
