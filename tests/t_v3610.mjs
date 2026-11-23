@@ -1,4 +1,4 @@
-// v3.61.0: logo tile choice (dark / light / as supplied) and logos on the Match day TV page
+// v3.61.0: logo tile choice; no logos on Match day
 const src=process.argv[2];let ok=0,bad=0;const c=(n,x,d)=>{if(x){ok++}else{bad++;console.log('FAIL',n,d||'')}};
 const mk=()=>{const o={store:{},meta:{},gets:0,puts:0,dels:0};o.kv={
  get:async(k,t)=>{o.gets++;const v=o.store[k];if(v==null)return null;if(v instanceof Uint8Array)return t&&t.type==='arrayBuffer'?v.buffer:v;return t&&t.type==='json'?JSON.parse(v):v},
@@ -35,9 +35,7 @@ const pg=await w.fetch(new Request('https://thestatsboard.co.uk/sponsors',{heade
 const scr=[...pg.matchAll(/<script>([^]*?)<\/script>/g)].map(m=>m[1]);let syn=0;for(const x of scr){try{new Function(x)}catch(e){syn++;console.log(e.message)}}c('the sponsors page script parses',syn===0&&scr.length>0);
 c('Admin has the three tile buttons',/Dark tile/.test(pg)&&/Light tile/.test(pg)&&/As supplied/.test(pg)&&/data-a="lgbg"/.test(pg));
 const src_=(await import('fs')).readFileSync(src,'utf8');
-c('Match day shows the logo on a tile, falls back to the name, and has the tile styles',/class="sl \$\{/.test(src_)&&/\/api\/logo\/\$\{e\(p\.lg\.id\)\}\?v=\$\{e\(p\.lg\.v\)\}/.test(src_)&&/\.rw \.sl\.d\{/.test(src_)&&/\.rw \.sl\.l\{/.test(src_)&&/\.rw \.sl\.c\{/.test(src_)&&/p\.sponsor \? `<span class="sp">/.test(src_));
-c('under-18 and hidden players carry no logo',/lg: hidden \? null/.test(src_));
-c('the Match day API never gets logo bytes (marker only)',!/slogo[^;]*arrayBuffer/.test(src_));
+c('Match day carries no logos',!/slogo/.test(src_)&&!/\.rw \.sl/.test(src_));
 // --- browser: tone choice on real images
 import {createRequire} from 'module';const {chromium}=createRequire(import.meta.url)('playwright');
 const m=/function lgTone[^]*?function lgMake/.exec(pg),m2=/function lgCorner[^]*?function lgMake/.exec(pg);c('tone code is in the page',!!m&&!!m2);

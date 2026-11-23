@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.61.2 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.2_no_match_day_logos.zip | v3.61.1
 v3.61.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.1_logo_button_layout.zip | v3.61.0
 v3.61.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.61.0_logo_tiles_match_day.zip | v3.60.3
 v3.60.3 | 23-Nov-2026 | RFU_Club_Dashboard_v3.60.3_sponsor_logos_on_open.zip | v3.60.2
@@ -382,6 +383,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.61.2 - Match day TV page: logos taken out
+- Owner request (23-Nov-2026): logos on the Match day TV page were not asked for. Sponsor names show as text again.
+- Change: the Match day page and its data no longer carry logos. Logos and the tile choice stay in Admin (Sponsors page) for later.
+- Request limit: no change (fewer image requests than v3.61.1).
+- Docs: What's new, Admin guide
 
 v3.61.1 - Sponsors page: logo tile buttons line up on a phone
 - Owner request (23-Nov-2026): the Dark tile, Light tile and As supplied buttons wrapped untidily on a phone.
