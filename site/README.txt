@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.66.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.2_equal_logo_tiles.zip | v3.66.1
 v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
 v3.66.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.0_sponsor_bar_static.zip | v3.65.0
 v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
@@ -390,6 +391,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.66.2 - Match day sponsor bar: logos look the same size
+- Owner report (25-Nov-2026): the logos are all different sizes.
+- Cause: logos that bring their own background had no tile, so they showed at their own (shorter) shape beside the full-size dark and light tiles.
+- Change: every logo now sits on a tile of the same size. For a logo with its own background the tile takes that colour (saved with the logo; for logos saved earlier it is worked out when the sponsor is first opened in Admin, until then they sit on a light tile).
+- Request limit: no change (the colour is saved with the logo's existing record).
+- Docs: What's new
 
 v3.66.1 - Match day TV page: right-hand panel fits above the sponsor bar
 - Owner report (25-Nov-2026): the lighter text in the right-hand panel was hard to read. Found while checking: with a two-row bar the substitutes box overlapped the bar because the page's fitting script only looked at whole-page overflow.

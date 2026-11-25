@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.66.2 25-Nov-2026 Match day sponsor bar: every logo sits on a tile of the same size (logos with their own background get a tile in that colour), so they look the same size.
 //   v3.66.1 25-Nov-2026 Match day TV page: the right-hand panel now shrinks the text to fit (it overlapped the sponsor bar), and its text is full colour for easy reading.
 //   v3.66.0 25-Nov-2026 Match day TV page: the sponsor bar no longer scrolls (every logo always on screen, one or two rows, light and dark tiles alternating) and the right-hand panel is quieter and shrinks to fit.
 //   v3.65.0 25-Nov-2026 Match day TV page: a slowly scrolling bar along the bottom with the logos of the sponsors of the players on the sheet.
@@ -386,7 +387,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.66.1";
+const VERSION = "v3.66.2";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -433,6 +434,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.66.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.2_equal_logo_tiles.zip | v3.66.1
 v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
 v3.66.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.0_sponsor_bar_static.zip | v3.65.0
 v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
@@ -782,6 +784,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.66.2 - Match day sponsor bar: logos look the same size
+- Owner report (25-Nov-2026): the logos are all different sizes.
+- Cause: logos that bring their own background had no tile, so they showed at their own (shorter) shape beside the full-size dark and light tiles.
+- Change: every logo now sits on a tile of the same size. For a logo with its own background the tile takes that colour (saved with the logo; for logos saved earlier it is worked out when the sponsor is first opened in Admin, until then they sit on a light tile).
+- Request limit: no change (the colour is saved with the logo's existing record).
+- Docs: What's new
 
 v3.66.1 - Match day TV page: right-hand panel fits above the sponsor bar
 - Owner report (25-Nov-2026): the lighter text in the right-hand panel was hard to read. Found while checking: with a two-row bar the substitutes box overlapped the bar because the page's fitting script only looked at whole-page overflow.
@@ -3390,6 +3399,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.66.2", "Match day sponsor bar: all logos now sit on tiles of exactly the same size, so none looks smaller than the others."],
       ["v3.66.1", "Match day TV page: the right-hand panel now shrinks to fit above the sponsor bar and its text is full colour, easier to read."],
       ["v3.66.0", "Match day TV page: the sponsor bar no longer scrolls, so every logo is always on screen (one row, or two with many sponsors) with light and dark tiles alternating; the right-hand panel is quieter and only as tall as it needs to be."],
       ["v3.65.0", "Match day TV page: a slowly scrolling bar along the bottom shows the logos of the sponsors of the players on the sheet (none shown if no player on the sheet has a sponsor with a logo)."],
@@ -4615,7 +4625,7 @@ async function mdLoadSheet(tm, g, day, sim) {
   if (!mrec || !ppl) return null;
   let sponsors = [], rec = null; const kv = kvOf();
   if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
-  const sname = new Map(sponsors.map(x => [x.id, x.name])), slogo = new Map(sponsors.filter(x => x.logo).map(x => [x.id, { id: x.id, v: x.logo.v, bg: x.logo.bg || "d" }])), by = {}, altOf = {};
+  const sname = new Map(sponsors.map(x => [x.id, x.name])), slogo = new Map(sponsors.filter(x => x.logo).map(x => [x.id, { id: x.id, v: x.logo.v, bg: x.logo.bg || "d", bc: x.logo.bc || "" }])), by = {}, altOf = {};
   if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", nm: "" }); if (!h.s && e0.s) h.s = e0.s; if (!h.nm && e0.nm) h.nm = e0.nm; for (const a of (e0.a || [])) altOf[a] = no; }
   const side = String(g.home === true ? mrec.homeTeamId : mrec.awayTeamId), list = Array.isArray(ppl.participants) ? ppl.participants : [];
   let mine = list.filter(p => String(p.teamId) === side);
@@ -4703,7 +4713,7 @@ const MD_TV_CSS = `body.md .top{display:none}
 .tk{flex:none;height:5.4rem;display:flex;align-items:stretch;background:var(--card);border:1px solid var(--bd);border-radius:.6rem;overflow:hidden;margin-top:.5rem}.tk.two{height:9.6rem}
 .tk .lb{flex:none;display:flex;align-items:center;padding:0 1.3rem;font-size:.95rem;font-weight:700;letter-spacing:.2em;line-height:1.3;text-transform:uppercase;color:var(--mu);border-right:1px solid var(--bd)}
 .tk .rs{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.7rem;padding:.4rem 1.2rem}.tk .r{display:flex;justify-content:center;gap:1rem}
-.tk .t{flex:0 1 calc((100% - (var(--n) - 1) * 1rem) / var(--n));max-width:14rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{padding:0;background:none}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.tk .t{flex:0 1 calc((100% - (var(--n) - 1) * 1rem) / var(--n));max-width:14rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{border:0}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .rc{justify-content:flex-start}.pn{flex:0 0 auto;overflow:visible;background:transparent;padding:.6rem 1.1rem}.st .v{font-size:1.3rem;font-weight:700}.st .cr{width:2.3rem;height:2.3rem}.st .l{font-size:.85rem;color:var(--tx);min-width:8rem}
 .mdh3{font-size:.9rem;color:var(--tx)}.fm2 .ll{font-size:1rem;color:var(--tx)}.fm2 .ll small{font-size:.9rem;color:var(--tx)}.fm2 .dot{width:1.4rem;height:1.4rem;font-size:.75rem}
 .hb{height:1.6rem}.hb>div{font-size:1rem}.hk,.hl2{font-size:.95rem;color:var(--tx)}.sb{background:transparent;padding:.5rem 1.1rem}.sb .fh{font-size:.85rem;color:var(--tx)}.sb div.sn{font-size:1.1rem;color:var(--tx);max-height:3.6rem}
@@ -4721,7 +4731,7 @@ function mdTickerHtml(starters, e) {
   const seq = []; let a = D, b = Li; // dark first; alternate while both pools have tiles, then the rest
   while (a.length || b.length) { if (a.length) seq.push(a.shift()); if (b.length) seq.push(b.shift()); }
   const n = seq.length; let cols = n <= 8 ? n : Math.ceil(n / 2); if (n > 8 && cols % 2 === 0 && cols < n - 1) cols++; // an odd number across keeps light and dark alternating down the columns too
-  const tile = g => `<span class="t ${kind(g)}"><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
+  const tile = g => `<span class="t ${kind(g) === "c" && !g.bc ? "l" : kind(g)}"${kind(g) === "c" && g.bc ? ` style="background:${e(g.bc)}"` : ""}><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
   const rowsOf = n <= 8 ? [seq] : [seq.slice(0, cols), seq.slice(cols)];
   return `<div class="tk${rowsOf.length > 1 ? " two" : ""}" style="--n:${cols}"><div class="lb">Our player<br>sponsors</div><div class="rs">${rowsOf.map(r => `<div class="r">${r.map(tile).join("")}</div>`).join("")}</div></div>`;
 }
@@ -5081,6 +5091,7 @@ function spLogoMark(lg) {
   if (!lg || typeof lg !== "object" || (lg.t !== "webp" && lg.t !== "png")) return null;
   const v = Math.floor(Number(lg.v)); if (!Number.isFinite(v) || v <= 0) return null;
   const o = { v, t: lg.t, w: spInt(lg.w, 1, 1200), h: spInt(lg.h, 1, 1200) };
+  if (typeof lg.bc === "string" && /^#[0-9a-f]{6}$/.test(lg.bc)) o.bc = lg.bc; // the logo's own background colour (for logos that bring their own), so the TV tile can match it
   if (Number(lg.n) > 0 && Number(lg.n) <= 300000) o.n = Math.round(Number(lg.n)); // size in bytes, for the total on the Sponsors page
   if (lg.bg === "d" || lg.bg === "l" || lg.bg === "c") { o.bg = lg.bg; o.au = lg.au === 1 || lg.au === true ? 1 : 0; } // which tile suits the logo: d dark, l light, c it brings its own background; au 1 = chosen by the page
   return o;
@@ -5207,6 +5218,7 @@ async function sponsorsApi(request, url) {
     if (!it || !it.logo) return J({ ok: false, error: "That sponsor has no logo." }, 404);
     if (b.bg !== "d" && b.bg !== "l" && b.bg !== "c") return J({ ok: false, error: "Choose dark, light or as supplied." }, 400);
     it.logo.bg = b.bg; it.logo.au = b.au === 1 ? 1 : 0;
+    if (typeof b.bc === "string" && /^#[0-9a-f]{6}$/.test(b.bc)) it.logo.bc = b.bc;
     try { await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save that. Try again." }, 502); }
     const use4 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use4[x.id] = u.length; }
     return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use: use4, season });
@@ -5239,6 +5251,7 @@ async function sponsorsApi(request, url) {
         await kv.put(SPLOGO_PREFIX + it.id, bytes, { metadata: { t: c.t, w: c.w, h: c.h, v } });
         it.logo = { v, t: c.t, w: c.w, h: c.h, n: bytes.length };
         if (b.bg === "d" || b.bg === "l" || b.bg === "c") { it.logo.bg = b.bg; it.logo.au = b.au === 1 ? 1 : 0; }
+        if (typeof b.bc === "string" && /^#[0-9a-f]{6}$/.test(b.bc)) it.logo.bc = b.bc;
       }
       await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() }));
     } catch (_) { return J({ ok: false, error: "Could not save the logo. Try again." }, 502); }
@@ -5369,6 +5382,7 @@ function lgWebp(){try{var c=document.createElement("canvas");c.width=c.height=1;
 function lgBox(d,w,h){var A=[w,h,-1,-1],B=[w,h,-1,-1],hasT=false,x,y,i,a,k;for(y=0;y<h;y++){for(x=0;x<w;x++){i=(y*w+x)*4;a=d[i+3];if(a<250)hasT=true;if(a<=16)continue;k=A;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y;if(a>=240&&d[i]>=240&&d[i+1]>=240&&d[i+2]>=240)continue;k=B;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y}}
 var r=hasT?A:B;if(r[2]<0)return null;r.t=hasT;return r}
 function lgCorner(c,w,h){var s=Math.max(1,Math.min(3,w>>1,h>>1)),P=[[0,0],[w-s,0],[0,h-s],[w-s,h-s]],m=[],i,j,d,n,R,G,B;for(i=0;i<4;i++){d=c.getImageData(P[i][0],P[i][1],s,s).data;R=G=B=n=0;for(j=0;j<d.length;j+=4){R+=d[j];G+=d[j+1];B+=d[j+2];n++}m.push([R/n,G/n,B/n])}for(i=1;i<4;i++)for(j=0;j<3;j++)if(Math.abs(m[i][j]-m[0][j])>40)return null;var a=[0,0,0];for(i=0;i<4;i++)for(j=0;j<3;j++)a[j]+=m[i][j]/4;return"rgb("+Math.round(a[0])+","+Math.round(a[1])+","+Math.round(a[2])+")"}
+function lgHex(r){var m=/^rgb[(]([0-9]+),([0-9]+),([0-9]+)[)]$/.exec(r||"");if(!m)return"";var h="#",i,x;for(i=1;i<4;i++){x=Math.max(0,Math.min(255,+m[i])).toString(16);h+=x.length<2?"0"+x:x}return h}
 function lgTone(q,w,h){var d=q.getImageData(0,0,w,h).data,n=0,L=0,i;for(i=0;i<d.length;i+=4)if(d[i+3]>128){n++;L+=.299*d[i]+.587*d[i+1]+.114*d[i+2]}return n?(L/n<110?"l":"d"):"d"}
 function lgMake(img,svg,trim,cb){var W=img.naturalWidth||300,H=img.naturalHeight||300,bs=svg?1200/Math.max(W,H):Math.min(1,2400/Math.max(W,H)),BW=Math.max(1,Math.round(W*bs)),BH=Math.max(1,Math.round(H*bs));
 var base=document.createElement("canvas");base.width=BW;base.height=BH;var bx=base.getContext("2d",{willReadFrequently:true});bx.imageSmoothingQuality="high";bx.drawImage(img,0,0,BW,BH);
@@ -5376,14 +5390,14 @@ var bo=trim?lgBox(bx.getImageData(0,0,BW,BH).data,BW,BH):[0,0,BW-1,BH-1];if(!bo)
 var l=bo[0],t=bo[1],bw=bo[2]-bo[0]+1,bh=bo[3]-bo[1]+1;if(bw<8||bh<8)return cb("That image is too small to use.");
 var pad=trim?Math.max(2,Math.round(Math.max(bw,bh)*.04)):0,ow=bw+2*pad,oh=bh+2*pad,tr=[1,.8,.64,.5],ti=0,want=lgWebp();
 function enc(){var s=Math.min(1,600/ow,300/oh)*tr[ti],cw=Math.max(1,Math.ceil(ow*s)),ch=Math.max(1,Math.ceil(oh*s)),o=document.createElement("canvas");o.width=cw;o.height=ch;var q=o.getContext("2d");q.imageSmoothingEnabled=true;q.imageSmoothingQuality="high";if(bgc){var rr=Math.min(.08*Math.min(cw,ch),3*pad*s);q.beginPath();q.moveTo(rr,0);q.arcTo(cw,0,cw,ch,rr);q.arcTo(cw,ch,0,ch,rr);q.arcTo(0,ch,0,0,rr);q.arcTo(0,0,cw,0,rr);q.closePath();q.clip();q.fillStyle=bgc;q.fillRect(0,0,cw,ch)}q.drawImage(base,l,t,bw,bh,pad*s,pad*s,bw*s,bh*s);
-o.toBlob(function(bl){if(!bl)return cb("Could not make the logo. Try another file.");if(bl.size>LGMAX&&ti<tr.length-1){ti++;enc();return}if(bl.size>LGMAX)return cb("That logo is still too big after resizing. Try a simpler file.");cb(null,{blob:bl,w:cw,h:ch,t:bl.type==="image/webp"?"webp":"png",small:Math.max(cw,ch)<150,trimmed:trim&&(bw<BW||bh<BH),card:!!bgc,bg:bgc?"c":lgTone(q,cw,ch)})},want?"image/webp":"image/png",.92)}
+o.toBlob(function(bl){if(!bl)return cb("Could not make the logo. Try another file.");if(bl.size>LGMAX&&ti<tr.length-1){ti++;enc();return}if(bl.size>LGMAX)return cb("That logo is still too big after resizing. Try a simpler file.");cb(null,{blob:bl,w:cw,h:ch,t:bl.type==="image/webp"?"webp":"png",small:Math.max(cw,ch)<150,trimmed:trim&&(bw<BW||bh<BH),card:!!bgc,bg:bgc?"c":lgTone(q,cw,ch),bc:bgc?lgHex(bgc):""})},want?"image/webp":"image/png",.92)}
 enc()}
 function lgPick(f){if(!f)return;if(f.size>12000000){say("That file is too big. Choose one under 12 MB.","er");return}LG.file=f;lgRun()}
 function lgRun(){var f=LG.file;if(!f)return;say("Preparing the logo...");var u=URL.createObjectURL(f),im=new Image();im.onload=function(){URL.revokeObjectURL(u);lgMake(im,/svg/i.test(f.type)||/[.]svg$/i.test(f.name),LG.trim,function(er,r){if(er){LG.cur=null;say(er,"er");draw();return}if(LG.cur&&LG.cur.url)URL.revokeObjectURL(LG.cur.url);r.id=open;r.url=URL.createObjectURL(r.blob);LG.cur=r;say("");draw()})};im.onerror=function(){URL.revokeObjectURL(u);say("That file could not be read as an image. Use PNG, JPG, WebP or SVG.","er")};im.src=u}
-function lgSave(){var c=LG.cur;if(!c||busy)return;var rd=new FileReader();rd.onload=function(){var s=String(rd.result);post({act:"logo",id:c.id,t:c.t,w:c.w,h:c.h,bg:c.bg,au:1,data:s.slice(s.indexOf(",")+1)},function(){say("Logo saved.","ok");URL.revokeObjectURL(c.url);LG.cur=null;LG.file=null;draw()})};rd.readAsDataURL(c.blob)}
+function lgSave(){var c=LG.cur;if(!c||busy)return;var rd=new FileReader();rd.onload=function(){var s=String(rd.result);post({act:"logo",id:c.id,t:c.t,w:c.w,h:c.h,bg:c.bg,bc:c.bc||"",au:1,data:s.slice(s.indexOf(",")+1)},function(){say("Logo saved.","ok");URL.revokeObjectURL(c.url);LG.cur=null;LG.file=null;draw()})};rd.readAsDataURL(c.blob)}
 function lgTiles(u,bg){return'<div class="lgs"><div class="lgt d'+(bg==="d"?" on":"")+'"><img alt="" src="'+u+'"></div><div class="lgt l'+(bg==="l"?" on":"")+'"><img alt="" src="'+u+'"></div></div>'}
 function lgSw(x){var b=x.logo.bg||"d",o=[["d","Dark tile"],["l","Light tile"],["c","As supplied"]],h='<div class="sub" style="font-size:13px;margin:6px 0 4px">Looks best on</div><div class="lgsw">';o.forEach(function(k){h+='<button type="button" class="b2 sm'+(b===k[0]?" go":"")+'" data-a="lgbg" data-i="'+x.id+'" data-b="'+k[0]+'">'+k[1]+"</button>"});return h+"</div>"+(x.logo.au?'<p class="sub" style="margin:0 0 4px;font-size:12px">Chosen automatically. Change it if it looks wrong on the TV.</p>':"")}
-function lgDetect(x){if(!x.logo||x.logo.bg||LG.det&&LG.det[x.id])return;LG.det=LG.det||{};LG.det[x.id]=1;var im=new Image();im.onload=function(){try{var c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;var q=c.getContext("2d",{willReadFrequently:true});q.drawImage(im,0,0);var bg=lgCorner(q,c.width,c.height)?"c":lgTone(q,c.width,c.height);if(busy){LG.det[x.id]=0;return}post({act:"logo-bg",id:x.id,bg:bg,au:1},function(){})}catch(e){}};im.src="/api/logo/"+x.id+"?v="+x.logo.v}
+function lgDetect(x){if(!x.logo||x.logo.bg||LG.det&&LG.det[x.id])return;LG.det=LG.det||{};LG.det[x.id]=1;var im=new Image();im.onload=function(){try{var c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;var q=c.getContext("2d",{willReadFrequently:true});q.drawImage(im,0,0);var cc=lgCorner(q,c.width,c.height),bg=cc?"c":lgTone(q,c.width,c.height);if(busy){LG.det[x.id]=0;return}post({act:"logo-bg",id:x.id,bg:bg,bc:cc?lgHex(cc):"",au:1},function(){})}catch(e){}};im.src="/api/logo/"+x.id+"?v="+x.logo.v}
 function lgBlock(x){var h='<div class="sec">Logo</div>',c=LG.cur&&LG.cur.id===x.id?LG.cur:null;
 if(c){h+=lgTiles(c.url)+'<p class="sub" style="margin:4px 0">'+c.w+" x "+c.h+" px, "+Math.round(c.blob.size/1024)+" KB, "+c.t.toUpperCase()+(c.trimmed?", empty margins trimmed":"")+(c.card?", background colour matched, rounded corners":"")+(c.small?". This logo is small and may look soft on a TV.":"")+'</p><div class="rw2"><button type="button" class="b2 go sm" data-a="lgsave" data-i="'+x.id+'">'+(x.logo?"Replace logo":"Save logo")+'</button><button type="button" class="b2 sm" data-a="lgup">Choose another file</button><button type="button" class="b2 sm" data-a="lgcan">Cancel</button></div>'}
 else if(x.logo){lgDetect(x);h+=lgTiles("/api/logo/"+x.id+"?v="+x.logo.v,x.logo.bg||"d")+'<p class="sub" style="margin:4px 0">'+x.logo.w+" x "+x.logo.h+" px</p>"+lgSw(x)+"<div class='rw2'><button type='button' class='b2 sm' data-a='lgup'>Replace logo</button>"+(LG.arm===x.id?"<span class='sub' style='font-size:13px'>Remove this logo?</span><button type='button' class='b2 sm rm' data-a='lgrmy' data-i='"+x.id+"'>Yes, remove</button><button type='button' class='b2 sm' data-a='lgrmn'>No</button>":"<button type='button' class='b2 sm rm' data-a='lgrm' data-i='"+x.id+"'>Remove logo</button>")+"</div>"}
