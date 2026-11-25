@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.69.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.0_all_sponsored_players.zip | v3.68.0
 v3.68.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.68.0_two_sponsors.zip | v3.67.5
 v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
 v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
@@ -398,6 +399,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.69.0 - All sponsored players across every team
+- Owner request (25-Nov-2026): see every player with a sponsor, with no duplicate for a player who has played for several teams, to check everyone who should be sponsored is.
+- Change: Player names and sponsors has a button, Show all sponsored players, every team. It lists each sponsored player once (matched by RFU number, including other numbers saved for them) with their sponsor or sponsors and the teams they are on, then the current players with no sponsor. Under-18 teams show no names. Read only; it reads the one saved season record, nothing new is stored.
+- Request limit: no change (one season record read, as the page already does).
+- Docs: What's new
 
 v3.68.0 - A player can have two sponsors
 - Owner request (25-Nov-2026): one player has two sponsors. Two is the most needed; Available to sponsor only when a player has none.
