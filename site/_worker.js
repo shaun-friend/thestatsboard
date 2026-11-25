@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.65.0 25-Nov-2026 Match day TV page: a slowly scrolling bar along the bottom with the logos of the sponsors of the players on the sheet.
 //   v3.64.0 23-Nov-2026 Sponsors page: total size of all logos; Usage page: the Stored data bar (it read 0) is removed.
 //   v3.63.1 23-Nov-2026 Usage page: stored data uses the newest day that has data (a day still being counted read 0).
 //   v3.63.0 23-Nov-2026 Usage page: Cloudflare limits card shows how much the settings stores hold (KV storage, logos included).
@@ -383,8 +384,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.64.0";
-const BUILD_DATE = "23-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.65.0";
+const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -430,6 +431,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
 v3.64.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.64.0_logo_total_size.zip | v3.63.1
 v3.63.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.1_usage_storage_fix.zip | v3.63.0
 v3.63.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.0_usage_kv_storage.zip | v3.62.0
@@ -776,6 +778,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.65.0 - Match day TV page: sponsor logo bar
+- Owner request (25-Nov-2026): not logos beside the player names (too fussy) but a scrolling bar along the bottom with the logos of the sponsors of the players listed as playing; no separate time setting, it follows the page's own Stop showing at time.
+- Change: a bar labelled Our player sponsors scrolls slowly along the bottom of the Match day TV page, one tile per sponsor of a starter on the sheet (each once, on its dark, light or as-supplied tile). Under-18 players show no sponsor and so no logo. A sponsor with no logo is left out; with nothing to show there is no bar. A logo that fails to load drops out. The page already shrinks to fit the screen, so the rows get a little smaller to make room.
+- Request limit: each logo is one request per screen, then kept by the browser for a year; the scrolling is done by the screen. No extra settings reads or writes.
+- Docs: What's new, Admin guide
 
 v3.64.0 - Sponsors page: total size of all logos
 - Owner request (23-Nov-2026): see the total size of the logos, to watch Cloudflare usage. Cloudflare's own storage figure read 0 for every day (raw reply seen), so it is replaced.
@@ -3204,7 +3212,7 @@ const DOC_SECTIONS = [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
       "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
       "Players (Admin, Tools, Players, or the Players tab on the Sponsors page): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. On the Sponsors page you can also tap a sponsor and add several players to it at once. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
-      "Sponsor logos: each sponsor in the Sponsors list shows a small logo, or an empty dashed box when it has none. Open a sponsor and use the Logo section. Upload logo takes a PNG, JPG, WebP or SVG file. The page trims the empty margins, fits the logo inside 600 x 300 pixels without cropping it and shows it on a dark and a light tile as it will look on a TV; press Save logo to keep it. Replace logo and Remove logo do what they say. A logo with a solid background (for example a JPG with white behind it) gets a margin in that same colour and rounded corners; one with a transparent background keeps it. Tick Keep the empty margins (do not trim) if the trimming is wrong for a logo. Logos are stored per site, so DEV and PROD each have their own: to copy them, open Move logos to another site, press Download logos file on one site and Load a logos file on the other (copy the sponsors across first with Back up or move to another site). Looks best on: each logo is put on a dark tile, a light tile or As supplied (a logo with its own background); the page picks one when the logo is saved and you can change it with the three buttons under the preview. The Match day page does not show logos.",
+      "Sponsor logos: each sponsor in the Sponsors list shows a small logo, or an empty dashed box when it has none. Open a sponsor and use the Logo section. Upload logo takes a PNG, JPG, WebP or SVG file. The page trims the empty margins, fits the logo inside 600 x 300 pixels without cropping it and shows it on a dark and a light tile as it will look on a TV; press Save logo to keep it. Replace logo and Remove logo do what they say. A logo with a solid background (for example a JPG with white behind it) gets a margin in that same colour and rounded corners; one with a transparent background keeps it. Tick Keep the empty margins (do not trim) if the trimming is wrong for a logo. Logos are stored per site, so DEV and PROD each have their own: to copy them, open Move logos to another site, press Download logos file on one site and Load a logos file on the other (copy the sponsors across first with Back up or move to another site). Looks best on: each logo is put on a dark tile, a light tile or As supplied (a logo with its own background); the page picks one when the logo is saved and you can change it with the three buttons under the preview. The Match day TV page shows a slowly scrolling bar along the bottom with the logos of the sponsors of the players on the sheet, each once, on its tile; with no logos to show the bar is simply not there. Sponsor names stay as text beside the players.",
       "Back up or move the sponsors: at the foot of the Sponsors page, open Back up or move to another site. Download backup saves one file with every sponsor and each player's sponsor for last season, this season and next season. To copy your setup to another site (for example from the test site to the live site), open the Sponsors page there, press Load a backup file and choose the file. It shows what is in the file and what is on the site now, and nothing changes until you press Replace this site's sponsors with this file. Loading replaces the sponsors and the player sponsors for those three seasons, and clears a season the file has nothing for. Keep the file as a backup too.",
       "All sponsors and their players: on the Sponsors page, press the green All sponsors and their players button (address /sponsor-list). It lists every sponsor with the players they sponsor this season, with the team beside each player. Choose a team to see only that team's players (sponsors with no players in that team are left out). Export downloads what is on screen as a CSV file (Sponsor, Player, Team) that opens in Excel or Sheets. Under-18 teams are listed without names.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
@@ -3366,6 +3374,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.65.0", "Match day TV page: a slowly scrolling bar along the bottom shows the logos of the sponsors of the players on the sheet (none shown if no player on the sheet has a sponsor with a logo)."],
       ["v3.64.0", "Sponsors page: shows how many logos there are and their total size, with a Check logo sizes button for older logos. The Stored data bar on the Usage page is gone (Cloudflare gave 0)."],
       ["v3.63.1", "Usage page: stored data no longer shows 0 when Cloudflare has not finished counting today."],
       ["v3.63.0", "Usage page: the Cloudflare limits card now shows how much data the settings stores hold, against the 1 GB free allowance."],
@@ -4588,7 +4597,7 @@ async function mdLoadSheet(tm, g, day, sim) {
   if (!mrec || !ppl) return null;
   let sponsors = [], rec = null; const kv = kvOf();
   if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
-  const sname = new Map(sponsors.map(x => [x.id, x.name])), by = {}, altOf = {};
+  const sname = new Map(sponsors.map(x => [x.id, x.name])), slogo = new Map(sponsors.filter(x => x.logo).map(x => [x.id, { id: x.id, v: x.logo.v, bg: x.logo.bg || "d" }])), by = {}, altOf = {};
   if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", nm: "" }); if (!h.s && e0.s) h.s = e0.s; if (!h.nm && e0.nm) h.nm = e0.nm; for (const a of (e0.a || [])) altOf[a] = no; }
   const side = String(g.home === true ? mrec.homeTeamId : mrec.awayTeamId), list = Array.isArray(ppl.participants) ? ppl.participants : [];
   let mine = list.filter(p => String(p.teamId) === side);
@@ -4603,7 +4612,7 @@ async function mdLoadSheet(tm, g, day, sim) {
     const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
     const rfu = withheld ? "" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
     const hidden = hideSide || p.isU18 === true, name = hidden ? "" : (h.nm || rfu), sponsor = hidden ? "" : (sname.get(h.s) || "");
-    return { no: String(p.playingPositionNo || ""), name, hidden, sponsor, avail: !hidden && !sponsor, tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" };
+    return { no: String(p.playingPositionNo || ""), name, hidden, sponsor, lg: hidden || !sponsor ? null : (slogo.get(h.s) || null), avail: !hidden && !sponsor, tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" };
   }).filter(x => x.no).sort((a, b) => sheetOrder(a.no) - sheetOrder(b.no));
   const starters = all.filter(x => sheetOrder(x.no) <= 15), subs = all.filter(x => sheetOrder(x.no) > 15).map(x => x.hidden ? "Name not shown" : (x.name || "Name redacted"));
   return { starters, subs, lineup: !!ppl.lineup, count: all.length };
@@ -4673,8 +4682,24 @@ const MD_TV_CSS = `body.md .top{display:none}
 .hk{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem 1.4rem;margin:.35rem .3rem 0;font-size:1.05rem;color:var(--tx)}.hk span{display:inline-flex;align-items:center;gap:.45rem}.hk i{width:.9rem;height:.9rem;border-radius:.2rem;flex:none;display:inline-block}.hk i.a{background:var(--ca)}.hk i.b{background:var(--cb)}.hk i.d{background:#5d7066}
 .hl2{text-align:center;color:var(--mu);font-size:1.05rem;margin-top:.3rem}
 .sb{flex:none;background:var(--sbg);border:2px solid var(--sbd);border-radius:.7rem;padding:.7rem 1.3rem}.sb .fh{font-size:.9rem;letter-spacing:.18em;color:var(--mu);margin-bottom:.3rem}.sb div.sn{font-size:1.35rem;line-height:1.3;color:var(--tx);overflow:hidden;max-height:4.2rem}
+.tk{flex:none;height:5.4rem;display:flex;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:.6rem;overflow:hidden;margin-top:.5rem}
+.tk .lb{flex:none;height:100%;display:flex;align-items:center;padding:0 1.3rem;font-size:.95rem;font-weight:700;letter-spacing:.2em;line-height:1.3;text-transform:uppercase;color:var(--mu);background:var(--card);border-right:1px solid var(--bd);position:relative;z-index:2;box-shadow:.6rem 0 .7rem var(--card)}
+.tk .tr{display:flex;align-items:center;gap:1.4rem;padding-left:1.4rem;width:max-content;animation:tks 40s linear infinite}
+.tk .t{flex:none;width:11rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{padding:0;background:none}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+@keyframes tks{to{transform:translateX(-50%)}}
 body.light .st .cr{background:#fff}
 :root{--av:#ffd978;--sbg:#26332d;--sbd:#3f5a4c}body.light{--sbg:#e1ece5;--sbd:#9db8a8}`;
+// v3.65.0: the sponsor bar along the foot of the Match day TV page: the logos of the sponsors of the players on the sheet, once each, scrolling slowly.
+// Each logo is a small image fetched once per screen (versioned address, kept a year). Nothing is added to the page when no player on the sheet has a sponsor with a logo.
+function mdTickerHtml(starters, e) {
+  const seen = new Set(), L = [];
+  for (const p of starters || []) { if (p.hidden || !p.lg || seen.has(p.lg.id)) continue; seen.add(p.lg.id); L.push(p.lg); }
+  if (!L.length) return "";
+  let one = L.slice(); while (one.length < 8) one = one.concat(L); // enough tiles to fill a wide screen before the loop repeats
+  const tile = g => `<span class="t ${g.bg === "l" ? "l" : g.bg === "c" ? "c" : "d"}"><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
+  const run = one.map(tile).join(""), secs = Math.max(30, one.length * 5);
+  return `<div class="tk"><div class="lb">Our player<br>sponsors</div><div class="tr" style="animation-duration:${secs}s">${run}${run}</div></div>`;
+}
 function mdTvInner(o) {
   const { e, ord, light, me, opp, n, sheet, crest, meCol, tm, h2hAll, league, season, stamp } = o;
   const bigSz = nm => { const k = String(nm || "").length; return k <= 16 ? 3.4 : k <= 24 ? 2.8 : k <= 34 ? 2.3 : k <= 44 ? 2.1 : 1.8; }, panSz = nm => { const k = String(nm || "").length; return k <= 20 ? 1.5 : k <= 32 ? 1.2 : 1; }; // long names get smaller type, never an ellipsis
@@ -4702,7 +4727,7 @@ function mdTvInner(o) {
 <div class="rc"><div class="pn"><div class="st">${sm(me.id, me.name, meCol)}<div class="l"></div>${sm(opp.id, opp.name, "var(--cb)")}${stat("Position", pos(me.position), pos(opp.position))}${stat("League points", me.points, opp.points)}${stat("Played", me.played, opp.played)}${stat("Wins", me.wins, opp.wins)}${stat("Points scored", me.pf, opp.pf)}${stat("Points conceded", me.pa, opp.pa)}</div>
 <div class="mdh3">Recent form &middot; newest first</div><div class="fm2">${form(me)}${form(opp)}</div>
 <div class="mdh3">Head to head &middot; last 5 seasons</div>${h2h}</div>${subs}</div></div>
-<div class="upd">${e(league || "")} &middot; Team sheet from GMS &middot; Season ${e(season)} &middot; Last updated ${e(stamp)}${sheet.preview ? " &middot; " + e(sheet.preview) : ""}</div>`;
+${mdTickerHtml(sheet.starters, e)}<div class="upd">${e(league || "")} &middot; Team sheet from GMS &middot; Season ${e(season)} &middot; Last updated ${e(stamp)}${sheet.preview ? " &middot; " + e(sheet.preview) : ""}</div>`;
 }
 // ---- Match day page (v3.46.0) -----------------------------------------------------------------------------------
 // For one of our teams and one match day: the team sheet the club has submitted on the RFU system (shirt order), with the sponsor of each player, who is still

@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
 v3.64.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.64.0_logo_total_size.zip | v3.63.1
 v3.63.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.1_usage_storage_fix.zip | v3.63.0
 v3.63.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.0_usage_kv_storage.zip | v3.62.0
@@ -387,6 +388,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.65.0 - Match day TV page: sponsor logo bar
+- Owner request (25-Nov-2026): not logos beside the player names (too fussy) but a scrolling bar along the bottom with the logos of the sponsors of the players listed as playing; no separate time setting, it follows the page's own Stop showing at time.
+- Change: a bar labelled Our player sponsors scrolls slowly along the bottom of the Match day TV page, one tile per sponsor of a starter on the sheet (each once, on its dark, light or as-supplied tile). Under-18 players show no sponsor and so no logo. A sponsor with no logo is left out; with nothing to show there is no bar. A logo that fails to load drops out. The page already shrinks to fit the screen, so the rows get a little smaller to make room.
+- Request limit: each logo is one request per screen, then kept by the browser for a year; the scrolling is done by the screen. No extra settings reads or writes.
+- Docs: What's new, Admin guide
 
 v3.64.0 - Sponsors page: total size of all logos
 - Owner request (23-Nov-2026): see the total size of the logos, to watch Cloudflare usage. Cloudflare's own storage figure read 0 for every day (raw reply seen), so it is replaced.

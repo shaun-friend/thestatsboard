@@ -35,7 +35,7 @@ const pg=await w.fetch(new Request('https://thestatsboard.co.uk/sponsors',{heade
 const scr=[...pg.matchAll(/<script>([^]*?)<\/script>/g)].map(m=>m[1]);let syn=0;for(const x of scr){try{new Function(x)}catch(e){syn++;console.log(e.message)}}c('the sponsors page script parses',syn===0&&scr.length>0);
 c('Admin has the three tile buttons',/Dark tile/.test(pg)&&/Light tile/.test(pg)&&/As supplied/.test(pg)&&/data-a="lgbg"/.test(pg));
 const src_=(await import('fs')).readFileSync(src,'utf8');
-c('Match day carries no logos',!/slogo/.test(src_)&&!/\.rw \.sl/.test(src_));
+c('Match day rows carry no logo tiles (the bar is separate)',!/\.rw \.sl/.test(src_));
 // --- browser: tone choice on real images
 import {createRequire} from 'module';const {chromium}=createRequire(import.meta.url)('playwright');
 const m=/function lgTone[^]*?function lgMake/.exec(pg),m2=/function lgCorner[^]*?function lgMake/.exec(pg);c('tone code is in the page',!!m&&!!m2);

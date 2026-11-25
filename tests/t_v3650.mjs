@@ -1,0 +1,32 @@
+// v3.65.0: sponsor logo bar along the bottom of the Match day TV page
+import fs from 'fs';import vm from 'vm';import {createRequire} from 'module';
+const src=fs.readFileSync(process.argv[2],'utf8');let ok=0,bad=0;const c=(n,x,d)=>{if(x)ok++;else{bad++;console.log('FAIL',n,d||'')}};
+const m=/function mdTickerHtml[\s\S]*?\n\}\n/.exec(src);c('ticker code found',!!m);
+const ctx={};vm.createContext(ctx);vm.runInContext(m[0]+';this.t=mdTickerHtml',ctx);
+const e=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const P=(no,id,bg,extra)=>Object.assign({no,name:'P'+no,hidden:false,sponsor:id?'S'+id:'',lg:id?{id,v:1700000000000,bg}:null},extra||{});
+let h=ctx.t([P(1,'aaaaaaaa','d'),P(2,'bbbbbbbb','l'),P(3,'cccccccc','c'),P(4,'aaaaaaaa','d'),P(5,'',''),P(6,'dddddddd','d',{hidden:true})],e);
+const ids=[...h.matchAll(/\/api\/logo\/([0-9a-f]{8})\?v=/g)].map(x=>x[1]);
+c('one logo per sponsor, in shirt order, twice over for a seamless loop',ids.slice(0,3).join()==='aaaaaaaa,bbbbbbbb,cccccccc'&&ids.length%2===0&&new Set(ids).size===3,ids.join());
+c('a hidden (under-18) player adds no logo, a player with no sponsor adds none',!/dddddddd/.test(h));
+c('tiles carry the chosen background',/class="t d"/.test(h)&&/class="t l"/.test(h)&&/class="t c"/.test(h));
+c('enough tiles to fill a wide screen (at least 8 before repeating)',ids.length>=16,String(ids.length));
+c('a logo that fails to load drops out',/onerror="this\.parentNode\.remove\(\)"/.test(h));
+c('versioned address',/\/api\/logo\/aaaaaaaa\?v=1700000000000/.test(h));
+c('no logos on the sheet: no bar at all',ctx.t([P(1,'',''),P(2,'','')],e)===''&&ctx.t([],e)==='');
+c('one sponsor only still scrolls',/class="tk"/.test(ctx.t([P(1,'aaaaaaaa','d')],e)));
+c('players carry the logo marker, never the image',/lg: hidden \|\| !sponsor \? null : \(slogo\.get\(h\.s\)/.test(src)&&/slogo = new Map\(sponsors\.filter\(x => x\.logo\)\.map\(x => \[x\.id, \{ id: x\.id, v: x\.logo\.v, bg: x\.logo\.bg \|\| "d" \}\]\)\)/.test(src));
+c('the bar is put before the footer line',/\$\{mdTickerHtml\(sheet\.starters, e\)\}<div class="upd">/.test(src));
+// real layout: the bar scrolls and the page still fits
+const css=/const MD_TV_CSS = `([\s\S]*?)`;/.exec(src)[1];
+const {chromium}=createRequire(import.meta.url)('playwright');
+const br=await chromium.launch();const pg=await br.newPage({viewport:{width:1920,height:1080}});
+const tile='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100"><rect width="300" height="100" fill="#14396b"/></svg>');
+const bar=ctx.t([P(1,'aaaaaaaa','d'),P(2,'bbbbbbbb','l'),P(3,'cccccccc','c')],e).replace(/\/api\/logo\/[0-9a-f]{8}\?v=[0-9]+/g,tile);
+await pg.setContent('<style>:root{--card:#111a16;--bd:#2a3a33;--mu:#9bb5a6;--tx:#fff}html,body{margin:0;height:100%}body{display:flex;flex-direction:column;font-size:16px}'+css+'</style><body class="md"><div style="flex:1">x</div>'+bar+'<div class="upd">foot</div></body>');
+await pg.waitForTimeout(400);
+const r=await pg.evaluate(()=>{const t=document.querySelector('.tr'),k=document.querySelector('.tk');return{trW:t.scrollWidth,kW:k.clientWidth,anim:getComputedStyle(t).animationName,dur:getComputedStyle(t).animationDuration,h:k.getBoundingClientRect().height,ov:document.body.scrollHeight>document.body.clientHeight}});
+c('the track is wider than the bar and is animated',r.trW>r.kW&&r.anim==='tks'&&parseFloat(r.dur)>=30,JSON.stringify(r));
+c('the bar is a fixed slice of height and does not overflow the page',r.h>60&&r.h<120&&!r.ov,JSON.stringify(r));
+await br.close();
+console.log(ok+' pass, '+bad+' fail');process.exit(bad?1:0);
