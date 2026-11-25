@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
 v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
 v3.67.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.2_match_day_footer_gap.zip | v3.67.1
 v3.67.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.1_sponsor_tiles_fill.zip | v3.67.0
@@ -395,6 +396,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.4 - Match day TV page: names no longer clipped
+- Owner report (25-Nov-2026): names are cut off at the bottom, for example the g in Vermigle.
+- Cause: the name sits in a box that hides anything outside it (so long names end in an ellipsis), and that box was exactly one tight line tall, so the tails of g, y and p fell outside it.
+- Fix: the name and sponsor boxes are taller (line height 1.4) so the tails show. Long names still end in an ellipsis rather than wrapping.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.3 - Sponsor logos: light tile is pure white
 - Owner report (25-Nov-2026): the white of the background is not the same as the white of the logos.

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.67.4 25-Nov-2026 Match day TV page: names are no longer clipped at the bottom (the tail of g, y, p).
 //   v3.67.3 25-Nov-2026 Sponsor logo light tiles are pure white (Match day panel and Admin), so a logo with a white background no longer shows as a box.
 //   v3.67.2 25-Nov-2026 Match day TV page: the Last updated line no longer overlaps the Powered by line at the foot of the screen.
 //   v3.67.1 25-Nov-2026 Match day TV page: sponsor tiles now fill the whole height of the panel (a shared style was shrinking them).
@@ -391,7 +392,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.67.3";
+const VERSION = "v3.67.4";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -438,6 +439,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
 v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
 v3.67.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.2_match_day_footer_gap.zip | v3.67.1
 v3.67.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.1_sponsor_tiles_fill.zip | v3.67.0
@@ -792,6 +794,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.4 - Match day TV page: names no longer clipped
+- Owner report (25-Nov-2026): names are cut off at the bottom, for example the g in Vermigle.
+- Cause: the name sits in a box that hides anything outside it (so long names end in an ellipsis), and that box was exactly one tight line tall, so the tails of g, y and p fell outside it.
+- Fix: the name and sponsor boxes are taller (line height 1.4) so the tails show. Long names still end in an ellipsis rather than wrapping.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.3 - Sponsor logos: light tile is pure white
 - Owner report (25-Nov-2026): the white of the background is not the same as the white of the logos.
@@ -3434,6 +3443,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.67.4", "Match day TV page: the tails of letters like g, y and p are no longer cut off in names."],
       ["v3.67.3", "Sponsor logos: the light tile is now pure white, so logos with a white background blend in instead of showing a box."],
       ["v3.67.2", "Match day TV page: the line of small print at the foot no longer overlaps the Powered by line."],
       ["v3.67.1", "Match day TV page: the sponsor logo tiles now grow to fill the whole right-hand panel instead of sitting as thin strips."],
@@ -4737,8 +4747,8 @@ body.md{padding-bottom:max(2.8rem,46px)}
 .lc{display:flex;flex-direction:column;gap:.5rem;min-height:0;min-width:0}
 .lu{flex:15 1 0;display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
 .rw{display:flex;align-items:center;gap:.7rem;min-width:0;background:var(--card);border:1px solid var(--bd);border-radius:.45rem;padding:0 .7rem;font-size:1.3rem;overflow:hidden}
-.rw .sh{height:88%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
-.rw .sp{flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.05rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
+.rw .sh{height:88%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
+.rw .sp{line-height:1.4;flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.05rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
 .fh{font-size:.95rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tx)}
 .rp{display:flex;flex-direction:column;gap:.25rem;min-height:0}.rp .g{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--r),1fr);grid-auto-flow:column;gap:.2rem .5rem}.rp .rw{font-size:1.1rem}.rp .rw .sp{font-size:.95rem}
 .rc{display:flex;flex-direction:column;gap:.6rem;min-height:0}
