@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.69.1 25-Nov-2026 Player names and sponsors: the all-teams list can be downloaded as a spreadsheet (CSV).
 //   v3.69.0 25-Nov-2026 Player names and sponsors: a list of every sponsored player across all teams (each player once) and the current players with no sponsor.
 //   v3.68.0 25-Nov-2026 Player sponsors: a player can have two sponsors (Players page, Sponsors page, Match day and Match Centre lists, both logos on the Match day panel).
 //   v3.67.5 25-Nov-2026 Match Stats TV page: the Last updated line no longer overlaps the Powered by line at the foot.
@@ -395,7 +396,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.69.0";
+const VERSION = "v3.69.1";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -442,6 +443,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.69.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.1_sponsored_players_csv.zip | v3.69.0
 v3.69.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.0_all_sponsored_players.zip | v3.68.0
 v3.68.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.68.0_two_sponsors.zip | v3.67.5
 v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
@@ -800,6 +802,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.69.1 - All-teams sponsored list: download as spreadsheet
+- Owner request (25-Nov-2026): make the list exportable.
+- Change: when the all-teams list is open there is a Download as spreadsheet (CSV) button. One row per player: Player, RFU number, Teams, Sponsor 1, Sponsor 2, Status (Sponsored or Available to sponsor). Built in the browser from the list on screen, opens in Excel. Under-18 teams show no names, as on screen.
+- Request limit: no change (no new request).
+- Docs: What's new
 
 v3.69.0 - All sponsored players across every team
 - Owner request (25-Nov-2026): see every player with a sponsor, with no duplicate for a player who has played for several teams, to check everyone who should be sponsored is.
@@ -3468,6 +3476,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.69.1", "Player names and sponsors: the all-teams list now has a Download as spreadsheet (CSV) button."],
       ["v3.69.0", "Player names and sponsors: a new button, Show all sponsored players, every team, lists each sponsored player once (even if they play for several teams) with their sponsors and teams, and below it the current players who have no sponsor yet."],
       ["v3.68.0", "A player can now have two sponsors. On the Player names and sponsors page, Edit has a Second sponsor box. Both names show on the match-day lists and both logos go on the Match day sponsor panel. Available to sponsor only shows for a player with no sponsor at all."],
       ["v3.67.5", "Match Stats TV page: the small print at the foot no longer overlaps the Powered by line."],
@@ -5645,7 +5654,7 @@ async function sponsorPlayersApi(request, url, worker) {
           if (isCurrent(e0)) h.cur = true;
         }
       }
-      const rowsAll = Object.values(all).map(h => { const ids = [h.s, h.s2].filter(x => x && nm0.get(x)); return { no: h.no, name: h.name, hid: h.hid && !h.name, teams: h.teams, sponsor: ids.map(x => nm0.get(x)).join(" + "), cur: h.cur }; });
+      const rowsAll = Object.values(all).map(h => { const ids = [h.s, h.s2].filter(x => x && nm0.get(x)); return { no: h.no, name: h.name, hid: h.hid && !h.name, teams: h.teams, sponsor: ids.map(x => nm0.get(x)).join(" + "), sponsors: ids.map(x => nm0.get(x)), cur: h.cur }; });
       const by = (a, b) => (a.name || "~").toLowerCase() < (b.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (b.name || "~").toLowerCase() ? 1 : 0;
       return J({ ok: true, season: q.season, sponsored: rowsAll.filter(x => x.sponsor).sort(by), avail: rowsAll.filter(x => !x.sponsor && x.cur).sort(by) });
     }
@@ -5797,7 +5806,7 @@ ${SP_LAYOUT_CSS}${SP_PLAYERS_CSS}</style></head><body class="${t}">${themeBoot("
 <div class="rw2" id="cp" hidden><button type="button" class="b2" id="cpb"></button></div>
 </div>
 <div class="spr" id="spr"><div class="zl">Players</div>
-<div class="cd2" id="wc"><div class="rw2"><button type="button" class="b2" id="wb">Show all sponsored players, every team</button></div><div id="wl" hidden></div></div>
+<div class="cd2" id="wc"><div class="rw2"><button type="button" class="b2" id="wb">Show all sponsored players, every team</button></div><div class="rw2" id="wxr" hidden style="margin-top:8px"><button type="button" class="b2 go" id="wx">Download as spreadsheet (CSV)</button></div><div id="wl" hidden></div></div>
 <div class="cd2 lst" id="lc"><div class="lsh"><div class="rw2" style="margin-bottom:8px"><span class="xw"><input class="in2" id="fq" placeholder="Search players" autocomplete="off"><button type="button" class="xb" hidden aria-label="Clear search">&times;</button></span></div><div class="rw2" id="ch" style="margin:0 0 4px"></div></div><div id="ls"></div></div>
 </div></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
@@ -5838,7 +5847,10 @@ var rsArm=false;$("rsb").onclick=function(){if(scanning)return;if(!rsArm){rsArm=
 function SU(){return location.hash==="#setup"}
 function view(){var su=SU();$("lc").hidden=su;$("wc").hidden=su;$("sm").hidden=su;$("zt").hidden=su;$("zk").hidden=su;$("ky").hidden=su;$("spr").style.display=su?"none":"";$("h1").textContent=su?"Season set-up":"Player names and sponsors";$("t2").className=su?"":"on";$("t3").className=su?"on":"";if(D)draw()}
 function wrow(p,av){return'<div class="li"><div class="lm"><b>'+(p.name?e(p.name):'<i style="color:#91a49a;font-weight:400">'+(p.hid?"Name not shown":"Name redacted")+"</i>")+"</b><small>"+e(p.teams.join(", "))+" &middot; no. "+e(p.no)+'</small><div class="ln"><span class="sp'+(av?" av":"")+'">'+(av?"Available to sponsor":e(p.sponsor))+"</span></div></div></div>"}
-$("wb").onclick=function(){var w=$("wl");if(!w.hidden){w.hidden=true;$("wb").textContent="Show all sponsored players, every team";return}w.hidden=false;w.innerHTML='<p class="sub" style="margin:8px 0">Loading...</p>';fetch("/api/sponsor-players?all=1&season="+encodeURIComponent(D?D.season:""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){w.innerHTML='<p class="sub" style="margin:8px 0">'+e((j&&j.error)||"Could not read the players.")+"</p>";return}$("wb").textContent="Hide the all-teams list";w.innerHTML='<div class="sec" style="margin-top:10px">With a sponsor, '+j.sponsored.length+' (each player once, whichever teams they play for)</div>'+(j.sponsored.map(function(p){return wrow(p,false)}).join("")||'<p class="sub" style="margin:4px 0">None yet.</p>')+'<div class="sec" style="margin-top:14px">Current players with no sponsor, '+j.avail.length+"</div>"+(j.avail.map(function(p){return wrow(p,true)}).join("")||'<p class="sub" style="margin:4px 0">Every current player has a sponsor.</p>')}).catch(function(){w.innerHTML='<p class="sub" style="margin:8px 0">Could not read the players.</p>'})};
+var WJ=null;
+function csvCell(v){v=String(v==null?"":v);if(/^[=+@-]/.test(v))v=String.fromCharCode(39)+v;var q=String.fromCharCode(34);return q+v.split(q).join(q+q)+q}
+$("wx").onclick=function(){if(!WJ)return;var nl=String.fromCharCode(13,10),rows=[["Player","RFU number","Teams","Sponsor 1","Sponsor 2","Status"]];WJ.sponsored.forEach(function(p){rows.push([p.name||(p.hid?"Name not shown":"Name redacted"),p.no,p.teams.join(", "),p.sponsors[0]||"",p.sponsors[1]||"","Sponsored"])});WJ.avail.forEach(function(p){rows.push([p.name||(p.hid?"Name not shown":"Name redacted"),p.no,p.teams.join(", "),"","","Available to sponsor"])});var txt=String.fromCharCode(65279)+rows.map(function(r){return r.map(csvCell).join(",")}).join(nl)+nl,b=new Blob([txt],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="sponsored-players-"+WJ.season+".csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000)};
+$("wb").onclick=function(){var w=$("wl");if(!w.hidden){w.hidden=true;$("wxr").hidden=true;$("wb").textContent="Show all sponsored players, every team";return}w.hidden=false;w.innerHTML='<p class="sub" style="margin:8px 0">Loading...</p>';fetch("/api/sponsor-players?all=1&season="+encodeURIComponent(D?D.season:""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){w.innerHTML='<p class="sub" style="margin:8px 0">'+e((j&&j.error)||"Could not read the players.")+"</p>";return}WJ=j;$("wxr").hidden=false;$("wb").textContent="Hide the all-teams list";w.innerHTML='<div class="sec" style="margin-top:10px">With a sponsor, '+j.sponsored.length+' (each player once, whichever teams they play for)</div>'+(j.sponsored.map(function(p){return wrow(p,false)}).join("")||'<p class="sub" style="margin:4px 0">None yet.</p>')+'<div class="sec" style="margin-top:14px">Current players with no sponsor, '+j.avail.length+"</div>"+(j.avail.map(function(p){return wrow(p,true)}).join("")||'<p class="sub" style="margin:4px 0">Every current player has a sponsor.</p>')}).catch(function(){w.innerHTML='<p class="sub" style="margin:8px 0">Could not read the players.</p>'})};
 window.addEventListener("hashchange",view);view();
 load("","");
 })();</script></body></html>`;

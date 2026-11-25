@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.69.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.1_sponsored_players_csv.zip | v3.69.0
 v3.69.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.0_all_sponsored_players.zip | v3.68.0
 v3.68.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.68.0_two_sponsors.zip | v3.67.5
 v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
@@ -399,6 +400,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.69.1 - All-teams sponsored list: download as spreadsheet
+- Owner request (25-Nov-2026): make the list exportable.
+- Change: when the all-teams list is open there is a Download as spreadsheet (CSV) button. One row per player: Player, RFU number, Teams, Sponsor 1, Sponsor 2, Status (Sponsored or Available to sponsor). Built in the browser from the list on screen, opens in Excel. Under-18 teams show no names, as on screen.
+- Request limit: no change (no new request).
+- Docs: What's new
 
 v3.69.0 - All sponsored players across every team
 - Owner request (25-Nov-2026): see every player with a sponsor, with no duplicate for a player who has played for several teams, to check everyone who should be sponsored is.
