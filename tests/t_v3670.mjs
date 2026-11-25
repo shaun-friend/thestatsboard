@@ -29,6 +29,7 @@ c('substitutes keep their sponsor and logo',/subs = all\.filter\(x => sheetOrder
 c('page builds the panel from starters then subs',/mdPanelHtml\(sheet\.starters\.concat\(sheet\.subs\), e\)/.test(src));
 c('no old sponsor bar or substitutes box left',!/mdTickerHtml/.test(src)&&!/<div class="sb">/.test(src)&&!/\.tk\{flex:none/.test(src));
 c('fit script also checks the left column',/lc=document\.querySelector\("\.mdb \.lc"\)/.test(src)&&/lc\.scrollHeight>lc\.clientHeight\+1/.test(src));
+c('Match day page keeps a bottom margin for the fixed Powered by line',/body\.md\{padding-bottom:max\(2\.8rem,46px\)\}/.test(src));
 // ---- real layout
 const css=/const MD_TV_CSS = `([\s\S]*?)`;/.exec(src)[1];
 const {chromium}=createRequire(import.meta.url)('playwright');

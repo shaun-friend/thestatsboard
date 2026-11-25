@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.67.2 25-Nov-2026 Match day TV page: the Last updated line no longer overlaps the Powered by line at the foot of the screen.
 //   v3.67.1 25-Nov-2026 Match day TV page: sponsor tiles now fill the whole height of the panel (a shared style was shrinking them).
 //   v3.67.0 25-Nov-2026 Match day TV page: all sponsor logos in one panel on the right (starters then replacements, each business once), a Replacements block under the fifteen, and the league stats, form and head to head in a strip across the bottom.
 //   v3.66.2 25-Nov-2026 Match day sponsor bar: every logo sits on a tile of the same size (logos with their own background get a tile in that colour), so they look the same size.
@@ -389,7 +390,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.67.1";
+const VERSION = "v3.67.2";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -436,6 +437,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.2_match_day_footer_gap.zip | v3.67.1
 v3.67.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.1_sponsor_tiles_fill.zip | v3.67.0
 v3.67.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.0_match_day_sponsor_panel.zip | v3.66.2
 v3.66.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.2_equal_logo_tiles.zip | v3.66.1
@@ -788,6 +790,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.2 - Match day TV page: footer no longer overlaps
+- Owner report (25-Nov-2026, iPad): the Last updated line overlapped the Powered by line at the foot.
+- Cause: the page's bottom margin was the standard 24 pixels, which is less than the height of the fixed Powered by line plus the Last updated line.
+- Fix: the Match day page keeps a larger bottom margin (about 46 pixels) so the two lines sit apart; the page still shrinks its text to fit.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.1 - Match day TV page: sponsor tiles fill the panel
 - Owner report (25-Nov-2026, iPad): the logos did not expand to fill the gap on the right.
@@ -3416,6 +3425,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.67.2", "Match day TV page: the line of small print at the foot no longer overlaps the Powered by line."],
       ["v3.67.1", "Match day TV page: the sponsor logo tiles now grow to fill the whole right-hand panel instead of sitting as thin strips."],
       ["v3.67.0", "Match day TV page: every sponsor logo now sits in one panel on the right (the sponsors of the starters and of the replacements, each business once). Replacements get their own block under the fifteen, with sponsors shown the same way. The league stats, form and head to head run across the bottom, home on the left and away on the right."],
       ["v3.66.2", "Match day sponsor bar: all logos now sit on tiles of exactly the same size, so none looks smaller than the others."],
@@ -4708,6 +4718,7 @@ function mdShirt(n, ac) {
   return `<svg class="sh" viewBox="0 0 40 36" aria-hidden="true"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="${ac}" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="25" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${s.length > 2 ? 10 : 15}" fill="${tc}">${s.replace(/[^0-9A-Za-z]/g, "")}</text></svg>`;
 }
 const MD_TV_CSS = `body.md .top{display:none}
+body.md{padding-bottom:max(2.8rem,46px)}
 .mdh{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem}
 .mdh .tl{display:flex;align-items:center;gap:1.3rem;min-width:0}.mdh .tl.r{justify-content:flex-end;text-align:right}
 .mdh .big{margin:0;width:7.2rem;height:7.2rem;flex:none}.mdh .nm{font-size:3.4rem;line-height:1.05;overflow-wrap:anywhere;min-width:0}
