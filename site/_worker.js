@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.67.0 25-Nov-2026 Match day TV page: all sponsor logos in one panel on the right (starters then replacements, each business once), a Replacements block under the fifteen, and the league stats, form and head to head in a strip across the bottom.
 //   v3.66.2 25-Nov-2026 Match day sponsor bar: every logo sits on a tile of the same size (logos with their own background get a tile in that colour), so they look the same size.
 //   v3.66.1 25-Nov-2026 Match day TV page: the right-hand panel now shrinks the text to fit (it overlapped the sponsor bar), and its text is full colour for easy reading.
 //   v3.66.0 25-Nov-2026 Match day TV page: the sponsor bar no longer scrolls (every logo always on screen, one or two rows, light and dark tiles alternating) and the right-hand panel is quieter and shrinks to fit.
@@ -387,7 +388,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.66.2";
+const VERSION = "v3.67.0";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -434,6 +435,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.0_match_day_sponsor_panel.zip | v3.66.2
 v3.66.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.2_equal_logo_tiles.zip | v3.66.1
 v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
 v3.66.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.0_sponsor_bar_static.zip | v3.65.0
@@ -784,6 +786,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.0 - Match day TV page: sponsor panel on the right, Replacements block, stats along the bottom
+- Owner request (25-Nov-2026): put all the logos on the right-hand side, consolidate the old right-hand panel across the bottom, centre it with the home team on the left and the away team on the right, handle many logos, and make sure the substitutes do not look like an afterthought (a sponsor of several players shows once).
+- Change: the sponsor logos are one static panel on the right: 2 columns up to 6 sponsors, 3 up to 15, 4 up to 24, 5 beyond, every tile the same size, light and dark alternating. It holds the sponsors of the starters first, then of the replacements, each business once. The substitutes are now a Replacements block under the fifteen, in the same row style (shirt, name, sponsor or Available to sponsor), instead of a line of names. League stats, recent form and head to head are one strip across the bottom, home team left-aligned and away team right-aligned. With no logos at all the line-up takes the full width. The page still shrinks its text to fit.
+- Request limit: no change (same logo files, fetched once per screen then kept by the browser).
+- Docs: What's new
 
 v3.66.2 - Match day sponsor bar: logos look the same size
 - Owner report (25-Nov-2026): the logos are all different sizes.
@@ -3399,6 +3407,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.67.0", "Match day TV page: every sponsor logo now sits in one panel on the right (the sponsors of the starters and of the replacements, each business once). Replacements get their own block under the fifteen, with sponsors shown the same way. The league stats, form and head to head run across the bottom, home on the left and away on the right."],
       ["v3.66.2", "Match day sponsor bar: all logos now sit on tiles of exactly the same size, so none looks smaller than the others."],
       ["v3.66.1", "Match day TV page: the right-hand panel now shrinks to fit above the sponsor bar and its text is full colour, easier to read."],
       ["v3.66.0", "Match day TV page: the sponsor bar no longer scrolls, so every logo is always on screen (one row, or two with many sponsors) with light and dark tiles alternating; the right-hand panel is quieter and only as tall as it needs to be."],
@@ -4612,13 +4621,13 @@ function mdSimOf(url, isDev) { // DEV only: pretend the clock, the score or the 
   return { now: /^\d{2}:\d{2}$/.test(t) ? t : "", score: sp.get("mdscore") === "1", none: sp.get("mdsheet") === "0", from: /^[1-9]\d{0,9}$/.test(sp.get("mdsheet") || "") ? sp.get("mdsheet") : "", fake: sp.get("mdfake") === "1", game: /^\d{1,10}$/.test(sp.get("mdgame") || "") ? sp.get("mdgame") : "" };
 }
 const MD_FAKE = ["Sam Pearce", "Jack Dunn", "Rob Medway", "Tom Reid", "Joel Stone", "Ned Cross", "Lee Park", "Ryan Ames", "Kai Boyd", "Fin Hart", "Sean Ray", "Max Lowe", "Ben Hale", "Cal Moss", "Dan Roe", "Gus Penn", "Ian Webb", "Joe Frost", "Kit Vale", "Leo Marsh", "Ollie Fry", "Pat Quinn", "Rex Dale"];
-const MD_FAKE_SP = ["Mill Garage", "Tamar Plumbing", "The Old Inn", "", "Dartmoor Print", "", "Moor Motors", "Ivy Bakery", "", "Ridgeway Roofing", "Station Cafe", "", "Fore Street Dental", "", "Harbour Fisheries"];
+const MD_FAKE_SP = ["Mill Garage", "Tamar Plumbing", "The Old Inn", "", "Dartmoor Print", "", "Moor Motors", "Ivy Bakery", "", "Ridgeway Roofing", "Station Cafe", "", "Fore Street Dental", "", "Harbour Fisheries", "", "Ivy Legal", "", "Tamar Taxis", "Quay Cafe", "", "Moor Fitness"];
 // The team sheet for one of our games, reduced to what the screen shows: starters 1 to 15 with sponsor and captain marks, and the substitutes' names.
 async function mdLoadSheet(tm, g, day, sim) {
   if (sim && sim.none) return null;
   if (sim && sim.fake) {
-    const pl = MD_FAKE.map((nm, i) => ({ no: String(i + 1), name: nm, hidden: false, sponsor: i < 15 ? MD_FAKE_SP[i] : "", avail: i < 15 && !MD_FAKE_SP[i], tag: i === 8 ? "Captain" : i === 0 ? "Vice captain" : "" }));
-    return { starters: pl.slice(0, 15), subs: pl.slice(15).map(x => x.name), lineup: true, count: pl.length, fake: true };
+    const pl = MD_FAKE.map((nm, i) => ({ no: String(i + 1), name: nm, hidden: false, sponsor: MD_FAKE_SP[i] || "", avail: !MD_FAKE_SP[i], tag: i === 8 ? "Captain" : i === 0 ? "Vice captain" : "" }));
+    return { starters: pl.slice(0, 15), subs: pl.slice(15), lineup: true, count: pl.length, fake: true };
   }
   const id = String(g.id);
   const [mrec, ppl] = await Promise.all([sheetJson("https://cluster.england-rfu.com/gms/matches/" + id), sheetJson("https://cluster.england-rfu.com/gms/matchparticipants?matchId=" + id)]);
@@ -4642,7 +4651,7 @@ async function mdLoadSheet(tm, g, day, sim) {
     const hidden = hideSide || p.isU18 === true, name = hidden ? "" : (h.nm || rfu), sponsor = hidden ? "" : (sname.get(h.s) || "");
     return { no: String(p.playingPositionNo || ""), name, hidden, sponsor, lg: hidden || !sponsor ? null : (slogo.get(h.s) || null), avail: !hidden && !sponsor, tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" };
   }).filter(x => x.no).sort((a, b) => sheetOrder(a.no) - sheetOrder(b.no));
-  const starters = all.filter(x => sheetOrder(x.no) <= 15), subs = all.filter(x => sheetOrder(x.no) > 15).map(x => x.hidden ? "Name not shown" : (x.name || "Name redacted"));
+  const starters = all.filter(x => sheetOrder(x.no) <= 15), subs = all.filter(x => sheetOrder(x.no) > 15);
   return { starters, subs, lineup: !!ppl.lineup, count: all.length };
 }
 // Decides, for one team and one request, whether the Match day page shows and how long the built page may be kept. Pure apart from the sheet read.
@@ -4693,47 +4702,40 @@ const MD_TV_CSS = `body.md .top{display:none}
 .mdh .tl{display:flex;align-items:center;gap:1.3rem;min-width:0}.mdh .tl.r{justify-content:flex-end;text-align:right}
 .mdh .big{margin:0;width:7.2rem;height:7.2rem;flex:none}.mdh .nm{font-size:3.4rem;line-height:1.05;overflow-wrap:anywhere;min-width:0}
 .mdh .tag{font-size:1.25rem;margin-top:.5rem}.mdh .vv{text-align:center}.mdh .vv b{display:block;font-size:4.2rem;line-height:.9;color:var(--mu)}.mdh .vv span{display:block;margin-top:.4rem;font-size:1.3rem;letter-spacing:.14em;font-weight:700;color:var(--mu);text-transform:uppercase;white-space:nowrap}
-.mdb{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
-.lu{display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
-.rw{display:flex;align-items:center;gap:.7rem;min-width:0;background:var(--card);border:1px solid var(--bd);border-radius:.45rem;padding:0 .7rem;font-size:1.45rem;overflow:hidden}
+.mdb{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}.mdb.nl{grid-template-columns:1fr}
+.lc{display:flex;flex-direction:column;gap:.5rem;min-height:0;min-width:0}
+.lu{flex:15 1 0;display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
+.rw{display:flex;align-items:center;gap:.7rem;min-width:0;background:var(--card);border:1px solid var(--bd);border-radius:.45rem;padding:0 .7rem;font-size:1.3rem;overflow:hidden}
 .rw .sh{height:88%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
-.rw .sp{flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.15rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
-.rc{display:flex;flex-direction:column;gap:.8rem;min-height:0}
-.pn{flex:1 1 auto;min-height:0;background:var(--card);border:1px solid var(--bd);border-radius:.8rem;padding:.8rem 1.3rem;display:flex;flex-direction:column;gap:.25rem;overflow:hidden}
-.st{display:grid;grid-template-columns:1fr auto 1fr;gap:.25rem .8rem;align-items:center;text-align:center}.st .hh2{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.35rem;min-width:0;align-self:start}.st .hh2 b{font-size:1.5rem;line-height:1.1;overflow-wrap:anywhere;text-wrap:balance;text-align:center}
-.st .cr{width:3rem;height:3rem;border-radius:50%;background:#fff;border:.2rem solid var(--c);position:relative;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#333}.st .cr img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain}
-.st .v{font-size:1.7rem;font-weight:700}.st .l{color:var(--mu);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase;min-width:9rem}
-.mdh3{margin:.35rem 0 0;text-align:center;letter-spacing:.18em;font-size:.95rem;color:var(--mu);font-weight:700;text-transform:uppercase}
-.fm2{display:flex;justify-content:space-between;gap:1rem;padding:.3rem .3rem 0}.fm2>div{display:flex;flex-direction:column;gap:.45rem;align-items:flex-start;min-width:0}.fm2>div:last-child{align-items:flex-end;text-align:right}.fm2 .fd{padding-bottom:0;gap:.4rem}.fm2 .dot{width:1.7rem;height:1.7rem}.fm2 .ll{font-size:1.05rem;color:var(--tx)}.fm2 .ll small{display:block;color:var(--mu);font-size:.95rem}
-.pn>*{flex:none}.hb{display:flex;height:2.2rem;gap:.15rem;border-radius:.5rem;overflow:hidden;margin:.3rem .3rem 0}.hb>div{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;white-space:nowrap;overflow:hidden;min-width:0}
-.hb .a{background:var(--ca);color:var(--ka)}.hb .b{background:var(--cb);color:var(--kb)}.hb .d{background:#5d7066;color:#fff}
-.hk{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem 1.4rem;margin:.35rem .3rem 0;font-size:1.05rem;color:var(--tx)}.hk span{display:inline-flex;align-items:center;gap:.45rem}.hk i{width:.9rem;height:.9rem;border-radius:.2rem;flex:none;display:inline-block}.hk i.a{background:var(--ca)}.hk i.b{background:var(--cb)}.hk i.d{background:#5d7066}
-.hl2{text-align:center;color:var(--mu);font-size:1.05rem;margin-top:.3rem}
-.sb{flex:none;background:var(--sbg);border:2px solid var(--sbd);border-radius:.7rem;padding:.7rem 1.3rem}.sb .fh{font-size:.9rem;letter-spacing:.18em;color:var(--mu);margin-bottom:.3rem}.sb div.sn{font-size:1.35rem;line-height:1.3;color:var(--tx);overflow:hidden;max-height:4.2rem}
-.tk{flex:none;height:5.4rem;display:flex;align-items:stretch;background:var(--card);border:1px solid var(--bd);border-radius:.6rem;overflow:hidden;margin-top:.5rem}.tk.two{height:9.6rem}
-.tk .lb{flex:none;display:flex;align-items:center;padding:0 1.3rem;font-size:.95rem;font-weight:700;letter-spacing:.2em;line-height:1.3;text-transform:uppercase;color:var(--mu);border-right:1px solid var(--bd)}
-.tk .rs{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.7rem;padding:.4rem 1.2rem}.tk .r{display:flex;justify-content:center;gap:1rem}
-.tk .t{flex:0 1 calc((100% - (var(--n) - 1) * 1rem) / var(--n));max-width:14rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{border:0}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-.rc{justify-content:flex-start}.pn{flex:0 0 auto;overflow:visible;background:transparent;padding:.6rem 1.1rem}.st .v{font-size:1.3rem;font-weight:700}.st .cr{width:2.3rem;height:2.3rem}.st .l{font-size:.85rem;color:var(--tx);min-width:8rem}
-.mdh3{font-size:.9rem;color:var(--tx)}.fm2 .ll{font-size:1rem;color:var(--tx)}.fm2 .ll small{font-size:.9rem;color:var(--tx)}.fm2 .dot{width:1.4rem;height:1.4rem;font-size:.75rem}
-.hb{height:1.6rem}.hb>div{font-size:1rem}.hk,.hl2{font-size:.95rem;color:var(--tx)}.sb{background:transparent;padding:.5rem 1.1rem}.sb .fh{font-size:.85rem;color:var(--tx)}.sb div.sn{font-size:1.1rem;color:var(--tx);max-height:3.6rem}
+.rw .sp{flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.05rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
+.fh{font-size:.95rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tx)}
+.rp{display:flex;flex-direction:column;gap:.25rem;min-height:0}.rp .g{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--r),1fr);grid-auto-flow:column;gap:.2rem .5rem}.rp .rw{font-size:1.1rem}.rp .rw .sp{font-size:.95rem}
+.rc{display:flex;flex-direction:column;gap:.6rem;min-height:0}
+.sg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(var(--c),minmax(0,1fr));grid-template-rows:repeat(var(--r),minmax(0,8.5rem));gap:.7rem;align-content:start}
+.sg .t{border-radius:.6rem;display:flex;align-items:center;justify-content:center;padding:.4rem .8rem;box-sizing:border-box;min-width:0;min-height:0}.sg .t.d{background:#0c1113;border:1px solid var(--bd)}.sg .t.l{background:#f4f6f5}.sg .t.c{border:0}.sg .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.bt{flex:none;display:flex;gap:2rem;align-items:stretch;background:var(--card);border:1px solid var(--bd);border-radius:.7rem;padding:.7rem 1.3rem;margin-top:.5rem}
+.bt .tm{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}.bt .tm.r{align-items:flex-end;text-align:right}
+.bt .tn{font-size:1.5rem;font-weight:700;line-height:1.1;margin-bottom:.35rem;overflow-wrap:anywhere}
+.bt .ns{display:flex;gap:1.3rem}.bt .ns div{text-align:center}.bt .ns b{display:block;font-size:1.7rem;line-height:1.1}.bt .ns span{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tx)}
+.bt .fo{display:flex;align-items:center;gap:.4rem;margin-top:.5rem}.bt .tm.r .fo{flex-direction:row-reverse}.bt .fo .fd{padding:0;gap:.4rem}.bt .dot{width:1.5rem;height:1.5rem;font-size:.8rem}.bt .ll{font-size:1rem;color:var(--tx);margin:0 .6rem}
+.bt .hh{flex:none;width:23rem;display:flex;flex-direction:column;justify-content:center;gap:.35rem;text-align:center}.bt .hh .fh{font-size:.85rem;letter-spacing:.16em}.bt .hh .hb{height:1.6rem;margin:0;font-size:1rem}.bt .hh .hl2{font-size:.95rem;color:var(--tx);margin:0}
+.bt .hb>div{font-size:1rem}
 body.light .st .cr{background:#fff}
-:root{--av:#ffd978;--sbg:#26332d;--sbd:#3f5a4c}body.light{--sbg:#e1ece5;--sbd:#9db8a8}`;
-// v3.66.0: the sponsor bar along the foot of the Match day TV page: the logos of the sponsors of the players on the sheet, once each, none scrolling so every one
-// is on screen the whole time. One row up to 8 sponsors, otherwise two. Light and dark tiles alternate (as-supplied tiles go in whichever pool is shorter).
-// Each logo is a small image fetched once per screen (versioned address, kept a year). Nothing is added to the page when no player on the sheet has a sponsor with a logo.
-function mdTickerHtml(starters, e) {
+:root{--av:#ffd978}`;
+// v3.67.0: the sponsor panel on the right of the Match day TV page: the logos of the sponsors of the players on the sheet (starters first, then replacements), each business once,
+// none scrolling so every one is on screen the whole time. Columns by count: 2 up to 6, 3 up to 15, 4 up to 24, otherwise 5. Light and dark tiles alternate (as-supplied tiles go in
+// whichever pool is shorter). Each logo is a small image fetched once per screen (versioned address, kept a year). Returns "" when nobody on the sheet has a sponsor with a logo.
+function mdPanelHtml(players, e) {
   const seen = new Set(), L = [];
-  for (const p of starters || []) { if (p.hidden || !p.lg || seen.has(p.lg.id)) continue; seen.add(p.lg.id); L.push(p.lg); }
+  for (const p of players || []) { if (!p || p.hidden || !p.lg || seen.has(p.lg.id)) continue; seen.add(p.lg.id); L.push(p.lg); }
   if (!L.length) return "";
   const kind = g => g.bg === "l" ? "l" : g.bg === "c" ? "c" : "d", D = [], Li = [];
   for (const g of L) { const k = kind(g); (k === "d" ? D : k === "l" ? Li : D.length <= Li.length ? D : Li).push(g); }
   const seq = []; let a = D, b = Li; // dark first; alternate while both pools have tiles, then the rest
   while (a.length || b.length) { if (a.length) seq.push(a.shift()); if (b.length) seq.push(b.shift()); }
-  const n = seq.length; let cols = n <= 8 ? n : Math.ceil(n / 2); if (n > 8 && cols % 2 === 0 && cols < n - 1) cols++; // an odd number across keeps light and dark alternating down the columns too
+  const n = seq.length, cols = n <= 6 ? 2 : n <= 15 ? 3 : n <= 24 ? 4 : 5, rows = Math.ceil(n / cols);
   const tile = g => `<span class="t ${kind(g) === "c" && !g.bc ? "l" : kind(g)}"${kind(g) === "c" && g.bc ? ` style="background:${e(g.bc)}"` : ""}><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
-  const rowsOf = n <= 8 ? [seq] : [seq.slice(0, cols), seq.slice(cols)];
-  return `<div class="tk${rowsOf.length > 1 ? " two" : ""}" style="--n:${cols}"><div class="lb">Our player<br>sponsors</div><div class="rs">${rowsOf.map(r => `<div class="r">${r.map(tile).join("")}</div>`).join("")}</div></div>`;
+  return `<div class="rc"><div class="fh">Our player sponsors</div><div class="sg" style="--c:${cols};--r:${rows}">${seq.map(tile).join("")}</div></div>`;
 }
 function mdTvInner(o) {
   const { e, ord, light, me, opp, n, sheet, crest, meCol, tm, h2hAll, league, season, stamp } = o;
@@ -4742,27 +4744,26 @@ function mdTvInner(o) {
   const show = v => v === null || v === undefined || v === "" ? "-" : String(v);
   const nameCell = p => p.hidden ? `<em>Name not shown</em>` : p.name ? e(p.name) + (p.tag === "Captain" ? "<i>(C)</i>" : p.tag === "Vice captain" ? "<i>(VC)</i>" : "") : `<em>Name redacted</em>`;
   const rows = sheet.starters.map(p => `<div class="rw">${mdShirt(p.no, meCol)}<span class="pn1">${nameCell(p)}</span>${p.hidden ? "" : p.sponsor ? `<span class="sp">${e(p.sponsor)}</span>` : `<span class="sp av">Available to sponsor</span>`}</div>`).join("");
-  const sm = (id, name, c) => `<div class="hh2" style="--c:${c}"><span class="cr"><span>${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" onerror="this.remove()">` : ""}</span><b style="color:${mdLegible(c, light)};font-size:${panSz(name)}rem">${e(name)}</b></div>`;
   const pos = v => v ? ord(Number(v)) : "-";
-  const stat = (lab, a, b) => `<b class="v">${e(show(a))}</b><div class="l">${lab}</div><b class="v">${e(show(b))}</b>`;
   const dots = f => (f || []).map((x, i) => `<span class="fx"><span class="dot ${e(x)}${i === 0 ? " new" : ""}">${e(x)}</span></span>`).join("");
-  const latest = s => { const l = s && s.latest; if (!l) return `<div class="ll">No results yet</div>`; const w = l.out === "W" ? "Won" : l.out === "L" ? "Lost" : "Drew"; return `<div class="ll">Latest: ${w}${l.wo ? " (walkover)" : " " + e(l.f) + "&ndash;" + e(l.a)} v ${e(l.vs)}<small>${e(l.date)}</small></div>`; };
-  const form = s => `<div><div class="fd">${dots(s.form) || `<span class="mu">No results yet</span>`}</div>${latest(s)}</div>`;
   const idMe = String(me.id), idOpp = String(opp.id), ha = Array.isArray(h2hAll) ? h2hAll : [];
   const cA = ha.filter(g => String(g.winId) === idMe).length, cB = ha.filter(g => String(g.winId) === idOpp).length, cD = ha.length - cA - cB;
     const lm = ha[0], lmTxt = lm ? (lm.wo ? (String(lm.winId) === idMe ? e(me.name) : e(opp.name)) + " won (walkover)" : (() => { const mine = String(lm.homeId) === idMe ? lm.homeScore : lm.awayScore, theirs = String(lm.homeId) === idMe ? lm.awayScore : lm.homeScore; return (mine > theirs ? e(me.name) + " won " : mine < theirs ? e(opp.name) + " won " : "Drawn ") + e(Math.max(mine, theirs)) + "&ndash;" + e(Math.min(mine, theirs)); })()) : "";
-  const h2h = ha.length ? `<div class="hb">${cA ? `<div class="a" style="flex:${cA}">${cA}</div>` : ""}${cD ? `<div class="d" style="flex:${cD}">${cD}</div>` : ""}${cB ? `<div class="b" style="flex:${cB}">${cB}</div>` : ""}</div><div class="hk"><span><i class="a"></i>${e(me.name)} won ${cA}</span><span><i class="d"></i>Drew ${cD}</span><span><i class="b"></i>${e(opp.name)} won ${cB}</span></div><div class="hl2">Last meeting: ${lmTxt}</div>` : `<div class="hl2">No league meetings in the last 5 seasons</div>`;
   const kick = /^\d{1,2}:\d{2}$/.test(String(n.time || "")) ? String(n.time) : "";
   const home = !!n.mineHome, tag = (h, cls) => `<span class="tag" style="background:var(--${cls === "a" ? "ca" : "cb"});color:var(--${cls === "a" ? "ka" : "kb"})">${h ? "Home" : "Away"}</span>`;
-  const subs = sheet.subs.length ? `<div class="sb"><div class="fh">Substitutes</div><div class="sn">${sheet.subs.map(e).join(" &middot; ")}</div></div>` : "";
+  const subRows = sheet.subs.map(p => `<div class="rw">${mdShirt(p.no, meCol)}<span class="pn1">${nameCell(p)}</span>${p.hidden ? "" : p.sponsor ? `<span class="sp">${e(p.sponsor)}</span>` : `<span class="sp av">Available to sponsor</span>`}</div>`).join("");
+  const nSub = sheet.subs.length, rp = nSub ? `<div class="rp" style="flex:${(Math.ceil(nSub / 2) * 1.15 + .45).toFixed(2)} 1 0;--ca:${sCol};--av:${avCol}"><div class="fh">Replacements</div><div class="g" style="--r:${Math.ceil(nSub / 2)}">${subRows}</div></div>` : "";
+  const panel = mdPanelHtml(sheet.starters.concat(sheet.subs), e);
+  const cell = (lab, v) => `<div><b>${e(show(v))}</b><span>${lab}</span></div>`;
+  const last = s => { const l = s && s.latest; if (!l) return "No results yet"; return (l.out === "W" ? "Won " : l.out === "L" ? "Lost " : "Drew ") + (l.wo ? "(walkover)" : e(l.f) + "&ndash;" + e(l.a)) + " v " + e(l.vs); };
+  const team = (t, col, right) => `<div class="tm${right ? " r" : ""}"><div class="tn" style="color:${col}">${e(t.name)}</div><div class="ns">${cell("Pos", pos(t.position))}${cell("Pts", t.points)}${cell("P", t.played)}${cell("W", t.wins)}${cell("For", t.pf)}${cell("Agst", t.pa)}</div><div class="fo"><div class="fd">${dots(t.form) || ""}</div><span class="ll">${last(t)}</span></div></div>`;
+  const hh = ha.length ? `<div class="fh">Head to head &middot; last 5 seasons</div><div class="hb">${cA ? `<div class="a" style="flex:${cA}">${cA}</div>` : ""}${cD ? `<div class="d" style="flex:${cD}">${cD}</div>` : ""}${cB ? `<div class="b" style="flex:${cB}">${cB}</div>` : ""}</div><div class="hl2">Last meeting: ${lmTxt}</div>` : `<div class="fh">Head to head &middot; last 5 seasons</div><div class="hl2">No league meetings in the last 5 seasons</div>`;
+  const strip = `<div class="bt">${team(me, sCol, false)}<div class="hh">${hh}</div>${team(opp, "var(--cb)", true)}</div>`;
   return `<div class="mdh"><div class="tl">${crest(me.id, me.name, "a", true)}<div style="min-width:0"><div class="nm" style="font-size:${bigSz(me.name)}rem">${e(me.name)}</div>${tag(home, "a")}</div></div>
 <div class="vv"><b>v</b><span>Today${kick ? " &middot; " + e(kick) : ""}</span></div>
 <div class="tl r"><div style="min-width:0"><div class="nm" style="font-size:${bigSz(opp.name)}rem">${e(opp.name)}</div>${tag(!home, "b")}</div>${crest(opp.id, opp.name, "b", false)}</div></div>
-<div class="mdb"><div class="lu" style="--ca:${sCol};--av:${avCol}">${rows}</div>
-<div class="rc"><div class="pn"><div class="st">${sm(me.id, me.name, meCol)}<div class="l"></div>${sm(opp.id, opp.name, "var(--cb)")}${stat("Position", pos(me.position), pos(opp.position))}${stat("League points", me.points, opp.points)}${stat("Played", me.played, opp.played)}${stat("Wins", me.wins, opp.wins)}${stat("Points scored", me.pf, opp.pf)}${stat("Points conceded", me.pa, opp.pa)}</div>
-<div class="mdh3">Recent form &middot; newest first</div><div class="fm2">${form(me)}${form(opp)}</div>
-<div class="mdh3">Head to head &middot; last 5 seasons</div>${h2h}</div>${subs}</div></div>
-${mdTickerHtml(sheet.starters, e)}<div class="upd">${e(league || "")} &middot; Team sheet from GMS &middot; Season ${e(season)} &middot; Last updated ${e(stamp)}${sheet.preview ? " &middot; " + e(sheet.preview) : ""}</div>`;
+<div class="mdb${panel ? "" : " nl"}"><div class="lc"><div class="lu" style="--ca:${sCol};--av:${avCol}">${rows}</div>${rp}</div>${panel}</div>
+${strip}<div class="upd">${e(league || "")} &middot; Team sheet from GMS &middot; Season ${e(season)} &middot; Last updated ${e(stamp)}${sheet.preview ? " &middot; " + e(sheet.preview) : ""}</div>`;
 }
 // ---- Match day page (v3.46.0) -----------------------------------------------------------------------------------
 // For one of our teams and one match day: the team sheet the club has submitted on the RFU system (shirt order), with the sponsor of each player, who is still
@@ -8233,7 +8234,7 @@ ${inner}
 ${themeToggleScript}${colourScript}${refresh}<script>(function(){var H=document.documentElement,B=document.body,MQ="(min-width:801px) and (min-height:561px)";
 // TV / big screen: if everything does not fit the screen height (short browser window, long venue name, extra head-to-head text, weather or crests that arrive a moment after the page), shrink the text a step at a time until it does, with a gap kept between the bar rows. It re-checks whenever the page changes size or content, so it cannot slip back to bunched-up bars.
 function fsz(){return parseFloat(getComputedStyle(H).fontSize)||16}
-function over(){var bars=document.querySelector(".bars"),rc=document.querySelector(".mdb .rc");if(B.scrollHeight>B.clientHeight+1)return true;if(rc&&rc.scrollHeight>rc.clientHeight+1)return true;if(!bars)return false;var sum=0,k=bars.children.length;for(var i=0;i<k;i++)sum+=bars.children[i].getBoundingClientRect().height;
+function over(){var bars=document.querySelector(".bars"),rc=document.querySelector(".mdb .rc"),lc=document.querySelector(".mdb .lc");if(B.scrollHeight>B.clientHeight+1)return true;if(rc&&rc.scrollHeight>rc.clientHeight+1)return true;if(lc&&lc.scrollHeight>lc.clientHeight+1)return true;if(!bars)return false;var sum=0,k=bars.children.length;for(var i=0;i<k;i++)sum+=bars.children[i].getBoundingClientRect().height;
 return bars.scrollHeight>bars.clientHeight+1||sum+k*.45*fsz()>bars.clientHeight}
 var settled=false;function settle(){if(settled)return;settled=true;B.classList.add("fitshow");B.classList.remove("fitwait")}
 var busy=false;function fit(){if(busy)return;busy=true;try{H.style.fontSize="";if(matchMedia(MQ).matches){var fs=fsz(),n=0;while(over()&&fs>7&&n++<80){fs-=.25;H.style.fontSize=fs+"px"}}}catch(e){}busy=false}

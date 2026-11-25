@@ -40,13 +40,13 @@ ok('before 10:00: page held until 10:00',/^86400;\d{13}$/.test(r.r.headers.get('
 r=await get('&mdnow=10:00');ok('at 10:00 with a full sheet: Match day page',isMd(r.h),r.h.slice(0,300));
 if(process.env.SAVE)fs.writeFileSync(process.env.SAVE,r.h);
 ok('page held 30 minutes once found',/^1800;/.test(r.r.headers.get('X-Md-Hold')||''),r.r.headers.get('X-Md-Hold'));
-ok('line-up has 15 shirts and 8 substitutes',(r.h.match(/class="rw"/g)||[]).length===15&&/Substitutes/.test(r.h)&&(r.h.match(/Player No1[6-9]|Player No2[0-3]/g)||[]).length===8);
-ok('sponsors: no sponsor shows Available to sponsor',(r.h.match(/Available to sponsor/g)||[]).length===15);
+ok('line-up has 15 shirts and 8 substitutes',(r.h.match(/class="rw"/g)||[]).length===23&&/Replacements/.test(r.h)&&!/Substitutes/.test(r.h)&&(r.h.match(/Player No1[6-9]|Player No2[0-3]/g)||[]).length===8);
+ok('sponsors: no sponsor shows Available to sponsor',(r.h.match(/Available to sponsor/g)||[]).length===23);
 ok('withheld name is marked, captain tag shown',/Name redacted/.test(r.h)&&/\(C\)/.test(r.h));
 ok('header shows v and Today with kick-off',/<b>v<\/b><span>Today &middot; \d\d:\d\d<\/span>/.test(r.h));
 ok('our team on the left with its Home or Away pill',/class="nm"[^>]*>Ivybridge[^<]*<\/div><span class="tag"[^>]*>Home/.test(r.h));
-ok('six stat rows and the form and head to head headings',(r.h.match(/class="l">(Position|League points|Played|Wins|Points scored|Points conceded)</g)||[]).length===6&&/Recent form/.test(r.h)&&/Head to head/.test(r.h));
-ok('head to head: full team names in the legend, no ellipsis rule on names',new RegExp('class="hk"[^]*'+OPN.replace(/&/g,'&amp;')+' won').test(r.h)&&!/\.nm\{[^}]*text-overflow/.test(r.h)&&!/\.hh2 b\{[^}]*text-overflow/.test(r.h));
+ok('six stat rows and the form and head to head headings',(r.h.match(/<span>(Pos|Pts|P|W|For|Agst)<\/span>/g)||[]).length===12&&/class="bt"/.test(r.h)&&/Head to head/.test(r.h));
+ok('head to head: full team names in the legend, no ellipsis rule on names',new RegExp('class="tn"[^>]*>'+OPN.replace(/&/g,'&amp;')+'<').test(r.h)&&/Last meeting/.test(r.h)&&!/\.nm\{[^}]*text-overflow/.test(r.h)&&!/\.tn\{[^}]*text-overflow/.test(r.h));
 // fewer than 15
 sheetMode='ten';await put({matchday:true});r=await get('&mdnow=12:00');ok('10 players: counts as published, only named shown, no substitutes box',isMd(r.h)&&(r.h.match(/class="rw"/g)||[]).length===10&&!/class="sb"/.test(r.h));
 sheetMode='nine';await put({matchday:true});r=await get('&mdnow=12:00');ok('9 players: not published, normal page, 5 minute hold',!isMd(r.h)&&/^300;/.test(r.r.headers.get('X-Md-Hold')||''));
@@ -78,7 +78,7 @@ ok('hold: not rebuilt twice for the same stop time',pageState(U+500,U+1000,{secs
 if(process.env.VARIANT){const [fn,acc,theme,extra]=process.env.VARIANT.split('|');await put({matchday:true,accent:acc});r=await get('&mdnow=12:00&mdfake=1&theme='+theme+(extra||''));fs.writeFileSync(fn,r.h)}
 // DEV preview with the real line-up of a game already played
 await put({});sheetMode='full';r=await get('&mdgame=1');
-ok('preview: game already played shows the page even with the switch off and no mdnow',isMd(r.h)&&(r.h.match(/class="rw"/g)||[]).length===15,r.h.slice(0,160));
+ok('preview: game already played shows the page even with the switch off and no mdnow',isMd(r.h)&&(r.h.match(/class="rw"/g)||[]).length===23,r.h.slice(0,160));
 ok('preview: footer says which game the line-up is from, and nothing is held',/Preview: line-up from/.test(r.h)&&!r.r.headers.get('X-Md-Hold'));
 r=await get('&mdgame=99999');ok('preview: unknown game id gives the normal page',!isMd(r.h));
 {const rp=await w.fetch(new Request('https://thestatsboard.co.uk'+Q+'&mdgame=1',{headers:{'User-Agent':'Mozilla/5.0'}}),{...env,ENV_LABEL:''},{waitUntil(){}});ok('PROD ignores mdgame',!isMd(await rp.text()));}
