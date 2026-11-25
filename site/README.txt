@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
 v3.67.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.2_match_day_footer_gap.zip | v3.67.1
 v3.67.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.1_sponsor_tiles_fill.zip | v3.67.0
 v3.67.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.0_match_day_sponsor_panel.zip | v3.66.2
@@ -394,6 +395,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.3 - Sponsor logos: light tile is pure white
+- Owner report (25-Nov-2026): the white of the background is not the same as the white of the logos.
+- Cause: the light tile was an off-white (#f4f6f5) while most logos are saved on a pure white background, so each logo showed as a slightly brighter box.
+- Fix: the light tile is pure white, on the Match day panel and in the Admin previews and thumbnails. Logos on other backgrounds are unchanged (they use the dark tile or their own colour).
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.2 - Match day TV page: footer no longer overlaps
 - Owner report (25-Nov-2026, iPad): the Last updated line overlapped the Powered by line at the foot.
