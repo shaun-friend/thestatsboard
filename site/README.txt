@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.68.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.68.0_two_sponsors.zip | v3.67.5
 v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
 v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
 v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
@@ -397,6 +398,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.68.0 - A player can have two sponsors
+- Owner request (25-Nov-2026): one player has two sponsors. Two is the most needed; Available to sponsor only when a player has none.
+- Change: each player can have a second sponsor (Player names and sponsors, Edit, Second sponsor, optional). Both names show on the Match day rows ("A + B"), on the Match Centre list and the Sponsors page lists, and both logos go on the Match day sponsor panel (each business still once). A player counts once in the totals. From the Sponsors page, Add selected puts the sponsor second when the player already has one (a player with two is left as they are and the message says so), and Remove takes off only that sponsor. Copying from another season keeps both. Players with one sponsor are unchanged.
+- Request limit: no change (the second sponsor is one more small field in the same record).
+- Docs: What's new
 
 v3.67.5 - Match Stats TV page: footer no longer overlaps
 - Owner report (25-Nov-2026, iPad): the Last updated line overlaps the Powered by line on the Match Stats page too.

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.68.0 25-Nov-2026 Player sponsors: a player can have two sponsors (Players page, Sponsors page, Match day and Match Centre lists, both logos on the Match day panel).
 //   v3.67.5 25-Nov-2026 Match Stats TV page: the Last updated line no longer overlaps the Powered by line at the foot.
 //   v3.67.4 25-Nov-2026 Match day TV page: names are no longer clipped at the bottom (the tail of g, y, p).
 //   v3.67.3 25-Nov-2026 Sponsor logo light tiles are pure white (Match day panel and Admin), so a logo with a white background no longer shows as a box.
@@ -393,7 +394,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.67.5";
+const VERSION = "v3.68.0";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -440,6 +441,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.68.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.68.0_two_sponsors.zip | v3.67.5
 v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
 v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
 v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
@@ -796,6 +798,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.68.0 - A player can have two sponsors
+- Owner request (25-Nov-2026): one player has two sponsors. Two is the most needed; Available to sponsor only when a player has none.
+- Change: each player can have a second sponsor (Player names and sponsors, Edit, Second sponsor, optional). Both names show on the Match day rows ("A + B"), on the Match Centre list and the Sponsors page lists, and both logos go on the Match day sponsor panel (each business still once). A player counts once in the totals. From the Sponsors page, Add selected puts the sponsor second when the player already has one (a player with two is left as they are and the message says so), and Remove takes off only that sponsor. Copying from another season keeps both. Players with one sponsor are unchanged.
+- Request limit: no change (the second sponsor is one more small field in the same record).
+- Docs: What's new
 
 v3.67.5 - Match Stats TV page: footer no longer overlaps
 - Owner report (25-Nov-2026, iPad): the Last updated line overlaps the Powered by line on the Match Stats page too.
@@ -3452,6 +3460,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.68.0", "A player can now have two sponsors. On the Player names and sponsors page, Edit has a Second sponsor box. Both names show on the match-day lists and both logos go on the Match day sponsor panel. Available to sponsor only shows for a player with no sponsor at all."],
       ["v3.67.5", "Match Stats TV page: the small print at the foot no longer overlaps the Powered by line."],
       ["v3.67.4", "Match day TV page: the tails of letters like g, y and p are no longer cut off in names."],
       ["v3.67.3", "Sponsor logos: the light tile is now pure white, so logos with a white background blend in instead of showing a box."],
@@ -4685,7 +4694,7 @@ async function mdLoadSheet(tm, g, day, sim) {
   let sponsors = [], rec = null; const kv = kvOf();
   if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
   const sname = new Map(sponsors.map(x => [x.id, x.name])), slogo = new Map(sponsors.filter(x => x.logo).map(x => [x.id, { id: x.id, v: x.logo.v, bg: x.logo.bg || "d", bc: x.logo.bc || "" }])), by = {}, altOf = {};
-  if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", nm: "" }); if (!h.s && e0.s) h.s = e0.s; if (!h.nm && e0.nm) h.nm = e0.nm; for (const a of (e0.a || [])) altOf[a] = no; }
+  if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", s2: "", nm: "" }); if (!h.s && e0.s) { h.s = e0.s; h.s2 = e0.s2 || ""; } if (!h.nm && e0.nm) h.nm = e0.nm; for (const a of (e0.a || [])) altOf[a] = no; }
   const side = String(g.home === true ? mrec.homeTeamId : mrec.awayTeamId), list = Array.isArray(ppl.participants) ? ppl.participants : [];
   let mine = list.filter(p => String(p.teamId) === side);
   if (!mine.length && list.length) { // the match record's side number can differ from the sheet's before game day: take the side with most players we already know
@@ -4695,11 +4704,11 @@ async function mdLoadSheet(tm, g, day, sim) {
   }
   const hideSide = sheetHidesNames(tm.name + " " + (tm.league || "") + " " + tm.teamName) || sheetHidesNames((mrec.competitionName || "") + " " + (mrec.groupName || ""));
   const all = mine.map(p => {
-    const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", nm: "" };
+    const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", s2: "", nm: "" };
     const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
     const rfu = withheld ? "" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
-    const hidden = hideSide || p.isU18 === true, name = hidden ? "" : (h.nm || rfu), sponsor = hidden ? "" : (sname.get(h.s) || "");
-    return { no: String(p.playingPositionNo || ""), name, hidden, sponsor, lg: hidden || !sponsor ? null : (slogo.get(h.s) || null), avail: !hidden && !sponsor, tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" };
+    const hidden = hideSide || p.isU18 === true, name = hidden ? "" : (h.nm || rfu), sids = hidden ? [] : [h.s, h.s2].filter(x => x && sname.get(x)), n1 = sids[0] ? sname.get(sids[0]) : "", n2 = sids[1] ? sname.get(sids[1]) : "", sponsor = n2 ? n1 + " + " + n2 : n1;
+    return { no: String(p.playingPositionNo || ""), name, hidden, sponsor, lg: sids[0] ? (slogo.get(sids[0]) || null) : null, lg2: sids[1] ? (slogo.get(sids[1]) || null) : null, avail: !hidden && !sponsor, tag: p.subMatchRole && p.subMatchRole.value === "CPTAIN" ? "Captain" : p.subMatchRole && p.subMatchRole.value === "VCPTAIN" ? "Vice captain" : "" };
   }).filter(x => x.no).sort((a, b) => sheetOrder(a.no) - sheetOrder(b.no));
   const starters = all.filter(x => sheetOrder(x.no) <= 15), subs = all.filter(x => sheetOrder(x.no) > 15);
   return { starters, subs, lineup: !!ppl.lineup, count: all.length };
@@ -4778,7 +4787,7 @@ body.light .st .cr{background:#fff}
 // whichever pool is shorter). Each logo is a small image fetched once per screen (versioned address, kept a year). Returns "" when nobody on the sheet has a sponsor with a logo.
 function mdPanelHtml(players, e) {
   const seen = new Set(), L = [];
-  for (const p of players || []) { if (!p || p.hidden || !p.lg || seen.has(p.lg.id)) continue; seen.add(p.lg.id); L.push(p.lg); }
+  for (const p of players || []) { if (!p || p.hidden) continue; for (const g of [p.lg, p.lg2]) { if (!g || seen.has(g.id)) continue; seen.add(g.id); L.push(g); } }
   if (!L.length) return "";
   const kind = g => g.bg === "l" ? "l" : g.bg === "c" ? "c" : "d", D = [], Li = [];
   for (const g of L) { const k = kind(g); (k === "d" ? D : k === "l" ? Li : D.length <= Li.length ? D : Li).push(g); }
@@ -4855,8 +4864,8 @@ async function matchDayApi(request, url, worker) {
   if (kv) { try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, dateSeasonName(day)); } catch (_) { sponsors = []; rec = null; } }
   const sname = new Map(sponsors.map(x => [x.id, x.name])), by = {}, seen = new Set(), altOf = {};
   if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) {
-    const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", nm: "" });
-    if (!h.s && e0.s) h.s = e0.s; if (!h.nm && e0.nm) h.nm = e0.nm; if (e0.ld) seen.add(no);
+    const e0 = rec.t[tk][no], h = by[no] || (by[no] = { s: "", s2: "", nm: "" });
+    if (!h.s && e0.s) { h.s = e0.s; h.s2 = e0.s2 || ""; } if (!h.nm && e0.nm) h.nm = e0.nm; if (e0.ld) seen.add(no);
     for (const a of (e0.a || [])) altOf[a] = no;
   }
   const scanned = !!(rec && rec.g && rec.g[String(tm.team)] > 0);
@@ -4886,12 +4895,12 @@ async function matchDayApi(request, url, worker) {
   }).sort((a, b2) => a.min - b2.min);
   if (!mine.length) return J({ ...base, day, game, sheet: false, dbg, players: [], opp, score, events, counts: { total: 0, sponsored: 0, avail: 0, redacted: 0, fresh: 0 } });
   const players = mine.map(p => {
-    const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", nm: "" };
+    const no = personNo(p.individualId), key = altOf[no] || no, h = by[key] || { s: "", s2: "", nm: "" };
     const withheld = p.hasDisclosure === true || /name withheld/i.test(String(p.lastName || ""));
     const rfu = withheld ? "" : [p.firstName, p.lastName].map(x => String(x || "").trim()).filter(Boolean).join(" ");
     const hidden = hideSide || p.isU18 === true;
     const name = hidden ? "" : (h.nm || rfu);
-    const sponsor = hidden ? "" : (sname.get(h.s) || "");
+    const sp1 = hidden ? "" : (sname.get(h.s) || ""), sp2 = sp1 ? (sname.get(h.s2) || "") : "", sponsor = sp2 ? sp1 + " + " + sp2 : sp1;
     return {
       no: String(p.playingPositionNo || ""), pos: String(p.description || ""), name, hidden,
       star: !hidden && !!h.nm && h.nm.toLowerCase() !== rfu.toLowerCase(), red: !hidden && !name, sponsor, avail: !hidden && !sponsor,
@@ -5210,7 +5219,7 @@ async function sponsorsApi(request, url) {
     const it = items.find(x => x.id === pid);
     if (!it) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
     const players = [], seen = new Set();
-    if (rec) for (const tk of Object.keys(rec.t)) { const tn = (TEAMS.find(x => String(x.team) === tk) || {}).name || "Team " + tk; for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; if (e0.s === pid && !seen.has(no)) { seen.add(no); players.push({ no, name: e0.nm || e0.n || "", team: tn }); } } }
+    if (rec) for (const tk of Object.keys(rec.t)) { const tn = (TEAMS.find(x => String(x.team) === tk) || {}).name || "Team " + tk; for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; if ((e0.s === pid || e0.s2 === pid) && !seen.has(no)) { seen.add(no); players.push({ no, name: e0.nm || e0.n || "", team: tn }); } } }
     players.sort((a, b) => (a.name || "~").toLowerCase() < (b.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (b.name || "~").toLowerCase() ? 1 : 0);
     return J({ ok: true, id: pid, name: it.name, players, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), season });
   };
@@ -5229,7 +5238,7 @@ async function sponsorsApi(request, url) {
     if (rec) for (const tk of Object.keys(rec.t)) {
       const tm = TEAMS.find(x => String(x.team) === tk); if (tm && tm.hidden) continue;
       const tn = tm ? tm.name : "Team " + tk, hide = tm ? sheetHidesNames(tm.name + " " + tm.league + " " + tm.teamName) : false;
-      for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; if (!e0.s) continue; (by[e0.s] = by[e0.s] || []).push({ no, name: hide ? "" : (e0.nm || e0.n || ""), hid: hide, team: tk, teamName: tn }); }
+      for (const no of Object.keys(rec.t[tk])) { const e0 = rec.t[tk][no]; for (const sid of [e0.s, e0.s2]) { if (!sid) continue; (by[sid] = by[sid] || []).push({ no, name: hide ? "" : (e0.nm || e0.n || ""), hid: hide, team: tk, teamName: tn }); } }
     }
     const sp = sponsorSorted(items).map(x => ({ id: x.id, name: x.name, players: (by[x.id] || []).sort((a, c) => (a.name || "~").toLowerCase() < (c.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (c.name || "~").toLowerCase() ? 1 : 0) }));
     return J({ ok: true, season, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), sponsors: sp });
@@ -5251,7 +5260,7 @@ async function sponsorsApi(request, url) {
     for (const sn of Object.keys(fs)) {
       if (!wanted.includes(sn)) { ignored.push(sn); continue; }
       const r = cleanLinks(fs[sn]);
-      for (const tk of Object.keys(r.t)) for (const no of Object.keys(r.t[tk])) { const e0 = r.t[tk][no]; if (e0.s && !ids.has(e0.s)) { e0.s = ""; dropped++; if (!e0.nm && !e0.a.length && e0.c !== 1) delete r.t[tk][no]; } }
+      for (const tk of Object.keys(r.t)) for (const no of Object.keys(r.t[tk])) { const e0 = r.t[tk][no]; if (e0.s2 && !ids.has(e0.s2)) { e0.s2 = ""; dropped++; } if (e0.s && !ids.has(e0.s)) { e0.s = e0.s2; e0.s2 = ""; dropped++; } if (!e0.s && !e0.nm && !e0.a.length && e0.c !== 1) delete r.t[tk][no]; }
       recs[sn] = r;
     }
     if (!sp.length && !Object.keys(recs).length) return J({ ok: false, error: "That file has no sponsors or players in it." }, 400);
@@ -5465,7 +5474,7 @@ function drawPlayers(){var el=$("pp");if(!el)return;if(!det||det.id!==open){el.i
 el.innerHTML=det.players.length?det.players.map(function(p){return'<div class="pr"><span>'+(p.name?e(p.name):'<i style="color:#91a49a">Name redacted</i>')+"<small>"+e(p.team)+" · no. "+e(p.no)+'</small></span><button type="button" class="b2 sm rm" data-a="drop" data-i="'+e(p.no)+'">Remove</button></div>'}).join(""):'<p class="sub" style="margin:4px 0">No players yet.</p>'}
 function drawPool(){var el=$("pl");if(!el)return;if(!pool){el.innerHTML='<p class="sub" style="margin:8px">Loading...</p>';return}
 var q=($("aq")?$("aq").value:"").trim().toLowerCase(),h="",n=0;
-pool.forEach(function(r){if(r.sid===open)return;if(onlyCur&&!r.cur)return;if(onlyFree&&r.sid)return;var nm=r.nm||r.rfu;if(q&&(nm+" "+r.no).toLowerCase().indexOf(q)<0)return;n++;if(n>150)return;
+pool.forEach(function(r){if(r.sid===open||r.sid2===open)return;if(onlyCur&&!r.cur)return;if(onlyFree&&r.sid)return;var nm=r.nm||r.rfu;if(q&&(nm+" "+r.no).toLowerCase().indexOf(q)<0)return;n++;if(n>150)return;
 h+='<label class="pk"><input type="checkbox" data-no="'+e(r.no)+'"'+(sel[r.no]?" checked":"")+"><span>"+(nm?e(nm)+(r.own?" *":""):'<i style="color:#91a49a">Name redacted</i>')+"<small>"+(r.sid?"now "+e(r.sponsor):"no. "+e(r.no))+"</small></span></label>"});
 el.innerHTML=h||'<p class="sub" style="margin:8px">'+(pool.length?(onlyFree||onlyCur?"No players to show. Untick the boxes above to see more.":"No player matches."):"No players found for this team.")+"</p>";
 var c=Object.keys(sel).length;$("aa").textContent=c?"Add "+c+" player"+(c===1?"":"s"):"Add selected";$("aa").disabled=!c}
@@ -5510,8 +5519,8 @@ else if(a==="lgbg"){post({act:"logo-bg",id:i,bg:b.getAttribute("data-b"),au:0},f
 else if(a==="rm"){armed=i;why=[];draw()}else if(a==="no"){armed="";why=[];draw()}
 else if(a==="save"){post({act:"rename",id:i,name:$("ei").value},function(){say("Renamed.","ok");loadDet(open);draw()})}
 else if(a==="yes"){post({act:"remove",id:i,force:why.length>0},function(){say("Removed.","ok")})}
-else if(a==="drop"){post2({act:"assign",team:pt,season:season,s:"",nos:[i]},function(){refresh("Removed from "+(det?det.name:"the sponsor")+".")})}
-else if(a==="addp"){var nos=Object.keys(sel);if(!nos.length)return;post2({act:"assign",team:pt,season:season,s:open,nos:nos},function(j){refresh("Added "+j.changed+" player"+(j.changed===1?"":"s")+".")})}};
+else if(a==="drop"){post2({act:"assign",team:pt,season:season,s:"",from:open,nos:[i]},function(){refresh("Removed from "+(det?det.name:"the sponsor")+".")})}
+else if(a==="addp"){var nos=Object.keys(sel);if(!nos.length)return;post2({act:"assign",team:pt,season:season,s:open,nos:nos},function(j){refresh("Added "+j.changed+" player"+(j.changed===1?"":"s")+"."+(j.full?" "+j.full+" already ha"+(j.full===1?"s":"ve")+" two sponsors, so "+(j.full===1?"was":"were")+" not changed.":""))})}};
 load();
 })();</script></body></html>`;
 }
@@ -5531,12 +5540,13 @@ function cleanLinks(v) {
     for (const no of Object.keys(src[team])) {
       if (!personNo(no) || Object.keys(out).length >= SPLINK_MAX) continue;
       const r = src[team][no] || {};
-      const nm = sponsorName(r.nm), s = /^[0-9a-f]{8}$/.test(String(r.s || "")) ? String(r.s) : "";
+      const nm = sponsorName(r.nm); let s = /^[0-9a-f]{8}$/.test(String(r.s || "")) ? String(r.s) : "", s2 = /^[0-9a-f]{8}$/.test(String(r.s2 || "")) ? String(r.s2) : "";
+      if (s2 === s) s2 = ""; if (!s && s2) { s = s2; s2 = ""; } // a second sponsor only ever follows a first
       const a = [...new Set((Array.isArray(r.a) ? r.a : []).map(personNo).filter(x => x && x !== no))].slice(0, 3);
       const c = r.c === 2 ? 2 : r.c ? 1 : 0, l = Math.max(0, Math.min(200, parseInt(r.l, 10) || 0));
       const ld = /^\d{4}-\d{2}-\d{2}$/.test(String(r.ld || "")) ? String(r.ld) : "", lo = ld ? sponsorName(r.lo).slice(0, 24) : "";
       if (!nm && !s && !a.length && c !== 1) continue;
-      out[no] = { n: sponsorName(r.n), nm, s, a, c, l, ld, lo };
+      out[no] = { n: sponsorName(r.n), nm, s, s2, a, c, l, ld, lo };
     }
     if (Object.keys(out).length) t[team] = out;
   }
@@ -5556,7 +5566,7 @@ async function splinkRead(kv, season) {
 // Season totals: sponsors on the list, and distinct players (a player on two teams counts once) who have one of them.
 function spTotals(rec, sponsors) {
   const ids = new Set(sponsors.map(x => x.id)), pl = new Set(), used = new Set();
-  if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e = rec.t[tk][no]; if (e.s && ids.has(e.s)) { pl.add(no); used.add(e.s); } }
+  if (rec) for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) { const e = rec.t[tk][no]; for (const x of [e.s, e.s2]) if (x && ids.has(x)) { pl.add(no); used.add(x); } }
   return { sponsors: sponsors.length, used: used.size, players: pl.size };
 }
 function spUsers(rec, id) {
@@ -5564,7 +5574,7 @@ function spUsers(rec, id) {
   if (!rec) return out;
   for (const team of Object.keys(rec.t)) {
     const tn = (TEAMS.find(x => String(x.team) === team) || {}).name || "Team " + team;
-    for (const no of Object.keys(rec.t[team])) { const e = rec.t[team][no]; if (e.s === id && !seen.has(no)) { seen.add(no); out.push(tn + ": " + (e.nm || e.n || "no. " + no)); } }
+    for (const no of Object.keys(rec.t[team])) { const e = rec.t[team][no]; if ((e.s === id || e.s2 === id) && !seen.has(no)) { seen.add(no); out.push(tn + ": " + (e.nm || e.n || "no. " + no)); } }
   }
   return out;
 }
@@ -5613,13 +5623,13 @@ async function sponsorPlayersApi(request, url, worker) {
     const sq = await squadFor(q.team), ent = rec.t[q.team] || {}, nameOf = new Map(sponsors.map(x => [x.id, x.name]));
     // The sponsor and the club's own name belong to the player for the season, whichever team's list they were set on.
     const shared = {};
-    for (const tk of Object.keys(rec.t)) if (tk !== q.team) for (const no of Object.keys(rec.t[tk])) { const o = rec.t[tk][no]; if (o.s || o.nm) { const h = shared[no] || (shared[no] = { s: "", nm: "" }); if (!h.s && o.s) h.s = o.s; if (!h.nm && o.nm) h.nm = o.nm; } }
+    for (const tk of Object.keys(rec.t)) if (tk !== q.team) for (const no of Object.keys(rec.t[tk])) { const o = rec.t[tk][no]; if (o.s || o.nm) { const h = shared[no] || (shared[no] = { s: "", s2: "", nm: "" }); if (!h.s && o.s) { h.s = o.s; h.s2 = o.s2 || ""; } if (!h.nm && o.nm) h.nm = o.nm; } }
     const rows = playerRows(sq.ok ? sq.list : [], ent).map(r => {
       const x = ent[r.no] || { nm: "", s: "", a: [], c: 0, l: 0 }, gp = (rec.g || {})[q.team] || 0;
-      const sh = shared[r.no] || { s: "", nm: "" }, xs = x.s || sh.s, xnm = x.nm || sh.nm;
-      const sname = nameOf.get(xs) || "";
+      const sh = shared[r.no] || { s: "", s2: "", nm: "" }, xs = x.s || sh.s, xs2 = x.s ? (x.s2 || "") : (sh.s2 || ""), xnm = x.nm || sh.nm;
+      const sname1 = nameOf.get(xs) || "", sname2 = sname1 ? (nameOf.get(xs2) || "") : "", sname = sname2 ? sname1 + " + " + sname2 : sname1;
       const own = !!xnm && xnm.toLowerCase() !== r.rfu.toLowerCase();
-      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: xnm, own, sid: sname ? xs : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1, lastOn: x.ld || "", lastOpp: x.lo || "" };
+      return { no: r.no, rfu: r.rfu, hidden: r.hidden, left: r.left, nm: xnm, own, sid: sname1 ? xs : "", sid2: sname2 ? xs2 : "", sponsor: sname, alt: x.a, cur: isCurrent(x), last: gp && x.l ? Math.max(0, gp - x.l) : -1, lastOn: x.ld || "", lastOpp: x.lo || "" };
     });
     rows.sort((a, b) => { const an = a.nm || a.rfu, bn = b.nm || b.rfu; return !an !== !bn ? (an ? -1 : 1) : an.toLowerCase() < bn.toLowerCase() ? -1 : an.toLowerCase() > bn.toLowerCase() ? 1 : 0; });
     return J({ ok: true, teams, team: q.team, season: q.season, seasons, sponsors: sponsorSorted(sponsors), rows, tot: spTotals(rec, sponsors), played: (rec.g || {})[q.team] || 0, squadError: sq.ok ? "" : sq.error });
@@ -5633,17 +5643,18 @@ async function sponsorPlayersApi(request, url, worker) {
   let rec = null, sponsors = [];
   try { rec = await splinkRead(kv, q.season); sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); } catch (_) { return J({ ok: false, error: "Could not read the saved sponsors. Try again." }, 502); }
   const ent = rec.t[q.team] || (rec.t[q.team] = {});
-  let copied = 0, changed = 0;
+  let copied = 0, changed = 0, full = 0;
   if (b.act === "set") {
     const no = personNo(b.no);
     if (!no) return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
-    const sid = String(b.s || ""), nm = sponsorName(b.nm);
-    if (sid && !sponsors.some(x => x.id === sid)) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
+    let sid = String(b.s || ""), sid2 = String(b.s2 || ""); const nm = sponsorName(b.nm);
+    if (sid2 === sid) sid2 = ""; if (!sid && sid2) { sid = sid2; sid2 = ""; }
+    if ((sid && !sponsors.some(x => x.id === sid)) || (sid2 && !sponsors.some(x => x.id === sid2))) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
     const alt = [...new Set(String(b.alt == null ? "" : b.alt).replace(/[^0-9]+/g, " ").trim().split(" ").map(personNo).filter(x => x && x !== no))].slice(0, 3);
     for (const a of alt) if (ent[a]) return J({ ok: false, error: "Number " + a + " is already listed as a player. Remove that entry first." }, 409);
     const cur = b.cur === true ? 1 : sid ? 2 : 0, last = ent[no] ? ent[no].l : 0;
-    for (const tk of Object.keys(rec.t)) { const o = tk !== q.team && rec.t[tk][no]; if (o) { if (sid && !o.s && o.c === 0) o.c = 2; o.s = sid; o.nm = nm; if (!o.s && !o.nm && !o.a.length && o.c !== 1) delete rec.t[tk][no]; } }
-    if (!nm && !sid && !alt.length && cur !== 1) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, a: alt, c: cur, l: last || 0, ld: ent[no] ? ent[no].ld : "", lo: ent[no] ? ent[no].lo : "" }; }
+    for (const tk of Object.keys(rec.t)) { const o = tk !== q.team && rec.t[tk][no]; if (o) { if (sid && !o.s && o.c === 0) o.c = 2; o.s = sid; o.s2 = sid2; o.nm = nm; if (!o.s && !o.nm && !o.a.length && o.c !== 1) delete rec.t[tk][no]; } }
+    if (!nm && !sid && !alt.length && cur !== 1) delete ent[no]; else { if (!ent[no] && Object.keys(ent).length >= SPLINK_MAX) return J({ ok: false, error: "This team's list is full." }, 400); ent[no] = { n: sponsorName(b.n), nm, s: sid, s2: sid2, a: alt, c: cur, l: last || 0, ld: ent[no] ? ent[no].ld : "", lo: ent[no] ? ent[no].lo : "" }; }
   } else if (b.act === "scan") {
     if (q.season !== seasons.cur) return J({ ok: false, error: "Finding players works for this season only." }, 400);
     const tm = TEAMS.find(x => String(x.team) === q.team), off = Math.max(0, Math.min(500, parseInt(b.offset, 10) || 0));
@@ -5697,7 +5708,7 @@ async function sponsorPlayersApi(request, url, worker) {
   } else if (b.act === "reset") {
     // Clears the Current ticks that nothing else holds up (no sponsor, own name or other number) and the last-played details; sponsored players stay current.
     let cleared = 0;
-    for (const no of Object.keys(ent)) { const e0 = ent[no]; if (!e0.nm && !e0.s && !e0.a.length) { delete ent[no]; cleared++; } else { e0.c = e0.c === 2 ? 2 : 0; e0.l = 0; e0.ld = ""; e0.lo = ""; } }
+    for (const no of Object.keys(ent)) { const e0 = ent[no]; if (!e0.nm && !e0.s && !e0.s2 && !e0.a.length) { delete ent[no]; cleared++; } else { e0.c = e0.c === 2 ? 2 : 0; e0.l = 0; e0.ld = ""; e0.lo = ""; } }
     if (rec.g) delete rec.g[q.team]; if (rec.i) delete rec.i[q.team];
     copied = cleared;
   } else if (b.act === "assign") {
@@ -5706,15 +5717,25 @@ async function sponsorPlayersApi(request, url, worker) {
     if (!nos.length) return J({ ok: false, error: "Choose at least one player." }, 400);
     if (sid && !sponsors.some(x => x.id === sid)) return J({ ok: false, error: "That sponsor has gone. Reload the page." }, 404);
     if (!sid) {
-      for (const no of nos) for (const tk of Object.keys(rec.t)) { const o = rec.t[tk][no]; if (o && o.s) { o.s = ""; changed++; if (!o.nm && !o.a.length && o.c !== 1) delete rec.t[tk][no]; } }
+      const from = /^[0-9a-f]{8}$/.test(String(b.from || "")) ? String(b.from) : ""; // the one sponsor to take off; none given = every sponsor
+      for (const no of nos) for (const tk of Object.keys(rec.t)) {
+        const o = rec.t[tk][no]; if (!o || !o.s) continue;
+        if (!from) { o.s = ""; o.s2 = ""; changed++; }
+        else if (o.s === from) { o.s = o.s2 || ""; o.s2 = ""; changed++; }
+        else if (o.s2 === from) { o.s2 = ""; changed++; }
+        else continue;
+        if (!o.s && !o.nm && !o.a.length && o.c !== 1) delete rec.t[tk][no];
+      }
     } else {
       const sq = await squadFor(q.team), known = new Map((sq.ok ? sq.list : []).map(x => [x.no, x]));
       for (const no of nos) {
         const kn = known.get(no);
         if (!ent[no]) { if (!kn || Object.keys(ent).length >= SPLINK_MAX) continue; ent[no] = { n: kn.hidden ? "" : kn.name, nm: "", s: "", a: [], c: 0, l: 0, ld: "", lo: "" }; }
-        if (ent[no].s !== sid) changed++;
-        ent[no].s = sid;
-        for (const tk of Object.keys(rec.t)) { const o = tk !== q.team && rec.t[tk][no]; if (o) { if (!o.s && o.c === 0) o.c = 2; o.s = sid; } }
+        const cu = ent[no]; if (cu.s === sid || cu.s2 === sid) continue; // already one of this player's sponsors
+        if (cu.s && cu.s2) { full++; continue; } // two is the most a player can have
+        if (cu.s) cu.s2 = sid; else cu.s = sid;
+        changed++;
+        for (const tk of Object.keys(rec.t)) { const o = tk !== q.team && rec.t[tk][no]; if (o) { if (!o.s && o.c === 0) o.c = 2; o.s = cu.s; o.s2 = cu.s2 || ""; } }
       }
     }
   } else if (b.act === "copy") {
@@ -5722,12 +5743,12 @@ async function sponsorPlayersApi(request, url, worker) {
     if (![seasons.prev, seasons.cur, seasons.next].includes(from) || from === q.season) return J({ ok: false, error: "Choose another season to copy from." }, 400);
     let old = null; try { old = await splinkRead(kv, from); } catch (_) { return J({ ok: false, error: "Could not read that season. Try again." }, 502); }
     const oe = old.t[q.team] || {};
-    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], a: oe[no].a.slice(), c: 0, l: 0, ld: "", lo: "" }; copied++; } }
+    for (const no of Object.keys(oe)) { if (ent[no] || Object.keys(ent).length >= SPLINK_MAX) continue; if (!oe[no].s || sponsors.some(x => x.id === oe[no].s)) { ent[no] = { ...oe[no], s2: oe[no].s2 && sponsors.some(x => x.id === oe[no].s2) ? oe[no].s2 : "", a: oe[no].a.slice(), c: 0, l: 0, ld: "", lo: "" }; copied++; } }
     if (!copied) return J({ ok: false, error: "Nothing to copy from " + from + " for " + q.teamName + "." }, 404);
   } else return J({ ok: false, error: "Unknown action." }, 400);
   if (!Object.keys(ent).length) delete rec.t[q.team];
   try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
-  return J({ ok: true, copied, changed });
+  return J({ ok: true, copied, changed, full });
 }
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
@@ -5760,8 +5781,8 @@ function sub(r){var p=[];if(r.own||(r.nm&&r.hidden))p.push("RFU: "+(r.rfu||"name
 function dm(d){var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],x=String(d).split("-");return x.length===3?(+x[2])+" "+m[+x[1]-1]:d}
 function counts(){var a=0,o=0,c=0,sp=0;D.rows.forEach(function(r){if(r.cur&&r.sid)sp++;if(r.cur)c++;if(r.cur&&!r.sid)a++;if(r.own)o++});return{a:a,o:o,c:c,sp:sp}}
 function chips(){var c=counts();var h="";[["cur","Current "+c.c],["all","All "+D.rows.length],["sp","Sponsored "+c.sp],["av","Available to sponsor "+c.a],["own","Own name * "+c.o]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="av"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h}
-function editBox(r){var o='<option value="">Available to sponsor</option>';D.sponsors.forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===r.sid?" selected":"")+">"+e(s.name)+"</option>"});
-return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><label for="en">Name we use</label><input class="in2" id="en" maxlength="60" style="width:100%" value="'+e(r.nm)+'" placeholder="'+e(r.rfu||"Name redacted")+'"><small>Shown on match-day lists with a * when it differs from the RFU record. Leave it empty to use the RFU name.</small></div><div><label for="es">Sponsor</label><select class="in2" id="es">'+o+'</select></div><div><label for="ea">Other RFU numbers for this player</label><input class="in2" id="ea" style="width:100%" value="'+e(r.alt.join(", "))+'" placeholder="None"><small>Only if the RFU holds two records for one person. Either number then finds this player.</small></div><div><label class="tk" style="text-transform:none;letter-spacing:0;font-size:15px;margin:0"><input type="checkbox" id="ec"'+(r.cur?" checked":"")+'> Current player</label><small>Current players are the ones listed on the match-day page. A player with a sponsor counts as current until you untick them.</small></div><div class="rw2"><button type="button" class="b2 go" data-a="save" data-i="'+r.no+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
+function editBox(r){var o='<option value="">Available to sponsor</option>',o2='<option value="">None</option>';D.sponsors.forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===r.sid?" selected":"")+">"+e(s.name)+"</option>";o2+='<option value="'+s.id+'"'+(s.id===r.sid2?" selected":"")+">"+e(s.name)+"</option>"});
+return '<div class="ed"><b>'+label(r)+"</b><small>"+e(sub(r))+'</small><div><label for="en">Name we use</label><input class="in2" id="en" maxlength="60" style="width:100%" value="'+e(r.nm)+'" placeholder="'+e(r.rfu||"Name redacted")+'"><small>Shown on match-day lists with a * when it differs from the RFU record. Leave it empty to use the RFU name.</small></div><div><label for="es">Sponsor</label><select class="in2" id="es">'+o+'</select></div><div><label for="es2">Second sponsor (optional)</label><select class="in2" id="es2">'+o2+'</select><small>For a player with two sponsors. Both show on the match-day page.</small></div><div><label for="ea">Other RFU numbers for this player</label><input class="in2" id="ea" style="width:100%" value="'+e(r.alt.join(", "))+'" placeholder="None"><small>Only if the RFU holds two records for one person. Either number then finds this player.</small></div><div><label class="tk" style="text-transform:none;letter-spacing:0;font-size:15px;margin:0"><input type="checkbox" id="ec"'+(r.cur?" checked":"")+'> Current player</label><small>Current players are the ones listed on the match-day page. A player with a sponsor counts as current until you untick them.</small></div><div class="rw2"><button type="button" class="b2 go" data-a="save" data-i="'+r.no+'">Save</button><button type="button" class="b2" data-a="cancel">Cancel</button></div></div>'}
 function draw(){var t=D.tot||{sponsors:0,used:0,players:0};$("sm").innerHTML="<div><b>"+t.sponsors+"</b><span>Sponsors</span></div><div><b>"+t.players+"</b><span>Sponsored players, all teams</span></div><div><b>"+t.used+"</b><span>Sponsors with players</span></div>";var q=$("fq").value.trim().toLowerCase(),h="",n=0;chips();
 D.rows.forEach(function(r){if(flt==="cur"&&!r.cur)return;if(flt==="sp"&&(!r.sid||!r.cur))return;if(flt==="av"&&(r.sid||!r.cur))return;if(flt==="own"&&!r.own)return;if(q&&(shown(r)+" "+r.rfu+" "+r.no+" "+r.sponsor).toLowerCase().indexOf(q)<0)return;n++;
 if(edit===r.no){h+=editBox(r);return}
@@ -5778,8 +5799,8 @@ $("ch").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;flt=
 $("cpb").onclick=function(){if(!copyArm){copyArm=true;draw();return}var fr=before();post({act:"copy",team:D.team,season:D.season,from:fr},function(j){say("Copied "+j.copied+" player"+(j.copied===1?"":"s")+" from "+fr+".","ok");load(D.team,D.season)})};
 $("ls").onclick=function(ev){var b=ev.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),i=b.getAttribute("data-i");say("");
 if(a==="edit"){edit=i;draw();var n=$("en");if(n)n.focus()}else if(a==="cancel"){edit="";draw()}
-else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,alt:$("ea").value,cur:$("ec").checked},function(){pend="Saved.";load(D.team,D.season)})}};
-$("ls").onchange=function(ev){var c=ev.target;if(!c||c.getAttribute("data-a")!=="cur")return;var i=c.getAttribute("data-i"),r=D.rows.filter(function(x){return x.no===i})[0];if(!r)return;post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:r.nm,s:r.sid,alt:r.alt.join(","),cur:c.checked},function(){pend=c.checked?"Marked as a current player.":"Marked as not current.";load(D.team,D.season)},function(){load(D.team,D.season)})};
+else if(a==="save"){var r=D.rows.filter(function(x){return x.no===i})[0];post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:$("en").value,s:$("es").value,s2:$("es2").value,alt:$("ea").value,cur:$("ec").checked},function(){pend="Saved.";load(D.team,D.season)})}};
+$("ls").onchange=function(ev){var c=ev.target;if(!c||c.getAttribute("data-a")!=="cur")return;var i=c.getAttribute("data-i"),r=D.rows.filter(function(x){return x.no===i})[0];if(!r)return;post({act:"set",team:D.team,season:D.season,no:i,n:r.rfu,nm:r.nm,s:r.sid,s2:r.sid2||"",alt:r.alt.join(","),cur:c.checked},function(){pend=c.checked?"Marked as a current player.":"Marked as not current.";load(D.team,D.season)},function(){load(D.team,D.season)})};
 var gl=[];function showGames(){var d=$("gl");if(!gl.length){d.hidden=true;return}d.hidden=false;$("gs").textContent="Games read: "+gl.length+" (check these are this team's)";$("gd").innerHTML=gl.map(function(g){return e((g.d?dm(g.d):"?")+(g.o?" v "+g.o:"")+(g.x?" (another team's game, skipped)":""))}).join("<br>")}
 function scan(off,mk,ad,ms,ot){scanning=true;$("scb").disabled=true;post({act:"scan",team:D.team,season:D.season,offset:off},function(j){mk+=j.marked;ad+=j.added;ms+=j.missed;ot+=j.other||0;gl=gl.concat(j.games||[]);showGames();if(j.next!=null){say("Read "+j.next+" of "+j.total+" games...");scan(j.next,mk,ad,ms,ot);return}scanning=false;$("scb").disabled=false;if(mk&&flt==="all")flt="cur";pend="Done. "+j.total+" game"+(j.total===1?"":"s")+" checked, "+mk+" player"+(mk===1?"":"s")+" newly ticked as current"+(ad?" ("+ad+" new to the list)":"")+(ot?". "+ot+" game"+(ot===1?"":"s")+" belonged to another team and "+(ot===1?"was":"were")+" skipped":"")+(ms?". "+ms+" sheet"+(ms===1?"":"s")+" could not be read, so press the button again to retry those":"")+".";load(D.team,D.season)},function(){scanning=false;$("scb").disabled=false})}
 $("scb").onclick=function(){if(scanning)return;say("Reading team sheets...");gl=[];scan(0,0,0,0,0)};

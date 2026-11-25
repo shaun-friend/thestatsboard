@@ -24,6 +24,8 @@ c('an as-supplied logo gets a tile in its own colour',/class="sq c" style="backg
 c('as-supplied with no colour saved falls back to a light tile',/class="sq l"><img/.test(ctx.panel([P(1,'aaaaaaaa','c',{lg:{id:'aaaaaaaa',v:1,bg:'c',bc:''}})],e)));
 c('a hostile colour cannot break out of the style attribute',!/onload="y/.test(ctx.panel([P(1,'aaaaaaaa','c',{lg:{id:'aaaaaaaa',v:1,bg:'c',bc:'x" onload="y'}})],e).replace(/&quot;/g,'')));
 c('a logo that fails to load drops out; versioned address',/onerror="this\.parentNode\.remove\(\)"/.test(h)&&/\/api\/logo\/aaaaaaaa\?v=1700000000000/.test(h));
+const two=ctx.panel([P(1,'11111111','d',{lg2:{id:'22222222',v:1,bg:'l',bc:''}}),P(2,'22222222','l'),P(3,'33333333','d')],e);
+c('a player with two sponsors puts both logos in the panel, each business once',ids(two).join()==='11111111,22222222,33333333',ids(two).join());
 // ---- wiring
 c('substitutes keep their sponsor and logo',/subs = all\.filter\(x => sheetOrder\(x\.no\) > 15\);/.test(src));
 c('page builds the panel from starters then subs',/mdPanelHtml\(sheet\.starters\.concat\(sheet\.subs\), e\)/.test(src));
