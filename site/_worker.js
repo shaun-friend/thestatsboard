@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.66.0 25-Nov-2026 Match day TV page: the sponsor bar no longer scrolls (every logo always on screen, one or two rows, light and dark tiles alternating) and the right-hand panel is quieter and shrinks to fit.
 //   v3.65.0 25-Nov-2026 Match day TV page: a slowly scrolling bar along the bottom with the logos of the sponsors of the players on the sheet.
 //   v3.64.0 23-Nov-2026 Sponsors page: total size of all logos; Usage page: the Stored data bar (it read 0) is removed.
 //   v3.63.1 23-Nov-2026 Usage page: stored data uses the newest day that has data (a day still being counted read 0).
@@ -384,7 +385,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.65.0";
+const VERSION = "v3.66.0";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -431,6 +432,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.66.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.0_sponsor_bar_static.zip | v3.65.0
 v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
 v3.64.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.64.0_logo_total_size.zip | v3.63.1
 v3.63.1 | 23-Nov-2026 | RFU_Club_Dashboard_v3.63.1_usage_storage_fix.zip | v3.63.0
@@ -778,6 +780,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.66.0 - Match day TV page: sponsor bar without scrolling, quieter right side
+- Owner request (25-Nov-2026): the bar should show every logo (the sponsors differ by team and a scroll cannot promise that within a page's seconds); and the right-hand panel was getting busy, so quieter and shrinking to fit; light and dark tiles should alternate or group.
+- Change: the bar no longer scrolls. Up to 8 sponsors sit in one row, more in two rows. Dark and light tiles alternate (as-supplied logos fill whichever pool is shorter); with two rows an odd number across keeps the alternation down the columns too. Grouping the tiles by colour instead is a one-line change if preferred. The right-hand panel (league figures, recent form, head to head, substitutes) has slightly smaller type and no filled boxes, and is only as tall as its content. All its text stays in the full text colour (no pale grey) so it reads from across a room.
+- Request limit: no change (one request per logo per screen, then kept by the browser).
+- Docs: What's new, Admin guide
 
 v3.65.0 - Match day TV page: sponsor logo bar
 - Owner request (25-Nov-2026): not logos beside the player names (too fussy) but a scrolling bar along the bottom with the logos of the sponsors of the players listed as playing; no separate time setting, it follows the page's own Stop showing at time.
@@ -3212,7 +3220,7 @@ const DOC_SECTIONS = [
       "Admin, Tools, Sponsors (or /sponsors) keeps the club's list of sponsors. Add each sponsor once, one at a time or with Paste a list (one per line; names already in the list are skipped). Rename or Remove (press twice) any of them. The list holds up to 300 sponsors.",
       "Each sponsor has a hidden ID, so renaming never breaks a later link to a player. The list sits behind the club PIN and is kept in its own settings-store key, apart from the other settings. Beside each sponsor it shows how many players use it this season; removing one that is in use shows who will lose it and asks again.",
       "Players (Admin, Tools, Players, or the Players tab on the Sponsors page): choose a team from Our teams and a season. The list is the RFU squad list for the team. Edit a player to set the name we use (shown with a * when it differs from the RFU record; a hidden RFU name shows as Name redacted until you add one), the sponsor (one per player, or Available to sponsor), and any other RFU number for the same person. On the Sponsors page you can also tap a sponsor and add several players to it at once. Tick Current player for the people who are playing this season; the list opens on Current. On this season only, Find this season's players reads the team sheets already submitted and ticks everyone who has played (it adds and ticks, and never unticks). A player who has a sponsor counts as current until you untick them. A new season starts with nobody current.",
-      "Sponsor logos: each sponsor in the Sponsors list shows a small logo, or an empty dashed box when it has none. Open a sponsor and use the Logo section. Upload logo takes a PNG, JPG, WebP or SVG file. The page trims the empty margins, fits the logo inside 600 x 300 pixels without cropping it and shows it on a dark and a light tile as it will look on a TV; press Save logo to keep it. Replace logo and Remove logo do what they say. A logo with a solid background (for example a JPG with white behind it) gets a margin in that same colour and rounded corners; one with a transparent background keeps it. Tick Keep the empty margins (do not trim) if the trimming is wrong for a logo. Logos are stored per site, so DEV and PROD each have their own: to copy them, open Move logos to another site, press Download logos file on one site and Load a logos file on the other (copy the sponsors across first with Back up or move to another site). Looks best on: each logo is put on a dark tile, a light tile or As supplied (a logo with its own background); the page picks one when the logo is saved and you can change it with the three buttons under the preview. The Match day TV page shows a slowly scrolling bar along the bottom with the logos of the sponsors of the players on the sheet, each once, on its tile; with no logos to show the bar is simply not there. Sponsor names stay as text beside the players.",
+      "Sponsor logos: each sponsor in the Sponsors list shows a small logo, or an empty dashed box when it has none. Open a sponsor and use the Logo section. Upload logo takes a PNG, JPG, WebP or SVG file. The page trims the empty margins, fits the logo inside 600 x 300 pixels without cropping it and shows it on a dark and a light tile as it will look on a TV; press Save logo to keep it. Replace logo and Remove logo do what they say. A logo with a solid background (for example a JPG with white behind it) gets a margin in that same colour and rounded corners; one with a transparent background keeps it. Tick Keep the empty margins (do not trim) if the trimming is wrong for a logo. Logos are stored per site, so DEV and PROD each have their own: to copy them, open Move logos to another site, press Download logos file on one site and Load a logos file on the other (copy the sponsors across first with Back up or move to another site). Looks best on: each logo is put on a dark tile, a light tile or As supplied (a logo with its own background); the page picks one when the logo is saved and you can change it with the three buttons under the preview. The Match day TV page shows a bar along the bottom with the logos of the sponsors of the players on the sheet, each once, on its tile, all on screen at once (one row for up to 8 sponsors, otherwise two) with light and dark tiles alternating; with no logos to show the bar is simply not there. Sponsor names stay as text beside the players.",
       "Back up or move the sponsors: at the foot of the Sponsors page, open Back up or move to another site. Download backup saves one file with every sponsor and each player's sponsor for last season, this season and next season. To copy your setup to another site (for example from the test site to the live site), open the Sponsors page there, press Load a backup file and choose the file. It shows what is in the file and what is on the site now, and nothing changes until you press Replace this site's sponsors with this file. Loading replaces the sponsors and the player sponsors for those three seasons, and clears a season the file has nothing for. Keep the file as a backup too.",
       "All sponsors and their players: on the Sponsors page, press the green All sponsors and their players button (address /sponsor-list). It lists every sponsor with the players they sponsor this season, with the team beside each player. Choose a team to see only that team's players (sponsors with no players in that team are left out). Export downloads what is on screen as a CSV file (Sponsor, Player, Team) that opens in Excel or Sheets. Under-18 teams are listed without names.",
       "Sponsors belong to a season. A new season starts empty; Copy from the season before brings a team's players and sponsors across when you press it, and never overwrites what is already set. The match-day page that uses all this comes in the next stage."
@@ -3374,6 +3382,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.66.0", "Match day TV page: the sponsor bar no longer scrolls, so every logo is always on screen (one row, or two with many sponsors) with light and dark tiles alternating; the right-hand panel is quieter and only as tall as it needs to be."],
       ["v3.65.0", "Match day TV page: a slowly scrolling bar along the bottom shows the logos of the sponsors of the players on the sheet (none shown if no player on the sheet has a sponsor with a logo)."],
       ["v3.64.0", "Sponsors page: shows how many logos there are and their total size, with a Check logo sizes button for older logos. The Stored data bar on the Usage page is gone (Cloudflare gave 0)."],
       ["v3.63.1", "Usage page: stored data no longer shows 0 when Cloudflare has not finished counting today."],
@@ -4682,23 +4691,30 @@ const MD_TV_CSS = `body.md .top{display:none}
 .hk{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem 1.4rem;margin:.35rem .3rem 0;font-size:1.05rem;color:var(--tx)}.hk span{display:inline-flex;align-items:center;gap:.45rem}.hk i{width:.9rem;height:.9rem;border-radius:.2rem;flex:none;display:inline-block}.hk i.a{background:var(--ca)}.hk i.b{background:var(--cb)}.hk i.d{background:#5d7066}
 .hl2{text-align:center;color:var(--mu);font-size:1.05rem;margin-top:.3rem}
 .sb{flex:none;background:var(--sbg);border:2px solid var(--sbd);border-radius:.7rem;padding:.7rem 1.3rem}.sb .fh{font-size:.9rem;letter-spacing:.18em;color:var(--mu);margin-bottom:.3rem}.sb div.sn{font-size:1.35rem;line-height:1.3;color:var(--tx);overflow:hidden;max-height:4.2rem}
-.tk{flex:none;height:5.4rem;display:flex;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:.6rem;overflow:hidden;margin-top:.5rem}
-.tk .lb{flex:none;height:100%;display:flex;align-items:center;padding:0 1.3rem;font-size:.95rem;font-weight:700;letter-spacing:.2em;line-height:1.3;text-transform:uppercase;color:var(--mu);background:var(--card);border-right:1px solid var(--bd);position:relative;z-index:2;box-shadow:.6rem 0 .7rem var(--card)}
-.tk .tr{display:flex;align-items:center;gap:1.4rem;padding-left:1.4rem;width:max-content;animation:tks 40s linear infinite}
-.tk .t{flex:none;width:11rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{padding:0;background:none}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-@keyframes tks{to{transform:translateX(-50%)}}
+.tk{flex:none;height:5.4rem;display:flex;align-items:stretch;background:var(--card);border:1px solid var(--bd);border-radius:.6rem;overflow:hidden;margin-top:.5rem}.tk.two{height:9.6rem}
+.tk .lb{flex:none;display:flex;align-items:center;padding:0 1.3rem;font-size:.95rem;font-weight:700;letter-spacing:.2em;line-height:1.3;text-transform:uppercase;color:var(--mu);border-right:1px solid var(--bd)}
+.tk .rs{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.7rem;padding:.4rem 1.2rem}.tk .r{display:flex;justify-content:center;gap:1rem}
+.tk .t{flex:0 1 calc((100% - (var(--n) - 1) * 1rem) / var(--n));max-width:14rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{padding:0;background:none}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.rc{justify-content:flex-start}.pn{flex:0 1 auto;background:transparent;padding:.6rem 1.1rem}.st .v{font-size:1.3rem;font-weight:700}.st .cr{width:2.3rem;height:2.3rem}.st .l{font-size:.85rem;color:var(--tx);min-width:8rem}
+.mdh3{font-size:.9rem;color:var(--tx)}.fm2 .ll{font-size:1rem;color:var(--tx)}.fm2 .ll small{font-size:.9rem;color:var(--tx)}.fm2 .dot{width:1.4rem;height:1.4rem;font-size:.75rem}
+.hb{height:1.6rem}.hb>div{font-size:1rem}.hk,.hl2{font-size:.95rem;color:var(--tx)}.sb{background:transparent;padding:.5rem 1.1rem}.sb .fh{font-size:.85rem;color:var(--tx)}.sb div.sn{font-size:1.1rem;color:var(--tx);max-height:3.6rem}
 body.light .st .cr{background:#fff}
 :root{--av:#ffd978;--sbg:#26332d;--sbd:#3f5a4c}body.light{--sbg:#e1ece5;--sbd:#9db8a8}`;
-// v3.65.0: the sponsor bar along the foot of the Match day TV page: the logos of the sponsors of the players on the sheet, once each, scrolling slowly.
+// v3.66.0: the sponsor bar along the foot of the Match day TV page: the logos of the sponsors of the players on the sheet, once each, none scrolling so every one
+// is on screen the whole time. One row up to 8 sponsors, otherwise two. Light and dark tiles alternate (as-supplied tiles go in whichever pool is shorter).
 // Each logo is a small image fetched once per screen (versioned address, kept a year). Nothing is added to the page when no player on the sheet has a sponsor with a logo.
 function mdTickerHtml(starters, e) {
   const seen = new Set(), L = [];
   for (const p of starters || []) { if (p.hidden || !p.lg || seen.has(p.lg.id)) continue; seen.add(p.lg.id); L.push(p.lg); }
   if (!L.length) return "";
-  let one = L.slice(); while (one.length < 8) one = one.concat(L); // enough tiles to fill a wide screen before the loop repeats
-  const tile = g => `<span class="t ${g.bg === "l" ? "l" : g.bg === "c" ? "c" : "d"}"><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
-  const run = one.map(tile).join(""), secs = Math.max(30, one.length * 5);
-  return `<div class="tk"><div class="lb">Our player<br>sponsors</div><div class="tr" style="animation-duration:${secs}s">${run}${run}</div></div>`;
+  const kind = g => g.bg === "l" ? "l" : g.bg === "c" ? "c" : "d", D = [], Li = [];
+  for (const g of L) { const k = kind(g); (k === "d" ? D : k === "l" ? Li : D.length <= Li.length ? D : Li).push(g); }
+  const seq = []; let a = D, b = Li; // dark first; alternate while both pools have tiles, then the rest
+  while (a.length || b.length) { if (a.length) seq.push(a.shift()); if (b.length) seq.push(b.shift()); }
+  const n = seq.length; let cols = n <= 8 ? n : Math.ceil(n / 2); if (n > 8 && cols % 2 === 0 && cols < n - 1) cols++; // an odd number across keeps light and dark alternating down the columns too
+  const tile = g => `<span class="t ${kind(g)}"><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
+  const rowsOf = n <= 8 ? [seq] : [seq.slice(0, cols), seq.slice(cols)];
+  return `<div class="tk${rowsOf.length > 1 ? " two" : ""}" style="--n:${cols}"><div class="lb">Our player<br>sponsors</div><div class="rs">${rowsOf.map(r => `<div class="r">${r.map(tile).join("")}</div>`).join("")}</div></div>`;
 }
 function mdTvInner(o) {
   const { e, ord, light, me, opp, n, sheet, crest, meCol, tm, h2hAll, league, season, stamp } = o;
