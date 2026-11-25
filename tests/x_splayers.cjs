@@ -10,18 +10,18 @@ await p.route('**/*',r=>{const u=new URL(r.request().url());
  if(u.pathname==='/api/sponsor-players'){if(r.request().method()==='GET'){calls.push(u.search);return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,teams:[{team:'11039',name:'Ivybridge 1XV'},{team:'11063',name:'The Vandals'}],team:u.searchParams.get('team')||'11039',season:u.searchParams.get('season')||'2026-2027',seasons:{prev:'2025-2026',cur:'2026-2027',next:'2027-2028'},sponsors:[{id:'aaaa1111',name:'Smith Plumbing'},{id:'bbbb2222',name:'Dart Motors'}],rows:rows(),squadError:''})})}
   posts.push(JSON.parse(r.request().postData()));return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,copied:3})})}
  r.fulfill({status:200,body:'{}'})});
-await p.goto('https://thestatsboard.co.uk/sponsor-players');await p.waitForTimeout(400);
+await p.goto('https://thestatsboard.co.uk/sponsor-players#list');await p.waitForTimeout(400);
 const t=()=>p.innerText('body');let x=await t();
-ck('own name shows with a *',/Wes Vermigle \*/.test(x)&&/RFU: Wesley Vermigle/.test(x),x.slice(0,500));
-ck('hidden name shows as Name redacted',/Name redacted/.test(x)&&/The RFU has hidden this name/.test(x));
-ck('unsponsored players say Available to sponsor',(x.match(/Available to sponsor/g)||[]).length>=2);
-ck('second RFU number shown',/also 2380102/.test(x));
-ck('counts on the filters',/Available to sponsor 2/.test(x)&&/Own name \* 1/.test(x)&&/All 4/.test(x)&&/Current 4/.test(x),x.slice(0,300));
+ck('own name shows with a *',/Wes Vermigle \*/.test(x),x.slice(0,500));
+ck('hidden name shows as Name redacted',/Name redacted/.test(x));
+ck('unsponsored players say Needs a sponsor',(x.match(/Needs a sponsor/g)||[]).length>=2);
+ck('rows are tidy: no hints on the line, the second RFU number is inside Edit',!/also 2380102/.test(x));
+ck('counts on the filters',/Needs a sponsor 2/.test(x)&&/Own name \* 1/.test(x)&&/All 4/.test(x)&&/Current 4/.test(x),x.slice(0,300));
 await p.click('button[data-f=av]');x=await p.innerText('#ls');ck('Available filter lists only unsponsored',/Aled Price/.test(x)&&!/Smith Plumbing/.test(x));
 await p.click('button[data-f=sp]');x=await p.innerText('#ls');ck('Sponsored filter lists only sponsored players',/Smith Plumbing/.test(x)&&!/Aled Price/.test(x),x.slice(0,300));ck('Sponsored chip has a count',/Sponsored \d/.test(await p.innerText('body')));
 await p.click('button[data-f=all]');
-posts.length=0;await p.locator('input[data-a=cur][data-i="5"]').uncheck();await p.waitForTimeout(300);
-ck('unticking Current sends the change',posts.length===1&&posts[0].act==='set'&&posts[0].no==='5'&&posts[0].cur===false,JSON.stringify(posts));posts.length=0;
+posts.length=0;await p.locator('button[data-a=edit][data-i="5"]').click();await p.locator('#ec').uncheck();await p.click('button[data-a=save]');await p.waitForTimeout(300);
+ck('unticking Current in the editor sends the change',posts.length===1&&posts[0].act==='set'&&posts[0].no==='5'&&posts[0].cur===false,JSON.stringify(posts));posts.length=0;await p.locator('button[data-f=all]').click();
 ck('the scan button is not on the normal players view',!(await p.locator('#scb').isVisible()));await p.click('#t3');await p.waitForTimeout(200);ck('3. Season set-up shows the scan and hides the list',(await p.locator('#scb').isVisible())&&!(await p.locator('#lc').isVisible())&&/Season set-up/.test(await p.innerText('#h1')));
 await p.click('#scb');await p.waitForTimeout(300);
 ck('the scan button asks to read the team sheets from the start',posts.length===1&&posts[0].act==='scan'&&posts[0].offset===0&&posts[0].team==='11039',JSON.stringify(posts));posts.length=0;await p.click('#t2');await p.waitForTimeout(200);

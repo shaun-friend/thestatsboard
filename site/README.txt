@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.70.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.70.0_simpler_players_page.zip | v3.69.1
 v3.69.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.1_sponsored_players_csv.zip | v3.69.0
 v3.69.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.0_all_sponsored_players.zip | v3.68.0
 v3.68.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.68.0_two_sponsors.zip | v3.67.5
@@ -400,6 +401,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.70.0 - Player names and sponsors: simpler page
+- Owner request (25-Nov-2026): the page was busy and confusing; show less depending on what you are doing (mock-ups A, B and C approved).
+- Change: four tabs. Check (the default): every current player once across all teams, Needs a sponsor first, with Add sponsor or Change on the spot (a small box with the sponsor and an optional second), a search and the spreadsheet download. Edit a team: team and season, then one tidy line per player (name, sponsor or Needs a sponsor, Edit); the Current tick, Name we use, other RFU numbers (under More) and the last-played details are inside Edit, and while one player is open the others step back. Sponsors: the existing page. Season set-up: Find this season's players and Copy. The three totals boxes and the key are gone (the filter buttons carry the counts and colours). The intro now says up to two sponsors per player.
+- Request limit: no change.
+- Docs: What's new
 
 v3.69.1 - All-teams sponsored list: download as spreadsheet
 - Owner request (25-Nov-2026): make the list exportable.

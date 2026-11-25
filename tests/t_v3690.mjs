@@ -43,7 +43,7 @@ c('with both teams and both sponsors',w&&w.teams.length===2&&w.sponsor==='Dart M
 c('sponsored list has the two sponsored players only, sorted by name',j.sponsored.length===2&&j.sponsored[0].name==='Harry Newman-Wild',JSON.stringify(j.sponsored.map(p=>p.name)));
 c('current players with no sponsor are listed, not-current ones are not',j.avail.length===1&&j.avail[0].no==='5'&&!j.avail.some(p=>p.no==='777'),JSON.stringify(j.avail));
 c('other players page request still works',(await get('?team=11039&season='+S)).rows!==undefined);
-c('page has the button and calls the list',/id="wb"/.test(src)&&/sponsor-players\?all=1&season=/.test(src)&&/\$\("wc"\)\.hidden=su/.test(src));
+c('page loads the all-teams list from the server and has the download button',/id="wx"/.test(src)&&/sponsor-players\?all=1&season=/.test(src))
 c('rows carry the sponsors as a list',j.sponsored.find(p=>p.no==='1530430').sponsors.join()==='Dart Motors,Moor Ale',JSON.stringify(j.sponsored));
 c('export button builds a CSV with the six columns, quoted, with a formula guard',/id="wx"/.test(src)&&/"Player","RFU number","Teams","Sponsor 1","Sponsor 2","Status"/.test(src)&&/function csvCell/.test(src)&&/\^\[=\+@-\]/.test(src)&&/sponsored-players-/.test(src));
 console.log(pass+' pass, '+fail+' fail');process.exit(fail?1:0);
