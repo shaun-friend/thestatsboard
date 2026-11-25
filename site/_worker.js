@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.66.1 25-Nov-2026 Match day TV page: the right-hand panel now shrinks the text to fit (it overlapped the sponsor bar), and its text is full colour for easy reading.
 //   v3.66.0 25-Nov-2026 Match day TV page: the sponsor bar no longer scrolls (every logo always on screen, one or two rows, light and dark tiles alternating) and the right-hand panel is quieter and shrinks to fit.
 //   v3.65.0 25-Nov-2026 Match day TV page: a slowly scrolling bar along the bottom with the logos of the sponsors of the players on the sheet.
 //   v3.64.0 23-Nov-2026 Sponsors page: total size of all logos; Usage page: the Stored data bar (it read 0) is removed.
@@ -385,7 +386,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.66.0";
+const VERSION = "v3.66.1";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -432,6 +433,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
 v3.66.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.0_sponsor_bar_static.zip | v3.65.0
 v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
 v3.64.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.64.0_logo_total_size.zip | v3.63.1
@@ -780,6 +782,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.66.1 - Match day TV page: right-hand panel fits above the sponsor bar
+- Owner report (25-Nov-2026): the lighter text in the right-hand panel was hard to read. Found while checking: with a two-row bar the substitutes box overlapped the bar because the page's fitting script only looked at whole-page overflow.
+- Change: the fitting script also checks the right-hand column and shrinks the text a step at a time until it fits. The panel text is full colour throughout.
+- Request limit: no change.
+- Docs: What's new
 
 v3.66.0 - Match day TV page: sponsor bar without scrolling, quieter right side
 - Owner request (25-Nov-2026): the bar should show every logo (the sponsors differ by team and a scroll cannot promise that within a page's seconds); and the right-hand panel was getting busy, so quieter and shrinking to fit; light and dark tiles should alternate or group.
@@ -3382,6 +3390,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.66.1", "Match day TV page: the right-hand panel now shrinks to fit above the sponsor bar and its text is full colour, easier to read."],
       ["v3.66.0", "Match day TV page: the sponsor bar no longer scrolls, so every logo is always on screen (one row, or two with many sponsors) with light and dark tiles alternating; the right-hand panel is quieter and only as tall as it needs to be."],
       ["v3.65.0", "Match day TV page: a slowly scrolling bar along the bottom shows the logos of the sponsors of the players on the sheet (none shown if no player on the sheet has a sponsor with a logo)."],
       ["v3.64.0", "Sponsors page: shows how many logos there are and their total size, with a Check logo sizes button for older logos. The Stored data bar on the Usage page is gone (Cloudflare gave 0)."],
@@ -4695,7 +4704,7 @@ const MD_TV_CSS = `body.md .top{display:none}
 .tk .lb{flex:none;display:flex;align-items:center;padding:0 1.3rem;font-size:.95rem;font-weight:700;letter-spacing:.2em;line-height:1.3;text-transform:uppercase;color:var(--mu);border-right:1px solid var(--bd)}
 .tk .rs{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.7rem;padding:.4rem 1.2rem}.tk .r{display:flex;justify-content:center;gap:1rem}
 .tk .t{flex:0 1 calc((100% - (var(--n) - 1) * 1rem) / var(--n));max-width:14rem;height:3.9rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;padding:.3rem .6rem;box-sizing:border-box}.tk .t.d{background:#0c1113;border:1px solid var(--bd)}.tk .t.l{background:#f4f6f5}.tk .t.c{padding:0;background:none}.tk .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-.rc{justify-content:flex-start}.pn{flex:0 1 auto;background:transparent;padding:.6rem 1.1rem}.st .v{font-size:1.3rem;font-weight:700}.st .cr{width:2.3rem;height:2.3rem}.st .l{font-size:.85rem;color:var(--tx);min-width:8rem}
+.rc{justify-content:flex-start}.pn{flex:0 0 auto;overflow:visible;background:transparent;padding:.6rem 1.1rem}.st .v{font-size:1.3rem;font-weight:700}.st .cr{width:2.3rem;height:2.3rem}.st .l{font-size:.85rem;color:var(--tx);min-width:8rem}
 .mdh3{font-size:.9rem;color:var(--tx)}.fm2 .ll{font-size:1rem;color:var(--tx)}.fm2 .ll small{font-size:.9rem;color:var(--tx)}.fm2 .dot{width:1.4rem;height:1.4rem;font-size:.75rem}
 .hb{height:1.6rem}.hb>div{font-size:1rem}.hk,.hl2{font-size:.95rem;color:var(--tx)}.sb{background:transparent;padding:.5rem 1.1rem}.sb .fh{font-size:.85rem;color:var(--tx)}.sb div.sn{font-size:1.1rem;color:var(--tx);max-height:3.6rem}
 body.light .st .cr{background:#fff}
@@ -8210,7 +8219,7 @@ ${inner}
 ${themeToggleScript}${colourScript}${refresh}<script>(function(){var H=document.documentElement,B=document.body,MQ="(min-width:801px) and (min-height:561px)";
 // TV / big screen: if everything does not fit the screen height (short browser window, long venue name, extra head-to-head text, weather or crests that arrive a moment after the page), shrink the text a step at a time until it does, with a gap kept between the bar rows. It re-checks whenever the page changes size or content, so it cannot slip back to bunched-up bars.
 function fsz(){return parseFloat(getComputedStyle(H).fontSize)||16}
-function over(){var bars=document.querySelector(".bars");if(B.scrollHeight>B.clientHeight+1)return true;if(!bars)return false;var sum=0,k=bars.children.length;for(var i=0;i<k;i++)sum+=bars.children[i].getBoundingClientRect().height;
+function over(){var bars=document.querySelector(".bars"),rc=document.querySelector(".mdb .rc");if(B.scrollHeight>B.clientHeight+1)return true;if(rc&&rc.scrollHeight>rc.clientHeight+1)return true;if(!bars)return false;var sum=0,k=bars.children.length;for(var i=0;i<k;i++)sum+=bars.children[i].getBoundingClientRect().height;
 return bars.scrollHeight>bars.clientHeight+1||sum+k*.45*fsz()>bars.clientHeight}
 var settled=false;function settle(){if(settled)return;settled=true;B.classList.add("fitshow");B.classList.remove("fitwait")}
 var busy=false;function fit(){if(busy)return;busy=true;try{H.style.fontSize="";if(matchMedia(MQ).matches){var fs=fsz(),n=0;while(over()&&fs>7&&n++<80){fs-=.25;H.style.fontSize=fs+"px"}}}catch(e){}busy=false}

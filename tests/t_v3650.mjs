@@ -26,6 +26,8 @@ const kc=kinds(mk(6,i=>['d','l','c','d','l','c'][i]));c('as-supplied tiles are s
 const kg=kinds(mk(6,i=>'d'));c('all one colour just stays that colour',kg==='dddddd');
 c('players carry the logo marker, never the image',/lg: hidden \|\| !sponsor \? null : \(slogo\.get\(h\.s\)/.test(src)&&/slogo = new Map\(sponsors\.filter\(x => x\.logo\)\.map\(x => \[x\.id, \{ id: x\.id, v: x\.logo\.v, bg: x\.logo\.bg \|\| "d" \}\]\)\)/.test(src));
 c('the bar is put before the footer line',/\$\{mdTickerHtml\(sheet\.starters, e\)\}<div class="upd">/.test(src));
+c('the fitting script also checks the right-hand column (v3.66.1), so it cannot overlap the bar',/rc=document\.querySelector\(".mdb \.rc"\)/.test(src)&&/rc\.scrollHeight>rc\.clientHeight\+1/.test(src));
+c('right-hand panel text is full colour (no pale grey rules)',!/\.sb div\.sn\{[^}]*var\(--mu\)/.test(src.slice(src.indexOf('.rc{justify-content:flex-start}'),src.indexOf('body.light .st .cr'))));
 // real layout: the bar scrolls and the page still fits
 const css=/const MD_TV_CSS = `([\s\S]*?)`;/.exec(src)[1];
 const {chromium}=createRequire(import.meta.url)('playwright');

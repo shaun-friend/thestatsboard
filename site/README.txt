@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
 v3.66.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.0_sponsor_bar_static.zip | v3.65.0
 v3.65.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.65.0_match_day_sponsor_bar.zip | v3.64.0
 v3.64.0 | 23-Nov-2026 | RFU_Club_Dashboard_v3.64.0_logo_total_size.zip | v3.63.1
@@ -389,6 +390,12 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.66.1 - Match day TV page: right-hand panel fits above the sponsor bar
+- Owner report (25-Nov-2026): the lighter text in the right-hand panel was hard to read. Found while checking: with a two-row bar the substitutes box overlapped the bar because the page's fitting script only looked at whole-page overflow.
+- Change: the fitting script also checks the right-hand column and shrinks the text a step at a time until it fits. The panel text is full colour throughout.
+- Request limit: no change.
+- Docs: What's new
 
 v3.66.0 - Match day TV page: sponsor bar without scrolling, quieter right side
 - Owner request (25-Nov-2026): the bar should show every logo (the sponsors differ by team and a scroll cannot promise that within a page's seconds); and the right-hand panel was getting busy, so quieter and shrinking to fit; light and dark tiles should alternate or group.
