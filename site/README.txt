@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.1_sponsor_tiles_fill.zip | v3.67.0
 v3.67.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.0_match_day_sponsor_panel.zip | v3.66.2
 v3.66.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.2_equal_logo_tiles.zip | v3.66.1
 v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
@@ -392,6 +393,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.1 - Match day TV page: sponsor tiles fill the panel
+- Owner report (25-Nov-2026, iPad): the logos did not expand to fill the gap on the right.
+- Cause: the tiles shared a class name with the Match Stats bars, whose style fixed their height at a thin strip (and pushed light tiles' contents to one side). The test page did not load that style, so it was missed.
+- Fix: the tiles have their own class name. They share the panel's full height in equal rows (at least three rows deep, so two or three logos do not become huge tiles). The test now loads the shared style too.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.0 - Match day TV page: sponsor panel on the right, Replacements block, stats along the bottom
 - Owner request (25-Nov-2026): put all the logos on the right-hand side, consolidate the old right-hand panel across the bottom, centre it with the home team on the left and the away team on the right, handle many logos, and make sure the substitutes do not look like an afterthought (a sponsor of several players shows once).

@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.67.1 25-Nov-2026 Match day TV page: sponsor tiles now fill the whole height of the panel (a shared style was shrinking them).
 //   v3.67.0 25-Nov-2026 Match day TV page: all sponsor logos in one panel on the right (starters then replacements, each business once), a Replacements block under the fifteen, and the league stats, form and head to head in a strip across the bottom.
 //   v3.66.2 25-Nov-2026 Match day sponsor bar: every logo sits on a tile of the same size (logos with their own background get a tile in that colour), so they look the same size.
 //   v3.66.1 25-Nov-2026 Match day TV page: the right-hand panel now shrinks the text to fit (it overlapped the sponsor bar), and its text is full colour for easy reading.
@@ -388,7 +389,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.67.0";
+const VERSION = "v3.67.1";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -435,6 +436,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.1_sponsor_tiles_fill.zip | v3.67.0
 v3.67.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.0_match_day_sponsor_panel.zip | v3.66.2
 v3.66.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.2_equal_logo_tiles.zip | v3.66.1
 v3.66.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.66.1_match_day_fit.zip | v3.66.0
@@ -786,6 +788,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.1 - Match day TV page: sponsor tiles fill the panel
+- Owner report (25-Nov-2026, iPad): the logos did not expand to fill the gap on the right.
+- Cause: the tiles shared a class name with the Match Stats bars, whose style fixed their height at a thin strip (and pushed light tiles' contents to one side). The test page did not load that style, so it was missed.
+- Fix: the tiles have their own class name. They share the panel's full height in equal rows (at least three rows deep, so two or three logos do not become huge tiles). The test now loads the shared style too.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.0 - Match day TV page: sponsor panel on the right, Replacements block, stats along the bottom
 - Owner request (25-Nov-2026): put all the logos on the right-hand side, consolidate the old right-hand panel across the bottom, centre it with the home team on the left and the away team on the right, handle many logos, and make sure the substitutes do not look like an afterthought (a sponsor of several players shows once).
@@ -3407,6 +3416,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.67.1", "Match day TV page: the sponsor logo tiles now grow to fill the whole right-hand panel instead of sitting as thin strips."],
       ["v3.67.0", "Match day TV page: every sponsor logo now sits in one panel on the right (the sponsors of the starters and of the replacements, each business once). Replacements get their own block under the fifteen, with sponsors shown the same way. The league stats, form and head to head run across the bottom, home on the left and away on the right."],
       ["v3.66.2", "Match day sponsor bar: all logos now sit on tiles of exactly the same size, so none looks smaller than the others."],
       ["v3.66.1", "Match day TV page: the right-hand panel now shrinks to fit above the sponsor bar and its text is full colour, easier to read."],
@@ -4711,8 +4721,8 @@ const MD_TV_CSS = `body.md .top{display:none}
 .fh{font-size:.95rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tx)}
 .rp{display:flex;flex-direction:column;gap:.25rem;min-height:0}.rp .g{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--r),1fr);grid-auto-flow:column;gap:.2rem .5rem}.rp .rw{font-size:1.1rem}.rp .rw .sp{font-size:.95rem}
 .rc{display:flex;flex-direction:column;gap:.6rem;min-height:0}
-.sg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(var(--c),minmax(0,1fr));grid-template-rows:repeat(var(--r),minmax(0,8.5rem));gap:.7rem;align-content:start}
-.sg .t{border-radius:.6rem;display:flex;align-items:center;justify-content:center;padding:.4rem .8rem;box-sizing:border-box;min-width:0;min-height:0}.sg .t.d{background:#0c1113;border:1px solid var(--bd)}.sg .t.l{background:#f4f6f5}.sg .t.c{border:0}.sg .t img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.sg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(var(--c),minmax(0,1fr));grid-template-rows:repeat(var(--r),minmax(0,1fr));gap:.7rem}
+.sg .sq{border-radius:.6rem;display:flex;align-items:center;justify-content:center;padding:.4rem .8rem;box-sizing:border-box;min-width:0;min-height:0}.sg .sq.d{background:#0c1113;border:1px solid var(--bd)}.sg .sq.l{background:#f4f6f5}.sg .sq.c{border:0}.sg .sq img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .bt{flex:none;display:flex;gap:2rem;align-items:stretch;background:var(--card);border:1px solid var(--bd);border-radius:.7rem;padding:.7rem 1.3rem;margin-top:.5rem}
 .bt .tm{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}.bt .tm.r{align-items:flex-end;text-align:right}
 .bt .tn{font-size:1.5rem;font-weight:700;line-height:1.1;margin-bottom:.35rem;overflow-wrap:anywhere}
@@ -4733,8 +4743,8 @@ function mdPanelHtml(players, e) {
   for (const g of L) { const k = kind(g); (k === "d" ? D : k === "l" ? Li : D.length <= Li.length ? D : Li).push(g); }
   const seq = []; let a = D, b = Li; // dark first; alternate while both pools have tiles, then the rest
   while (a.length || b.length) { if (a.length) seq.push(a.shift()); if (b.length) seq.push(b.shift()); }
-  const n = seq.length, cols = n <= 6 ? 2 : n <= 15 ? 3 : n <= 24 ? 4 : 5, rows = Math.ceil(n / cols);
-  const tile = g => `<span class="t ${kind(g) === "c" && !g.bc ? "l" : kind(g)}"${kind(g) === "c" && g.bc ? ` style="background:${e(g.bc)}"` : ""}><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
+  const n = seq.length, cols = n <= 6 ? 2 : n <= 15 ? 3 : n <= 24 ? 4 : 5, rows = Math.max(3, Math.ceil(n / cols)); // at least three rows deep so a few logos do not become huge tiles; the tiles share the whole height of the panel
+  const tile = g => `<span class="sq ${kind(g) === "c" && !g.bc ? "l" : kind(g)}"${kind(g) === "c" && g.bc ? ` style="background:${e(g.bc)}"` : ""}><img src="/api/logo/${e(g.id)}?v=${e(g.v)}" alt="" onerror="this.parentNode.remove()"></span>`;
   return `<div class="rc"><div class="fh">Our player sponsors</div><div class="sg" style="--c:${cols};--r:${rows}">${seq.map(tile).join("")}</div></div>`;
 }
 function mdTvInner(o) {
