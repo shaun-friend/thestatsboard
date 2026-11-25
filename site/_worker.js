@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.67.5 25-Nov-2026 Match Stats TV page: the Last updated line no longer overlaps the Powered by line at the foot.
 //   v3.67.4 25-Nov-2026 Match day TV page: names are no longer clipped at the bottom (the tail of g, y, p).
 //   v3.67.3 25-Nov-2026 Sponsor logo light tiles are pure white (Match day panel and Admin), so a logo with a white background no longer shows as a box.
 //   v3.67.2 25-Nov-2026 Match day TV page: the Last updated line no longer overlaps the Powered by line at the foot of the screen.
@@ -392,7 +393,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.67.4";
+const VERSION = "v3.67.5";
 const BUILD_DATE = "25-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -439,6 +440,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
 v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
 v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
 v3.67.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.2_match_day_footer_gap.zip | v3.67.1
@@ -794,6 +796,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.5 - Match Stats TV page: footer no longer overlaps
+- Owner report (25-Nov-2026, iPad): the Last updated line overlaps the Powered by line on the Match Stats page too.
+- Cause: the same too-small bottom margin (24 pixels) as the Match day page, on the Match Stats page and its head to head layout.
+- Fix: both now keep about 46 pixels at the foot; the page's fitting step shrinks the content slightly to make room.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.4 - Match day TV page: names no longer clipped
 - Owner report (25-Nov-2026): names are cut off at the bottom, for example the g in Vermigle.
@@ -3443,6 +3452,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.67.5", "Match Stats TV page: the small print at the foot no longer overlaps the Powered by line."],
       ["v3.67.4", "Match day TV page: the tails of letters like g, y and p are no longer cut off in names."],
       ["v3.67.3", "Sponsor logos: the light tile is now pure white, so logos with a white background blend in instead of showing a box."],
       ["v3.67.2", "Match day TV page: the line of small print at the foot no longer overlaps the Powered by line."],
@@ -8218,7 +8228,7 @@ if(cb){root.style.setProperty("--cb",hex(cb));root.style.setProperty("--kb",ink(
 body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--tr:#e3ebe5}
 *{box-sizing:border-box}html{font-size:min(1.05vw,1.9vh)}
 ${PAGE_GRAD}
-body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;padding:1rem 1.6rem max(1rem,24px);gap:.7rem}
+body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;padding:1rem 1.6rem max(2.8rem,46px);gap:.7rem}
 .mbar{display:none}.mu{color:var(--mu)}.top,.hd,.ft,.upd,.r,.ttl{flex:none}
 .ttl{text-align:center}.ttl p{margin:.25rem 0 0;color:var(--mu);font-size:1rem}
 .vn a.dl{color:inherit;text-decoration:none}.vb{margin:.5rem 0 .2rem}.vb a.dbtn{display:inline-block;background:#2f6fd0;color:#fff;text-decoration:none;font-weight:700;font-size:1rem;line-height:1;padding:.7rem 1.3rem;border-radius:99px;box-shadow:0 1px 3px rgba(0,0,0,.25)}@media (min-width:900px) and (min-height:561px){.vb{display:none}.vn a.dl{pointer-events:none;cursor:default}}.top{text-align:center}.top .k{font-size:1.4rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mu);font-weight:700}.top .dt{font-size:3.6rem;font-weight:700;line-height:1.05;margin:.15rem 0}.top .vn{font-size:1.8rem;color:var(--mu);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}${MWX_CSS}
@@ -8251,7 +8261,7 @@ body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);co
 .hsp{display:flex;gap:.2rem;height:2.3rem}.hsp .s{display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:700;border-radius:.4rem;overflow:hidden;white-space:nowrap;min-width:0}.hsp .s.wa{background:var(--ca);color:var(--ka)}.hsp .s.wb{background:var(--cb);color:var(--kb)}.hsp .s.wd{background:#7a6a2a;color:#fff}
 .hts{display:flex;gap:.9rem;justify-content:center}.tj{flex:1 1 0;max-width:15rem;min-width:0;border-radius:.6rem;padding:.4rem 1rem .45rem;text-align:center}.tj small{display:block;font-size:.85rem;opacity:.85}.tj b{display:block;font-size:1.9rem;line-height:1.1;white-space:nowrap}.tj em{display:block;font-style:normal;font-size:.85rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-top:.2rem}
 .tj.wa{background:var(--ca);color:var(--ka)}.tj.wb{background:var(--cb);color:var(--kb)}.tj.wd{background:#7a6a2a;color:#fff}
-@media(min-width:801px) and (min-height:561px){body.hx{gap:.35rem;padding-top:.5rem;padding-bottom:max(.9rem,24px)}body.hx .big{width:6rem;height:6rem;margin-bottom:.3rem}body.hx .big .ini{font-size:2rem}body.hx .nm{font-size:2rem}body.hx .tag{margin-top:.3rem;font-size:1rem;padding:.15rem 1.1rem}body.hx .top .dt{font-size:3.2rem}body.hx .t{height:1.65rem}body.hx .b{font-size:1rem}body.hx .r .c{font-size:1rem}body.hx .hsp{height:1.8rem}body.hx .hsp .s{font-size:1rem}body.hx .tj{padding:.25rem .6rem .3rem}body.hx .tj b{font-size:1.6rem}body.hx .tj small,body.hx .tj em{font-size:.75rem}body.hx .hav{font-size:.95rem}body.hx .fd{padding-bottom:.9rem}}
+@media(min-width:801px) and (min-height:561px){body.hx{gap:.35rem;padding-top:.5rem;padding-bottom:max(2.8rem,46px)}body.hx .big{width:6rem;height:6rem;margin-bottom:.3rem}body.hx .big .ini{font-size:2rem}body.hx .nm{font-size:2rem}body.hx .tag{margin-top:.3rem;font-size:1rem;padding:.15rem 1.1rem}body.hx .top .dt{font-size:3.2rem}body.hx .t{height:1.65rem}body.hx .b{font-size:1rem}body.hx .r .c{font-size:1rem}body.hx .hsp{height:1.8rem}body.hx .hsp .s{font-size:1rem}body.hx .tj{padding:.25rem .6rem .3rem}body.hx .tj b{font-size:1.6rem}body.hx .tj small,body.hx .tj em{font-size:.75rem}body.hx .hav{font-size:.95rem}body.hx .fd{padding-bottom:.9rem}}
 .hav{text-align:center;color:var(--mu);font-size:1.05rem}.hav b{color:var(--tx)}.hall{display:none}
 .note{margin:3rem auto;text-align:center;font-size:1.3rem;color:var(--mu)}
 .cupchip{display:inline-block;margin-left:.8rem;font-size:.9rem;letter-spacing:.06em;font-weight:700;text-transform:none;color:#f0c85a;background:rgba(224,182,76,.12);border:1px solid rgba(224,182,76,.5);border-radius:99px;padding:.1rem .8rem;vertical-align:middle}body.light .cupchip{color:#8a5a00;background:rgba(224,182,76,.18)}

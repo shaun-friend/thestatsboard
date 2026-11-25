@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.67.5 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.5_match_stats_footer.zip | v3.67.4
 v3.67.4 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.4_names_not_clipped.zip | v3.67.3
 v3.67.3 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.3_white_logo_tiles.zip | v3.67.2
 v3.67.2 | 25-Nov-2026 | RFU_Club_Dashboard_v3.67.2_match_day_footer_gap.zip | v3.67.1
@@ -396,6 +397,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.67.5 - Match Stats TV page: footer no longer overlaps
+- Owner report (25-Nov-2026, iPad): the Last updated line overlaps the Powered by line on the Match Stats page too.
+- Cause: the same too-small bottom margin (24 pixels) as the Match day page, on the Match Stats page and its head to head layout.
+- Fix: both now keep about 46 pixels at the foot; the page's fitting step shrinks the content slightly to make room.
+- Request limit: no change.
+- Docs: What's new
 
 v3.67.4 - Match day TV page: names no longer clipped
 - Owner report (25-Nov-2026): names are cut off at the bottom, for example the g in Vermigle.
