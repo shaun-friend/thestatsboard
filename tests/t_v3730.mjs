@@ -32,6 +32,8 @@ await p.goto('https://x.test/sponsor-players');await p.waitForSelector('#ls .pr'
 const q=s=>p.$$eval(s,l=>l.length);const vis=s=>p.$eval(s,e=>!e.hidden&&getComputedStyle(e).display!=='none');const txt=s=>p.$eval(s,e=>e.textContent);
 const errs=[];p.on('pageerror',e=>errs.push(String(e)));
 c('three tabs, Players on, no warning strip',await p.$$eval('.tb a',l=>l.map(a=>a.querySelector('b').textContent).join())==='Players,Sponsors,Admin'&&!/warning/i.test(html.slice(html.indexOf('<body')).replace(/Season set-up/g,'')));
+c('tabs are styled as a row of buttons',await p.$eval('.tb',e=>getComputedStyle(e).display)==='flex'&&await p.$eval('#t1',e=>getComputedStyle(e).backgroundColor)!=='rgba(0, 0, 0, 0)');
+if(process.env.SHOT)await p.screenshot({path:process.env.SHOT+'h1.png'});
 c('Players: each player once, three need a sponsor',await q('#ls .pr[data-go]')===3);
 await p.selectOption('#ft',S1);c('team picker limits the list',await q('#ls .pr[data-go]')===1);await p.selectOption('#ft','');
 // Add a player from Players tab
@@ -56,6 +58,7 @@ await p.click('#ch button[data-sf="all"]');sp.length=0;await p.fill('#nsn','Dart
 c('add sponsor',sp[0]&&sp[0].act==='add'&&/Dart Dental/.test(await txt('#ls')));
 await p.click('#sr summary');await p.fill('#pt','Paste One');await p.click('#ab');await p.waitForTimeout(300);c('paste list posts bulk',sp.some(b=>b.act==='bulk'));
 await p.click('#ls .pr[data-go="s:aaaaaaa1"] .pn');
+if(process.env.SHOT)await p.screenshot({path:process.env.SHOT+'h2.png'});
 c('sponsor panel: players, logo block, rename, export, remove',/Owen Garner/.test(await txt('#det'))&&await q('#rn')===1&&await q('#det button[data-act="sexp"]')===1&&/logo/i.test(await txt('#det')));
 sp.length=0;await p.fill('#rn','Thatchers Cider');await p.click('#det button[data-act="ren"]');await p.waitForTimeout(300);
 c('rename',sp[0]&&sp[0].act==='rename'&&/Thatchers Cider/.test(await txt('#ls')));
@@ -67,6 +70,7 @@ await p.click('#ls .pr[data-go="s:aaaaaaa2"] .pn');c('add a new player from a sp
 await p.click('#det button[data-act="pnew"]');c('form has sponsor preselected',await p.$eval('#fs',e=>e.value)==='aaaaaaa2');
 // Admin
 await p.click('#t3');await p.waitForTimeout(500);
+if(process.env.SHOT)await p.screenshot({path:process.env.SHOT+'h3.png',fullPage:true});
 c('Admin tab shows four cards and no links off the page',await vis('#adm')&&await q('#adm .cd2')===4&&await q('#adm a')===0&&!(await vis('#hub')));
 c('Admin: set-up, backup, logos, exports present',await q('#scb')===1&&await q('#bd')===1&&await q('#ld')===1&&await q('#ex1')===1&&await q('#ex2')===1);
 c('last backup shows days',/3 days ago/.test(await txt('#lb')),await txt('#lb'));
