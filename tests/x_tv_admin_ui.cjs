@@ -16,7 +16,7 @@ ck('team with a crest shows it in its header',await p.locator('.tvg .tvh img.tvc
 ck('team whose crest is missing keeps its badge',(await p.locator('.tvg .tvh .tvb2').count())>=1);
 await grp(1).locator('.tvpri').click();                 // add all for 1XV
 ck('add all gives 4 rows',await grp(1).locator('.tvr').count()===4);
-await grp(0).locator('.tvadd').click();                  // match centre
+await grp(0).locator('.tvadd',{hasText:'Match Centre'}).click();                  // match centre
 ck('centre added',await grp(0).locator('.tvr').count()===1);
 await grp(1).locator('.tvr').nth(3).locator('.tvx').click(); // remove leaders
 ck('remove works',await grp(1).locator('.tvr').count()===3);

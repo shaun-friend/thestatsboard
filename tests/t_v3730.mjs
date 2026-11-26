@@ -78,6 +78,13 @@ c('logo stats',/Logos/.test(await txt('#lst'))&&/Sponsors without a logo/.test(a
 const [dl2]=await Promise.all([p.waitForEvent('download'),p.click('#ex1')]);c('all-players export is csv',/sponsored-players-.*\.csv/.test(dl2.suggestedFilename()));
 const [dl3]=await Promise.all([p.waitForEvent('download'),p.click('#ex2')]);c('sponsors export is csv',/sponsors-all-teams/.test(dl3.suggestedFilename()));
 posts.length=0;await p.click('#rsb');await p.click('#rsb');await p.waitForTimeout(300);c('clear ticks asks twice',posts.some(b=>b.act==='reset'));
+// cards view: all logos and players
+await p.click('#t2');await p.waitForTimeout(300);await p.click('#ch button[data-vm="cards"]');await p.waitForTimeout(200);
+c('All logos and players view shows a card per sponsor and hides the panel',await q('.scd')===(await q('#ls .scd'))&&await q('.scd')>=3&&!(await vis('#det')),String(await q('.scd')));
+c('cards list the players as chips with their team',await p.$$eval('.scd .pc',l=>l.length)>=1&&/Vandals|Ivybridge/.test(await txt('.scd')));
+await p.click('#ch button[data-sf="nop"]');c('filters still apply in the cards view',(await p.$$eval('.scd b',l=>l.map(b=>b.textContent))).every(n=>/Moor Motors|Dart Dental|Paste One/.test(n)));
+await p.click('#ch button[data-sf="all"]');await p.click('.scd');await p.waitForTimeout(200);
+c('clicking a card opens that sponsor in the list view',await vis('#det')&&await q('#rn')===1&&await q('.scd')===0);
 c('no page errors',errs.length===0,errs.join('|'));
 await p.setViewportSize({width:390,height:800});await p.click('#t1');await p.waitForTimeout(300);
 c('phone: no sideways scroll',await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));

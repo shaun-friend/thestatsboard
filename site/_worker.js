@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.74.0 26-Nov-2026 Sponsors thank-you TV page: optional rotation page, groups of teams, 4 x 2 tiles with tall tiles for sponsors with 4 or more players, one dot per slide; All logos and players view on the Sponsors tab.
 //   v3.73.0 26-Nov-2026 Players and sponsors hub refresh: sponsor admin, add and remove players, logos, backup and exports all inside the one page, nothing links away.
 //   v3.72.0 26-Nov-2026 Past meetings: a rarely used Admin page that looks back through every season the RFU results feed holds for any meeting between one of our teams and another club.
 //   v3.71.0 26-Nov-2026 Players and sponsors: one hub (Players, Sponsors, Admin) with a team picker, a list beside a panel, jump links between a player and their sponsors, give a sponsor to several ticked players.
@@ -400,7 +401,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.73.0";
+const VERSION = "v3.74.0";
 const BUILD_DATE = "26-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -415,6 +416,8 @@ How releases are controlled
 - Test on DEV first (PIN protected), compare /version on both sites, then deploy the same zip to PROD.
 
 Parked ideas (not built; move a line to the release table when it ships)
+- Club sponsors (idea 26-Nov-2026, parked by the owner: not now): some sponsors back the club, not a player. A way to record them (for example a "club sponsor" flag with no players) and show them on the TV sponsors page or an all-club slide later. Not built; the sponsors thank-you TV page is for player sponsors only.
+- Sponsors thank-you TV page (agreed design 26-Nov-2026, not yet built): an optional page in the TV rotation, off by default. Groups of teams (for example Men = 1XV + Vandals, Women on its own), 4 x 2 white tiles per slide in the club style, player names in capitals under each logo, no footer, no all-club slide; one time per slide; round total counts the slides; a Needs attention note on Overview when the slide count changes. Also an All logos and players view on the Sponsors tab.
 - Win probability on the next game (idea 14-Nov-2026; v3.30 built Match Stats, the team page and the check page; built on the Match Centre in v3.30.1 and renamed Win Predictor; not on the Fixtures board by owner decision; original notes follow): a % chance of a home win, draw or away win for the next fixture, shown on Match Stats and the Next game views. Inputs the site already has: both teams' league position, points and points difference per game, recent form, the home and away split and the head-to-head from the Opposition report. Options to weigh: (a) a simple rating from points difference per game plus a home advantage, turned into a percentage; (b) a rating that updates game by game across the whole division (Elo style); (c) a plain banded wording (Favourites, Even, Underdogs) with no number. Decisions so far (14-Nov-2026, mock-ups in a published page): the two chances add up to 100% (a draw is split evenly); it is shown wherever the next game is shown, as a split bar with written percentages: option A on Match Stats and the phone Next game view, C on TV screens (not on the Fixtures board, owner decision 14-Nov-2026), D on Match Centre cards; no "rough guide" wording; a "How is this worked out?" line on phones only, and also written up in the Documentation; history is this season at full weight, last season about half and the season before about a quarter, with a team new to a division starting at the division average; hidden for cups and walkovers, and for fewer than about 4 games; an Admin switch under Screens, off until the DEV check of past games has been read. Still to settle: which side is on the left (the rest of the site puts the home side on the left) and bar colours. To build: the rating and percentage, a DEV-only page that predicts every finished game from the games before it and reports how often the favourite won, then the bar on each page.
 - Shorter links (idea 14-Nov-2026, follows v3.29 Our teams; nothing built): now that Admin holds each team's number, league and name, a link could be just /?team=11039&view=fixtures&layout=tv, with the competition, division, team name and friendly name looked up from the Our teams list. The long links keep working. A later step could stop honouring friendlyName in a link at all, so names are only ever set in Admin and every link stays short.
 - Club-name addresses for several clubs (idea 14-Nov-2026, the eventual address the owner wants; nothing built): thestatsboard.co.uk/<name> (for example /ivybridge) opens that club's own site, with its own Our teams list, colours, PIN and settings. v3.29 stores the team list inside the club's own settings record, and every page reads it through one lookup, so this can be added without reworking the pages. To settle later: whether the name in the address is the club or a team, how a club signs up, one PIN and settings record per club, and what the bare address shows.
@@ -447,6 +450,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.74.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.74.0_sponsors_tv_page.zip | v3.73.0
 v3.73.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.73.0_sponsors_hub_refresh.zip | v3.72.0
 v3.72.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.72.0_past_meetings.zip | v3.71.0
 v3.71.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.71.0_players_sponsors_hub.zip | v3.70.0
@@ -810,6 +814,15 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.74.0 - Sponsors thank-you TV page
+- Owner request (26-Nov-2026): a page for the TV that thanks the sponsors, with each sponsor's logo and the players they back, in the style of the slide made by hand; optional, off by default, inside the TV rotation, one dot per slide; also a way to see every logo and its players on the Sponsors tab. Mock-ups approved.
+- New: Admin, TV rotation, All teams, "+ Add the sponsors thank-you". Groups of teams (for example Men = 1XV + Vandals, Women alone), each with its own slides; a player in two teams of one group is listed once. 4 columns by 2 rows per slide; a sponsor with 4 or more players gets a tall tile with the names stacked (over 10 names in two columns, over 20 "and N more"). Columns are shared out evenly between a group's slides. Soft pale green style, no footer or stamp. Every slide is one step of the rotation (its own dot and its own seconds), at /sponsors-tv?g=<group>&p=<slide>.
+- Round total counts the slides; changes to groups show "counted again on Save". Overview, Needs attention, says when the slide count has changed since TV rotation was last saved (the count is stored at each save).
+- Sponsors tab: new All logos and players view (cards with logo and player chips; filters and team box apply; click a card to edit it).
+- Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
+- Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
+- Docs: TV rotation (one rotating link), What's new
 
 v3.73.0 - Players and sponsors hub refresh
 - Owner request (26-Nov-2026): the hub still sent you to other pages for backup and logos and the Admin tab did not work; wanted one page where sponsor admin, player admin, import/export and logo stats are all done (mock-up approved, no warning strip).
@@ -3175,6 +3188,7 @@ const DOCS = [
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
     { v: "/matchday", values: "none", where: "Club PIN", what: "Match day: the team sheets our teams have entered for a chosen match day, in shirt order, with each player's sponsor, who is available to sponsor, withheld names and new players, and a Copy list button. When more than one of our teams plays on the chosen day, a team box above the sheets lists each of them (team v opposition, Home or Away, and whether the sheet is ready); choose a team to see only that team. It starts on a team whose sheet is ready. Copy all still copies every team that has a sheet.", ex: [["Match day", "/matchday"]] },
     { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
+    { v: "/sponsors-tv", values: "g, p", where: "Open (a TV frame)", what: "One slide of the sponsors thank-you page for the TV rotation: g is the group (0 is the first) and p the slide (1 is the first). Used by the rotator; set up in Admin, TV rotation.", ex: [["First slide", "/sponsors-tv?g=0&p=1"]] },
     { v: "/past-meetings", values: "none", where: "Club PIN", what: "Past meetings: choose one of our teams and search for another club to see every meeting the RFU results feed holds, with the score and a win, draw or loss, and how far back the feed goes. One season is read at a time, from the current season back.", ex: [["Past meetings", "/past-meetings"]] },
     { v: "/sponsor-list", values: "none", where: "Club PIN", what: "Sponsor list: every sponsor with the players they sponsor this season, filtered by team (all teams by default), with an Export button that downloads the list as a CSV file.", ex: [["Sponsor list", "/sponsor-list"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
@@ -3290,6 +3304,7 @@ const DOC_SECTIONS = [
       "Add all pages for a team, or use + Add a page to add one at a time. The Match Centre sits under All teams.",
       "Each page has its own on/off switch, an up and down button for the order, a seconds stepper (5 to 120) and Remove. The arrows next to a team move the whole team.",
       "Under each page, Shows every day is the default; tap Choose days (or Change) to open the day buttons (Mo to Su) that choose the days of the week it is shown; Every day and Weekends are shortcuts. A page left on every day shows every day. The day is the UK day, and the TV drops or brings back pages within about 2 minutes of midnight. At least one day must stay on; to stop a page altogether, use its switch. One full round lasts counts only the pages due today.",
+      "The Thank you to our sponsors page (add it under All teams) shows each group of teams as slides of sponsor logos with the names of the players they back: groups you set up there, 8 sponsors to a slide, and a tall tile for a sponsor with four or more players. Every slide is a step in the round with its own dot and its own seconds, so the round total counts them, and the number of slides follows your sponsors and players.",
       "Under the link, One full round lasts shows the total of every page that is switched on, in minutes and seconds and as plain seconds, so you can set the same display time on a digital signage system. It updates as you change seconds or switch pages, before you save.",
       "Theme chooses dark or light for every page. Two optional switches add a thin strip along the bottom, below the pages so nothing is covered: Show the page name, and Show dots and a progress line (both off by default).",
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
@@ -3512,6 +3527,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.74.0", "Thank you to our sponsors, an optional page for the TV rotation (off until you add it in Admin, TV rotation). Sponsors with their players, in groups of teams you choose (for example Men and Women), 4 across and 2 down, with a tall tile for a sponsor with four or more players so every name can be read. Each slide is its own step with its own dot, and the round total counts them. Overview warns when the number of slides changes. The Sponsors tab also has an All logos and players view."],
       ["v3.73.0", "Players and sponsors page refreshed. Three tabs and nothing sends you to another page. Players: add a player, remove one from the club list, edit the name we use, give or take off sponsors. Sponsors: add, paste a list, rename, remove, logos and tile colour, add or remove players, export one sponsor. Admin: season set-up, backup (with days since the last one), logos with stats, and exports."],
       ["v3.72.0", "New Admin page, Past meetings (Club set-up): choose one of our teams and an opponent and it looks back through every season the RFU results feed holds, listing each meeting with its score and a win, draw or loss, and saying how far back the feed goes."],
       ["v3.71.0", "Players and sponsors is one hub with three tabs. Players lists every current player once, with a team picker and a panel to give or take off up to two sponsors; tick several players to give them one sponsor together. Sponsors shows each sponsor with its players and lets you add, remove or rename. A sponsor on a player opens that sponsor, and a player on a sponsor opens that player. Admin holds Season set-up and the backup and logo links."],
@@ -3885,24 +3901,126 @@ const SETTINGS_DEFAULT = () => ({
   tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", name: false, dots: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
   savedAt: ""
 });
+// v3.74.0: the sponsors thank-you page for the TV. Sponsors with the players they back, for a group of teams, packed 4 columns wide
+// and two rows deep. A sponsor with four or more players gets a tall tile (a whole column) so every name can be stacked and read; the
+// others share a column two to a tile. The columns are shared out evenly between the slides, so the last slide is never nearly empty.
+function spTvPack(rows) {
+  const cols = []; let half = null;
+  for (const r of rows) {
+    if (r.names.length >= 4) { cols.push([r]); half = null; }
+    else if (half) { half.push(r); half = null; }
+    else { half = [r]; cols.push(half); }
+  }
+  const C = cols.length, k = Math.ceil(C / 4), base = k ? Math.floor(C / k) : 0, extra = k ? C % k : 0, out = []; let at = 0;
+  for (let i = 0; i < k; i++) { const n = base + (i < extra ? 1 : 0); out.push({ cols: cols.slice(at, at + n) }); at += n; }
+  return out;
+}
+// The groups of teams for the sponsors page; with none set, one group of every team that shows.
+function spTvGroups(item, teams) {
+  const vis = teams.filter(t => !t.hidden).map(t => String(t.team));
+  const gs = item && Array.isArray(item.g) ? item.g.map(g => ({ n: g.n, t: g.t.filter(x => vis.includes(x)) })).filter(g => g.t.length) : [];
+  return gs.length ? gs : [{ n: "All teams", t: vis }];
+}
+// For each group: the sponsors that have at least one player in its teams, with the players' names (a player in two of the group's teams counts once), packed into slides.
+async function spTvSlides(kv, season, item, teams) {
+  const groups = spTvGroups(item, teams);
+  let sponsors = [], rec = null;
+  try { sponsors = cleanSponsors(await kv.get(SPONSOR_KEY, { type: "json" })); rec = await splinkRead(kv, season); } catch (_) { return groups.map(g => ({ n: g.n, slides: [] })); }
+  const byId = new Map(sponsors.map(x => [x.id, x])), altOf = {};
+  for (const tk of Object.keys(rec.t)) for (const no of Object.keys(rec.t[tk])) for (const a of (rec.t[tk][no].a || [])) altOf[a] = no;
+  return groups.map(g => {
+    const per = new Map();
+    for (const tk of g.t) {
+      const tm = TEAMS.find(x => String(x.team) === tk), hide = tm ? sheetHidesNames(tm.name + " " + (tm.league || "") + " " + tm.teamName) : false, ent = rec.t[tk] || {};
+      for (const no of Object.keys(ent)) {
+        const e = ent[no], key = altOf[no] || no, ids = [e.s, e.s2].filter(x => x && byId.has(x));
+        const nm = hide && !e.nm ? "" : (e.nm || e.n || "");
+        if (!ids.length || !nm) continue;
+        for (const id of ids) { let m = per.get(id); if (!m) { m = new Map(); per.set(id, m); } if (!m.has(key)) m.set(key, nm); }
+      }
+    }
+    const lc = x => String(x).toLowerCase();
+    const rows = [...per.entries()].map(([id, m]) => { const x = byId.get(id); return { id, name: x.name, v: x.logo ? x.logo.v : "", names: [...m.values()].sort((a, b) => lc(a) < lc(b) ? -1 : lc(a) > lc(b) ? 1 : 0) }; }).sort((a, b) => lc(a.name) < lc(b.name) ? -1 : lc(a.name) > lc(b.name) ? 1 : 0);
+    return { n: g.n, slides: spTvPack(rows) };
+  });
+}
+// The slide count for each group (what the rotator and the Admin round total use). Only read when the sponsors page is switched on in the plan.
+async function spTvCounts(s, url, anyState) {
+  const item = (s.tv.items || []).find(x => x.page === "sponsors");
+  if (!item || (!anyState && !item.on)) return [];
+  const kv = kvOf(); if (!kv) return [];
+  const season = dateSeasonName(todayIso(url, false)), teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [];
+  try { return (await spTvSlides(kv, season, item, teams)).map(g => ({ n: g.n, count: g.slides.length })); } catch (_) { return []; }
+}
+async function sponsorsTvResponse(url) {
+  const s = await siteSettings(), item = (s.tv.items || []).find(x => x.page === "sponsors"), kv = kvOf();
+  const gi = Math.max(0, parseInt(url.searchParams.get("g"), 10) || 0), pi = Math.max(1, parseInt(url.searchParams.get("p"), 10) || 1);
+  let slide = null;
+  if (item && kv) {
+    try { const d = await spTvSlides(kv, dateSeasonName(todayIso(url, false)), item, Array.isArray(s.club && s.club.teams) ? s.club.teams : []); slide = d[gi] && d[gi].slides[pi - 1] || null; } catch (_) { slide = null; }
+  }
+  return new Response(spTvPage(slide), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+}
+function spTvPage(slide) {
+  const E = x => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const club = CLUB_LABEL.replace(/\s+RFC$/i, " Rugby Club").toUpperCase();
+  let g = "";
+  if (slide) {
+    const n = Math.max(slide.cols.length, 1);
+    slide.cols.forEach((c, ci) => {
+      c.forEach((r, ri) => {
+        const long = r.names.length > 10, shown = r.names.slice(0, 20), more = r.names.length - shown.length;
+        const place = c.length === 1 ? "grid-row:1 / span 2" : "grid-row:" + (ri + 1);
+        const logo = r.v ? '<img alt="' + E(r.name) + '" src="/api/logo/' + E(r.id) + "?v=" + E(r.v) + '">' : '<span class="nl">' + E(r.name) + "</span>";
+        g += '<div class="c" style="grid-column:' + (ci + 1) + ";" + place + '"><div class="lg">' + logo + '</div><div class="n' + (long ? " two" : r.names.length > 3 ? " tl" : "") + '">' + shown.map(x => "<div>" + E(x) + "</div>").join("") + (more > 0 ? "<div>and " + more + " more</div>" : "") + "</div></div>";
+      });
+    });
+    g = '<div class="g" style="grid-template-columns:repeat(' + n + ',minmax(0,1fr));width:' + (n * 24.5) + '%">' + g + "</div>";
+  }
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Thank you to our sponsors</title>
+<!-- class="ver" rfu-soft : no stamp or refresh script here; the page tells the rotator it is ready itself -->
+<style>html,body{margin:0;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+.st{container-type:inline-size;width:100vw;height:100vh}
+.fr{height:100%;box-sizing:border-box;padding:2.4cqw 3cqw 2.6cqw;display:flex;flex-direction:column;background:radial-gradient(80cqw 50cqw at 50% -20%,#fff,transparent 70%),linear-gradient(170deg,#e4f1e8,#cfe5d6)}
+.k{text-align:center;font-size:2.2cqw;font-weight:700;letter-spacing:.3em;color:#2d7a4a}
+.h{text-align:center;font-size:5.2cqw;font-weight:900;font-style:italic;line-height:1.05;color:#0f4d27;margin:.5cqw 0 2cqw}.h em{color:#2fa65d}
+.g{flex:1;display:grid;grid-template-rows:1fr 1fr;gap:2.2cqw 2cqw;min-height:0;margin:0 auto}
+.c{background:#fff;border-radius:3.2cqw;box-shadow:0 .6cqw 2cqw rgba(20,80,45,.16);display:flex;flex-direction:column;align-items:center;padding:1.8cqw 1.6cqw 1.5cqw;min-height:0;min-width:0;overflow:hidden}
+.lg{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0}.lg img{max-width:100%;max-height:100%;object-fit:contain}
+.nl{font-weight:800;font-size:2.3cqw;text-align:center;line-height:1.1;color:#14602f}
+.n{margin-top:.8cqw;font-size:1.55cqw;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#14602f;text-align:center;line-height:1.3;width:100%}
+.n.tl{font-size:1.5cqw}.n.two{font-size:1.3cqw;columns:2;column-gap:1cqw}
+</style></head><body><div class="st"><div class="fr"><div class="k">${E(club)}</div><div class="h">THANK YOU TO OUR <em>SPONSORS</em></div>${g}</div></div>
+<script>(function(){function go(){try{if(top!==self){parent.postMessage("rfu-ver|${VERSION}","*");parent.postMessage("rfu-sr-ready","*")}}catch(e){}}if(document.readyState==="complete")setTimeout(go,300);else addEventListener("load",function(){setTimeout(go,300)})})()</script></body></html>`;
+}
 // v3.37.0: the TV screen. One link, /<club>/tv, rotates the club's TV pages. Each page is a normal TV page in its own frame, so it is
 // its own request with its own 50-call budget; this page makes no outside calls. Settings (tv): items [{page, team, secs, on}] (order
 // inside a team is the list order; d, optional, the days it is shown: numbers 1 to 7, Monday is 1, left out for every day), order (group keys: "all" for the Match Centre, else a team number), off (group keys switched off),
 // theme, name (page name strip), dots (dots and progress line), auto (add new teams automatically), seen (team numbers known at the last save).
-const TV_PAGES = { centre: "Match Centre", fixtures: "Fixtures board", match: "Next game", table: "League table", leaders: "League Leaders" };
+const TV_PAGES = { centre: "Match Centre", fixtures: "Fixtures board", match: "Next game", table: "League table", leaders: "League Leaders", sponsors: "Thank you to our sponsors" };
 const TV_TEAM_PAGES = ["fixtures", "match", "table", "leaders"];
 function cleanTv(r, ids) {
   r = r && typeof r === "object" ? r : {};
   const idset = new Set(ids), items = [], dup = new Set();
   for (const x of Array.isArray(r.items) ? r.items : []) {
     if (!x || typeof x !== "object" || items.length >= 80) continue;
-    const page = String(x.page || ""), team = page === "centre" ? "all" : String(x.team == null ? "" : x.team);
-    if (!TV_PAGES[page] || (page !== "centre" && !idset.has(team))) continue;
+    const page = String(x.page || ""), team = page === "centre" || page === "sponsors" ? "all" : String(x.team == null ? "" : x.team);
+    if (!TV_PAGES[page] || (page !== "centre" && page !== "sponsors" && !idset.has(team))) continue;
     const k = page + "|" + team; if (dup.has(k)) continue; dup.add(k);
     const n = Math.round(Number(x.secs));
     const it = { page, team, secs: n >= 5 && n <= 120 ? n : (page === "centre" ? 25 : 20), on: x.on !== false };
     const dd = [...new Set((Array.isArray(x.d) ? x.d : []).map(Number).filter(v => Number.isInteger(v) && v >= 1 && v <= 7))].sort((a, b) => a - b);
     if (dd.length && dd.length < 7) it.d = dd;
+    if (page === "sponsors") { // v3.74.0: the groups of teams whose sponsors are thanked, and how many slides there were at the last save
+      const gs = [];
+      for (const q of Array.isArray(x.g) ? x.g : []) {
+        if (!q || typeof q !== "object" || gs.length >= 6) continue;
+        const t = [...new Set((Array.isArray(q.t) ? q.t : []).map(String).filter(v => idset.has(v)))];
+        if (t.length) gs.push({ n: String(q.n == null ? "" : q.n).replace(/[<>]/g, "").trim().slice(0, 30) || "Group " + (gs.length + 1), t });
+      }
+      if (gs.length) it.g = gs;
+      const sn = Math.round(Number(x.sn)); if (Number.isFinite(sn) && sn >= 0 && sn <= 999) it.sn = sn;
+    }
     items.push(it);
   }
   const keys = ["all", ...ids], order = [];
@@ -3928,8 +4046,9 @@ function tvGroups(s) {
 }
 // The pages the TV screen plays: switched-on pages of teams that are switched on and not hidden in Our teams.
 // The address of one TV page. withV adds the release stamp (the rotator's frames use it; a link saved on a screen does not, so it stays valid).
-function tvPageUrl(page, t, th, screen, withV, sid) {
+function tvPageUrl(page, t, th, screen, withV, sid, spx) {
   const q = new URLSearchParams();
+  if (page === "sponsors") { q.set("g", String(spx && spx.g || 0)); q.set("p", String(spx && spx.p || 1)); q.set("theme", th); if (screen) q.set("screen", screen); if (withV) q.set("_v", VERSION); return "/sponsors-tv?" + q.toString(); }
   if (page === "centre") { q.set("view", "stack"); q.set("layout", "tv"); } // v3.37.18: layout=tv keeps the Message us link off a TV screen (the page is otherwise the same)
   else {
     if (!t) return null;
@@ -3941,7 +4060,7 @@ function tvPageUrl(page, t, th, screen, withV, sid) {
 }
 // v3.45.0: today's weekday in UK time, Monday = 1 ... Sunday = 7. A page with days (d) is only in the plan on those days.
 const ukDay = dt => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf((dt || new Date()).toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" })) + 1;
-function tvPlan(s, screen, day) {
+function tvPlan(s, screen, day, spx) {
   const today = day || ukDay(), out = [], teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [], th = s.tv.theme;
   for (const g of tvGroups(s)) {
     if (!g.on || g.hidden) continue;
@@ -3949,6 +4068,10 @@ function tvPlan(s, screen, day) {
     for (const it of g.items) {
       if (!it.on) continue;
       if (Array.isArray(it.d) && !it.d.includes(today)) { out.skipped = (out.skipped || 0) + 1; continue; }
+      if (it.page === "sponsors") { // one step (and one dot) for each slide of each group
+        (spx || []).forEach((g, gi) => { for (let p = 1; p <= g.count; p++) out.push({ k: "sponsors", n: TV_PAGES.sponsors + " · " + g.n + (g.count > 1 ? " " + p + "/" + g.count : ""), u: tvPageUrl("sponsors", null, th, screen, true, null, { g: gi, p }), s: it.secs }); });
+        continue;
+      }
       const u = tvPageUrl(it.page, t, th, screen, true);
       if (!u) continue;
       out.push({ k: it.page, n: TV_PAGES[it.page] + (t ? " · " + (t.name || t.short || "") : ""), u, s: it.secs });
@@ -4338,13 +4461,13 @@ async function noticeInject(html, url, isDev) {
   const n = tvNoticeFor(s, url, isDev);
   return n && /<body[^>]*>/i.test(html) ? html.replace(/<body([^>]*)>/i, m => m + tvNoticeHtml(n, false, url.searchParams.get("view") === "stack" ? (html.includes('data-ly="') ? 1 : ((html.match(/class="rw"/g) || []).length || 3)) : false)) : html;
 }
-function adminPage(theme, isDev, s, kvOk) {
+function adminPage(theme, isDev, s, kvOk, spx) {
   const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
   const sw = (id, on, label, hint) => `<div class="r"><div><b>${label}</b><small>${hint}</small></div><label class="tg"><input type="checkbox" id="${id}"${on ? " checked" : ""}><span></span></label></div>`;
   const seg = (name, cur, opts) => `<div class="seg">${opts.map(o => `<label><input type="radio" name="${name}" value="${o[0]}"${cur === o[0] ? " checked" : ""}><span>${o[1]}</span></label>`).join("")}</div>`;
   const styleOpts = [["info", "Information"], ["warning", "Warning"]];
   const h = s.notices.home, v = s.notices.tv, m = s.maintenance;
-  const tvJson = JSON.stringify({ groups: tvGroups(s).map(g => ({ key: g.key, name: g.name, short: g.short, on: g.on, hidden: g.hidden, items: g.items.map(i => ({ page: i.page, secs: i.secs, on: i.on, d: i.d })) })), today: ukDay(), ids: (s.club.teams || []).map(t => String(t.team)), slug: CLUB_ID, pages: TV_PAGES }).replace(/</g, "\\u003c");
+  const tvJson = JSON.stringify({ groups: tvGroups(s).map(g => ({ key: g.key, name: g.name, short: g.short, on: g.on, hidden: g.hidden, items: g.items.map(i => ({ page: i.page, secs: i.secs, on: i.on, d: i.d, g: i.g, sn: i.sn })) })), teams: (s.club.teams || []).filter(t => !t.hidden).map(t => ({ id: String(t.team), name: t.name || t.short || String(t.team) })), spg: spTvGroups((s.tv.items || []).find(x => x.page === "sponsors"), s.club.teams || []), spn: spx || [], today: ukDay(), ids: (s.club.teams || []).map(t => String(t.team)), slug: CLUB_ID, pages: TV_PAGES }).replace(/</g, "\\u003c");
   const setup = kvOk ? "" : `<div class="card"><h3>Settings storage is not connected</h3><p class="msg">The site is running on its default settings. To change settings here, connect a KV namespace: in Cloudflare open the Pages project, Settings, Bindings, Add, KV namespace, name the variable <b>SETTINGS</b>, then redeploy. Use a separate namespace for the DEV and PROD projects so test notices never reach the live site.</p></div>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Admin</title>
 <style>
@@ -4373,7 +4496,7 @@ ${MENU_CSS}
 .tvb{min-width:36px;min-height:38px;border-radius:8px;border:1px solid #3a4a43;background:#16201c;color:#e6efe9;font:inherit;font-size:15px;cursor:pointer}
 .tvx{background:none;border:0;color:#e08a82;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;min-height:38px}
 .tvad{padding:8px 14px 10px 28px;border-top:1px solid #1d2925;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tvnote{color:#a9bab1;font-size:14px;flex:1;min-width:180px}
-.tvadd{min-height:40px;padding:0 14px;border-radius:8px;border:1px dashed #3a6a4c;background:transparent;color:#7fd89a;font:inherit;font-weight:700;cursor:pointer}
+.tvsp{padding:10px 14px 12px;border-top:1px solid #1c2824;background:#0d1315}.tvsp>b{font-size:14px}.tvspg{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1px solid #26312d;border-radius:12px;padding:8px;margin:8px 0}.tvspn{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid #3a4a42;background:#0c1113;color:inherit;width:140px;min-height:40px}.tvspt{display:flex;gap:6px;flex-wrap:wrap;flex:1}.tvpl{min-height:36px;padding:0 12px;border-radius:99px;border:1px solid #2c3a34;background:#18211e;color:#cfd8d3;font:inherit;font-size:13px;font-weight:700;cursor:pointer}.tvpl.on{background:#2f9d57;border-color:#2f9d57;color:#fff}.tvadd{min-height:40px;padding:0 14px;border-radius:8px;border:1px dashed #3a6a4c;background:transparent;color:#7fd89a;font:inherit;font-weight:700;cursor:pointer}
 .tvpri{min-height:40px;padding:0 16px;border-radius:8px;border:0;background:#2f9d57;color:#06140c;font:inherit;font-weight:700;cursor:pointer}
 body.light .tvl,body.light .tvg{background:#fff;border-color:#cbd8ce}body.light .tvh{background:#eaf3ed}body.light .tvr,body.light .tvad{border-color:#e0e9e2}body.light .tvb{background:#f1f6f2;color:#14301e;border-color:#b9c9bd}body.light .tvb2{background:#e3f0e7;border:1px solid #cbd8ce}body.light .tvnote,body.light .tvh .tn small{color:#53665a}
 .ha{display:inline-block;font:700 11px Arial,Helvetica,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:1px 6px;background:#15301f;color:#7fe0a6}.ha.a{background:#33280f;color:#f2b866}body.light .ha{background:#dff3e5;color:#1b6b3a}body.light .ha.a{background:#fdeccc;color:#9a5b00}.ovq{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 0}.ovq a{flex:1;min-width:120px;text-align:center;text-decoration:none;padding:12px;border-radius:12px;font-weight:700;font-size:14px;background:#2f9d57;color:#fff}.ovq a.s{background:#18211e;border:1px solid #2c3a34;color:#e6efe9}
@@ -4587,10 +4710,19 @@ TVDN.forEach(function(nm,i){var d=i+1,on=!it.d||it.d.indexOf(d)>=0,b=tvE("button
 [["Every day",null],["Weekends",[6,7]]].forEach(function(q){var b=tvE("button","tvdb pre",q[0]);b.type="button";b.addEventListener("click",function(){it.d=q[1]?q[1].slice():undefined;tvDraw();md()});w.appendChild(b)});return w}
 function tvMove(a,i,d){var j=i+d;if(j<0||j>=a.length)return;var x=a[i];a[i]=a[j];a[j]=x}
 function tvFmt(sec){var m=Math.floor(sec/60),s=sec%60;return m?m+" min "+s+" s":s+" s"}
+function tvSpN(it){var gs=it.g||TVI.spg,n=0,est=false;gs.forEach(function(g,i){var q=TVI.spg[i],c=TVI.spn[i];if(q&&c&&JSON.stringify([q.n,q.t])===JSON.stringify([g.n,g.t]))n+=c.count;else{n+=Math.max(1,c?c.count:1);est=true}});return{n:n,est:est}}
+function tvSpPanel(it){var w=tvE("div","tvsp"),gs=it.g||TVI.spg,sn=tvSpN(it);
+function ed(){if(!it.g)it.g=JSON.parse(JSON.stringify(TVI.spg));return it.g}
+w.appendChild(tvE("b",null,"Groups of teams"));w.appendChild(tvE("p","tvnote","Each group gets its own slides of sponsors, with the players' names. A player in two teams of one group is listed once. Teams you leave out are not shown."));
+gs.forEach(function(g,gi){var r=tvE("div","tvspg"),inp=document.createElement("input");inp.className="tvspn";inp.value=g.n;inp.maxLength=30;inp.setAttribute("aria-label","Group name");inp.addEventListener("change",function(){ed()[gi].n=inp.value.trim()||"Group "+(gi+1);tvDraw();md()});r.appendChild(inp);
+var pl=tvE("div","tvspt");TVI.teams.forEach(function(t){var on=g.t.indexOf(t.id)>=0,b=tvE("button","tvpl"+(on?" on":""),t.name);b.type="button";b.setAttribute("aria-pressed",on?"true":"false");b.addEventListener("click",function(){var a=ed()[gi].t,x=a.indexOf(t.id);if(x>=0){if(a.length===1)return;a.splice(x,1)}else a.push(t.id);tvDraw();md()});pl.appendChild(b)});r.appendChild(pl);
+if(gs.length>1)r.appendChild(tvB("Remove group","Remove group "+g.n,function(){ed().splice(gi,1)},"tvx"));w.appendChild(r)});
+if(gs.length<6)w.appendChild(tvB("+ Add a group",null,function(){ed().push({n:"Group "+(ed().length+1),t:[TVI.teams[0]?TVI.teams[0].id:""]})},"tvadd"));
+w.appendChild(tvE("p","tvnote",sn.n+" slide"+(sn.n===1?"":"s")+" at "+it.secs+" s each = "+tvFmt(sn.n*it.secs)+" of each round."+(sn.est?" Slides are counted again when you press Save changes.":"")));return w}
 function tvDraw(){
 var box=$("tvb");box.innerHTML="";var n=0,sec=0,nd=0;
 TVI.groups.forEach(function(g,gi){
-var live=g.on&&!g.hidden,on=0;g.items.forEach(function(it){if(it.on)on++;if(live&&it.on&&tvDue(it)){n++;sec+=it.secs}if(live&&it.on&&!tvDue(it))nd++});
+var live=g.on&&!g.hidden,on=0;g.items.forEach(function(it){var k=it.page==="sponsors"?tvSpN(it).n:1;if(it.on)on++;if(live&&it.on&&tvDue(it)){n+=k;sec+=it.secs*k}if(live&&it.on&&!tvDue(it))nd++});
 var card=tvE("div","tvg"+(live?"":" off")),h=tvE("div","tvh");
 var bd=tvE("span","tvb2",g.short);
 if(/^[0-9]+$/.test(g.key)){var ci=document.createElement("img");ci.className="tvcr";ci.alt="";ci.width=38;ci.height=38;ci.src="/api/crest?id="+g.key;ci.onload=function(){if(bd.parentNode)bd.parentNode.replaceChild(ci,bd)};ci.onerror=function(){ci.onload=null}}
@@ -4607,20 +4739,20 @@ r.appendChild(tvSw(it.on,"Show "+TVI.pages[it.page],function(v){it.on=v}));
 r.appendChild(tvE("span","pn",TVI.pages[it.page]));
 var sc=tvE("span","tvsc");sc.appendChild(tvB("−","Fewer seconds",function(){it.secs=Math.max(5,it.secs-5)}));sc.appendChild(tvE("span","tvs",it.secs+" s"));sc.appendChild(tvB("+","More seconds",function(){it.secs=Math.min(120,it.secs+5)}));r.appendChild(sc);
 r.appendChild(tvB("Remove","Remove "+TVI.pages[it.page],function(){g.items.splice(ii,1)},"tvx"));
-card.appendChild(r);card.appendChild(tvDays(it,TVI.pages[it.page]))});
+card.appendChild(r);card.appendChild(tvDays(it,TVI.pages[it.page]));if(it.page==="sponsors")card.appendChild(tvSpPanel(it))});
 var have={};g.items.forEach(function(it){have[it.page]=1});
-var miss=g.key==="all"?(have.centre?[]:["centre"]):["fixtures","match","table","leaders"].filter(function(p){return!have[p]});
+var miss=g.key==="all"?["centre","sponsors"].filter(function(p){return!have[p]}):["fixtures","match","table","leaders"].filter(function(p){return!have[p]});
 var ad=tvE("div","tvad");
 if(g.key!=="all"&&!g.items.length){ad.appendChild(tvE("span","tvnote","Not on the TV yet. Nothing appears for this team until you add pages."));ad.appendChild(tvB("Add all pages for "+g.name,null,function(){["fixtures","match","table","leaders"].forEach(function(p){g.items.push({page:p,secs:20,on:true})})},"tvpri"))}
 else if(!miss.length){ad.appendChild(tvE("span","tvnote","Every page for "+g.name+" is on the list."))}
-else if(g.key==="all"){ad.appendChild(tvB("+ Add the Match Centre",null,function(){g.items.push({page:"centre",secs:25,on:true})},"tvadd"))}
+else if(g.key==="all"){miss.forEach(function(p){ad.appendChild(tvB(p==="centre"?"+ Add the Match Centre":"+ Add the sponsors thank-you",null,function(){g.items.push(p==="centre"?{page:"centre",secs:25,on:true}:{page:"sponsors",secs:15,on:true,g:JSON.parse(JSON.stringify(TVI.spg))})},"tvadd"))})}
 else if(!g.open){ad.appendChild(tvB("+ Add a page for "+g.name,null,function(){g.open=true},"tvadd"))}
 else{miss.forEach(function(p){ad.appendChild(tvB(TVI.pages[p],"Add "+TVI.pages[p]+" for "+g.name,function(){g.items.push({page:p,secs:20,on:true});g.open=false},"tvadd"))});ad.appendChild(tvB("Cancel",null,function(){g.open=false},"tvx"))}
 card.appendChild(ad);box.appendChild(card)});
 $("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round"+(nd?" today ("+nd+" more on other days)":"");
 $("tvtot").textContent=n?tvFmt(sec)+" ("+sec+" seconds) · "+n+" page"+(n===1?"":"s")+(nd?" today":""):(nd?"Nothing is due today":"Nothing is switched on yet");
 $("tvtotbox").title="Adds up the seconds of every page that is switched on, including changes you have not saved yet"}
-function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){var x={page:it.page,team:g.key,secs:it.secs,on:it.on};if(it.d)x.d=it.d;o.items.push(x)})});return o}
+function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){var x={page:it.page,team:g.key,secs:it.secs,on:it.on};if(it.d)x.d=it.d;if(it.g)x.g=it.g;if(it.sn!=null)x.sn=it.sn;o.items.push(x)})});return o}
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
 tvDraw();
@@ -4637,6 +4769,7 @@ fetch("/api/scores-refresh",{cache:"no-store",credentials:"same-origin"}).then(f
 b.addEventListener("click",function(){b.disabled=true;m.textContent="Refreshing...";fetch("/api/scores-refresh",{method:"POST",credentials:"same-origin"}).then(function(r){return r.json()}).then(function(j){b.disabled=false;if(j&&j.ok)show(j.t,j.again);else m.textContent=(j&&j.error)||"Could not refresh."}).catch(function(){b.disabled=false;m.textContent="Could not refresh."})})})();
 function ovE(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var OVN={};function ovNeed(k,t){OVN[k]=t;var a=[];for(var x in OVN)if(OVN[x])a.push(OVN[x]);$("ovn").innerHTML=a.length?'<div class="warn"><b>Needs attention:</b> '+a.map(ovE).join(" &middot; ")+"</div>":""}
+(function(){var sp=null;TVI.groups.forEach(function(g){g.items.forEach(function(it){if(it.page==="sponsors")sp=it})});if(!sp||!sp.on||sp.sn==null)return;var now=TVI.spn.reduce(function(a,x){return a+x.count},0);if(now!==sp.sn)ovNeed("spt","Sponsor slides on the TV are now "+now+" (were "+sp.sn+" when TV rotation was last saved), so each round is "+(now>sp.sn?"longer":"shorter")+" by "+Math.abs(now-sp.sn)*sp.secs+" s. Open TV rotation and press Save changes to accept it.")})();
 function ovGames(){var el=$("ovg"),ts=club.filter(function(t){return!t.hidden&&/^[0-9]+$/.test(String(t.team))});if(!ts.length){el.innerHTML='<p class="n">No teams are shown yet.</p>';return}
 el.innerHTML=ts.map(function(t){return'<div class="gm" id="gm'+ovE(t.team)+'"><span class="ovin" id="ovc'+ovE(t.team)+'" style="background:'+ovE(t.accent)+'">'+ovE(ini(t.name))+'</span><div><b>'+ovE(t.name)+'</b><small>Looking up...</small></div></div>'}).join("");
 ts.forEach(function(t){var id=String(t.team),im=new Image();im.className="ovcr";im.alt="";im.onload=function(){var c=$("ovc"+id);if(c&&c.parentNode)c.parentNode.replaceChild(im,c)};im.onerror=function(){ovNeed("c"+id,t.name+" has no crest")};im.src="/api/crest?id="+encodeURIComponent(id);
@@ -5046,6 +5179,7 @@ async function adminApi(request, url) {
   if (!b || typeof b !== "object") return J({ ok: false, error: "That did not look right. Reload the page and try again." }, 400);
   if (!b.club) { try { b.club = (await siteSettings()).club; } catch (_) { /* default list */ } }
   const s = cleanSettings(b); s.savedAt = new Date().toISOString();
+  { const spi = (s.tv.items || []).find(x => x.page === "sponsors"); if (spi) { try { spi.sn = (await spTvCounts(s, url, true)).reduce((a, x) => a + x.count, 0); } catch (_) { /* keep what the page sent */ } } } // v3.74.0: slides at this save, so Overview can say when it changes
   // Switching maintenance mode ON needs the club PIN typed again (it takes the whole site offline).
   { let was = false; try { const old = await kv.get(SETTINGS_KEY, { type: "json" }); was = cleanSettings(old).maintenance.on; } catch (_) { was = SETTINGS_CACHE.v ? SETTINGS_CACHE.v.maintenance.on : false; }
     const pin = SITE_ENV && typeof SITE_ENV.CLUB_PIN === "string" ? SITE_ENV.CLUB_PIN.trim() : "";
@@ -5939,7 +6073,7 @@ async function sponsorPlayersApi(request, url, worker) {
   try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
   return J({ ok: true, copied, changed, full, no: addedNo });
 }
-const SP_HUB_CSS = ".wrap.wcp{max-width:1100px}.tb{flex-wrap:wrap}.tb a{flex:1 1 150px}.bar2 .in2{min-width:140px}.hub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;align-items:start}.hub .cd2{margin:0}#lc{padding:0;overflow:hidden}.pr{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1d2a27;cursor:pointer;border-left:6px solid #3f8f64}.pr:hover{background:#15201b}.pr.av{border-left-color:#d9a43c;background:#1a1810}.pr.on{background:#15281d;border-left-color:#7fd89a}.pr input[type=checkbox]{width:18px;height:18px;flex:none;margin:0}.pr .pn{flex:1;min-width:0}.pr .pn b{display:block;font-weight:700}.pr .pn small{display:block;color:#7f9288;font-size:12.5px}.tg{font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;background:#3a2f12;color:#f0cf6a;white-space:nowrap}.tl2{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;border:1px solid #2c3a34;box-sizing:border-box;padding:2px;background:#0c1113;color:#cfd8d3;overflow:hidden}.tl2.l{background:#fff}.tl2.c{background:none;border-color:transparent;padding:0}.tl2 img{max-width:100%;max-height:100%;object-fit:contain;display:block}.tl2.big{width:48px;height:48px;font-size:15px}.stk{display:flex;gap:4px}.ch2{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:10px;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;font:14px Arial,Helvetica,sans-serif;margin:0 6px 6px 0;cursor:pointer}.ch2:hover{background:#1f2b26}.ch2 .x{border:0;background:transparent;color:#91a49a;font:18px/1 Arial,Helvetica,sans-serif;cursor:pointer;border-radius:6px;padding:2px 6px}.ch2 .x:hover{color:#f0a0a0;background:#2a1d1d}#det .dh{font-size:20px;font-weight:700;margin:2px 0}#det .dl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7fb98f;margin:16px 0 6px}#det .em{color:#91a49a;padding:24px 8px;text-align:center}#det .tm a{color:#9cc3f3;cursor:pointer;text-decoration:underline}.bk2{margin:0 8px 10px 0}.mob{display:none}.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#12201a;border:1px solid #2f9d57;border-radius:12px;padding:8px 12px;margin:0 0 10px}.fc.am{border-color:#b8902f;color:#f0cf6a}.fc.am.on{background:#b8902f;border-color:#b8902f;color:#14100a}.ad2 a{display:block;margin:0 0 8px}@media(max-width:760px){.hub{grid-template-columns:1fr}.hub.hs #lc{display:none}.hub:not(.hs) #det{display:none}.mob{display:inline-block}}@media(min-width:761px){#det{position:sticky;top:8px}}body.light .pr{border-bottom-color:#dbe8de}body.light .pr:hover{background:#eef6f0}body.light .pr.av{background:#fff4dc}body.light .pr.on{background:#e3f3e8}body.light .pr .pn small{color:#4d6656}body.light .tg{background:#fff0c4;color:#7a5a00}body.light .tl2{background:#0c1113;border-color:#c9dccd}body.light .tl2.l{background:#fff}body.light .tl2.c{background:none}body.light .ch2{background:#eef5ef;border-color:#c9dccd;color:#14301e}body.light .ch2:hover{background:#e3efe6}body.light #det .dl{color:#1f7a42}body.light #det .em{color:#4d6656}body.light #det .tm a{color:#1a5fa8}body.light .bulk{background:#eaf6ee;border-color:#8fc9a1}body.light .fc.am{color:#8a6a00;border-color:#d4b25a}body.light .fc.am.on{color:#fff}.ad3{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:start}.ad3 .cd2{margin:0}.sm3{display:flex;gap:8px;flex-wrap:wrap}.sm3 div{flex:1;min-width:90px;background:#0c1113;border:1px solid #26312d;border-radius:12px;padding:8px 10px}.sm3 b{display:block;font-size:20px;color:#7fd89a}.sm3 span{font-size:12px;color:#91a49a}body.light .sm3 div{background:#f6faf7;border-color:#c9dccd}body.light .sm3 b{color:#1f7a42}body.light .sm3 span{color:#4d6656}";
+const SP_HUB_CSS = ".wrap.wcp{max-width:1100px}.tb{flex-wrap:wrap}.tb a{flex:1 1 150px}.bar2 .in2{min-width:140px}.hub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;align-items:start}.hub .cd2{margin:0}#lc{padding:0;overflow:hidden}.pr{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1d2a27;cursor:pointer;border-left:6px solid #3f8f64}.pr:hover{background:#15201b}.pr.av{border-left-color:#d9a43c;background:#1a1810}.pr.on{background:#15281d;border-left-color:#7fd89a}.pr input[type=checkbox]{width:18px;height:18px;flex:none;margin:0}.pr .pn{flex:1;min-width:0}.pr .pn b{display:block;font-weight:700}.pr .pn small{display:block;color:#7f9288;font-size:12.5px}.tg{font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;background:#3a2f12;color:#f0cf6a;white-space:nowrap}.tl2{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;border:1px solid #2c3a34;box-sizing:border-box;padding:2px;background:#0c1113;color:#cfd8d3;overflow:hidden}.tl2.l{background:#fff}.tl2.c{background:none;border-color:transparent;padding:0}.tl2 img{max-width:100%;max-height:100%;object-fit:contain;display:block}.tl2.big{width:48px;height:48px;font-size:15px}.stk{display:flex;gap:4px}.ch2{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:10px;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;font:14px Arial,Helvetica,sans-serif;margin:0 6px 6px 0;cursor:pointer}.ch2:hover{background:#1f2b26}.ch2 .x{border:0;background:transparent;color:#91a49a;font:18px/1 Arial,Helvetica,sans-serif;cursor:pointer;border-radius:6px;padding:2px 6px}.ch2 .x:hover{color:#f0a0a0;background:#2a1d1d}#det .dh{font-size:20px;font-weight:700;margin:2px 0}#det .dl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7fb98f;margin:16px 0 6px}#det .em{color:#91a49a;padding:24px 8px;text-align:center}#det .tm a{color:#9cc3f3;cursor:pointer;text-decoration:underline}.bk2{margin:0 8px 10px 0}.mob{display:none}.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#12201a;border:1px solid #2f9d57;border-radius:12px;padding:8px 12px;margin:0 0 10px}.fc.am{border-color:#b8902f;color:#f0cf6a}.fc.am.on{background:#b8902f;border-color:#b8902f;color:#14100a}.ad2 a{display:block;margin:0 0 8px}@media(max-width:760px){.hub{grid-template-columns:1fr}.hub.hs #lc{display:none}.hub:not(.hs) #det{display:none}.mob{display:inline-block}}@media(min-width:761px){#det{position:sticky;top:8px}}body.light .pr{border-bottom-color:#dbe8de}body.light .pr:hover{background:#eef6f0}body.light .pr.av{background:#fff4dc}body.light .pr.on{background:#e3f3e8}body.light .pr .pn small{color:#4d6656}body.light .tg{background:#fff0c4;color:#7a5a00}body.light .tl2{background:#0c1113;border-color:#c9dccd}body.light .tl2.l{background:#fff}body.light .tl2.c{background:none}body.light .ch2{background:#eef5ef;border-color:#c9dccd;color:#14301e}body.light .ch2:hover{background:#e3efe6}body.light #det .dl{color:#1f7a42}body.light #det .em{color:#4d6656}body.light #det .tm a{color:#1a5fa8}body.light .bulk{background:#eaf6ee;border-color:#8fc9a1}body.light .fc.am{color:#8a6a00;border-color:#d4b25a}body.light .fc.am.on{color:#fff}.vw{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.hub.cv{display:block}.hub.cv #det{display:none}.scg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:8px}.scd{background:#111719;border:1px solid #26312d;border-radius:14px;padding:12px;cursor:pointer}.scd .h{display:flex;gap:10px;align-items:center;margin-bottom:10px}.scd .h b{display:block;font-size:16px}.scd small{color:#91a49a}.scd .chs{display:flex;flex-wrap:wrap;gap:6px}.scd .pc{background:#18211e;border:1px solid #2c3a34;border-radius:8px;padding:5px 8px;font-size:13px}.scd .pc i{font-style:normal;color:#91a49a;font-size:12px}.scd .mo{color:#7fd89a;font-size:13px;padding:5px 2px}body.light .scd{background:#fff;border-color:#c9dccd}body.light .scd .pc{background:#eef3ef;border-color:#c9dccd}.ad3{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:start}.ad3 .cd2{margin:0}.sm3{display:flex;gap:8px;flex-wrap:wrap}.sm3 div{flex:1;min-width:90px;background:#0c1113;border:1px solid #26312d;border-radius:12px;padding:8px 10px}.sm3 b{display:block;font-size:20px;color:#7fd89a}.sm3 span{font-size:12px;color:#91a49a}body.light .sm3 div{background:#f6faf7;border-color:#c9dccd}body.light .sm3 b{color:#1f7a42}body.light .sm3 span{color:#4d6656}";
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Players and sponsors</title>
@@ -5961,7 +6095,7 @@ ${SP_LAYOUT_CSS}.lgs{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}.lgt{widt
 <div class="cd2"><b>Exports</b><p class="sub" style="margin:6px 0 10px">Spreadsheets (CSV) you can open in Excel.</p><div class="rw2"><button type="button" class="b2" id="ex1">All players and their sponsors</button><button type="button" class="b2" id="ex2">Every sponsor with its players</button></div></div>
 </div></div>
 <p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
-<script>(function(){var W=null,D=null,sel=null,hist=[],chk={},flt="need",sflt="all",busy=false,pend="",scanning=false,copyArm=false,gl=[],keep=false,rsArm=false,rmArm="",rmWhy=null,SM={},form=null,bfile=null,lastBk="";
+<script>(function(){var W=null,D=null,sel=null,hist=[],chk={},flt="need",sflt="all",vm="list",busy=false,pend="",scanning=false,copyArm=false,gl=[],keep=false,rsArm=false,rmArm="",rmWhy=null,SM={},form=null,bfile=null,lastBk="";
 function $(i){return document.getElementById(i)}
 function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg2"+(c?" "+c:"")}
@@ -5985,13 +6119,14 @@ function bapi(o,cb){fetch("/api/sponsors",{method:"POST",headers:{"Content-Type"
 function loadAll(quiet){var se=$("se").value||"";fetch("/api/sponsor-players?all=1&season="+encodeURIComponent(se),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}W=j;SM={};j.sponsors.forEach(function(s){SM[s.id]=s});if(!quiet||pend)say(pend,pend?"ok":"");pend="";var s2="";[j.seasons.prev,j.seasons.cur,j.seasons.next].forEach(function(x){s2+='<option value="'+x+'"'+(x===j.season?" selected":"")+">"+x+(x===j.seasons.cur?" (now)":"")+"</option>"});$("se").innerHTML=s2;var ts={};allP().forEach(function(p){p.teams.forEach(function(t){ts[t]=1})});var cv=$("ft").value,o='<option value="">All teams</option>';Object.keys(ts).sort().forEach(function(t){o+='<option value="'+e(t)+'"'+(t===cv?" selected":"")+">"+e(t)+"</option>"});$("ft").innerHTML=o;draw()}).catch(function(){say("Could not read the players.","er")})}
 function chips(){var m=MD(),h="";
 if(m==="p"){var sc=allP().filter(inT),cur=sc.filter(function(p){return p.cur||p.sponsor}),sp=cur.filter(function(p){return p.sponsor}).length,nd=cur.length-sp;[["need","Needs a sponsor "+nd],["has","Sponsored "+sc.filter(function(p){return p.sponsor}).length],["all","Everyone "+sc.length]].forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="need"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+e($("ft").value||"All teams")+"</b>: "+sp+" of "+cur.length+" current players have a sponsor, "+nd+" still need one. Each player is listed once, with every team they play for."}
-else{var S=items(),np=S.filter(function(s){return!users(s.id).length}).length,nl=S.filter(function(s){return!s.logo}).length;[["all","All "+S.length],["nop","No players "+np],["nol","No logo "+nl]].forEach(function(x){h+='<button type="button" class="fc'+(sflt===x[0]?" on":"")+'" data-sf="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+S.length+"</b> sponsors. Open one to change its logo and its players."}}
+else{var S=items(),np=S.filter(function(s){return!users(s.id).length}).length,nl=S.filter(function(s){return!s.logo}).length;[["all","All "+S.length],["nop","No players "+np],["nol","No logo "+nl]].forEach(function(x){h+='<button type="button" class="fc'+(sflt===x[0]?" on":"")+'" data-sf="'+x[0]+'">'+x[1]+"</button>"});h+='<span class="vw"><button type="button" class="fc'+(vm==="list"?" on":"")+'" data-vm="list">List</button><button type="button" class="fc'+(vm==="cards"?" on":"")+'" data-vm="cards">All logos and players</button></span>';$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+S.length+"</b> sponsors. Open one to change its logo and its players."}}
 function bulkBar(){var n=Object.keys(chk).length,o="";if(MD()!=="p"||!n){$("bu").innerHTML="";return}items().forEach(function(s){o+='<option value="'+s.id+'">'+e(s.name)+"</option>"});$("bu").innerHTML='<div class="bulk"><b>'+n+" selected</b><select class='in2' id='bs' style='flex:1;min-width:150px'><option value=''>Choose a sponsor</option>"+o+"</select><button type='button' class='b2 go' id='bg'>Give sponsor</button><button type='button' class='b2' id='bc'>Clear</button></div>"}
 function listHtml(){var h="";
 if(MD()==="p"){var v=shownList();if(v.length)h+='<div class="pr" style="cursor:default;border-left-color:transparent"><label style="display:flex;gap:10px;align-items:center;font-size:13px;color:#91a49a"><input type="checkbox" id="sa2"'+(v.every(function(p){return chk[p.no]})?" checked":"")+' style="width:18px;height:18px"> Tick all '+v.length+" shown</label></div>";
 v.forEach(function(p){h+='<div class="pr'+(p.sponsor?"":" av")+(sel&&sel.m==="p"&&sel.id===p.no?" on":"")+'" data-go="p:'+e(p.no)+'"><input type="checkbox" data-k="'+e(p.no)+'"'+(chk[p.no]?" checked":"")+' aria-label="Tick '+e(tn(p))+'"><div class="pn"><b>'+nm(p)+"</b><small>"+e(p.teams.join(", "))+"</small></div>"+(p.sids.length?'<span class="stk">'+p.sids.map(function(i){return tile(i)}).join("")+"</span>":'<span class="tg">Needs one</span>')+"</div>"});
 return h||'<p class="sub" style="margin:12px">'+(flt==="need"&&!$("fq").value?"Every current player here has a sponsor.":"No player matches.")+"</p>"}
-var q=$("fq").value.trim().toLowerCase();items().forEach(function(s){if(q&&s.name.toLowerCase().indexOf(q)<0)return;var n=users(s.id).filter(inT).length;if(sflt==="nop"&&users(s.id).length)return;if(sflt==="nol"&&s.logo)return;h+='<div class="pr'+(sel&&sel.m==="s"&&sel.id===s.id?" on":"")+'" data-go="s:'+e(s.id)+'">'+tile(s.id)+'<div class="pn"><b>'+e(s.name)+"</b></div><small style='color:#91a49a;white-space:nowrap'>"+n+" player"+(n===1?"":"s")+($("ft").value?" in "+e($("ft").value):"")+(s.logo?"":" · no logo")+"</small></div>"});
+var q=$("fq").value.trim().toLowerCase();if(vm==="cards"){var cg="";items().forEach(function(s){if(q&&s.name.toLowerCase().indexOf(q)<0)return;var u=sorted(users(s.id).filter(inT));if(sflt==="nop"&&users(s.id).length)return;if(sflt==="nol"&&s.logo)return;cg+='<div class="scd" data-go="s:'+e(s.id)+'"><div class="h">'+tile(s.id,1)+'<div><b>'+e(s.name)+"</b><small>"+(u.length?u.length+" player"+(u.length===1?"":"s"):"No players yet")+(s.logo?"":" · no logo")+'</small></div></div><div class="chs">'+u.slice(0,6).map(function(p){return'<span class="pc">'+nm(p)+" <i>"+e(p.teams[0]||"")+"</i></span>"}).join("")+(u.length>6?'<span class="mo">+'+(u.length-6)+" more</span>":"")+"</div></div>"});return cg?'<div class="scg">'+cg+"</div>":'<p class="sub" style="margin:12px">No sponsors here.</p>'}
+items().forEach(function(s){if(q&&s.name.toLowerCase().indexOf(q)<0)return;var n=users(s.id).filter(inT).length;if(sflt==="nop"&&users(s.id).length)return;if(sflt==="nol"&&s.logo)return;h+='<div class="pr'+(sel&&sel.m==="s"&&sel.id===s.id?" on":"")+'" data-go="s:'+e(s.id)+'">'+tile(s.id)+'<div class="pn"><b>'+e(s.name)+"</b></div><small style='color:#91a49a;white-space:nowrap'>"+n+" player"+(n===1?"":"s")+($("ft").value?" in "+e($("ft").value):"")+(s.logo?"":" · no logo")+"</small></div>"});
 return h||'<p class="sub" style="margin:12px">No sponsors here. Add one above.</p>'}
 function formHtml(sid){var t="",o="";(W.teams||[]).forEach(function(x){t+='<option value="'+e(x.team)+'">'+e(x.name)+"</option>"});items().forEach(function(s){o+='<option value="'+s.id+'"'+(s.id===sid?" selected":"")+">"+e(s.name)+"</option>"});
 return'<div class="dh">Add a player</div><p class="sub" style="margin:4px 0 8px;font-size:13px">For someone not on the RFU squad list or a team sheet yet. Add their RFU number if you want their sponsor to show on the Match day page. Without one they only appear in these lists.</p><div class="rw2"><input class="in2" id="fn" maxlength="60" placeholder="Name" autocomplete="off"></div><div class="rw2" style="margin-top:8px"><select class="in2" id="ft2"><option value="">Choose a team</option>'+t+'</select><input class="in2" id="fr" placeholder="RFU number (optional)" inputmode="numeric" autocomplete="off"></div><div class="rw2" style="margin-top:8px"><select class="in2" id="fs"><option value="">Sponsor (optional)</option>'+o+'</select></div><div class="rw2" style="margin-top:10px"><button type="button" class="b2 go" data-act="psave2">Add player</button><button type="button" class="b2" data-act="pcancel">Cancel</button></div>'}
@@ -6052,9 +6187,9 @@ function admDraw(){if(!W)return;var S=items(),nl=0,tot=0,big=0,nos=0;S.forEach(f
 $("lst").innerHTML='<div class="sm3"><div><b>'+nl+"</b><span>Logos</span></div><div><b>"+(tot?kbs(tot):"-")+"</b><span>Total size</span></div><div><b>"+(big?kbs(big):"-")+"</b><span>Largest</span></div><div><b>"+(S.length-nl)+"</b><span>Sponsors without a logo</span></div></div>"+(nos?'<p class="sub" style="margin:0 0 8px;font-size:13px">'+nos+" logo"+(nos===1?" has":"s have")+' no size recorded yet. <button type="button" class="b2 sm" id="lgszb">Check logo sizes</button></p>':"");
 var sb=$("lgszb");if(sb)sb.onclick=function(){spost({act:"logo-sizes"},function(j){if(!j.ok){say(j.error||"Could not check.","er");return}say("Logo sizes checked.","ok");loadAll(true)})};
 var d=lastBk?Math.floor((Date.now()-Date.parse(lastBk))/86400000):-1;$("lb").innerHTML=lastBk&&d>=0?"Last backup downloaded from this site: <b>"+(d===0?"today":d===1?"yesterday":d+" days ago")+"</b> ("+e(new Date(lastBk).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"Europe/London"}))+").":"No backup has been downloaded from this site yet."}
-function draw(){if(!W)return;if(MD()==="a"){admDraw();return}chips();bulkBar();$("ls").innerHTML=listHtml();$("det").innerHTML=detHtml();$("hub").className="hub"+(sel||form?" hs":"")}
+function draw(){if(!W)return;if(MD()==="a"){admDraw();return}chips();bulkBar();$("ls").innerHTML=listHtml();$("det").innerHTML=detHtml();$("hub").className="hub"+(sel||form?" hs":"")+(MD()==="s"&&vm==="cards"?" cv":"")}
 function setSp(p,ids,msg){if(!p.team){say("Add this player on Admin, Season set-up first.","er");return}post({act:"set",team:p.team,season:W.season,no:p.no,n:p.n,nm:p.own,s:ids[0]||"",s2:ids[1]||"",alt:p.alt.join(","),cur:p.cur},function(){pend=msg||"Saved.";loadAll()})}
-function go(m,id){if(sel)hist.push(sel);sel={m:m,id:id};rmArm="";rmWhy=null;form=null;if(MD()!==m){keep=true;location.hash=m==="s"?"#sponsors":"#players"}else draw()}
+function go(m,id){if(m==="s")vm="list";if(sel)hist.push(sel);sel={m:m,id:id};rmArm="";rmWhy=null;form=null;if(MD()!==m){keep=true;location.hash=m==="s"?"#sponsors":"#players"}else draw()}
 function grp(nos,sid,done){var by={},sk=0;nos.forEach(function(no){var p=find(no);if(!p||!p.team){sk++;return}(by[p.team]||(by[p.team]=[])).push(no)});var ks=Object.keys(by),ch=0,fu=0;(function nx(){if(!ks.length){done(ch,fu,sk);return}var k=ks.shift();post({act:"assign",team:k,season:W.season,nos:by[k],s:sid},function(j){ch+=j.changed||0;fu+=j.full||0;nx()})})()}
 function rep(ch,fu,sk){return ch+" player"+(ch===1?"":"s")+" updated"+(fu?". "+fu+" already had two sponsors":"")+(sk?". "+sk+" could not be changed here (see Admin, Season set-up)":"")+"."}
 function slug(t){return String(t||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
@@ -6092,7 +6227,8 @@ else if(k2==="sexp"){var s=SM[sel.id],rows=[["Player","RFU number","Teams"]];sor
 else if(k2==="sdel"){if(rmArm!==sel.id){rmArm=sel.id;rmWhy=null;draw();return}spost({act:"remove",id:sel.id,force:!!rmWhy},function(j){if(j.inUse){rmWhy=j.inUse;draw();return}if(!j.ok){say(j.error||"Could not remove.","er");return}rmArm="";rmWhy=null;sel=null;hist=[];pend="Sponsor removed.";loadAll()})}
 return}
 var f=t.closest("[data-f]");if(f){flt=f.getAttribute("data-f");draw();return}
-var sf=t.closest("[data-sf]");if(sf){sflt=sf.getAttribute("data-sf");draw()}});
+var sf=t.closest("[data-sf]");if(sf){sflt=sf.getAttribute("data-sf");draw();return}
+var vb=t.closest("[data-vm]");if(vb){vm=vb.getAttribute("data-vm");sel=null;hist=[];draw()}});
 document.addEventListener("change",function(ev){var t=ev.target;
 if(t.id==="lgf"){lgPick(t.files&&t.files[0]);return}
 if(t.id==="lgn"){LG.trim=!t.checked;if(LG.file)lgRun();else draw();return}
@@ -8265,6 +8401,7 @@ const worker = {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(matchDayPage(th, isDev === true, TEAMS), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     }
+    if (url.pathname === "/sponsors-tv" && request.method === "GET") return sponsorsTvResponse(url);
     if (url.pathname.replace(/\/+$/, "") === "/sponsor-players") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(sponsorPlayersPage(th, isDev === true, !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -8303,7 +8440,7 @@ const worker = {
     if (url.pathname.replace(/\/+$/, "") === "/matchsheet") return new Response(null, { status: 302, headers: { "Location": "/matchday" + ((url.searchParams.get("theme") || "") === "light" ? "?theme=light" : ""), "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     if (url.pathname.replace(/\/+$/, "") === "/admin") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
-      return new Response(adminPage(th, isDev === true, await siteSettings(), !!kvOf()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+      return new Response(adminPage(th, isDev === true, ...await (async () => { const ss = await siteSettings(); return [ss, !!kvOf(), await spTvCounts(ss, url, true)]; })()), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
     }
 
     // Link variables documentation (club PIN protected by clubGate, never cached, not indexed).
@@ -8396,7 +8533,7 @@ const worker = {
     { const tvm = url.pathname.match(/^\/([A-Za-z0-9-]{1,40})\/tv\/?$/), tvAlias = /^\/tv\/?$/.test(url.pathname);
       if (request.method === "GET" && ((tvm && tvm[1].toLowerCase() === CLUB_ID) || tvAlias)) {
         const ts = await siteSettings();
-        return new Response(tvScreenPage(tvPlan(ts, cleanScreenName(url.searchParams.get("screen"))), { name: ts.tv.name, dots: ts.tv.dots }, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+        return new Response(tvScreenPage(tvPlan(ts, cleanScreenName(url.searchParams.get("screen")), undefined, await spTvCounts(ts, url)), { name: ts.tv.name, dots: ts.tv.dots }, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
       } }
 
     // Welcome screen: the bare address with no team or view in the link.
@@ -11020,7 +11157,7 @@ function pairTarget(choice, s, name, sid) {
   const th = s.tv.theme, teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [];
   if (choice.kind === "rotator") return { t: "/" + CLUB_ID + "/tv?screen=" + encodeURIComponent(name) + "&sid=" + sid, l: "Rotating screen" };
   if (choice.kind === "centre") return { t: tvPageUrl("centre", null, th, name, false, sid), l: TV_PAGES.centre };
-  if (choice.kind === "page" && TV_PAGES[choice.page] && choice.page !== "centre") {
+  if (choice.kind === "page" && TV_TEAM_PAGES.includes(choice.page)) {
     const t = teams.find(x => String(x.team) === String(choice.team));
     const u = t ? tvPageUrl(choice.page, t, th, name, false, sid) : null;
     if (u) return { t: u, l: TV_PAGES[choice.page] + " · " + (t.name || t.short || "") };
@@ -11139,7 +11276,7 @@ function pairPhonePage(code, msg, s, names) {
   const esc = x => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const teams = Array.isArray(s.club && s.club.teams) ? s.club.teams : [];
   const tOpts = teams.length ? teams.map(t => `<option value="${esc(t.team)}">${esc(t.name || t.short || t.teamName || t.team)}${t.hidden ? " (hidden from screens)" : ""}</option>`).join("") : '<option value="">No teams set up yet</option>';
-  const pOpts = Object.keys(TV_PAGES).filter(k => k !== "centre").map(k => `<option value="${k}">${esc(TV_PAGES[k])}</option>`).join("");
+  const pOpts = TV_TEAM_PAGES.map(k => `<option value="${k}">${esc(TV_PAGES[k])}</option>`).join("");
   const head = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Set up a screen - The Stats Board</title>
 <style>${PAIR_CSS}body{display:grid;place-items:start center;padding:20px}.c{width:100%;max-width:420px;background:#111719;border:1px solid #26312d;border-radius:16px;padding:22px;margin-top:4vh}h1{font-size:21px;margin:14px 0 6px}p{margin:0 0 14px;color:#91a49a;font-size:14px;line-height:1.45}p.e{color:#f09595}
 .pill{display:inline-block;background:#1b3a29;color:#e8c26a;border-radius:999px;padding:5px 12px;font-weight:800;letter-spacing:.2em;font-size:15px}label.o{display:flex;gap:12px;align-items:flex-start;background:#0b1110;border:2px solid #2c3a34;border-radius:14px;padding:13px 14px;margin:0 0 10px;cursor:pointer}label.o:has(input:checked){border-color:#4fc27d;background:#10261a}label.o b{display:block;font-size:16px}label.o span{font-size:13px;color:#93a59b}
@@ -11169,7 +11306,7 @@ fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"
 if(x.j&&x.j.ok){$("f").hidden=true;$("d").hidden=false;$("dh").textContent="Sent to the screen";$("dp").textContent=x.j.label+". The screen picks it up within a few seconds.";setTimeout(function(){check(0)},3000)}
 else{b.disabled=false;$("er").textContent=(x.j&&x.j.error)||"Sign in again, then retry.";$("er").hidden=false}}).catch(function(){b.disabled=false;$("er").textContent="No connection. Try again.";$("er").hidden=false})}})()</script></body></html>`;
 }
-const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/sponsor-list", "/past-meetings", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+const KNOWN_PATHS = new Set(["/", "/setup", "/sponsors-tv", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/sponsor-list", "/past-meetings", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
 function unknownPathGate(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
@@ -11201,7 +11338,7 @@ async function addressGate(request) {
 // (&anything=1) made a new key and forced a fresh build every time. Now only settings the site actually reads count, in a fixed
 // order, so unknown extras (tracking tags, guesses) share the stored page. Keep this list in step with the settings the code reads
 // (a test fails if a setting read by the code is missing here).
-const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg", "sid", "mdfake", "mdnow", "mdscore", "mdsheet", "mdgame"];
+const KNOWN_PARAMS = ["app", "choose", "club", "clubName", "colour", "competition", "days", "debug", "detail", "device", "division", "embed", "ep", "extra", "format", "frag", "friendlyName", "g", "id", "l", "layout", "ly", "n", "name", "next", "nowx", "oppColour", "p", "pun", "rows", "s", "scale", "screen", "season", "t", "team", "teamName", "teams", "theme", "title", "today", "venueweb", "view", "warm", "webonly", "from", "msg", "sid", "mdfake", "mdnow", "mdscore", "mdsheet", "mdgame"];
 function pageKeySearch(sp) {
   const out = [];
   for (const k of KNOWN_PARAMS) if (k !== "screen" && k !== "sid") for (const v of sp.getAll(k)) out.push(k + "=" + encodeURIComponent(v));
