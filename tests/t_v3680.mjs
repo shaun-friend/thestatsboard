@@ -62,7 +62,7 @@ c('adding a sponsor to a player with one makes two',as.j.changed===1&&x.sid===mo
 as=await post({act:'assign',team:T,season:S,s:'',nos:[NO]});x=await row(NO);
 c('removing with no sponsor named clears both',x&&!x.sid&&!x.sid2,JSON.stringify(x));
 // wiring
-c('Players page has a second sponsor box and passes s2',/id="es2"/.test(src)&&/s2:\$\("es2"\)\.value/.test(src)&&/s2:r\.sid2\|\|""/.test(src));
+c('Players page lets a player have two sponsors and passes s2',/of 2\)<\/div>/.test(src)&&/s2:ids\[1\]\|\|""/.test(src)&&/s2:q\.sids\[1\]\|\|""/.test(src));
 c('Sponsors page remove names the sponsor, pool skips both',/s:"",from:open,nos:\[i\]/.test(src)&&/r\.sid===open\|\|r\.sid2===open/.test(src));
 c('Match day rows carry both logos',/lg2: sids\[1\]/.test(src)&&/for \(const g of \[p\.lg, p\.lg2\]\)/.test(src));
 c('no extra "Available to sponsor" for a player with one sponsor',!/Second sponsor available/.test(src));

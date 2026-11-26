@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.71.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.71.0_players_sponsors_hub.zip | v3.70.0
 v3.70.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.70.0_simpler_players_page.zip | v3.69.1
 v3.69.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.1_sponsored_players_csv.zip | v3.69.0
 v3.69.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.0_all_sponsored_players.zip | v3.68.0
@@ -401,6 +402,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.71.0 - Players and sponsors: one hub
+- Owner request (26-Nov-2026): the players and sponsors screens felt disconnected; wanted a logical way to move between players and sponsors and amend each, and still to choose players by team (mock-up approved).
+- Change: /sponsor-players is now the Players and sponsors hub with three tabs. Players (default): every current player once across all teams with a team picker, Needs a sponsor first, a panel beside the list where you add or take off up to two sponsors, set the name we use, the Current tick and other RFU numbers; tick several players and give them one sponsor in one go; the spreadsheet download follows the chosen team. Sponsors: each sponsor with its players, add or take off players (the Add a player list follows the chosen team), rename, remove (refused while players use it), add a new sponsor. A sponsor chip on a player opens that sponsor and a player chip on a sponsor opens that player, with a Back button. Admin: Season set-up (Find this season's players, Clear ticks, Copy from last season) and links to Back up, restore and Move logos. The older addresses (#check, #list, #setup) still open the matching tab.
+- The Sponsors page (/sponsors) is now called Logos and backup in the tab bar; logos, tile colours and backup are unchanged. No change to stored data or the backup file.
+- Request limit: no change (the same single season read per page load; each save is one request, ticked players are saved one request per team).
+- Docs: What's new
 
 v3.70.0 - Player names and sponsors: simpler page
 - Owner request (25-Nov-2026): the page was busy and confusing; show less depending on what you are doing (mock-ups A, B and C approved).

@@ -122,8 +122,8 @@ r=await post({act:'assign',team:'11039',season:'2026-2027',s:dart,nos:[]});c('ch
 d=await sdet('deadbeef');c('an unknown sponsor has no detail',d.s===404);
 // page
 const pg=src.slice(src.indexOf('function sponsorPlayersPage('),e);
-c('page has the tick box, the filter and the scan button',/id="ec"/.test(pg)&&/\["cur","Current "/.test(pg)&&/Find this season/.test(pg)&&/Not current/.test(pg));
-const sc=/<script>([\s\S]*?)<\/script>/.exec(vm.runInContext('(function(){return '+pg.slice(0,pg.indexOf('\n}\n'))+'\n}\n})()', vm.createContext({MENU_CSS:'',SP_LAYOUT_CSS:'',SP_PLAYERS_CSS:'',themeBoot:()=>'',themeToggleScript:'',VERSION_LABEL:'v',}))('dark',false,true)||'');
+c('page has the Current tick, the filters and the scan button',/id="dc"/.test(pg)&&/\["need","Needs a sponsor "/.test(pg)&&/Find this season/.test(pg)&&/id="scb"/.test(pg));
+const sc=/<script>([\s\S]*?)<\/script>/.exec(vm.runInContext('(function(){return '+pg.slice(0,pg.indexOf('\n}\n'))+'\n}\n})()', vm.createContext({MENU_CSS:'',SP_LAYOUT_CSS:'',SP_PLAYERS_CSS:'',SP_HUB_CSS:'',themeBoot:()=>'',themeToggleScript:'',VERSION_LABEL:'v',}))('dark',false,true)||'');
 let okJs=false;try{new vm.Script(sc[1]);okJs=true}catch(x){}
 c('the page script is valid',okJs);
 c('no page script puts an id= on an /api/ address (the site refuses ids that are not numbers)',!/\/api\/[a-z-]+\?[^"']*\bid=/.test(src.slice(src.indexOf('function sponsorsPage('),e)),'');

@@ -15,7 +15,7 @@ const t=await p.innerText('#s-home');
 c('quick links are there',(await p.$$eval('.ovq a',a=>a.map(x=>x.getAttribute('href')))).join()==='/matchday,/sponsor-list,/?view=teams');
 c('menu has the new groups in order',JSON.stringify(await p.$$eval('.adn .adt',a=>a.map(x=>x.textContent)))===JSON.stringify(['Club set-up','Screens and notices','Monitoring','Settings and help']));
 const names=await p.$$eval('.adn a',a=>a.map(x=>x.textContent.trim()));
-c('menu items use the new names',['Site notices','Screen settings','Link builder','Visitor messages','RFU feed log','Club PIN and access','Win Predictor test','Player names and sponsors'].every(n=>names.includes(n))&&!names.includes('Messages')&&!names.includes('Inbox'),names.join('|'));
+c('menu items use the new names',['Site notices','Screen settings','Link builder','Visitor messages','RFU feed log','Club PIN and access','Win Predictor test','Players and sponsors'].every(n=>names.includes(n))&&!names.includes('Messages')&&!names.includes('Inbox'),names.join('|'));
 const grp=await p.$$eval('.adn > *',a=>{var g=[],cur=null;a.forEach(e=>{if(e.classList.contains('adt')){cur={h:e.textContent,i:[]};g.push(cur)}else if(e.tagName==='A'&&cur)cur.i.push(e.textContent.trim().replace(/\s+$/,''))});return g});
 c('each group is A to Z (dev links last)',grp.every(g=>{var l=g.i.filter(x=>!/DEV|Release notes/.test(x));return JSON.stringify(l)===JSON.stringify(l.slice().sort((a,b)=>a.localeCompare(b)))}),JSON.stringify(grp));
 c('next game day shows the first game on or after today, not the old one',/North Petherton/.test(t)&&!/Old/.test(t)&&/Tomorrow/.test(t)&&/KO 15:00/.test(t),t);

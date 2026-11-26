@@ -32,7 +32,7 @@ await post({act:'add',name:'One More'});c('one write per change',puts===p0+1);
 c('stored data is cleaned on the way in',ctx.clean({items:[{id:'abc',name:'x'},{id:'0123abcd',name:'  '},{id:'0123abcd',name:'Ok'},{id:'0123abcd',name:'Dup'}]}).length===1);
 const bigText=Array.from({length:400},(_,i)=>'S'+i).join('\n');store.sponsors=JSON.stringify({v:1,items:[]});r=await post({act:'bulk',text:bigText});
 c('list stops at 300 sponsors',r.j.items.length===300&&r.j.skipped===100,String(r.j.items&&r.j.items.length));
-c('page is behind the club PIN and linked from Admin',/path === "\/sponsors"/.test(src)&&/<a href="\/sponsor-players">Player names and sponsors<\/a>/.test(src)&&!/<a href="\/sponsors">Sponsors<\/a>/.test(src));
+c('page is behind the club PIN and linked from Admin',/path === "\/sponsors"/.test(src)&&/<a href="\/sponsor-players">Players and sponsors<\/a>/.test(src)&&!/<a href="\/sponsors">Sponsors<\/a>/.test(src));
 const pg=src.slice(b,src.indexOf('// v3.42.0: Sponsors, stage 2'));
 c('page has no outside calls and uses only the sponsors API',!/https?:\/\//.test(pg.replace(/<meta[^>]*>/g,''))&&/\/api\/sponsors/.test(pg));
 console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0)
