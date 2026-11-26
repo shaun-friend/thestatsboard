@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.72.0 26-Nov-2026 Past meetings: a rarely used Admin page that looks back through every season the RFU results feed holds for any meeting between one of our teams and another club.
 //   v3.71.0 26-Nov-2026 Players and sponsors: one hub (Players, Sponsors, Admin) with a team picker, a list beside a panel, jump links between a player and their sponsors, give a sponsor to several ticked players.
 //   v3.70.0 25-Nov-2026 Player names and sponsors: less busy. Modes (Check, Edit a team, Season set-up), one tidy line per player, the all-teams check with Add sponsor on the spot and a spreadsheet download.
 //   v3.69.1 25-Nov-2026 Player names and sponsors: the all-teams list can be downloaded as a spreadsheet (CSV).
@@ -398,7 +399,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.71.0";
+const VERSION = "v3.72.0";
 const BUILD_DATE = "26-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -445,6 +446,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.72.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.72.0_past_meetings.zip | v3.71.0
 v3.71.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.71.0_players_sponsors_hub.zip | v3.70.0
 v3.70.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.70.0_simpler_players_page.zip | v3.69.1
 v3.69.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.1_sponsored_players_csv.zip | v3.69.0
@@ -806,6 +808,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.72.0 - Past meetings
+- Owner request (26-Nov-2026): a one-off question (have Ivybridge 1XV ever played Nailsea & Backwell, and what was the score) that Match Stats cannot answer because it only looks at the next game and the last 5 seasons.
+- Change: new Admin page /past-meetings (club PIN), under Club set-up. Choose one of our teams, search for the opponent (the RFU team search), choose the right team from the list and press Look up. The page asks for one season at a time, from the current season backwards, and stops after three seasons in a row in which the RFU feed holds no games for our team (at most 40 seasons). It lists every meeting it finds, newest first, with date, season, competition, who was at home, the score and a win, draw or loss from our side (cup games count, walkovers and void games are shown as such), a summary (meetings, won, lost, drawn, points for and against) and a note saying the earliest season the feed has games for our team and which seasons could not be read. The opponent is matched by RFU ID or by name, as Match Stats does.
+- Not covered: anything the RFU never recorded (old friendlies, seasons before the feed starts). The page says so, so no meetings found is not read as never played.
+- Request limit: one outside request per season (the RFU results feed, kept for a day for finished seasons), one per page call, so a visit never nears the 50 limit. Nothing is saved.
+- Docs: What's new
 
 v3.71.0 - Players and sponsors: one hub
 - Owner request (26-Nov-2026): the players and sponsors screens felt disconnected; wanted a logical way to move between players and sponsors and amend each, and still to choose players by team (mock-up approved).
@@ -3157,6 +3166,7 @@ const DOCS = [
     { v: "/contact", values: "from", where: "Public", what: "The Message the Stats Board form. from is the page the visitor came from (a path on this site), filled in by the Message us link.", ex: [["Message form", "/contact"]] },
     { v: "/matchday", values: "none", where: "Club PIN", what: "Match day: the team sheets our teams have entered for a chosen match day, in shirt order, with each player's sponsor, who is available to sponsor, withheld names and new players, and a Copy list button. When more than one of our teams plays on the chosen day, a team box above the sheets lists each of them (team v opposition, Home or Away, and whether the sheet is ready); choose a team to see only that team. It starts on a team whose sheet is ready. Copy all still copies every team that has a sheet.", ex: [["Match day", "/matchday"]] },
     { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
+    { v: "/past-meetings", values: "none", where: "Club PIN", what: "Past meetings: choose one of our teams and search for another club to see every meeting the RFU results feed holds, with the score and a win, draw or loss, and how far back the feed goes. One season is read at a time, from the current season back.", ex: [["Past meetings", "/past-meetings"]] },
     { v: "/sponsor-list", values: "none", where: "Club PIN", what: "Sponsor list: every sponsor with the players they sponsor this season, filtered by team (all teams by default), with an Export button that downloads the list as a CSV file.", ex: [["Sponsor list", "/sponsor-list"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
     { v: "/inbox", values: "none", where: "Club PIN", what: "Visitor messages (the Inbox): messages visitors have sent, newest first. Reached from the envelope at the top of Admin.", ex: [["Inbox", "/inbox"]] },
@@ -3493,6 +3503,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.72.0", "New Admin page, Past meetings (Club set-up): choose one of our teams and an opponent and it looks back through every season the RFU results feed holds, listing each meeting with its score and a win, draw or loss, and saying how far back the feed goes."],
       ["v3.71.0", "Players and sponsors is one hub with three tabs. Players lists every current player once, with a team picker and a panel to give or take off up to two sponsors; tick several players to give them one sponsor together. Sponsors shows each sponsor with its players and lets you add, remove or rename. A sponsor on a player opens that sponsor, and a player on a sponsor opens that player. Admin holds Season set-up and the backup and logo links."],
       ["v3.70.0", "Player names and sponsors is simpler. Check (the default) lists every current player once across all teams, Needs a sponsor first, with Add sponsor on the spot and a spreadsheet download. Edit a team has one tidy line per player; the Current tick, other numbers and last-played details are inside Edit. The totals and key panels are gone."],
       ["v3.69.1", "Player names and sponsors: the all-teams list now has a Download as spreadsheet (CSV) button."],
@@ -4394,6 +4405,7 @@ ${setup}
 <div class="adt">Club set-up</div>
 <a href="/?view=teams">Link builder</a>
 <a href="#teams" data-s="teams">Our teams</a>
+<a href="/past-meetings">Past meetings</a>
 <a href="/sponsor-players">Players and sponsors</a>
 <div class="adt">Screens and notices</div>
 <a href="#paired" data-s="paired">Paired screens</a>
@@ -4670,7 +4682,7 @@ async function maintenanceGate(request) {
     }
     return maintenancePage(m, true);
   }
-  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/sponsor-list", "/matchday", "/api/matchday", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
+  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/sponsor-list", "/past-meetings", "/api/past-meetings", "/matchday", "/api/matchday", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
   const st = await siteSettings();
   if (!st.maintenance.on) return null;
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
@@ -5180,6 +5192,92 @@ b.disabled=true;fetch("/api/contact",{method:"POST",headers:{"Content-Type":"app
 // v3.41.0: Sponsors (stage 1 of player sponsors). The club's sponsor list, kept in its own settings-store key ("sponsors"), apart from the settings record.
 // Each sponsor has a hidden ID (8 hex characters) so a rename never breaks a later link to a player. Behind the club PIN; one settings-store read per
 // page load and one read plus one write per change. No outside calls. Later stages link sponsors to players, season by season.
+// v3.72.0: Past meetings. One season per request (the free plan allows 50 outside requests a visit and 10 ms of work), the page walks back through the seasons.
+async function pastMeetingsApi(request, url) {
+  const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+  const sp = url.searchParams;
+  try {
+    const q = (sp.get("q") || "").trim().slice(0, 60);
+    if (q) {
+      if (q.length < 2) return J({ ok: true, teams: [] });
+      let teams = [];
+      try { teams = await dsSearchTeams(q); } catch (_) { return J({ ok: false, error: "The RFU team search did not answer. Try again." }, 502); }
+      return J({ ok: true, teams: teams.slice(0, 30) });
+    }
+    const team = (sp.get("team") || "").trim(), opp = (sp.get("opp") || "").trim(), oppName = (sp.get("oppName") || "").trim().slice(0, 80), season = (sp.get("season") || "").trim();
+    const sm = /^(\d{4})-(\d{4})$/.exec(season);
+    if (!/^\d{1,12}$/.test(team) || !/^\d{1,12}$/.test(opp) || !sm || +sm[2] !== +sm[1] + 1 || +sm[1] < 1990 || +sm[1] > new Date().getUTCFullYear() + 1) return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+    const u = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches");
+    u.searchParams.set("season", season); u.searchParams.set("teamId", team);
+    const fr = await cachedText(u, "application/json, text/plain, */*");
+    if (!fr.ok) {
+      if (!fr.blocked && fr.status >= 400 && fr.status < 500) return J({ ok: true, season, mine: 0, total: 0, meetings: [], noData: true });
+      return J({ ok: false, season, error: "The RFU results feed did not answer for " + season + "." }, 502);
+    }
+    let dd = null; try { dd = JSON.parse(fr.text); } catch (_) { return J({ ok: false, season, error: "The RFU results feed gave an answer that could not be read for " + season + "." }, 502); }
+    const found = [], seen = new WeakSet();
+    (function visit(v) {
+      if (!v || typeof v !== "object" || seen.has(v)) return; seen.add(v);
+      if (Array.isArray(v)) { for (const x of v) visit(x); return; }
+      if (v.homeTeam && v.awayTeam && typeof v.homeTeam === "object" && typeof v.awayTeam === "object") found.push(v);
+      for (const [k, x] of Object.entries(v)) if (k !== "html" && k !== "description") visit(x);
+    })(dd && dd.results);
+    const idOf = t => String(t && (t.commonId != null ? t.commonId : t.id) != null ? (t.commonId != null ? t.commonId : t.id) : ""), ent = s => String(s == null ? "" : s).replace(/&amp;/g, "&").replace(/&#0?39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    const nameOf = t => ent((t && (t.name || t.displayName || t.clubName)) || "");
+    const normN = t => String(t || "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, " ").trim(), oppN = normN(oppName);
+    const isMe = t => idOf(t) === team, isOpp = t => idOf(t) === opp || (!!oppN && normN(nameOf(t)) === oppN);
+    const mine = found.filter(mm => isMe(mm.homeTeam) || isMe(mm.awayTeam));
+    const out = new Map(); let me = "";
+    for (const mm of mine) {
+      const hm = isMe(mm.homeTeam); if (!me) me = nameOf(hm ? mm.homeTeam : mm.awayTeam);
+      if (!(hm ? isOpp(mm.awayTeam) : isOpp(mm.homeTeam))) continue;
+      const wo = walkoverInfo(mm), hsN = mm.homeTeam.score, asN = mm.awayTeam.score, has = x => x !== null && x !== undefined && x !== "";
+      const played = has(hsN) && has(asN) && !(Number(hsN) === 0 && Number(asN) === 0), voided = !wo && !played && String(mm.time || "").trim().toUpperCase() === "V";
+      const d0 = new Date(mm.date || mm.time || "");
+      const k = String(mm.id || "") || (mm.date + "|" + idOf(mm.homeTeam) + "|" + idOf(mm.awayTeam));
+      if (out.has(k)) continue;
+      out.set(k, { ts: Number.isNaN(d0.getTime()) ? 0 : d0.getTime(), h: nameOf(mm.homeTeam), a: nameOf(mm.awayTeam), hs: played ? Number(hsN) : null, as: played ? Number(asN) : null, us: hm ? "h" : "a", comp: ent((mm.group && mm.group.name) || (mm.competition && mm.competition.name) || ""), wo: wo ? (wo.homeWins ? "h" : "a") : "", v: voided, np: !wo && !played && !voided });
+    }
+    return J({ ok: true, season, mine: mine.length, total: found.length, me, meetings: [...out.values()].sort((x, y) => y.ts - x.ts) });
+  } catch (err) { return J({ ok: false, error: "Could not read that season. Try again." }, 502); }
+}
+function pastMeetingsPage(theme, isDev, teams) {
+  const t = theme === "light" ? "light" : "dark";
+  const opts = (teams || []).filter(x => x && !x.hidden && x.team).map(x => `<option value="${String(x.team).replace(/[^0-9]/g, "")}">${String(x.name || x.team).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</option>`).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Past meetings</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:860px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:10px 12px;margin:8px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{flex:1;min-width:150px;font:16px Arial,Helvetica,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid #3a4a42;background:#0c1113;color:#f2f6f4}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.lb{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7fb98f;margin:12px 0 6px}.pk{display:flex;flex-direction:column;gap:6px;margin-top:8px}.pk label{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid #26312d;border-radius:10px;cursor:pointer}.pk input{width:18px;height:18px}.tb2{width:100%;border-collapse:collapse;font-size:15px}.tb2 th{text-align:left;font-size:12px;color:#91a49a;padding:6px 8px;border-bottom:1px solid #26312d}.tb2 td{padding:9px 8px;border-bottom:1px solid #1d2a27;vertical-align:top}.wl{display:inline-block;min-width:22px;text-align:center;font-weight:700;border-radius:6px;padding:2px 6px}.wl.W{background:#14301e;color:#7fd89a}.wl.L{background:#3a1d1d;color:#f0a0a0}.wl.D{background:#3a2f12;color:#f0cf6a}.sm3{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.sm3 div{flex:1;min-width:90px;background:#111719;border:1px solid #26312d;border-radius:12px;padding:8px 10px}.sm3 b{display:block;font-size:22px;color:#7fd89a}.sm3 span{font-size:12px;color:#91a49a}.nt{color:#91a49a;font-size:13px;margin:8px 2px}.msg3{min-height:20px;margin:6px 2px;color:#91a49a;font-size:14px}.msg3.er{color:#f0a0a0}.tw{overflow-x:auto}body.light .cd2{background:#fff;border-color:#c9dccd}body.light .pk label{border-color:#c9dccd}body.light .tb2 th,body.light .nt,body.light .msg3,body.light .sm3 span{color:#4d6656}body.light .tb2 td{border-bottom-color:#dbe8de}body.light .sm3 div{background:#fff;border-color:#c9dccd}body.light .sm3 b{color:#1f7a42}body.light .lb{color:#1f7a42}body.light .wl.W{background:#dff3e6;color:#1f7a42}body.light .wl.L{background:#fde4e4;color:#a33}body.light .wl.D{background:#fff0c4;color:#7a5a00}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Past meetings</h1><p class="sub" style="margin:10px 0 0">Have one of our teams ever played another club, and what was the score? This looks back through every season the RFU results feed holds.</p>
+<div class="cd2"><div class="lb" style="margin-top:0">Our team</div><select class="in2" id="tm" style="width:100%;box-sizing:border-box">${opts}</select>
+<div class="lb">Opponent</div><div class="rw2"><input class="in2" id="q" placeholder="Club or team name, for example Nailsea" autocomplete="off"><button type="button" class="b2" id="sb">Search</button></div><div class="pk" id="pk"></div>
+<div class="rw2" style="margin-top:12px"><button type="button" class="b2 go" id="go" disabled>Look up</button></div></div>
+<div class="msg3" id="ms" role="status"></div><div id="rs"></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var pick=null,run=0,MAXS=40,GAP=3;
+function $(i){return document.getElementById(i)}
+function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg3"+(c?" "+c:"")}
+function api(q,cb){fetch("/api/past-meetings?"+q,{cache:"no-store"}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not read the answer."}})}).then(cb).catch(function(){cb({ok:false,error:"Could not reach the site."})})}
+function curSeason(){var d=new Date(),y=+d.toLocaleDateString("en-GB",{year:"numeric",timeZone:"Europe/London"}),m=+d.toLocaleDateString("en-GB",{month:"numeric",timeZone:"Europe/London"}),s=m>=8?y:y-1;return s}
+function sl(y){return y+"-"+(y+1)}
+function dt(ts){if(!ts)return"Date not set";return new Date(ts).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"Europe/London"})}
+$("sb").onclick=function(){var q=$("q").value.trim();if(q.length<2){say("Type at least two letters of the club name.","er");return}say("Searching...");pick=null;$("go").disabled=true;$("pk").innerHTML="";api("q="+encodeURIComponent(q),function(j){if(!j.ok){say(j.error||"The search did not work.","er");return}say(j.teams.length?"Choose the team:":"No team found with that name. Try fewer letters.");$("pk").innerHTML=j.teams.map(function(t,i){return'<label><input type="radio" name="op" value="'+i+'"> '+e(t.name)+"</label>"}).join("");$("pk").onchange=function(ev){var r=ev.target;if(r&&r.name==="op"){pick=j.teams[+r.value];$("go").disabled=false}}})};
+$("q").addEventListener("keydown",function(ev){if(ev.key==="Enter"){ev.preventDefault();$("sb").click()}});
+$("go").onclick=function(){if(!pick)return;var team=$("tm").value,tn=$("tm").options[$("tm").selectedIndex].text,my=++run,all=[],failed=[],empty=0,first=curSeason(),last="",done=0,seen=0,i=0,asked=0;$("rs").innerHTML="";$("go").disabled=true;
+function finish(why){$("go").disabled=false;if(my!==run)return;say("");show(all,failed,tn,first,last,asked,seen,why)}
+function step(){if(my!==run)return;if(i>=MAXS){finish("limit");return}var y=first-i;i++;say("Checking "+sl(y)+"...");api("team="+team+"&opp="+encodeURIComponent(pick.id)+"&oppName="+encodeURIComponent(pick.name)+"&season="+sl(y),function(j){if(my!==run)return;if(!j.ok){api("team="+team+"&opp="+encodeURIComponent(pick.id)+"&oppName="+encodeURIComponent(pick.name)+"&season="+sl(y),function(k){if(my!==run)return;if(!k.ok){failed.push(sl(y));asked++;next(y,0,[])}else take(y,k)})}else take(y,j)})}
+function take(y,j){asked++;(j.meetings||[]).forEach(function(m){m.season=sl(y);all.push(m)});next(y,j.mine||0)}
+function next(y,mine){if(mine>0){empty=0;seen++;last=sl(y)}else empty++;if(empty>=GAP){finish("end");return}step()}
+step()};
+function show(all,failed,tn,first,last,asked,seen,why){var w=0,l=0,d=0,pf=0,pa=0,n=0,rows="";all.sort(function(a,b){return b.ts-a.ts});
+all.forEach(function(m){var res="",sc="";if(m.v){sc="Void";res=""}else if(m.np){sc="Not played"}else if(m.wo){sc="Walkover to "+(m.wo==="h"?m.h:m.a);res=(m.wo===m.us)?"W":"L";if(res==="W")w++;else l++;n++}else{sc=m.hs+" - "+m.as;var us=m.us==="h"?m.hs:m.as,th=m.us==="h"?m.as:m.hs;pf+=us;pa+=th;n++;if(us>th){res="W";w++}else if(us<th){res="L";l++}else{res="D";d++}}
+rows+="<tr><td>"+e(dt(m.ts))+"</td><td>"+e(m.season)+"</td><td>"+e(m.comp||"")+"</td><td>"+e(m.h)+" v "+e(m.a)+"</td><td><b>"+e(sc)+"</b></td><td>"+(res?'<span class="wl '+res+'">'+res+"</span>":"")+"</td></tr>"});
+var h="";if(all.length){h+='<div class="sm3"><div><b>'+all.length+"</b><span>Meetings found</span></div><div><b>"+w+"</b><span>Won by "+e(tn)+"</span></div><div><b>"+l+"</b><span>Lost</span></div><div><b>"+d+"</b><span>Drawn</span></div><div><b>"+pf+" - "+pa+"</b><span>Points for and against</span></div></div>";h+='<div class="cd2 tw"><table class="tb2"><thead><tr><th>Date</th><th>Season</th><th>Competition</th><th>Match</th><th>Score</th><th></th></tr></thead><tbody>'+rows+"</tbody></table></div>"}
+else h+='<div class="cd2"><b>No meetings found</b> between '+e(tn)+" and "+e(pick.name)+" in the seasons the RFU feed holds.</div>";
+var span=seen?"The earliest season the RFU feed has games for "+e(tn)+" is "+e(last)+" ("+seen+" season"+(seen===1?"":"s")+" found).":"The RFU feed had no games for "+e(tn)+" in the seasons checked.";
+h+='<p class="nt">'+span+(why==="end"?" Nothing was found for three seasons in a row before that, so the search stopped there.":" The search stopped at its limit of "+MAXS+" seasons.")+(failed.length?" These seasons could not be read, so a meeting may be missing: "+e(failed.join(", "))+".":"")+" A meeting that was never entered on the RFU system, such as an old friendly, cannot appear here.</p>";
+$("rs").innerHTML=h}
+})();</script></body></html>`;
+}
 const SPONSOR_KEY = "sponsors", SPONSOR_MAX = 300;
 // v3.60.0: sponsor logos. One settings-store key per logo ("splogo:<sponsor id>", the image itself, with its type, size and version as metadata); the sponsor list only carries a
 // small marker (logo: {v, t, w, h}). The page shrinks and trims the logo before upload, so what arrives is already a small PNG or WebP. Served from /api/logo/<id>?v=<version>.
@@ -5808,7 +5906,7 @@ async function sponsorPlayersApi(request, url, worker) {
   try { await kv.put(SPLINK_PREFIX + q.season, recJson(rec)); } catch (_) { return J({ ok: false, error: "Could not save. Try again." }, 502); }
   return J({ ok: true, copied, changed, full });
 }
-const SP_HUB_CSS = ".wrap.wcp{max-width:1100px}.tb{flex-wrap:wrap}.tb a{flex:1 1 150px}.bar2 .in2{min-width:140px}.hub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;align-items:start}.hub .cd2{margin:0}#lc{padding:0;overflow:hidden}#ls{max-height:640px;overflow-y:auto}.pr{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1d2a27;cursor:pointer;border-left:6px solid #3f8f64}.pr:hover{background:#15201b}.pr.av{border-left-color:#d9a43c;background:#1a1810}.pr.on{background:#15281d;border-left-color:#7fd89a}.pr input[type=checkbox]{width:18px;height:18px;flex:none;margin:0}.pr .pn{flex:1;min-width:0}.pr .pn b{display:block;font-weight:700}.pr .pn small{display:block;color:#7f9288;font-size:12.5px}.tg{font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;background:#3a2f12;color:#f0cf6a;white-space:nowrap}.tl2{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;border:1px solid #2c3a34;box-sizing:border-box;padding:2px;background:#0c1113;color:#cfd8d3;overflow:hidden}.tl2.l{background:#fff}.tl2.c{background:none;border-color:transparent;padding:0}.tl2 img{max-width:100%;max-height:100%;object-fit:contain;display:block}.tl2.big{width:48px;height:48px;font-size:15px}.stk{display:flex;gap:4px}.ch2{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:10px;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;font:14px Arial,Helvetica,sans-serif;margin:0 6px 6px 0;cursor:pointer}.ch2:hover{background:#1f2b26}.ch2 .x{border:0;background:transparent;color:#91a49a;font:18px/1 Arial,Helvetica,sans-serif;cursor:pointer;border-radius:6px;padding:2px 6px}.ch2 .x:hover{color:#f0a0a0;background:#2a1d1d}#det .dh{font-size:20px;font-weight:700;margin:2px 0}#det .dl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7fb98f;margin:16px 0 6px}#det .em{color:#91a49a;padding:24px 8px;text-align:center}#det .tm a{color:#9cc3f3;cursor:pointer;text-decoration:underline}.bk2{margin:0 8px 10px 0}.mob{display:none}.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#12201a;border:1px solid #2f9d57;border-radius:12px;padding:8px 12px;margin:0 0 10px}.fc.am{border-color:#b8902f;color:#f0cf6a}.fc.am.on{background:#b8902f;border-color:#b8902f;color:#14100a}.ad2 a{display:block;margin:0 0 8px}@media(max-width:760px){.hub{grid-template-columns:1fr}.hub.hs #lc{display:none}.hub:not(.hs) #det{display:none}.mob{display:inline-block}}@media(min-width:761px){#det{position:sticky;top:8px}}body.light .pr{border-bottom-color:#dbe8de}body.light .pr:hover{background:#eef6f0}body.light .pr.av{background:#fff4dc}body.light .pr.on{background:#e3f3e8}body.light .pr .pn small{color:#4d6656}body.light .tg{background:#fff0c4;color:#7a5a00}body.light .tl2{background:#0c1113;border-color:#c9dccd}body.light .tl2.l{background:#fff}body.light .tl2.c{background:none}body.light .ch2{background:#eef5ef;border-color:#c9dccd;color:#14301e}body.light .ch2:hover{background:#e3efe6}body.light #det .dl{color:#1f7a42}body.light #det .em{color:#4d6656}body.light #det .tm a{color:#1a5fa8}body.light .bulk{background:#eaf6ee;border-color:#8fc9a1}body.light .fc.am{color:#8a6a00;border-color:#d4b25a}body.light .fc.am.on{color:#fff}";
+const SP_HUB_CSS = ".wrap.wcp{max-width:1100px}.tb{flex-wrap:wrap}.tb a{flex:1 1 150px}.bar2 .in2{min-width:140px}.hub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;align-items:start}.hub .cd2{margin:0}#lc{padding:0;overflow:hidden}.pr{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1d2a27;cursor:pointer;border-left:6px solid #3f8f64}.pr:hover{background:#15201b}.pr.av{border-left-color:#d9a43c;background:#1a1810}.pr.on{background:#15281d;border-left-color:#7fd89a}.pr input[type=checkbox]{width:18px;height:18px;flex:none;margin:0}.pr .pn{flex:1;min-width:0}.pr .pn b{display:block;font-weight:700}.pr .pn small{display:block;color:#7f9288;font-size:12.5px}.tg{font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;background:#3a2f12;color:#f0cf6a;white-space:nowrap}.tl2{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;border:1px solid #2c3a34;box-sizing:border-box;padding:2px;background:#0c1113;color:#cfd8d3;overflow:hidden}.tl2.l{background:#fff}.tl2.c{background:none;border-color:transparent;padding:0}.tl2 img{max-width:100%;max-height:100%;object-fit:contain;display:block}.tl2.big{width:48px;height:48px;font-size:15px}.stk{display:flex;gap:4px}.ch2{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:10px;background:#18211e;border:1px solid #2c3a34;color:#e6efe9;font:14px Arial,Helvetica,sans-serif;margin:0 6px 6px 0;cursor:pointer}.ch2:hover{background:#1f2b26}.ch2 .x{border:0;background:transparent;color:#91a49a;font:18px/1 Arial,Helvetica,sans-serif;cursor:pointer;border-radius:6px;padding:2px 6px}.ch2 .x:hover{color:#f0a0a0;background:#2a1d1d}#det .dh{font-size:20px;font-weight:700;margin:2px 0}#det .dl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7fb98f;margin:16px 0 6px}#det .em{color:#91a49a;padding:24px 8px;text-align:center}#det .tm a{color:#9cc3f3;cursor:pointer;text-decoration:underline}.bk2{margin:0 8px 10px 0}.mob{display:none}.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#12201a;border:1px solid #2f9d57;border-radius:12px;padding:8px 12px;margin:0 0 10px}.fc.am{border-color:#b8902f;color:#f0cf6a}.fc.am.on{background:#b8902f;border-color:#b8902f;color:#14100a}.ad2 a{display:block;margin:0 0 8px}@media(max-width:760px){.hub{grid-template-columns:1fr}.hub.hs #lc{display:none}.hub:not(.hs) #det{display:none}.mob{display:inline-block}}@media(min-width:761px){#det{position:sticky;top:8px}}body.light .pr{border-bottom-color:#dbe8de}body.light .pr:hover{background:#eef6f0}body.light .pr.av{background:#fff4dc}body.light .pr.on{background:#e3f3e8}body.light .pr .pn small{color:#4d6656}body.light .tg{background:#fff0c4;color:#7a5a00}body.light .tl2{background:#0c1113;border-color:#c9dccd}body.light .tl2.l{background:#fff}body.light .tl2.c{background:none}body.light .ch2{background:#eef5ef;border-color:#c9dccd;color:#14301e}body.light .ch2:hover{background:#e3efe6}body.light #det .dl{color:#1f7a42}body.light #det .em{color:#4d6656}body.light #det .tm a{color:#1a5fa8}body.light .bulk{background:#eaf6ee;border-color:#8fc9a1}body.light .fc.am{color:#8a6a00;border-color:#d4b25a}body.light .fc.am.on{color:#fff}";
 function sponsorPlayersPage(theme, isDev, hasKv) {
   const t = theme === "light" ? "light" : "dark";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Players and sponsors</title>
@@ -5978,7 +6076,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players" || p === "/sponsor-list" || p === "/matchday") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players" || p === "/sponsor-list" || p === "/past-meetings" || p === "/matchday") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -8041,6 +8139,11 @@ const worker = {
     if (url.pathname.startsWith("/api/logo/")) return logoGet(request, url);
     if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
     if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url, worker);
+    if (url.pathname === "/api/past-meetings") return pastMeetingsApi(request, url);
+    if (url.pathname.replace(/\/+$/, "") === "/past-meetings") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(pastMeetingsPage(th, isDev === true, TEAMS), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname === "/api/matchday") return matchDayApi(request, url, worker);
     if (url.pathname.replace(/\/+$/, "") === "/matchday") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
@@ -10738,7 +10841,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/sponsor-list" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens" || path === "/api/scores-refresh";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/sponsor-list" || path === "/past-meetings" || path === "/api/past-meetings" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens" || path === "/api/scores-refresh";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -10950,7 +11053,7 @@ fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"
 if(x.j&&x.j.ok){$("f").hidden=true;$("d").hidden=false;$("dh").textContent="Sent to the screen";$("dp").textContent=x.j.label+". The screen picks it up within a few seconds.";setTimeout(function(){check(0)},3000)}
 else{b.disabled=false;$("er").textContent=(x.j&&x.j.error)||"Sign in again, then retry.";$("er").hidden=false}}).catch(function(){b.disabled=false;$("er").textContent="No connection. Try again.";$("er").hidden=false})}})()</script></body></html>`;
 }
-const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/sponsor-list", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+const KNOWN_PATHS = new Set(["/", "/setup", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/sponsor-list", "/past-meetings", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
 function unknownPathGate(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
@@ -11087,7 +11190,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/sponsor-list" || url.pathname === "/matchday" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/sponsor-list" || url.pathname === "/past-meetings" || url.pathname === "/matchday" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;

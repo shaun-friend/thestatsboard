@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.72.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.72.0_past_meetings.zip | v3.71.0
 v3.71.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.71.0_players_sponsors_hub.zip | v3.70.0
 v3.70.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.70.0_simpler_players_page.zip | v3.69.1
 v3.69.1 | 25-Nov-2026 | RFU_Club_Dashboard_v3.69.1_sponsored_players_csv.zip | v3.69.0
@@ -402,6 +403,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.72.0 - Past meetings
+- Owner request (26-Nov-2026): a one-off question (have Ivybridge 1XV ever played Nailsea & Backwell, and what was the score) that Match Stats cannot answer because it only looks at the next game and the last 5 seasons.
+- Change: new Admin page /past-meetings (club PIN), under Club set-up. Choose one of our teams, search for the opponent (the RFU team search), choose the right team from the list and press Look up. The page asks for one season at a time, from the current season backwards, and stops after three seasons in a row in which the RFU feed holds no games for our team (at most 40 seasons). It lists every meeting it finds, newest first, with date, season, competition, who was at home, the score and a win, draw or loss from our side (cup games count, walkovers and void games are shown as such), a summary (meetings, won, lost, drawn, points for and against) and a note saying the earliest season the feed has games for our team and which seasons could not be read. The opponent is matched by RFU ID or by name, as Match Stats does.
+- Not covered: anything the RFU never recorded (old friendlies, seasons before the feed starts). The page says so, so no meetings found is not read as never played.
+- Request limit: one outside request per season (the RFU results feed, kept for a day for finished seasons), one per page call, so a visit never nears the 50 limit. Nothing is saved.
+- Docs: What's new
 
 v3.71.0 - Players and sponsors: one hub
 - Owner request (26-Nov-2026): the players and sponsors screens felt disconnected; wanted a logical way to move between players and sponsors and amend each, and still to choose players by team (mock-up approved).
