@@ -14,7 +14,7 @@ dev.store['sponsor-links:'+S(yr+1)]=JSON.stringify({v:1,t:{'11039':{'9':{n:'Cat 
 const g0=dev.gets,p0=dev.puts;
 let b=await api(denv,dck,'dev.thestatsboard.co.uk',{act:'backup'});
 c('backup returns a file with the sponsors and each season',b.s===200&&b.j.ok&&b.j.file.format==='stats-board-sponsors'&&b.j.file.sponsors.length===2&&Object.keys(b.j.file.seasons).length===2&&b.j.file.seasons[S(yr)].t['11039']['5'].s==='00000001',JSON.stringify(b.j).slice(0,300));
-c('backup only reads: no writes, few settings reads, no RFU reads',dev.puts===p0&&(dev.gets-g0)<=8&&calls===0,(dev.gets-g0)+' reads '+(dev.puts-p0)+' writes '+calls+' rfu');
+c('backup reads and records only its own date (1 write), few settings reads, no RFU reads',(dev.puts-p0)<=1&&(dev.gets-g0)<=8&&calls===0,(dev.gets-g0)+' reads '+(dev.puts-p0)+' writes '+calls+' rfu');
 const file=b.j.file;
 prod.store['sponsors']=JSON.stringify({v:1,items:[{id:'0000000f',name:'Old Sponsor'}]});
 prod.store['sponsor-links:'+S(yr-1)]=JSON.stringify({v:1,t:{'11039':{'1':{n:'Old One',s:'0000000f'}}},g:{},i:{}});

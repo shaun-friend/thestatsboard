@@ -41,6 +41,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.73.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.73.0_sponsors_hub_refresh.zip | v3.72.0
 v3.72.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.72.0_past_meetings.zip | v3.71.0
 v3.71.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.71.0_players_sponsors_hub.zip | v3.70.0
 v3.70.0 | 25-Nov-2026 | RFU_Club_Dashboard_v3.70.0_simpler_players_page.zip | v3.69.1
@@ -403,6 +404,13 @@ v22g    | 03-Nov-2026 | RFU_Club_Dashboard_v22g.zip                 | v22f
 v22f    | 02-Nov-2026 | RFU_Club_Dashboard_v22f_elite_venue.zip     | v22e
 v22e    | unrecorded  | RFU_Club_Dashboard_v22e_match_stats.zip     | v22d
 Earlier versions are described in the notes below. Zips from v22g and earlier were not kept by the assistant; use your own downloaded copies.
+
+v3.73.0 - Players and sponsors hub refresh
+- Owner request (26-Nov-2026): the hub still sent you to other pages for backup and logos and the Admin tab did not work; wanted one page where sponsor admin, player admin, import/export and logo stats are all done (mock-up approved, no warning strip).
+- Change: /sponsor-players is now three self-contained tabs. Players: add a player (name, team, optional RFU number, optional sponsor), remove from the club list, edit the name we use, Current tick, other RFU numbers, up to two sponsors, bulk give. Sponsors: filters All / No players / No logo, add, paste a list, rename, remove (asks again if players use it), logo upload, remove and tile colour, add or remove players incl. a new player, export one sponsor. Admin: season set-up (find players, clear ticks, copy), backup download and load with days since the last download, logos stats, logos file download and load, CSV exports.
+- Server: new addplayer and removeplayer actions on /api/sponsor-players; /api/sponsors returns lastBackup. A player added without an RFU number gets a club-only number and does not show on Match day.
+- Unchanged: backup file format, stored data, and the old /sponsors and /sponsor-list pages.
+- Docs: What's new
 
 v3.72.0 - Past meetings
 - Owner request (26-Nov-2026): a one-off question (have Ivybridge 1XV ever played Nailsea & Backwell, and what was the score) that Match Stats cannot answer because it only looks at the next game and the last 5 seasons.
