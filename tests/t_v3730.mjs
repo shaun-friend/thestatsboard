@@ -13,7 +13,7 @@ const S1='Ivybridge 1XV',S2='Ivybridge 2nd XV',V='The Vandals';
 let P=[{no:'100',name:'Owen Garner',teams:[S1,S2],sids:['aaaaaaa1','aaaaaaa2'],cur:true,team:'11039'},{no:'101',name:'Aaron Williams',teams:[S2],sids:['aaaaaaa2'],cur:true,team:'11063'},{no:'102',name:'Ben Burgess',teams:[V],sids:[],cur:true,team:'11070'},{no:'103',name:'Hamish Harris',teams:[S1,V],sids:[],cur:true,team:'11039'},{no:'104',name:'Zed Rush',teams:[S2],sids:[],cur:true,team:'11063'}];
 const T1={team:'11039',name:S1},T2={team:'11063',name:S2},T3={team:'11070',name:V};
 const row=p=>({no:p.no,name:p.name,hid:false,teams:p.teams,sponsor:p.sids.map(i=>sponsors.find(s=>s.id===i).name).join(' + '),sponsors:p.sids.map(i=>sponsors.find(s=>s.id===i).name),sids:p.sids,cur:p.cur,team:p.team,n:p.name,own:p.own||'',alt:[]});
-const ALL=()=>({ok:true,season:'2026-2027',seasons,teams:[T1,T2,T3],sponsors,sponsored:P.filter(p=>p.sids.length).map(row),avail:P.filter(p=>!p.sids.length&&p.cur).map(row)});
+let ZED=false;const ALL=(tm)=>({ok:true,team:tm||'',season:'2026-2027',seasons,teams:[T1,T2,T3],sponsors,sponsored:P.filter(p=>p.sids.length).map(row),avail:P.filter(p=>!p.sids.length&&p.cur).map(row).concat(tm==='11039'&&!ZED?[{no:'200',name:'Zed Squad',hid:false,teams:[S1],sponsor:'',sponsors:[],sids:[],cur:false,team:'11039',n:'Zed Squad',own:'',alt:[]}]:[])});
 const TEAM={ok:true,teams:[T1,T2],team:'11039',season:'2026-2027',seasons,sponsors,rows:[],tot:{},played:9,squadError:''};
 const {chromium}=createRequire(import.meta.url)('playwright');
 const br=await chromium.launch();const ctxb=await br.newContext({acceptDownloads:true,viewport:{width:1200,height:1000}});const p=await ctxb.newPage();
@@ -21,12 +21,13 @@ const posts=[],sp=[];let removeInUse=true;
 await p.route('https://x.test/sponsor-players',x=>x.fulfill({contentType:'text/html',body:html}));
 await p.route('https://x.test/api/logo/**',x=>x.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==','base64')}));
 await p.route('https://x.test/api/sponsor-players**',x=>{const u=new URL(x.request().url());const J=o=>x.fulfill({contentType:'application/json',body:JSON.stringify(o)});if(x.request().method()==='POST'){const b=JSON.parse(x.request().postData());posts.push(b);
+ if((b.act==='assign'&&b.nos[0]==='200')||(b.act==='set'&&b.no==='200')){ZED=true;P.push({no:'200',name:'Zed Squad',teams:[S1],sids:[b.s],cur:b.act==='set'?b.cur:true,team:'11039'});return J({ok:true,copied:0,changed:1,marked:0,added:0,missed:0,total:0})}
  if(b.act==='set'){const q=P.find(z=>z.no===b.no);q.sids=[b.s,b.s2].filter(Boolean);q.cur=b.cur;q.own=b.nm}
  if(b.act==='addplayer'){P.push({no:'9912345678',name:b.name,teams:[b.team==='11070'?V:S1],sids:b.s?[b.s]:[],cur:true,team:b.team});return J({ok:true,no:'9912345678'})}
  if(b.act==='removeplayer'){P=P.filter(z=>z.no!==b.no);return J({ok:true})}
  if(b.act==='assign'){let ch=0,full=0;for(const no of b.nos){const q=P.find(z=>z.no===no);if(!b.s){q.sids=q.sids.filter(i=>i!==b.from);ch++}else if(q.sids.includes(b.s)){}else if(q.sids.length>=2)full++;else{q.sids.push(b.s);ch++}}return J({ok:true,changed:ch,full,copied:0})}
  return J({ok:true,copied:0,changed:1,marked:0,added:0,missed:0,total:0})}
- return J(u.searchParams.get('all')==='1'?ALL():TEAM)});
+ return J(u.searchParams.get('all')==='1'?ALL(u.searchParams.get('team')):TEAM)});
 await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()==='GET')return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors,lastBackup:new Date(Date.now()-3*86400000).toISOString()})});const b=JSON.parse(x.request().postData()||'{}');sp.push(b);const J=(o,s)=>x.fulfill({contentType:'application/json',status:s||200,body:JSON.stringify(o)});if(b.act==='rename')sponsors.find(s=>s.id===b.id).name=b.name;if(b.act==='add')sponsors.push({id:'aaaaaaa9',name:b.name});if(b.act==='bulk'){sponsors.push({id:'aaaaaab1',name:'Paste One'});return J({ok:true,added:1,skipped:0})}if(b.act==='remove'&&P.some(z=>z.sids.includes(b.id))&&!b.force)return J({ok:false,error:'in use',inUse:['x'],count:1},409);if(b.act==='remove'){sponsors=sponsors.filter(s=>s.id!==b.id);P.forEach(z=>z.sids=z.sids.filter(i=>i!==b.id))}if(b.act==='backup')return J({ok:true,file:{exported:'2026-11-26T10:00:00Z'}});return J({ok:true})});
 await p.goto('https://x.test/sponsor-players');await p.waitForSelector('#ls .pr');
 const q=s=>p.$$eval(s,l=>l.length);const vis=s=>p.$eval(s,e=>!e.hidden&&getComputedStyle(e).display!=='none');const txt=s=>p.$eval(s,e=>e.textContent);
@@ -35,7 +36,14 @@ c('three tabs, Players on, no warning strip',await p.$$eval('.tb a',l=>l.map(a=>
 c('tabs are styled as a row of buttons',await p.$eval('.tb',e=>getComputedStyle(e).display)==='flex'&&await p.$eval('#t1',e=>getComputedStyle(e).backgroundColor)!=='rgba(0, 0, 0, 0)');
 if(process.env.SHOT)await p.screenshot({path:process.env.SHOT+'h1.png'});
 c('Players: each player once, three need a sponsor',await q('#ls .pr[data-go]')===3);
-await p.selectOption('#ft',S1);c('team picker limits the list',await q('#ls .pr[data-go]')===1);await p.selectOption('#ft','');
+await p.selectOption('#ft',S1);await p.waitForFunction(()=>/Not current 1/.test(document.querySelector('#ch').textContent));
+c('team picker limits the list',await q('#ls .pr[data-go]')===1);
+c('Not current chip counts the squad player',/Not current 1/.test(await txt('#ch')),await txt('#ch'));
+await p.click('#ch [data-f=notcur]');c('Not current chip lists only that player',await q('#ls .pr[data-go]')===1&&/Zed Squad/.test(await txt('#ls'))&&/Not current/.test(await txt('#ls .pr .tg')));
+await p.click('#ls .pr[data-go]');await p.selectOption('#adsp','aaaaaaa1');await p.waitForFunction(()=>!document.querySelector('#ch [data-f=notcur]')||/Not current 0/.test(document.querySelector('#ch').textContent));
+c('adding a sponsor saves that player as current',posts.some(b=>b.act==='set'&&b.no==='200'&&b.s==='aaaaaaa1'&&b.cur===true),JSON.stringify(posts.slice(-2)));
+c('they are current now: not in Not current',/Not current 0/.test(await txt('#ch')),await txt('#ch'));
+await p.click('#ch [data-f=need]');await p.selectOption('#ft','');
 // Add a player from Players tab
 await p.click('#ap');c('Add a player form opens',await q('#fn')===1&&await q('#ft2')===1&&/Match day/.test(await txt('#det')));
 await p.click('#det button[data-act="psave2"]');c('name required',/name first/.test(await txt('#ms')));

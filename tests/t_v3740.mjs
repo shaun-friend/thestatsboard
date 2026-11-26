@@ -29,11 +29,11 @@ c('a sponsor with 4+ players gets a tall tile',/grid-row:1 \/ span 2/.test(m1)&&
 const aCard=(m1+m2).split('<div class="c"').find(x=>/Sponsor A/.test(x))||'';
 c('its players are stacked one per line, a player under two numbers once (5 not 6)',(aCard.match(/<div>[^<]+<\/div>/g)||[]).length===5,aCard.slice(0,400));
 c('the two-team sponsor C lists both players once each',/Duo C1/.test(m1+m2)&&/Duo C2/.test(m1+m2));
-const allTiles=n=>(n.match(/<div class="c"/g)||[]).length;
+const allTiles=n=>(n.match(/<div class="c[ "]/g)||[]).length;
 c('slides are shared out evenly: no slide has a single column left over',allTiles(m1)>0&&allTiles(m2)>0&&m3.indexOf('class="c"')<0,allTiles(m1)+' '+allTiles(m2));
 const w1=await pg(1,1);
 c('the Women group shows only its own sponsor and player',/Sponsor M/.test(w1)&&/Wendy Women/.test(w1)&&!/Sponsor A/.test(w1)&&allTiles(w1)===1);
-c('page reports ready to the rotator frame',/rfu-sr-ready/.test(m1)&&/rfu-ver\|v3\.74\.0/.test(m1));
+c('page reports ready to the rotator frame',/rfu-sr-ready/.test(m1)&&/rfu-ver\|v3\.[0-9]+\.[0-9]+/.test(m1));
 // rotator plan
 const tvp=(await get('/ivybridge/tv')).t,plan=JSON.parse(tvp.match(/<script type="application\/json" id="tvd">([\s\S]*?)<\/script>/)[1]).p;
 const spSteps=plan.filter(x=>x.k==='sponsors');
