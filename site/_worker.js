@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.79.1 27-Nov-2026 Match Centre crest tile: wider test so a pale gold crest on a gold panel is caught.
 //   v3.79.0 27-Nov-2026 Match Centre: a tile appears behind an opposition crest that blends into the panel colour.
 //   v3.78.2 27-Nov-2026 Players tab: a Current chip lists every current player, with or without a sponsor.
 //   v3.78.1 27-Nov-2026 Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there.
@@ -413,7 +414,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.79.0";
+const VERSION = "v3.79.1";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -462,6 +463,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.79.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.1_crest_tile_fix.zip | v3.79.0
 v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
 v3.78.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.2_current_chip.zip | v3.78.1
 v3.78.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.1_club_row_rename.zip | v3.78.0
@@ -847,6 +849,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.79.1 - Match Centre: crest tile catches pale gold on gold
+- Owner report (27-Nov-2026): v3.79.0 made no difference to the Plympton Victoria crest on the gold panel.
+- Fixed: the check for a crest that blends in was too strict (the crest's gold sits a little lighter than the panel gold). It now counts anything reasonably close to the panel colour and looks at a larger copy of the picture.
+- Docs: What's new
 
 v3.79.0 - Match Centre: tile behind a crest that blends in
 - Owner report (27-Nov-2026): some opposition crests (for example a cream and gold crest on a gold panel) blend into the panel colour.
@@ -3629,6 +3636,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.79.1", "Match Centre: the crest tile now also catches a pale gold crest on a gold panel."],
       ["v3.79.0", "Match Centre: a crest that blends into the panel colour now gets a light or dark tile behind it."],
       ["v3.78.2", "Players tab: a Current chip lists every current player, with or without a sponsor."],
       ["v3.78.1", "Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there."],
@@ -11796,10 +11804,10 @@ function rgb(c){var m=/([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)/.exec(c||"");return m?
 function dist(a,b){var x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return Math.sqrt(x*x+y*y+z*z)}
 function one(img){try{var cr=img.parentNode,box=cr.parentNode;if(!box||!img.naturalWidth||cr.getAttribute("data-tile")!==null)return;
 var pc=rgb(getComputedStyle(box).backgroundColor);if(!pc)return;
-var cv=document.createElement("canvas");cv.width=cv.height=40;var cx=cv.getContext("2d");cx.drawImage(img,0,0,40,40);
-var d=cx.getImageData(0,0,40,40).data,n=0,near=0,dw=0,dk=0,W=[255,255,255],K=[16,20,23];
-for(var i=0;i<d.length;i+=4){if(d[i+3]<128)continue;var p=[d[i],d[i+1],d[i+2]];n++;if(dist(p,pc)<60)near++;dw+=dist(p,W);dk+=dist(p,K)}
-var st=n<30?"none":near/n>0.12?(dw>dk?"light":"dark"):"none";cr.setAttribute("data-tile",st);if(st==="none")return;
+var cv=document.createElement("canvas");cv.width=cv.height=64;var cx=cv.getContext("2d");cx.drawImage(img,0,0,64,64);
+var d=cx.getImageData(0,0,64,64).data,n=0,near=0,dw=0,dk=0,W=[255,255,255],K=[16,20,23];
+for(var i=0;i<d.length;i+=4){if(d[i+3]<32)continue;var p=[d[i],d[i+1],d[i+2]];n++;if(dist(p,pc)<90)near++;dw+=dist(p,W);dk+=dist(p,K)}
+var st=n<12?"none":near/n>0.2?(dw>dk?"light":"dark"):"none";cr.setAttribute("data-tile",st);if(st==="none")return;
 var s=cr.style;s.setProperty("background",st==="dark"?"#101417":"#fff","important");s.setProperty("border-radius","1.4rem","important");s.setProperty("box-shadow","0 .15rem .6rem rgba(0,0,0,.28)","important");s.setProperty("overflow","hidden","important")}catch(e){}}
 function all(){[].forEach.call(document.querySelectorAll(".cnx .cr img"),function(i){if(i.complete)one(i);else i.addEventListener("load",function(){one(i)})})}
 if(document.readyState==="loading")addEventListener("DOMContentLoaded",all);else all();addEventListener("load",all);
