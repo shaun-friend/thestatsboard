@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.80.0 27-Nov-2026 Match Centre: cancellation notices go in the title bar; the crest tile is smaller.
 //   v3.79.1 27-Nov-2026 Match Centre crest tile: wider test so a pale gold crest on a gold panel is caught.
 //   v3.79.0 27-Nov-2026 Match Centre: a tile appears behind an opposition crest that blends into the panel colour.
 //   v3.78.2 27-Nov-2026 Players tab: a Current chip lists every current player, with or without a sponsor.
@@ -414,7 +415,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.79.1";
+const VERSION = "v3.80.0";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -463,6 +464,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.80.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.80.0_notice_bar.zip | v3.79.1
 v3.79.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.1_crest_tile_fix.zip | v3.79.0
 v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
 v3.78.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.2_current_chip.zip | v3.78.1
@@ -849,6 +851,12 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.80.0 - Match Centre: cancellation notices in the title bar; crest tile no longer looks bigger
+- Owner request (27-Nov-2026): a cancellation notice pushed that team's panel down so crests, names and dates no longer lined up.
+- Changed: on a wide Match Centre (TV), games called off now show in the title bar. One or two teams: a red notice each with the team, the game and the reason. Three or more: one short line each, without the reason. The panels stay identical and level. Phones still show the notice inside the panel.
+- Fixed: the tile behind a crest that blends in (v3.79.x) made that crest look bigger than the others. The tile is now smaller and the crest sits inside it, so it takes up the same space as the others.
+- Docs: What's new
 
 v3.79.1 - Match Centre: crest tile catches pale gold on gold
 - Owner report (27-Nov-2026): v3.79.0 made no difference to the Plympton Victoria crest on the gold panel.
@@ -3636,6 +3644,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.80.0", "Match Centre: games called off show in the title bar so the panels stay level; the crest tile no longer makes a crest look bigger."],
       ["v3.79.1", "Match Centre: the crest tile now also catches a pale gold crest on a gold panel."],
       ["v3.79.0", "Match Centre: a crest that blends into the panel colour now gets a light or dark tile behind it."],
       ["v3.78.2", "Players tab: a Current chip lists every current player, with or without a sponsor."],
@@ -5505,7 +5514,13 @@ const offEsc = x => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/<
 function offLine(m) { return offDateLabel(m.d) + (m.on ? " v " + m.on : ""); }
 // the same notice as a strip inside a Match Centre team panel
 function offNotice(list) {
-  return list.length ? list.map(m => '<div role="note" style="margin:0 0 .6em;padding:.35em .7em;border-radius:.7em;background:#b3261e;color:#fff;text-align:center;font-weight:800;font-size:clamp(13px,1.15vw,24px);line-height:1.25">' + (m.k === "p" ? "POSTPONED" : "CANCELLED") + " &middot; " + offEsc(offLine(m)) + (m.n ? '<br><span style="font-weight:400">' + offEsc(m.n) + "</span>" : "") + "</div>").join("") : "";
+  return list.length ? list.map(m => '<div role="note" class="offn" style="margin:0 0 .6em;padding:.35em .7em;border-radius:.7em;background:#b3261e;color:#fff;text-align:center;font-weight:800;font-size:clamp(13px,1.15vw,24px);line-height:1.25">' + (m.k === "p" ? "POSTPONED" : "CANCELLED") + " &middot; " + offEsc(offLine(m)) + (m.n ? '<br><span style="font-weight:400">' + offEsc(m.n) + "</span>" : "") + "</div>").join("") : "";
+}
+// v3.80.0: on a wide Match Centre the notices go in the title bar so every panel stays level; one or two show the reason, three or more one short line each
+function offBar(list) {
+  if (!list.length) return "";
+  const few = list.length <= 2;
+  return '<div class="hdn' + (few ? "" : " hdm") + '">' + list.map(m => '<div role="note"><b>' + offEsc(m.tn || "") + "</b> &middot; " + (m.k === "p" ? "POSTPONED" : "CANCELLED") + (few ? "<br><span>" + offEsc(offLine(m)) + "</span>" + (m.n ? "<br><em>" + offEsc(m.n) + "</em>" : "") : " &middot; <span>" + offEsc(m.on ? "v " + m.on : offDateLabel(m.d)) + "</span>") + "</div>").join("") + "</div>";
 }
 async function offBump() { const kv = kvOf(); if (!kv) return; const now = Date.now(); try { await kv.put(SCORES_KEY, JSON.stringify({ t: now })); SCORES_AT = now; SCORES_READ = now; } catch (_) { /* the pages catch up when their copies expire */ } }
 async function gamesOffApi(request, url) {
@@ -9911,6 +9926,8 @@ body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--wb:
 *{box-sizing:border-box}html{font-size:${results.length <= 3 ? "min(1.05vw,1.9vh)" : results.length === 4 ? "min(.85vw,1.4vh)" : results.length === 5 ? "min(.75vw,1.2vh)" : "min(.68vw,1.05vh)"}}
 body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:grid;grid-template-rows:auto ${ly === "classic" ? `repeat(${Math.max(results.length, 1)},minmax(0,1fr))` : "minmax(0,1fr)"};gap:.8rem;padding:max(1rem,env(safe-area-inset-top)) max(1.4rem,env(safe-area-inset-right)) max(1.9rem,env(safe-area-inset-bottom)) max(1.4rem,env(safe-area-inset-left))}
 .hd{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}.hd b{font-size:1.9rem;font-weight:700;letter-spacing:.01em}.hd span{font-size:.95rem;color:var(--mu)}
+.hdn{display:none}.hd>b,.hd>span{white-space:nowrap;flex:none}.hdn div{background:#b3261e;color:#fff;border-radius:.7em;text-align:center;line-height:1.2;padding:.25em .8em;font-weight:800}.hd .hdn b{font-size:1.15em;letter-spacing:0}.hd .hdn span{font-size:inherit;color:inherit;font-weight:600}.hdn em{font-style:normal;font-weight:400}
+@media(min-width:801px){body.ly-on .hdn{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;gap:.4rem .6rem;justify-content:center;align-items:stretch;margin:0 1.5rem;align-self:center}body.ly-on .hdn div{flex:1 1 0;max-width:46%;font-size:clamp(11px,.78vw,16px)}body.ly-on .hdn.hdm div{flex:0 1 auto;max-width:none;font-size:clamp(10px,.72vw,15px)}body.ly-on .offn{display:none}}
 .rw{display:grid;grid-template-columns:.7fr 1.05fr 2.1fr;gap:.8rem;min-height:0;position:relative;padding-left:1.1rem}.rw::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.45rem;border-radius:.3rem;background:var(--ac,var(--bd))}.rw>.bx{border-color:var(--at,var(--bd))}.rw>.bx.tbx{border-color:var(--ac,var(--bd));background:linear-gradient(var(--at,transparent),var(--at,transparent)),var(--card)}
 .bx{background:var(--card);border:1px solid var(--bd);border-radius:1rem;padding:.7rem 1.1rem;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.3rem;overflow:hidden}.bx.wide{grid-column:span 2}
 .lb{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--mu)}.hdg{display:flex;align-items:baseline;gap:.4rem;min-width:0;flex-wrap:wrap}.hl{font-size:1.35rem;font-weight:700;color:var(--tx)}.dt{font-size:1.35rem;font-weight:700;color:var(--mu)}.jump{display:none}
@@ -9966,7 +9983,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rs-b .tbar{display:block;margin:0;border-radius:0;font-size:1.2rem;padding:.6rem 1.05rem}.rs-b .tbar span{display:block;font-size:.85rem}
 .rs-c .rw{border:.25rem solid var(--ac);padding:0;background:var(--card)}
 .rs-d .stab{display:block;writing-mode:horizontal-tb;transform:none;font-size:1.05rem;padding:.45rem 1.05rem;border-radius:0;text-align:left}}
-</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)}</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}${CREST_TILE_SCRIPT}</body></html>`;
+</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b>${offBar(offAll.filter(m => results.some(r => r.t && String(r.t.team) === String(m.t))))}<span>Updated ${e(stamp)}</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}${CREST_TILE_SCRIPT}</body></html>`;
       return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=60"}});
     }
 
@@ -11803,12 +11820,14 @@ const CREST_TILE_SCRIPT = `<script>/*rfu-crest-tile*/(function(){
 function rgb(c){var m=/([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)/.exec(c||"");return m?[+m[1],+m[2],+m[3]]:null}
 function dist(a,b){var x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return Math.sqrt(x*x+y*y+z*z)}
 function one(img){try{var cr=img.parentNode,box=cr.parentNode;if(!box||!img.naturalWidth||cr.getAttribute("data-tile")!==null)return;
+var bgc=getComputedStyle(cr).backgroundColor;if(bgc!=="rgba(0, 0, 0, 0)"&&bgc!=="transparent"){cr.setAttribute("data-tile","none");return}
 var pc=rgb(getComputedStyle(box).backgroundColor);if(!pc)return;
 var cv=document.createElement("canvas");cv.width=cv.height=64;var cx=cv.getContext("2d");cx.drawImage(img,0,0,64,64);
 var d=cx.getImageData(0,0,64,64).data,n=0,near=0,dw=0,dk=0,W=[255,255,255],K=[16,20,23];
 for(var i=0;i<d.length;i+=4){if(d[i+3]<32)continue;var p=[d[i],d[i+1],d[i+2]];n++;if(dist(p,pc)<90)near++;dw+=dist(p,W);dk+=dist(p,K)}
 var st=n<12?"none":near/n>0.2?(dw>dk?"light":"dark"):"none";cr.setAttribute("data-tile",st);if(st==="none")return;
-var s=cr.style;s.setProperty("background",st==="dark"?"#101417":"#fff","important");s.setProperty("border-radius","1.4rem","important");s.setProperty("box-shadow","0 .15rem .6rem rgba(0,0,0,.28)","important");s.setProperty("overflow","hidden","important")}catch(e){}}
+var ir=img.getBoundingClientRect(),cr2=cr.getBoundingClientRect();if(!cr2.width)return;var t=document.createElement("span"),f=0.92,w=ir.width*f,h=ir.height*f,l=ir.left-cr2.left+(ir.width-w)/2,tp=ir.top-cr2.top+(ir.height-h)/2;
+t.className="ctile";t.style.cssText="position:absolute;left:"+(l/cr2.width*100)+"%;top:"+(tp/cr2.height*100)+"%;width:"+(w/cr2.width*100)+"%;height:"+(h/cr2.height*100)+"%;border-radius:18%;box-shadow:0 .15rem .6rem rgba(0,0,0,.28);background:"+(st==="dark"?"#101417":"#fff");cr.insertBefore(t,cr.firstChild);img.style.transform="scale(0.76)"}catch(e){}}
 function all(){[].forEach.call(document.querySelectorAll(".cnx .cr img"),function(i){if(i.complete)one(i);else i.addEventListener("load",function(){one(i)})})}
 if(document.readyState==="loading")addEventListener("DOMContentLoaded",all);else all();addEventListener("load",all);
 })();</script>`;

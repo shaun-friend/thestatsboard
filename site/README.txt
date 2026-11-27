@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.80.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.80.0_notice_bar.zip | v3.79.1
 v3.79.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.1_crest_tile_fix.zip | v3.79.0
 v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
 v3.78.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.2_current_chip.zip | v3.78.1
@@ -429,6 +430,12 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.80.0 - Match Centre: cancellation notices in the title bar; crest tile no longer looks bigger
+- Owner request (27-Nov-2026): a cancellation notice pushed that team's panel down so crests, names and dates no longer lined up.
+- Changed: on a wide Match Centre (TV), games called off now show in the title bar. One or two teams: a red notice each with the team, the game and the reason. Three or more: one short line each, without the reason. The panels stay identical and level. Phones still show the notice inside the panel.
+- Fixed: the tile behind a crest that blends in (v3.79.x) made that crest look bigger than the others. The tile is now smaller and the crest sits inside it, so it takes up the same space as the others.
+- Docs: What's new
 
 v3.79.1 - Match Centre: crest tile catches pale gold on gold
 - Owner report (27-Nov-2026): v3.79.0 made no difference to the Plympton Victoria crest on the gold panel.

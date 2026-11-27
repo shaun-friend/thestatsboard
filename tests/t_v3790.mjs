@@ -10,21 +10,21 @@ c('stack page includes the script',src.includes('${refreshScript}${CREST_TILE_SC
 c('Match Centre crests use the site crest copy',src.includes('<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id='));
 const svg=(body,edge)=>'<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="100" cy="100" r="90" fill="'+body+'" stroke="'+edge+'" stroke-width="8"/><rect x="80" y="60" width="40" height="80" fill="'+edge+'"/></svg>';
 const imgs={pale:svg('#f3e3a5','#deaa1e'),navy:svg('#142870','#f0f0f0'),tiny:'<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect x="175" y="150" width="50" height="40" rx="8" fill="#e6c864"/><rect x="190" y="195" width="20" height="60" fill="#e6c864"/></svg>',dknavy:svg('#1c2c72','#12205a')};
-const panel=(id,col,crest)=>'<section class="cw"><div class="cnx" id="'+id+'" style="background:'+col+';width:300px;height:300px"><span class="cr" style="background:#fff"><img src="/api/crest?id='+crest+'"></span></div></section>';
-const html='<!doctype html><body>'+panel('a','#d9a21b','pale')+panel('b','#2f9e5b','pale')+panel('c','#d9a21b','navy')+panel('d','#1a2a6c','dknavy')+panel('e','#c8a03c','tiny')+script+'</body>';
+const panel=(id,col,crest)=>'<section class="cw"><div class="cnx" id="'+id+'" style="background:'+col+';width:300px;height:300px"><span class="cr" style="position:relative;display:inline-block;width:100px;height:100px;background:none"><img style="position:absolute;inset:0;width:100%;height:100%" src="/api/crest?id='+crest+'"></span></div></section>';
+const html='<!doctype html><body>'+panel('a','#d9a21b','pale')+panel('b','#2f9e5b','pale')+'<section class="cw"><div class="cnx" id="w" style="background:#d9a21b;width:300px;height:300px"><span class="cr" style="position:relative;display:inline-block;width:100px;height:100px;background:rgba(255,255,255,.92)"><img style="position:absolute;inset:0;width:100%;height:100%" src="/api/crest?id=pale"></span></div></section>'+panel('c','#d9a21b','navy')+panel('d','#1a2a6c','dknavy')+panel('e','#c8a03c','tiny')+script+'</body>';
 const {chromium}=createRequire(import.meta.url)('playwright');
 const br=await chromium.launch();const p=await br.newPage();
 await p.route('https://x.test/',x=>x.fulfill({contentType:'text/html',body:html}));
 await p.route('https://x.test/api/crest**',x=>x.fulfill({contentType:'image/svg+xml',body:imgs[new URL(x.request().url()).searchParams.get('id')]}));
 const errs=[];p.on('pageerror',e=>errs.push(String(e)));
 await p.goto('https://x.test/');await p.waitForTimeout(800);
-const g=id=>p.$eval('#'+id+' .cr',e=>({t:e.getAttribute('data-tile'),bg:e.style.background,r:e.style.borderRadius}));
-const e5=await g('e');c('small gold crest on a gold panel gets a dark tile',e5.t==='dark',JSON.stringify(e5));
+const g=id=>p.$eval('#'+id+' .cr',e=>{const t=e.querySelector('.ctile');return {t:e.getAttribute('data-tile'),bg:t?t.style.background:e.style.background,r:t?t.style.borderRadius:'',w:t?t.getBoundingClientRect().width:0,im:e.querySelector('img').style.transform}});
+const wc=await g('w');c('a crest on a white circle (phone or classic) is left alone',wc.t==='none'&&!wc.w,JSON.stringify(wc));const e5=await g('e');c('small gold crest on a gold panel gets a dark tile',e5.t==='dark',JSON.stringify(e5));
 const a=await g('a'),b=await g('b'),cc=await g('c'),d=await g('d');
 c('pale crest on gold gets a dark tile',a.t==='dark'&&/16, 20, 23/.test(a.bg),JSON.stringify(a));
-c('tile is rounded',/1.4rem/.test(a.r));
-c('same crest on green is left alone',b.t==='none'&&b.bg==='rgb(255, 255, 255)',JSON.stringify(b));
+c('tile is rounded and no bigger than the crest box',a.r!==''&&a.w>0&&a.w<=100,JSON.stringify(a));c('crest sits inside its tile',/scale/.test(a.im));
+c('same crest on green is left alone',b.t==='none'&&!b.w,JSON.stringify(b));
 c('navy crest on gold is left alone',cc.t==='none',JSON.stringify(cc));
-c('dark navy crest on a navy panel gets a white tile',d.t==='light'&&/255, 255, 255/.test(d.bg)&&/1.4rem/.test(d.r),JSON.stringify(d));
+c('dark navy crest on a navy panel gets a white tile',d.t==='light'&&/255, 255, 255/.test(d.bg),JSON.stringify(d));
 c('no page errors',errs.length===0,errs.join('|'));
 await br.close();console.log(ok+' ok, '+bad+' failed');process.exit(bad?1:0)
