@@ -831,7 +831,7 @@ v3.74.0 - Sponsors thank-you TV page
 v3.76.0 - Games called off
 - Owner request (27-Nov-2026): the Vandals' game was cancelled but the RFU feed still listed it. Wanted a way to mark a game as off by hand.
 - New: Admin page /games-off (club PIN), under Club set-up. Choose a team, choose one of its upcoming games (read from the RFU feed), choose Cancelled or Postponed, add an optional note, press Mark this game as off. Marked games are listed with a Remove button.
-- Effect: the marked game is taken out of the fixtures as they are read (the stored RFU copy is left alone), so every page moves on to the team's following game: Match Centre, Next game, Fixtures board, Match day, Win Predictor and the calendar. The Match Centre team panel, the Next game page and the Fixtures board also show a red CANCELLED (or POSTPONED) notice with the date, opponent and note.
+- Effect: the marked game stays in the fixtures list in its place, shown as Cancelled (or Postponed) with the note, but is treated as not being played (the RFU's own void sign, time V; the stored RFU copy is left alone), so every page moves on to the team's following game: Match Centre, Next game, Fixtures board, Match day, Win Predictor and the calendar. The Match Centre team panel, the Next game page and the Fixtures board also show a red CANCELLED (or POSTPONED) notice with the date, opponent and note.
 - Clears itself: a mark ends the day after the game date. Remove brings the game back at once. Marking or removing refreshes the scores clock (as Refresh scores now does) so cached pages catch up within about a minute.
 - Stored in Cloudflare KV under games-off (up to 40 marks). No extra RFU requests are used when no game is marked; the Admin list reads the team's fixtures once (cached).
 - Not changed: the Match Centre "board" layout (a row per team) and the standard team page do not show the notice yet; the game is still skipped there.
@@ -5387,13 +5387,14 @@ function offHit(m, marks) {
   const d = String(m.date || "").slice(0, 10), h = offIdOf(m.homeTeam), a = offIdOf(m.awayTeam);
   return marks.find(k => k.d === d && (h === String(k.t) || a === String(k.t)) && (!k.o || h === String(k.o) || a === String(k.o))) || null;
 }
-// takes the marked games out of the fixtures part of a team feed (changes j in place) and says how many it took out
+// flags the marked games in the fixtures part of a team feed (changes j in place) and says how many it flagged. The game stays in the list but is treated as void
+// (time "V", the RFU's own sign for a game that is not being played), which every next-game rule already skips; _off and _offn say it is cancelled or postponed and why.
 function offStrip(j, marks) {
   let n = 0;
   const seen = new WeakSet();
   const clean = v => {
     if (!v || typeof v !== "object" || seen.has(v)) return; seen.add(v);
-    if (Array.isArray(v)) { for (let i = v.length - 1; i >= 0; i--) { if (offHit(v[i], marks)) { v.splice(i, 1); n++; } else clean(v[i]); } return; }
+    if (Array.isArray(v)) { for (const x of v) { const k = offHit(x, marks); if (k) { x.time = "V"; x._off = k.k === "p" ? "p" : "c"; x._offn = k.n || ""; n++; } else clean(x); } return; }
     for (const [k, x] of Object.entries(v)) if (k !== "html" && k !== "description") clean(x);
   };
   if (j && typeof j === "object") clean(j.fixtures);
@@ -9001,17 +9002,17 @@ setInterval(check,2000)})();</script></body></html>`;
       const games = d && Array.isArray(d.games) ? d.games : [];
       const multiComp = !!(d && d.multi);
       const compTag = g => multiComp ? ` &middot; <span class="ct${g.cup ? "" : " lg"}" title="${e(g.comp)}">${e(shortComp(g.comp))}</span>` : "";
-      const done = games.filter(g => g.status === "done" || g.status === "void").sort((a, b) => a.iso < b.iso ? 1 : -1);
+      const done = games.filter(g => g.status === "done" || (g.status === "void" && !g.off)).sort((a, b) => a.iso < b.iso ? 1 : -1);
       const played = done.filter(g => g.status === "done");
       const nVoid = done.length - played.length;
-      const up = games.filter(g => g.status !== "done" && g.status !== "void").sort((a, b) => a.iso < b.iso ? -1 : 1);
+      const up = games.filter(g => (g.status !== "done" && g.status !== "void") || (g.status === "void" && g.off)).sort((a, b) => a.iso < b.iso ? -1 : 1);
       const count = o => played.filter(g => g.outcome === o).length;
       const record = played.length ? `${multiComp ? "All competitions: " : ""}Played ${played.length} · Won ${count("W")} · Drawn ${count("D")} · Lost ${count("L")}${nVoid ? ` · Void ${nVoid}` : ""}` : "";
       const title = friendly || (d && d.team) || "Fixtures";
       const crest = (id, name) => `<span class="crest sm"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span>`;
       const row = (g, isNext) => {
         const cls = g.status === "void" ? "v" : g.status === "done" ? (g.outcome === "W" ? "w" : g.outcome === "L" ? "l" : "d") : "u";
-        const right = g.status === "void" ? `<span class="fs"><b class="vd">Void</b><i class="r v" title="Void: not played, not counted">V</i></span>` : g.status === "done"
+        const right = g.status === "void" && g.off ? `<span class="fs"><b class="vd" style="color:#ff8a80">${g.off === "p" ? "Postponed" : "Cancelled"}</b>${g.offNote ? `<small style="display:block">${e(g.offNote)}</small>` : ""}</span>` : g.status === "void" ? `<span class="fs"><b class="vd">Void</b><i class="r v" title="Void: not played, not counted">V</i></span>` : g.status === "done"
           ? `<span class="fs"><b>${g.wo ? "W/O" : e(g.mineScore) + "–" + e(g.oppScore)}</b><i class="r ${cls}">${e(g.outcome)}</i></span>`
           : `<span class="fs"><span class="pend">${g.status === "pending" ? "Result awaited" : ""}</span></span>`;
         return `<div class="fx ${cls}${isNext ? " nx" : ""}"><span class="fd" title="${e(g.dateLabel)} ${e(g.year)}"><b>${e(g.dateLabel)}</b>${isNext ? "<em>Next</em>" : ""}</span>${crest(g.oppId, g.oppName)}<span class="fo"><b>${e(g.oppName)}</b><small>${g.home ? "Home" : "Away"}${compTag(g)}</small></span>${right}</div>`;
@@ -9039,8 +9040,8 @@ setInterval(check,2000)})();</script></body></html>`;
           : `<div class="ban next" style="grid-template-columns:${bn.wx && bn.wx.status === "ok" ? "1.3fr 1fr 1.1fr" : "1.3fr 1fr"}"><div><p class="bl">Next game</p><div class="bt">${bCrest(bn.opp.id, bn.opp.name)}<div style="min-width:0"><div class="bn">${e(bn.opp.name)}</div><div class="tg">${posTag}<span>${e(bn.tag)}</span></div></div></div></div><div><p class="bl">Game day</p><div class="bw">${e(bn.when)}</div><div class="bd">${e(bn.dateFull)}</div></div>${bn.wx && bn.wx.status === "ok" ? `<div><p class="bl">Forecast for the day</p><div class="bwx"><span class="ic">${bn.wx.icon}</span><div><b>${e(bn.wx.headline)}</b><small>${bn.wx.temp}&deg;C &middot; ${bn.wx.rain}% rain &middot; ${e(bn.wx.windWord)}</small></div></div></div>` : ""}</div>`;
         const tvRow = g => {
           const cls = g.status === "void" ? "v" : g.status === "done" ? (g.outcome === "W" ? "w" : g.outcome === "L" ? "l" : "d") : "u";
-          const right = g.status === "void" ? `<span class="fs"><b class="vd">Void</b><i class="r v">V</i></span>` : g.status === "done" ? `<span class="fs"><b>${g.wo ? "W/O" : e(g.mineScore) + "–" + e(g.oppScore)}</b><i class="r ${cls}">${e(g.outcome)}</i></span>` : (g.status === "pending" ? `<span class="fs"><span class="pend">Awaited</span></span>` : `<span class="fs"><span class="pend">To play</span></span>`);
-          return `<div class="fx ${cls}${g === nextG ? " nx" : ""}${g.status === "done" || g.status === "void" ? " pd" : ""}"><span class="fd"><b>${e(g.dateLabel)}</b></span>${crest(g.oppId, g.oppName)}<span class="fo"><b>${e(g.oppName)}</b><small>${g.home ? "Home" : "Away"}${compTag(g)}</small></span>${right}</div>`;
+          const right = g.status === "void" && g.off ? `<span class="fs"><b class="vd" style="color:#ff8a80">${g.off === "p" ? "Postponed" : "Cancelled"}</b></span>` : g.status === "void" ? `<span class="fs"><b class="vd">Void</b><i class="r v">V</i></span>` : g.status === "done" ? `<span class="fs"><b>${g.wo ? "W/O" : e(g.mineScore) + "–" + e(g.oppScore)}</b><i class="r ${cls}">${e(g.outcome)}</i></span>` : (g.status === "pending" ? `<span class="fs"><span class="pend">Awaited</span></span>` : `<span class="fs"><span class="pend">To play</span></span>`);
+          return `<div class="fx ${cls}${g === nextG ? " nx" : ""}${g.status === "done" || (g.status === "void" && !g.off) ? " pd" : ""}"><span class="fd"><b>${e(g.dateLabel)}</b></span>${crest(g.oppId, g.oppName)}<span class="fo"><b>${e(g.oppName)}</b><small>${g.home ? "Home" : "Away"}${compTag(g)}</small></span>${right}</div>`;
         };
         const aShort = n => plainClub(String(n || "")).replace(/\s+(U\s*\d{1,2}'?s?|Under\s*\d{1,2}'?s?|\d+(st|nd|rd|th)\s*XV|XV|1XV|2XV|Women|Ladies|Girls)$/i, "").trim() || String(n || "");
         const clubShort = aShort((d && d.clubName) || clubOf(title)), clubTxt = String(url.searchParams.get("club") || "").trim() || (/rfc|rugby|chiefs|albion|saracens|rfu/i.test(clubShort) ? clubShort : clubShort + " RFC");
@@ -10221,6 +10222,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
       }).sort((a,b) => (dateOf(b)?.getTime() || 0) - (dateOf(a)?.getTime() || 0));
       const uniqueFixtures = [...new Map(fixtureObjects.filter(belongsToSelectedTeam).map(m => [matchKey(m),m])).values()];
       const upcoming = uniqueFixtures.filter(m => {
+        if (m._off) return false; // v3.76.0: a game marked as off stays in the games list but is never the next game
         const hs=num(m.homeTeam?.score), as=num(m.awayTeam?.score);
         return (hs === null || as === null || (hs === 0 && as === 0)) && dateOf(m) && dateOf(m).getTime() >= Date.now() - 86400000;
       }).sort((a,b) => (dateOf(a)?.getTime() || 0) - (dateOf(b)?.getTime() || 0));
@@ -10703,7 +10705,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           };
           const mk = (mm, status) => {
             const x = getSide(mm), dt = dateOf(mm), played = status === "done";
-            return { iso: dt.toISOString(), dateLabel: dateLabel(mm), year: dt.getFullYear(), time: played ? "" : timeOf(mm), home: x.home,
+            return { off: mm._off || undefined, offNote: mm._offn || undefined, iso: dt.toISOString(), dateLabel: dateLabel(mm), year: dt.getFullYear(), time: played ? "" : timeOf(mm), home: x.home,
               id: mm.id, oppName: teamNameOf(x.opponent) || "Opponent", oppId: teamIdOf(x.opponent), venue: venueLabel(mm.stadium) || venueLabel(mm.location) || venueLabel(mm.venue) || "",
               mineScore: played ? x.mineScore : null, oppScore: played ? x.oppScore : null,
               outcome: played ? x.res : "", wo: played && x.wo ? true : undefined, status, comp: labelOfGame(mm).comp, cup: labelOfGame(mm).cup, competition: labelOfGame(mm).competition, division: labelOfGame(mm).division };

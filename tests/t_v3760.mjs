@@ -54,7 +54,10 @@ g=await gj('/api/games-off?team=11039');c('a marked game shows as already marked
 // notices
 const nm=await get('/?'+base+'&view=match&layout=tv');const nt=await nm.text();
 c('Next game page carries the CANCELLED notice with the note',/CANCELLED &middot; [A-Za-z]{3} \d+ [A-Za-z]{3} v Okehampton/.test(nt)&&/Pitch unplayable/.test(nt)&&/role="note"/.test(nt),nt.slice(0,300));
-const fb=await get('/?'+base+'&view=fixtures&layout=tv');c('Fixtures board carries the notice',/CANCELLED &middot;/.test(await fb.text()));
+const fb=await (await get('/?'+base+'&view=fixtures&layout=tv')).text();c('Fixtures board carries the notice',/CANCELLED &middot;/.test(fb));
+c('Fixtures board still lists the game, marked Cancelled with the note',/Okehampton/.test(fb.split('</h1>').pop()||fb)&&/Cancelled/.test(fb),'');
+const fs0=await (await get('/?'+base+'&view=fixtures&theme=dark')).text();c('standard Fixtures page lists it under Upcoming as Cancelled',/Upcoming[\s\S]*Okehampton[\s\S]*Cancelled[\s\S]*Results/.test(fs0),'');
+const dj=JSON.parse(await (await get('/?'+base+'&format=summary&detail=fixtures')).text());const og=(dj.games||[]).find(x=>/Okehampton/.test(x.oppName)&&/^2026-11-14/.test(x.iso));c('the game stays in the games list, flagged off and void (so it is never the next game)',og&&og.status==='void'&&og.off==='c'&&og.offNote==='Pitch unplayable',JSON.stringify(og)+JSON.stringify((dj.games||[]).filter(x=>/2026-11/.test(x.iso))));
 const tb=await get('/?'+base+'&layout=tv');c('the league table page does not',!/CANCELLED &middot;/.test(await tb.text()));
 const mc=await page('/?view=stack&layout=tv&theme=dark');c('Match Centre shows the notice in that team column',/CANCELLED &middot; [A-Za-z]{3} \d+ [A-Za-z]{3} v Okehampton/.test(mc.t),'');
 // postponed wording and removal
