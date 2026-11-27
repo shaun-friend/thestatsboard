@@ -13,7 +13,7 @@ const S1='Ivybridge 1XV',S2='Ivybridge 2nd XV',V='The Vandals';
 let P=[{no:'100',name:'Owen Garner',teams:[S1,S2],sids:['aaaaaaa1','aaaaaaa2'],cur:true,team:'11039'},{no:'101',name:'Aaron Williams',teams:[S2],sids:['aaaaaaa2'],cur:true,team:'11063'},{no:'102',name:'Ben Burgess',teams:[V],sids:[],cur:true,team:'11070'},{no:'103',name:'Hamish Harris',teams:[S1,V],sids:[],cur:true,team:'11039'},{no:'104',name:'Zed Rush',teams:[S2],sids:[],cur:true,team:'11063'}];
 const T1={team:'11039',name:S1},T2={team:'11063',name:S2},T3={team:'11070',name:V};
 const row=p=>({no:p.no,name:p.name,hid:false,teams:p.teams,sponsor:p.sids.map(i=>sponsors.find(s=>s.id===i).name).join(' + '),sponsors:p.sids.map(i=>sponsors.find(s=>s.id===i).name),sids:p.sids,cur:p.cur,team:p.team,n:p.name,own:p.own||'',alt:[]});
-let ZED=false;const ALL=(tm)=>({ok:true,team:tm||'',season:'2026-2027',seasons,teams:[T1,T2,T3],sponsors,sponsored:P.filter(p=>p.sids.length).map(row),avail:P.filter(p=>!p.sids.length&&p.cur).map(row).concat(tm==='11039'&&!ZED?[{no:'200',name:'Zed Squad',hid:false,teams:[S1],sponsor:'',sponsors:[],sids:[],cur:false,team:'11039',n:'Zed Squad',own:'',alt:[]}]:[])});
+let ZED=false;const ALL=(tm)=>({ok:true,team:tm||'',season:'2026-2027',seasons,teams:[T1,T2,T3],sponsors,sponsored:P.filter(p=>p.sids.length).map(row),avail:P.filter(p=>!p.sids.length&&p.cur).map(row).concat(!ZED?[{no:'200',name:'Zed Squad',hid:false,teams:[S1],sponsor:'',sponsors:[],sids:[],cur:false,team:'11039',n:'Zed Squad',own:'',alt:[]}]:[])});
 const TEAM={ok:true,teams:[T1,T2],team:'11039',season:'2026-2027',seasons,sponsors,rows:[],tot:{},played:9,squadError:''};
 const {chromium}=createRequire(import.meta.url)('playwright');
 const br=await chromium.launch();const ctxb=await br.newContext({acceptDownloads:true,viewport:{width:1200,height:1000}});const p=await ctxb.newPage();
@@ -36,7 +36,7 @@ c('three tabs, Players on, no warning strip',await p.$$eval('.tb a',l=>l.map(a=>
 c('tabs are styled as a row of buttons',await p.$eval('.tb',e=>getComputedStyle(e).display)==='flex'&&await p.$eval('#t1',e=>getComputedStyle(e).backgroundColor)!=='rgba(0, 0, 0, 0)');
 if(process.env.SHOT)await p.screenshot({path:process.env.SHOT+'h1.png'});
 c('Players: each player once, three need a sponsor',await q('#ls .pr[data-go]')===3);
-await p.selectOption('#ft',S1);await p.waitForFunction(()=>/Not current 1/.test(document.querySelector('#ch').textContent));
+await p.selectOption('#ft',S1);
 c('team picker limits the list',await q('#ls .pr[data-go]')===1);
 c('Not current chip counts the squad player',/Not current 1/.test(await txt('#ch')),await txt('#ch'));
 await p.click('#ch [data-f=notcur]');c('Not current chip lists only that player',await q('#ls .pr[data-go]')===1&&/Zed Squad/.test(await txt('#ls'))&&/Not current/.test(await txt('#ls .pr .tg')));

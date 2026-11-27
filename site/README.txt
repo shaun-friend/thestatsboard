@@ -43,7 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
-v3.75.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
+v3.75.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
 v3.74.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.74.0_sponsors_tv_page.zip | v3.73.0
 v3.73.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.73.0_sponsors_hub_refresh.zip | v3.72.0
 v3.72.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.72.0_past_meetings.zip | v3.71.0
@@ -420,9 +420,9 @@ v3.74.0 - Sponsors thank-you TV page
 
 v3.75.0 - Sponsor a player who is not current; sponsors TV tiles keep names on one line
 - Owner request (26-Nov-2026): the Players tab only showed players ticked as current, so a player who was not marked current could not be given a sponsor. Wanted without bringing the old page back.
-- Changed: pick a team on Players (or Sponsors) and its whole RFU squad is listed, with a new Not current chip. Giving a sponsor to a player who is not current makes them current (the Current tick can still be undone). The sponsor panel's Add a player box lists the whole squad for the picked team, with "not current" marked. All teams stays as it was (it would need every team's squad from the RFU).
-- Changed: sponsors TV page. A player name never wraps; its size is worked out from the longest name so it fits the tile on one line. The logo keeps its share of the tile (it no longer shrinks as names are added).
-- Request limit: picking a team reads that team's RFU squad once (cached), as the Admin set-up did before.
+- Changed: Players (and Sponsors) now list every team's whole RFU squad, including players who are not current, with a new Not current chip. Giving a sponsor to a player who is not current makes them current (the Current tick can still be undone). The sponsor panel's Add a player box lists the whole squad, with "not current" marked.
+- Changed: sponsors TV page. A player name never wraps; its size is worked out from the longest name so it fits the tile on one line. The logo keeps its share of the tile (it no longer shrinks as names are added). The page also measures the names in the browser and shrinks any that would be cut off, so a wide font on the TV cannot clip them.
+- Request limit: each team's RFU squad is read once (cached) when the page loads, one RFU request per team.
 - Docs: TV rotation (one rotating link), What's new
 
 v3.73.0 - Players and sponsors hub refresh

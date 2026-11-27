@@ -41,7 +41,7 @@ c('a player on two teams is listed once',j.sponsored.filter(p=>p.no==='1530430')
 const w=j.sponsored.find(p=>p.no==='1530430');
 c('with both teams and both sponsors',w&&w.teams.length===2&&w.sponsor==='Dart Motors + Moor Ale'&&w.name==='Wesley Vermigle',JSON.stringify(w));
 c('sponsored list has the two sponsored players only, sorted by name',j.sponsored.length===2&&j.sponsored[0].name==='Harry Newman-Wild',JSON.stringify(j.sponsored.map(p=>p.name)));
-c('current players with no sponsor are listed, not-current ones are not',j.avail.length===1&&j.avail[0].no==='5'&&!j.avail.some(p=>p.no==='777'),JSON.stringify(j.avail));
+c('unsponsored players are listed with their current flag (v3.75.0: the whole squad is included)',j.avail.some(p=>p.no==='5'&&p.cur===true)&&j.avail.filter(p=>p.cur).length===1&&!j.avail.some(p=>p.no==='777'),JSON.stringify(j.avail));
 c('other players page request still works',(await get('?team=11039&season='+S)).rows!==undefined);
 c('page loads the all-teams list from the server and has the download button',/id="wx"/.test(src)&&/sponsor-players\?all=1&season=/.test(src))
 c('rows carry the sponsors as a list',j.sponsored.find(p=>p.no==='1530430').sponsors.join()==='Dart Motors,Moor Ale',JSON.stringify(j.sponsored));

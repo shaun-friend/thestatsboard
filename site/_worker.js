@@ -15,7 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
-//   v3.75.0 26-Nov-2026 Players hub: with a team picked, the whole squad is listed (Not current chip) and a sponsor makes a player current; sponsors TV names stay on one line, logo keeps its size.
+//   v3.75.0 27-Nov-2026 Players hub: every team's whole squad is listed (Not current chip) and a sponsor makes a player current; sponsors TV names stay on one line (and smaller), logo keeps its size.
 //   v3.74.0 26-Nov-2026 Sponsors thank-you TV page: optional rotation page, groups of teams, 4 x 2 tiles with tall tiles for sponsors with 4 or more players, one dot per slide; All logos and players view on the Sponsors tab.
 //   v3.73.0 26-Nov-2026 Players and sponsors hub refresh: sponsor admin, add and remove players, logos, backup and exports all inside the one page, nothing links away.
 //   v3.72.0 26-Nov-2026 Past meetings: a rarely used Admin page that looks back through every season the RFU results feed holds for any meeting between one of our teams and another club.
@@ -403,7 +403,7 @@
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
 const VERSION = "v3.75.0";
-const BUILD_DATE = "26-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -451,7 +451,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
-v3.75.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
+v3.75.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
 v3.74.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.74.0_sponsors_tv_page.zip | v3.73.0
 v3.73.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.73.0_sponsors_hub_refresh.zip | v3.72.0
 v3.72.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.72.0_past_meetings.zip | v3.71.0
@@ -828,9 +828,9 @@ v3.74.0 - Sponsors thank-you TV page
 
 v3.75.0 - Sponsor a player who is not current; sponsors TV tiles keep names on one line
 - Owner request (26-Nov-2026): the Players tab only showed players ticked as current, so a player who was not marked current could not be given a sponsor. Wanted without bringing the old page back.
-- Changed: pick a team on Players (or Sponsors) and its whole RFU squad is listed, with a new Not current chip. Giving a sponsor to a player who is not current makes them current (the Current tick can still be undone). The sponsor panel's Add a player box lists the whole squad for the picked team, with "not current" marked. All teams stays as it was (it would need every team's squad from the RFU).
-- Changed: sponsors TV page. A player name never wraps; its size is worked out from the longest name so it fits the tile on one line. The logo keeps its share of the tile (it no longer shrinks as names are added).
-- Request limit: picking a team reads that team's RFU squad once (cached), as the Admin set-up did before.
+- Changed: Players (and Sponsors) now list every team's whole RFU squad, including players who are not current, with a new Not current chip. Giving a sponsor to a player who is not current makes them current (the Current tick can still be undone). The sponsor panel's Add a player box lists the whole squad, with "not current" marked.
+- Changed: sponsors TV page. A player name never wraps; its size is worked out from the longest name so it fits the tile on one line. The logo keeps its share of the tile (it no longer shrinks as names are added). The page also measures the names in the browser and shrinks any that would be cut off, so a wide font on the TV cannot clip them.
+- Request limit: each team's RFU squad is read once (cached) when the page loads, one RFU request per team.
 - Docs: TV rotation (one rotating link), What's new
 
 v3.73.0 - Players and sponsors hub refresh
@@ -3536,7 +3536,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
-      ["v3.75.0", "Players who are not current can now be given a sponsor: pick a team and its whole squad is listed, with a Not current chip, and a sponsor makes the player current. On the sponsors TV page a name never wraps onto a second line and the logo keeps its size."],
+      ["v3.75.0", "Players who are not current can now be given a sponsor: every team's whole squad is listed, with a Not current chip, and a sponsor makes the player current. On the sponsors TV page a name never wraps onto a second line and the logo keeps its size."],
       ["v3.74.0", "Thank you to our sponsors, an optional page for the TV rotation (off until you add it in Admin, TV rotation). Sponsors with their players, in groups of teams you choose (for example Men and Women), 4 across and 2 down, with a tall tile for a sponsor with four or more players so every name can be read. Each slide is its own step with its own dot, and the round total counts them. Overview warns when the number of slides changes. The Sponsors tab also has an All logos and players view."],
       ["v3.73.0", "Players and sponsors page refreshed. Three tabs and nothing sends you to another page. Players: add a player, remove one from the club list, edit the name we use, give or take off sponsors. Sponsors: add, paste a list, rename, remove, logos and tile colour, add or remove players, export one sponsor. Admin: season set-up, backup (with days since the last one), logos with stats, and exports."],
       ["v3.72.0", "New Admin page, Past meetings (Club set-up): choose one of our teams and an opponent and it looks back through every season the RFU results feed holds, listing each meeting with its score and a win, draw or loss, and saying how far back the feed goes."],
@@ -3984,7 +3984,7 @@ function spTvPage(slide) {
         const logo = r.v ? '<img alt="' + E(r.name) + '" src="/api/logo/' + E(r.id) + "?v=" + E(r.v) + '">' : '<span class="nl">' + E(r.name) + "</span>";
         // v3.75.0: a name never wraps. The size is worked out from the longest name so it fits its column on one line; the logo keeps its share of the tile whatever the number of names.
         const lines = shown.concat(more > 0 ? ["and " + more + " more"] : []), cs = long ? 2 : 1, widest = Math.max(...lines.map(x => x.length), 8);
-        const fs = Math.min(long ? 1.45 : r.names.length > 3 ? 1.65 : 1.9, (20.5 / cs - 0.6) / (widest * 0.82));
+        const fs = Math.min(long ? 1.15 : r.names.length > 3 ? 1.3 : 1.45, (20.5 / cs - 0.6) / (widest * 1.0));
         g += '<div class="c' + (c.length === 1 ? " tall" : "") + '" style="grid-column:' + (ci + 1) + ";" + place + '"><div class="lg">' + logo + '</div><div class="n' + (long ? " two" : "") + '" style="font-size:' + fs.toFixed(2) + 'cqw">' + lines.map(x => "<div>" + E(x) + "</div>").join("") + "</div></div>";
       });
     });
@@ -3999,12 +3999,12 @@ function spTvPage(slide) {
 .h{text-align:center;font-size:5.2cqw;font-weight:900;font-style:italic;line-height:1.05;color:#0f4d27;margin:.5cqw 0 2cqw}.h em{color:#2fa65d}
 .g{flex:1;display:grid;grid-template-rows:1fr 1fr;gap:2.2cqw 2cqw;min-height:0;margin:0 auto}
 .c{background:#fff;border-radius:3.2cqw;box-shadow:0 .6cqw 2cqw rgba(20,80,45,.16);display:flex;flex-direction:column;align-items:center;padding:1.8cqw 1.6cqw 1.5cqw;min-height:0;min-width:0;overflow:hidden}
-.lg{flex:1 1 0;width:100%;display:flex;align-items:center;justify-content:center;min-height:46%;min-width:0}.c.tall .lg{min-height:42%}.lg img{max-width:100%;max-height:100%;object-fit:contain}
+.lg{flex:1 1 0;width:100%;display:flex;align-items:center;justify-content:center;min-height:40%;min-width:0}.c.tall .lg{min-height:36%}.lg img{max-width:100%;max-height:100%;object-fit:contain}
 .nl{font-weight:800;font-size:2.3cqw;text-align:center;line-height:1.1;color:#14602f}
 .n{flex:0 0 auto;margin-top:.8cqw;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#14602f;text-align:center;line-height:1.25;width:100%;white-space:nowrap}
 .n.two{columns:2;column-gap:1cqw}.n div{overflow:hidden}
 </style></head><body><div class="st"><div class="fr"><div class="k">${E(club)}</div><div class="h">THANK YOU TO OUR <em>SPONSORS</em></div>${g}</div></div>
-<script>(function(){function go(){try{if(top!==self){parent.postMessage("rfu-ver|${VERSION}","*");parent.postMessage("rfu-sr-ready","*")}}catch(e){}}if(document.readyState==="complete")setTimeout(go,300);else addEventListener("load",function(){setTimeout(go,300)})})()</script></body></html>`;
+<script>(function(){function fit(){try{var cs=document.querySelectorAll(".c");for(var i=0;i<cs.length;i++){var c=cs[i],n=c.querySelector(".n");if(!n)continue;var f=parseFloat(getComputedStyle(n).fontSize),k=0;function bad(){if(c.scrollHeight>c.clientHeight+1)return true;for(var j=0;j<n.children.length;j++)if(n.children[j].scrollWidth>n.children[j].clientWidth+1)return true;return false}while(bad()&&k<60&&f>8){f*=0.96;n.style.fontSize=f+"px";k++}}}catch(e){}}function go(){try{if(top!==self){parent.postMessage("rfu-ver|${VERSION}","*");parent.postMessage("rfu-sr-ready","*")}}catch(e){}}fit();addEventListener("load",fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);if(document.readyState==="complete")setTimeout(go,300);else addEventListener("load",function(){setTimeout(go,300)})})()</script></body></html>`;
 }
 // v3.37.0: the TV screen. One link, /<club>/tv, rotates the club's TV pages. Each page is a normal TV page in its own frame, so it is
 // its own request with its own 50-call budget; this page makes no outside calls. Settings (tv): items [{page, team, secs, on}] (order
@@ -5932,10 +5932,9 @@ async function sponsorPlayersApi(request, url, worker) {
           if (isCurrent(e0)) h.cur = true;
         }
       }
-      // v3.75.0: with a team picked, its whole RFU squad is listed too, so a player who is not marked current can be given a sponsor (which makes them current).
-      const pickT = TEAMS.find(x => !x.hidden && String(x.team) === String(sp.get("team") || "")), pickName = pickT ? pickT.name : "";
-      if (pickT) {
-        const sq0 = await squadFor(String(pickT.team)), have = new Set(Object.keys(all));
+      // v3.75.0: every team's RFU squad is listed too (each is read once and cached), so a player who is not marked current can be given a sponsor, which makes them current.
+      for (const pickT of TEAMS.filter(x => !x.hidden).slice(0, 12)) {
+        const pickName = pickT.name, sq0 = await squadFor(String(pickT.team)), have = new Set(Object.keys(all));
         for (const k of Object.keys(all)) for (const a of (all[k].alt || [])) have.add(a);
         if (sq0.ok) for (const x of sq0.list) {
           const key = altOf[x.no] || x.no;
@@ -5945,7 +5944,7 @@ async function sponsorPlayersApi(request, url, worker) {
       }
       const rowsAll = Object.values(all).map(h => { const ids = [h.s, h.s2].filter(x => x && nm0.get(x)); return { no: h.no, name: h.name, hid: h.hid && !h.name, teams: h.teams, sponsor: ids.map(x => nm0.get(x)).join(" + "), sponsors: ids.map(x => nm0.get(x)), sids: ids, cur: h.cur, team: h.team, n: h.n, own: h.own, alt: h.alt }; });
       const by = (a, b) => (a.name || "~").toLowerCase() < (b.name || "~").toLowerCase() ? -1 : (a.name || "~").toLowerCase() > (b.name || "~").toLowerCase() ? 1 : 0;
-      return J({ ok: true, season: q.season, seasons, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), sponsors: sponsorSorted(sponsors), sponsored: rowsAll.filter(x => x.sponsor).sort(by), avail: rowsAll.filter(x => !x.sponsor && (x.cur || (pickName && x.teams.includes(pickName)))).sort(by), team: pickT ? String(pickT.team) : "" });
+      return J({ ok: true, season: q.season, seasons, teams: TEAMS.filter(t => !t.hidden).map(t => ({ team: String(t.team), name: t.name })), sponsors: sponsorSorted(sponsors), sponsored: rowsAll.filter(x => x.sponsor).sort(by), avail: rowsAll.filter(x => !x.sponsor).sort(by) });
     }
     const sq = await squadFor(q.team), ent = rec.t[q.team] || {}, nameOf = new Map(sponsors.map(x => [x.id, x.name]));
     // The sponsor and the club's own name belong to the player for the season, whichever team's list they were set on.
@@ -6141,10 +6140,9 @@ function post(o,ok,bad){if(busy)return;busy=true;fetch("/api/sponsor-players",{m
 function spost(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;ok(j||{ok:false,error:"Could not save. Try again."})}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
 function lpost(o,ok){spost(o,function(j){if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}ok(j);loadAll(true)})}
 function bapi(o,cb){fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"That did not work. Try again."}})}).then(cb).catch(function(){cb({ok:false,error:"That did not work. Try again."})})}
-function teamId(){var t=$("ft").value,r="";if(t&&W&&W.teams)W.teams.forEach(function(x){if(x.name===t)r=x.team});return r}
-function loadAll(quiet){var se=$("se").value||"",ti=teamId();fetch("/api/sponsor-players?all=1&season="+encodeURIComponent(se)+(ti?"&team="+encodeURIComponent(ti):""),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}W=j;SM={};j.sponsors.forEach(function(s){SM[s.id]=s});if(!quiet||pend)say(pend,pend?"ok":"");pend="";var s2="";[j.seasons.prev,j.seasons.cur,j.seasons.next].forEach(function(x){s2+='<option value="'+x+'"'+(x===j.season?" selected":"")+">"+x+(x===j.seasons.cur?" (now)":"")+"</option>"});$("se").innerHTML=s2;var ts={};(j.teams||[]).forEach(function(x){ts[x.name]=1});allP().forEach(function(p){p.teams.forEach(function(t){ts[t]=1})});var cv=$("ft").value,o='<option value="">All teams</option>';Object.keys(ts).sort().forEach(function(t){o+='<option value="'+e(t)+'"'+(t===cv?" selected":"")+">"+e(t)+"</option>"});$("ft").innerHTML=o;draw()}).catch(function(){say("Could not read the players.","er")})}
+function loadAll(quiet){var se=$("se").value||"";fetch("/api/sponsor-players?all=1&season="+encodeURIComponent(se),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}W=j;SM={};j.sponsors.forEach(function(s){SM[s.id]=s});if(!quiet||pend)say(pend,pend?"ok":"");pend="";var s2="";[j.seasons.prev,j.seasons.cur,j.seasons.next].forEach(function(x){s2+='<option value="'+x+'"'+(x===j.season?" selected":"")+">"+x+(x===j.seasons.cur?" (now)":"")+"</option>"});$("se").innerHTML=s2;var ts={};(j.teams||[]).forEach(function(x){ts[x.name]=1});allP().forEach(function(p){p.teams.forEach(function(t){ts[t]=1})});var cv=$("ft").value,o='<option value="">All teams</option>';Object.keys(ts).sort().forEach(function(t){o+='<option value="'+e(t)+'"'+(t===cv?" selected":"")+">"+e(t)+"</option>"});$("ft").innerHTML=o;draw()}).catch(function(){say("Could not read the players.","er")})}
 function chips(){var m=MD(),h="";
-if(m==="p"){var sc=allP().filter(inT),cur=sc.filter(function(p){return p.cur||p.sponsor}),sp=cur.filter(function(p){return p.sponsor}).length,nd=cur.length-sp;[["need","Needs a sponsor "+nd],["has","Sponsored "+sc.filter(function(p){return p.sponsor}).length]].concat($("ft").value?[["notcur","Not current "+sc.filter(function(p){return!p.sponsor&&!p.cur}).length]]:[],[["all","Everyone "+sc.length]]).forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="need"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+e($("ft").value||"All teams")+"</b>: "+sp+" of "+cur.length+" current players have a sponsor, "+nd+" still need one. Each player is listed once, with every team they play for."}
+if(m==="p"){var sc=allP().filter(inT),cur=sc.filter(function(p){return p.cur||p.sponsor}),sp=cur.filter(function(p){return p.sponsor}).length,nd=cur.length-sp;[["need","Needs a sponsor "+nd],["has","Sponsored "+sc.filter(function(p){return p.sponsor}).length]].concat([["notcur","Not current "+sc.filter(function(p){return!p.sponsor&&!p.cur}).length]],[["all","Everyone "+sc.length]]).forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="need"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+e($("ft").value||"All teams")+"</b>: "+sp+" of "+cur.length+" current players have a sponsor, "+nd+" still need one. Each player is listed once, with every team they play for."}
 else{var S=items(),np=S.filter(function(s){return!users(s.id).length}).length,nl=S.filter(function(s){return!s.logo}).length;[["all","All "+S.length],["nop","No players "+np],["nol","No logo "+nl]].forEach(function(x){h+='<button type="button" class="fc'+(sflt===x[0]?" on":"")+'" data-sf="'+x[0]+'">'+x[1]+"</button>"});h+='<span class="vw"><button type="button" class="fc'+(vm==="list"?" on":"")+'" data-vm="list">List</button><button type="button" class="fc'+(vm==="cards"?" on":"")+'" data-vm="cards">All logos and players</button></span>';$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+S.length+"</b> sponsors. Open one to change its logo and its players."}}
 function bulkBar(){var n=Object.keys(chk).length,o="";if(MD()!=="p"||!n){$("bu").innerHTML="";return}items().forEach(function(s){o+='<option value="'+s.id+'">'+e(s.name)+"</option>"});$("bu").innerHTML='<div class="bulk"><b>'+n+" selected</b><select class='in2' id='bs' style='flex:1;min-width:150px'><option value=''>Choose a sponsor</option>"+o+"</select><button type='button' class='b2 go' id='bg'>Give sponsor</button><button type='button' class='b2' id='bc'>Clear</button></div>"}
 function listHtml(){var h="";
@@ -6175,8 +6173,8 @@ else{var s=SM[sel.id];if(!s)return h+'<div class="em">That sponsor has gone.</di
 h+='<div style="display:flex;gap:12px;align-items:center">'+tile(s.id,1)+'<div><div class="dh">'+e(s.name)+'</div><div class="sub" style="margin:0">'+ps.length+" player"+(ps.length===1?"":"s")+"</div></div></div>";
 h+='<div class="dl">Players</div>'+(ps.length?ps.map(function(p){return'<span class="ch2" data-go="p:'+e(p.no)+'">'+nm(p)+'<button type="button" class="x" data-rmp="'+e(p.no)+'" aria-label="Take this sponsor off">&times;</button></span>'}).join(""):'<p class="sub" style="margin:0 0 8px">No players yet.</p>');
 if(form&&form.m==="s")h+='<div class="cd2" style="margin-top:8px">'+formHtml(s.id)+"</div>";
-else{var tm=$("ft").value,free=sorted(allP().filter(function(p){return p.sids.indexOf(s.id)<0&&p.sids.length<2&&inT(p)&&(tm||p.cur||p.sponsor)})),o="";free.forEach(function(p){o+='<option value="'+e(p.no)+'">'+e(tn(p))+(tm?"":" ("+e(p.teams.join(", "))+")")+(p.sids.length?" - has 1":"")+(p.cur||p.sponsor?"":" - not current")+"</option>"});
-h+='<div class="rw2"><select class="in2" id="adpl"><option value="">Add a player'+(tm?" from "+e(tm):"")+"</option>"+o+'</select><button type="button" class="b2" data-act="pnew">+ New player</button></div>'+(tm?'<p class="sub" style="margin:4px 0 0;font-size:13px">Players who are not current are listed too. Adding one makes them current.</p>':'<p class="sub" style="margin:4px 0 0;font-size:13px">Pick a team above to also add players who are not current.</p>')}
+else{var tm=$("ft").value,free=sorted(allP().filter(function(p){return p.sids.indexOf(s.id)<0&&p.sids.length<2&&inT(p)})),o="";free.forEach(function(p){o+='<option value="'+e(p.no)+'">'+e(tn(p))+(tm?"":" ("+e(p.teams.join(", "))+")")+(p.sids.length?" - has 1":"")+(p.cur||p.sponsor?"":" - not current")+"</option>"});
+h+='<div class="rw2"><select class="in2" id="adpl"><option value="">Add a player'+(tm?" from "+e(tm):"")+"</option>"+o+'</select><button type="button" class="b2" data-act="pnew">+ New player</button></div>'+'<p class="sub" style="margin:4px 0 0;font-size:13px">Players who are not current are listed too. Adding one makes them current.</p>'}
 h+=lgBlock(s);
 h+='<div class="dl">Sponsor details</div><div class="rw2"><input class="in2" id="rn" maxlength="60" value="'+e(s.name)+'"><button type="button" class="b2 go" data-act="ren">Save name</button></div>';
 h+='<div class="rw2" style="margin-top:8px"><button type="button" class="b2" data-act="sexp">Export its players</button>'+(rmArm===s.id?"":'<button type="button" class="b2 rm" data-act="sdel">Remove sponsor</button>')+"</div>";
@@ -6260,7 +6258,7 @@ if(t.id==="lgf"){lgPick(t.files&&t.files[0]);return}
 if(t.id==="lgn"){LG.trim=!t.checked;if(LG.file)lgRun();else draw();return}
 if(t.id==="adsp"&&t.value){var p=find(sel.id);setSp(p,p.sids.concat([t.value]),"Sponsor added.")}
 else if(t.id==="adpl"&&t.value){var no=t.value,p2=find(no);if(!p2||!p2.team){say("Add this player on Admin, Season set-up first.","er");return}post({act:"assign",team:p2.team,season:W.season,nos:[no],s:sel.id},function(j){pend=j.full?"That player already has two sponsors.":"Player added.";loadAll()})}
-else if(t.id==="ft"){chk={};if(flt==="notcur"&&!$("ft").value)flt="need";if(sel&&sel.m==="p"){var fp=find(sel.id);if(!fp||!inT(fp)){sel=null;hist=[]}}loadAll(true)}
+else if(t.id==="ft"){chk={};if(sel&&sel.m==="p"){var fp=find(sel.id);if(!fp||!inT(fp)){sel=null;hist=[]}}draw()}
 else if(t.id==="se"){chk={};loadAll()}
 else if(t.id==="sa"||t.id==="tm")loadSet($("tm").value,$("sa").value)});
 $("fq").oninput=function(){if(W&&MD()!=="a")draw()};

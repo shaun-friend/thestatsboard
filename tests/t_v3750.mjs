@@ -15,8 +15,7 @@ let r=await w.fetch(new Request(O+'/club-unlock',{method:'POST',body:new URLSear
 const get=async q=>await (await w.fetch(new Request(O+'/api/sponsor-players?'+q,{headers:{Cookie:ck}}),env,cx)).json();
 const post=async b=>await (await w.fetch(new Request(O+'/api/sponsor-players',{method:'POST',headers:{Cookie:ck,'Content-Type':'application/json'},body:JSON.stringify(b)}),env,cx)).json();
 let j=await get('all=1&season='+SEASON);
-c('no team: only sponsored and current players',j.avail.length===0&&j.sponsored.length===1,JSON.stringify(j.avail));
-j=await get('all=1&team=11039&season='+SEASON);
+c('all teams: the squad is listed too, not only current players',j.sponsored.length===1&&j.avail.length===2&&j.avail.every(x=>!x.cur),JSON.stringify(j.avail));
 const names=j.avail.map(x=>x.name).sort().join();
 c('team picked: the whole squad and the not-current record are listed',names==='Harry Newman-Wild,Zed Squad'&&j.avail.every(x=>!x.cur),names);
 c('squad rows carry the team to save on',j.avail.every(x=>x.team==='11039'));
@@ -30,5 +29,6 @@ await post({act:'assign',team:'11039',season:SEASON,nos:['501'],s:'a0000001'});
 r=await w.fetch(new Request(O+'/sponsors-tv?g=0&p=1'),env,cx);const t=await r.text();
 c('names never wrap',/\.n\{[^}]*white-space:nowrap/.test(t)&&!/\.n\.tl/.test(t));
 c('name size set per tile',/class="n[^"]*" style="font-size:[0-9.]+cqw"/.test(t));
-c('logo keeps a minimum share',/\.lg\{[^}]*min-height:46%/.test(t));
+c('logo keeps a minimum share',/\.lg\{[^}]*min-height:40%/.test(t));
+c('page shrinks a name that would be cut off',/function fit\(\)/.test(t)&&/scrollWidth>/.test(t)&&/scrollHeight>/.test(t));
 console.log(ok+' passed, '+bad+' failed');process.exit(bad?1:0)
