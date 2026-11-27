@@ -23,7 +23,7 @@ c('classic rows kept for phones',(t.match(/class="rw"/g)||[]).length===2);
 c('cards hidden on phone css',t.includes('@media(max-width:800px){.ly{display:none!important}}'));
 let m=mainOf(t);
 c('next opponent shown',m.includes('Cullompton U18')&&m.includes('This ')||m.includes('Cullompton U18'));
-c('next opponent crest',m.includes('club_images/9003')||m.includes('club_images/'));
+c('next opponent crest',m.includes('/api/crest?id=9003')||m.includes('club_images/'));
 c('last result our score first',m.includes('18<i class="dsh">&ndash;</i>15'));c('win chip',m.includes('class="pl w"'));
 c('crest drawn plain in new layouts',t.includes('.ly .cr,.ly .cnx .cr{background:none!important'));c('no kick-off time',!/15:00/.test(m));c('no difficulty',!/difficulty/i.test(m));
 c('home chip',/<span>Home<\/span>/.test(m));

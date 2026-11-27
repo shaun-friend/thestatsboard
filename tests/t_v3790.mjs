@@ -1,0 +1,29 @@
+// v3.79.0: Match Centre puts a tile behind a crest that blends into the panel colour
+import fs from 'fs';import {createRequire} from 'module';
+let ok=0,bad=0;const c=(n,x,d)=>{if(x)ok++;else{bad++;console.log('FAIL',n,d||'')}};
+const src=fs.readFileSync(process.argv[2],'utf8');
+c('script present once',(src.match(/rfu-crest-tile/g)||[]).length===1);
+const sm=/const CREST_TILE_SCRIPT = `(<script>\/\*rfu-crest-tile\*\/[\s\S]*?<\/script>)`;/.exec(src);
+c('script found',!!sm);const script=sm[1];
+c('script has no backslash or template marker',!/\\|\$\{/.test(script));
+c('stack page includes the script',src.includes('${refreshScript}${CREST_TILE_SCRIPT}'));
+c('Match Centre crests use the site crest copy',src.includes('<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id='));
+const svg=(body,edge)=>'<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="100" cy="100" r="90" fill="'+body+'" stroke="'+edge+'" stroke-width="8"/><rect x="80" y="60" width="40" height="80" fill="'+edge+'"/></svg>';
+const imgs={pale:svg('#f3e3a5','#deaa1e'),navy:svg('#142870','#f0f0f0'),dknavy:svg('#1c2c72','#12205a')};
+const panel=(id,col,crest)=>'<section class="cw"><div class="cnx" id="'+id+'" style="background:'+col+';width:300px;height:300px"><span class="cr" style="background:#fff"><img src="/api/crest?id='+crest+'"></span></div></section>';
+const html='<!doctype html><body>'+panel('a','#d9a21b','pale')+panel('b','#2f9e5b','pale')+panel('c','#d9a21b','navy')+panel('d','#1a2a6c','dknavy')+script+'</body>';
+const {chromium}=createRequire(import.meta.url)('playwright');
+const br=await chromium.launch();const p=await br.newPage();
+await p.route('https://x.test/',x=>x.fulfill({contentType:'text/html',body:html}));
+await p.route('https://x.test/api/crest**',x=>x.fulfill({contentType:'image/svg+xml',body:imgs[new URL(x.request().url()).searchParams.get('id')]}));
+const errs=[];p.on('pageerror',e=>errs.push(String(e)));
+await p.goto('https://x.test/');await p.waitForTimeout(800);
+const g=id=>p.$eval('#'+id+' .cr',e=>({t:e.getAttribute('data-tile'),bg:e.style.background,r:e.style.borderRadius}));
+const a=await g('a'),b=await g('b'),cc=await g('c'),d=await g('d');
+c('pale crest on gold gets a dark tile',a.t==='dark'&&/16, 20, 23/.test(a.bg),JSON.stringify(a));
+c('tile is rounded',/1.4rem/.test(a.r));
+c('same crest on green is left alone',b.t==='none'&&b.bg==='rgb(255, 255, 255)',JSON.stringify(b));
+c('navy crest on gold is left alone',cc.t==='none',JSON.stringify(cc));
+c('dark navy crest on a navy panel gets a white tile',d.t==='light'&&/255, 255, 255/.test(d.bg)&&/1.4rem/.test(d.r),JSON.stringify(d));
+c('no page errors',errs.length===0,errs.join('|'));
+await br.close();console.log(ok+' ok, '+bad+' failed');process.exit(bad?1:0)

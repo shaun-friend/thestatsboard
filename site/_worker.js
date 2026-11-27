@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.79.0 27-Nov-2026 Match Centre: a tile appears behind an opposition crest that blends into the panel colour.
 //   v3.78.2 27-Nov-2026 Players tab: a Current chip lists every current player, with or without a sponsor.
 //   v3.78.1 27-Nov-2026 Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there.
 //   v3.78.0 27-Nov-2026 Club sponsors section is slimmer: one row per sponsor that opens for its description and logo (with the same light/dark choice as the sponsor's own panel); a new club sponsor opens ready for its logo.
@@ -412,7 +413,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.78.2";
+const VERSION = "v3.79.0";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -461,6 +462,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
 v3.78.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.2_current_chip.zip | v3.78.1
 v3.78.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.1_club_row_rename.zip | v3.78.0
 v3.78.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.0_club_sponsors_compact.zip | v3.77.2
@@ -845,6 +847,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.79.0 - Match Centre: tile behind a crest that blends in
+- Owner report (27-Nov-2026): some opposition crests (for example a cream and gold crest on a gold panel) blend into the panel colour.
+- Added: the large crest in the Next game area is checked against the panel colour in the browser. Only when it is too close, it gets a white or near-black rounded tile (whichever suits the crest). Crests that already stand out are left as they were.
+- Changed: Match Centre crests now load through the site's own cached crest copy, which is what lets the check read the picture.
+- Not changed: Match day page (its crest already sits on a white disc), TV rotation, anything stored.
+- Docs: What's new
 
 v3.78.2 - Players tab: Current chip
 - Owner question (27-Nov-2026): there was no way to list all the current players together.
@@ -3620,6 +3629,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.79.0", "Match Centre: a crest that blends into the panel colour now gets a light or dark tile behind it."],
       ["v3.78.2", "Players tab: a Current chip lists every current player, with or without a sponsor."],
       ["v3.78.1", "Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there."],
       ["v3.78.0", "Club sponsors section is slimmer: one row per sponsor that opens for its description and logo (with the same light/dark choice as the sponsor's own panel); a new club sponsor opens ready for its logo."],
@@ -9743,7 +9753,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       const tableHref = t => pubOrigin + "/?" + new URLSearchParams({...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, theme, layout: "mobile"}).toString();
       const viewHref = (t, v) => pubOrigin + "/?" + new URLSearchParams({view: v, ...(sOf(t) ? {season: sOf(t)} : {}), competition: t.competition, division: t.division, team: t.team, teamName: t.teamName, theme}).toString();
       const menuHref = pubOrigin + "/?" + new URLSearchParams({theme}).toString();
-      const crest = (id, name) => `<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="https://images.englandrugby.com/club_images/${encodeURIComponent(id)}.png" alt="" onload="this.parentNode.querySelector('.ini').style.display='none'" onerror="this.remove()">` : ""}</span>`;
+      const crest = (id, name) => `<span class="cr"><span class="ini">${e(initialsOf(name))}</span>${id ? `<img src="/api/crest?id=${encodeURIComponent(id)}" alt="" onload="this.parentNode.querySelector('.ini').style.display='none'" onerror="this.remove()">` : ""}</span>`;
       if (AUTO.auto) {
         stackTeams = await Promise.all(stackTeams.map(async (t, wi) => {
           if (t.season) return t;
@@ -9948,7 +9958,7 @@ html{font-size:15px;scroll-behavior:smooth}body{height:auto;overflow:visible;dis
 .rs-b .tbar{display:block;margin:0;border-radius:0;font-size:1.2rem;padding:.6rem 1.05rem}.rs-b .tbar span{display:block;font-size:.85rem}
 .rs-c .rw{border:.25rem solid var(--ac);padding:0;background:var(--card)}
 .rs-d .stab{display:block;writing-mode:horizontal-tb;transform:none;font-size:1.05rem;padding:.45rem 1.05rem;border-radius:0;text-align:left}}
-</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)}</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}</body></html>`;
+</style></head><body class="${theme}${rowStyle === "tint" ? "" : " rs-" + rowStyle}${ly === "classic" ? (results.length >= 5 ? " rows-many" : "") : " ly-on"}">${themeBoot('window.matchMedia("(max-width:800px)").matches')}<nav class="mbar"><a href="${e(menuHref)}">&lsaquo; Home</a><button type="button" class="tgl">Light mode</button></nav><div class="hd"><b>${e(clubName)}</b><span>Updated ${e(stamp)}</span></div><nav class="jump">${jump}</nav>${lyHtml}${results.map(rowHtml).join("")}${themeToggleScript}${refreshScript}${CREST_TILE_SCRIPT}</body></html>`;
       return new Response(page, {headers: {"Content-Type": "text/html;charset=utf-8", "Cache-Control": "public,max-age=60"}});
     }
 
@@ -11780,6 +11790,19 @@ var hid=false;try{hid=getComputedStyle(b).overflowY==="hidden"&&innerWidth>800}c
 function show(){if(!hid)return;hid=false;b.style.transition="opacity .2s";b.style.opacity="1"}
 if(hid){b.style.opacity="0"}
 go();addEventListener("resize",go);addEventListener("orientationchange",function(){setTimeout(go,200)});addEventListener("load",function(){go();setTimeout(function(){go();show()},400)});setTimeout(function(){go();show()},2500);
+})();</script>`;
+const CREST_TILE_SCRIPT = `<script>/*rfu-crest-tile*/(function(){
+function rgb(c){var m=/([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)/.exec(c||"");return m?[+m[1],+m[2],+m[3]]:null}
+function dist(a,b){var x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return Math.sqrt(x*x+y*y+z*z)}
+function one(img){try{var cr=img.parentNode,box=cr.parentNode;if(!box||!img.naturalWidth||cr.getAttribute("data-tile")!==null)return;
+var pc=rgb(getComputedStyle(box).backgroundColor);if(!pc)return;
+var cv=document.createElement("canvas");cv.width=cv.height=40;var cx=cv.getContext("2d");cx.drawImage(img,0,0,40,40);
+var d=cx.getImageData(0,0,40,40).data,n=0,near=0,dw=0,dk=0,W=[255,255,255],K=[16,20,23];
+for(var i=0;i<d.length;i+=4){if(d[i+3]<128)continue;var p=[d[i],d[i+1],d[i+2]];n++;if(dist(p,pc)<60)near++;dw+=dist(p,W);dk+=dist(p,K)}
+var st=n<30?"none":near/n>0.12?(dw>dk?"light":"dark"):"none";cr.setAttribute("data-tile",st);if(st==="none")return;
+var s=cr.style;s.setProperty("background",st==="dark"?"#101417":"#fff","important");s.setProperty("border-radius","1.4rem","important");s.setProperty("box-shadow","0 .15rem .6rem rgba(0,0,0,.28)","important");s.setProperty("overflow","hidden","important")}catch(e){}}
+function all(){[].forEach.call(document.querySelectorAll(".cnx .cr img"),function(i){if(i.complete)one(i);else i.addEventListener("load",function(){one(i)})})}
+if(document.readyState==="loading")addEventListener("DOMContentLoaded",all);else all();addEventListener("load",all);
 })();</script>`;
 const SOFT_SCRIPT = `<script>/*rfu-soft*/(function(){var T0=Date.now(),LAST=0,GAP=0,busy=false,old=null,sr=/[?&]_sr=1(&|$)/.test(location.search);
 if(sr&&top!==self){var n=0;function chk(){var b=document.body;if(document.readyState==="complete"&&b&&!window.__warming&&!b.classList.contains("fitwait")&&getComputedStyle(b).opacity!=="0"){setTimeout(function(){try{parent.postMessage("rfu-ver|${VERSION}","*");parent.postMessage("rfu-sr-ready","*")}catch(e){}},500)}else if(n++<80)setTimeout(chk,250)}addEventListener("load",function(){setTimeout(chk,300)})}

@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
 v3.78.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.2_current_chip.zip | v3.78.1
 v3.78.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.1_club_row_rename.zip | v3.78.0
 v3.78.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.0_club_sponsors_compact.zip | v3.77.2
@@ -427,6 +428,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.79.0 - Match Centre: tile behind a crest that blends in
+- Owner report (27-Nov-2026): some opposition crests (for example a cream and gold crest on a gold panel) blend into the panel colour.
+- Added: the large crest in the Next game area is checked against the panel colour in the browser. Only when it is too close, it gets a white or near-black rounded tile (whichever suits the crest). Crests that already stand out are left as they were.
+- Changed: Match Centre crests now load through the site's own cached crest copy, which is what lets the check read the picture.
+- Not changed: Match day page (its crest already sits on a white disc), TV rotation, anything stored.
+- Docs: What's new
 
 v3.78.2 - Players tab: Current chip
 - Owner question (27-Nov-2026): there was no way to list all the current players together.
