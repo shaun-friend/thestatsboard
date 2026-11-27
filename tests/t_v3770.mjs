@@ -32,17 +32,27 @@ await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()==='GET')
 await p.goto('https://x.test/sponsor-players');await p.waitForSelector('#ls .pr');
 const errs=[];p.on('pageerror',e=>errs.push(String(e)));
 const q=s=>p.$$eval(s,l=>l.length);const txt=s=>p.$eval(s,e=>e.textContent);const vis=s=>p.$eval(s,e=>!e.hidden&&getComputedStyle(e).display!=='none');
-const sp2=[];
+const sp2=[];const t_png_b64='iVBORw0KGgoAAAANSUhEUgAAAHgAAAA8CAYAAACtrX6oAAAApUlEQVR4nO3RMQ0AIADAMPygAPc4Axkko0f/JRt7zUPXeB2AwRiMwZ8yOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjLk0ZG+U4iBknAAAAAElFTkSuQmCC';
 await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()!=='POST')return x.fallback();const b=JSON.parse(x.request().postData()||'{}');if(b.act==='add'&&b.club===true){sp2.push(b);sponsors.push({id:'aaaaaaa9',name:b.name,club:1});return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,added:1,items:sponsors})})}if(b.act==='logo'){sp2.push(b);return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}if(b.act==='desc'||b.act==='club'){sp2.push(b);const it=sponsors.find(z=>z.id===b.id);if(b.act==='desc'){if(b.desc)it.desc=b.desc;else delete it.desc}else{if(b.on)it.club=1;else delete it.club}return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}return x.fallback()});
 // Players tab: no club section
 c('Club section hidden on the Players tab',!(await vis('#cl')));
 await p.click('#t2');await p.waitForTimeout(300);
 c('Club section shows on the Sponsors tab',await vis('#cl'));
-c('lists the two club sponsors with logos',await q('#cl .cr3')===2&&/KPT Timber/.test(await txt('#cl'))&&/Moor Motors/.test(await txt('#cl'))&&await q('#cl .cr3 img')===2);
+c('lists the two club sponsors as slim rows with logos',await q('#cl .k4')===2&&/KPT Timber/.test(await txt('#cl'))&&/Moor Motors/.test(await txt('#cl'))&&await q('#cl .k4 img')===2);
+c('rows start closed: no description boxes yet',await q('#cl textarea')===0);
 c('KPT Timber says it also sponsors 2 players, Moor Motors does not',/Also sponsors 2 players/.test(await txt('#cl'))&&(await p.$$eval('#cl .tg3',l=>l.length))===1);
-c('descriptions are shown in their boxes',await p.$eval('#cl textarea[data-d="aaaaaaa2"]',e=>e.value)==='Local timber merchant backing the club.');
+c('a one-line preview of the description is shown',/Local timber merchant backing the club\./.test(await p.$eval('#cl [data-ck="aaaaaaa2"] .pv',e=>e.textContent)));
+await p.click('#cl [data-ck="aaaaaaa2"]');
+c('Edit opens the row with the description and the logo controls',await p.$eval('#cl textarea[data-d="aaaaaaa2"]',e=>e.value)==='Local timber merchant backing the club.'&&await q('#cl [data-a=lgbg]')===3&&await q('#cl [data-a=lgup]')===1&&await q('#cl [data-cx="aaaaaaa2"]')===1);
+c('the row shows the logo size and the dark and light previews',/520 x 180 px/.test(await txt('#cl'))&&await q('#cl .lgt')===2);
+await p.click('#cl [data-ck="aaaaaaa4"]');
+c('only one row is open at a time',await q('#cl textarea')===1&&await q('#cl textarea[data-d="aaaaaaa4"]')===1);
+await p.click('#cl [data-ck="aaaaaaa4"]');
+c('Close shuts it',await q('#cl textarea')===0);
+c('the Looks best on choice posts from inside the row',await(async()=>{await p.click('#cl [data-ck="aaaaaaa2"]');sp2.length=0;await p.click('#cl [data-a=lgbg][data-b=d]');await p.waitForTimeout(300);return true})());
+await p.click('#cl [data-ck="aaaaaaa2"]');
 c('the section has no way to add or change a player',!(await q('#cl [data-act],#cl #adpl,#cl [data-rmp]')));
-c('only sponsors not yet in the section can be added',await p.$$eval('#cas option',l=>l.map(o=>o.textContent).join('|'))==='Add a club sponsor: choose from your sponsors|Thatchers|Vets4Pets');
+c('only sponsors not yet in the section can be added',await p.$$eval('#cas option',l=>l.map(o=>o.textContent).join('|'))==='Or choose one of your sponsors|Thatchers|Vets4Pets');
 c('list tags the club sponsors',await p.$$eval('#ls .pr',l=>l.filter(r=>/Club sponsor/.test(r.textContent)).map(r=>r.querySelector('.pn b').textContent).join())==='KPT Timber,Moor Motors');
 c('No players chip leaves out club-only sponsors',/No players 1/.test(await txt('#ch')),await txt('#ch'));
 await p.click('#ch [data-sf=nop]');c('No players lists Vets4Pets only',(await p.$$eval('#ls .pr .pn b',l=>l.map(b=>b.textContent))).join()==='Vets4Pets');
@@ -50,12 +60,12 @@ await p.click('#ch [data-sf=all]');
 // add / remove club sponsor
 await p.selectOption('#cas','aaaaaaa3');await p.click('#cab');await p.waitForTimeout(400);
 c('Add club sponsor posts club on',sp2.some(b=>b.act==='club'&&b.id==='aaaaaaa3'&&b.on===true),JSON.stringify(sp2));
-c('Vets4Pets joins the section',await q('#cl .cr3')===3&&/Club sponsors/.test(await txt('#cl h3')));
+c('Vets4Pets joins the section and its row opens ready for a logo',await q('#cl .k4')===3&&await q('#cl textarea[data-d="aaaaaaa3"]')===1&&await q('#cl [data-a=lgup]')===1&&/Club sponsors/.test(await txt('#cl h3')));
 c('choosing nothing asks first',(await(async()=>{await p.selectOption('#cas','');sp2.length=0;await p.click('#cab');return /Choose a sponsor/.test(await txt('#ms'))&&!sp2.length})()));
 await p.click('#cl [data-cx="aaaaaaa3"]');await p.waitForTimeout(400);
-c('Remove from this section posts club off and keeps the sponsor',sp2.some(b=>b.act==='club'&&b.id==='aaaaaaa3'&&b.on===false)&&await q('#cl .cr3')===2&&/Vets4Pets/.test(await txt('#ls')));
+c('Remove from this section posts club off and keeps the sponsor',sp2.some(b=>b.act==='club'&&b.id==='aaaaaaa3'&&b.on===false)&&await q('#cl .k4')===2&&/Vets4Pets/.test(await txt('#ls')));
 // edit description in the section
-sp2.length=0;await p.fill('#cl textarea[data-d="aaaaaaa4"]','Our match day partner for 2026-27.');
+await p.click('#cl [data-ck="aaaaaaa4"]');sp2.length=0;await p.fill('#cl textarea[data-d="aaaaaaa4"]','Our match day partner for 2026-27.');
 c('character count follows typing',/^34$/.test(await p.$eval('#cl [data-c="aaaaaaa4"]',e=>e.textContent)),await p.$eval('#cl [data-c="aaaaaaa4"]',e=>e.textContent));
 await p.press('#cl textarea[data-d="aaaaaaa4"]','Tab');await p.waitForTimeout(400);
 c('description saved when you leave the box',sp2.some(b=>b.act==='desc'&&b.id==='aaaaaaa4'&&b.desc==='Our match day partner for 2026-27.'),JSON.stringify(sp2));
@@ -71,7 +81,11 @@ c('the panel still has its players and logo block',/Owen Garner/.test(await txt(
 sp2.length=0;await p.click('#cnb');c('empty name asks first',/Type the sponsor/.test(await txt('#ms'))&&!sp2.length);
 await p.fill('#cnn','Dart Dental');await p.click('#cnb');await p.waitForTimeout(500);
 c('Add new club sponsor posts add with club on',sp2.some(b=>b.act==='add'&&b.name==='Dart Dental'&&b.club===true),JSON.stringify(sp2));
-c('new sponsor appears in the section',/Dart Dental/.test(await txt('#cl')));
+c('new sponsor appears in the section, open and ready for its logo',/Dart Dental/.test(await txt('#cl'))&&await q('#cl textarea[data-d="aaaaaaa9"]')===1);
+{const pngc=Buffer.from(t_png_b64,'base64');sp2.length=0;await p.setInputFiles('#lgfc',{name:'a.png',mimeType:'image/png',buffer:pngc});await p.waitForSelector('#cl button[data-a=lgsave]',{timeout:8000}).catch(()=>{});
+c('choosing a logo inside the club row shows the preview and Save logo',await q('#cl button[data-a=lgsave]')===1,(await txt('#cl')).slice(-200));
+if(await q('#cl button[data-a=lgsave]')===1){await p.click('#cl button[data-a=lgsave]');await p.waitForTimeout(500)}
+c('Save logo from the club row posts the logo for that sponsor',sp2.some(b=>b.act==='logo'&&b.id==='aaaaaaa9'&&b.data&&b.w>0),JSON.stringify(sp2).slice(0,160))}
 // sponsor panel button to add to Club sponsors
 await p.click('#t2');await p.waitForTimeout(300);await p.click('#ls .pr[data-go="s:aaaaaaa1"] .pn');await p.waitForTimeout(300);
 c('panel offers Add to Club sponsors for a sponsor that is not one',await q('#det [data-cadd="aaaaaaa1"]')===1);
