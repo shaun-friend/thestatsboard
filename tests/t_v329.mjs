@@ -19,7 +19,7 @@ let t=await (await get(w,'/?view=teams')).text();
 c('links page lists default names',/Ivybridge 1XV/.test(t)&&/The Vandals/.test(t));
 c('links page carries no friendlyName for club teams',!/friendlyName=/.test(t)&&/team=11039/.test(t));
 t=await (await get(w,'/admin')).text();
-c('admin has Our teams in the Club set-up group',/Club set-up<\/div>\s*<a href="\/\?view=teams">Link builder<\/a>\s*<a href="#teams" data-s="teams">Our teams<\/a>/.test(t));
+c('admin has Our teams in the Club set-up group',/Club set-up<\/div>\s*(?:<a href="\/games-off">Games called off<\/a>\s*)?<a href="\/\?view=teams">Link builder<\/a>\s*<a href="#teams" data-s="teams">Our teams<\/a>/.test(t));
 c('admin has Our teams section',/id="s-teams"/.test(t)&&/id="tml"/.test(t)&&/id="tgo"/.test(t));
 {const sc=[...t.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);let comp=true;for(const s of sc){try{new Function(s)}catch(e){comp=false;console.log(e.message)}}c('admin script compiles',comp);}
 c('admin carries the list',/club=\[\{"name":"Ivybridge 1XV"/.test(t));

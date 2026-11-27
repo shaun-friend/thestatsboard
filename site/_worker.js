@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.76.0 27-Nov-2026 Games called off: Admin page to mark a game as cancelled or postponed when the RFU feed has not caught up; every page skips it and shows a notice.
 //   v3.75.0 27-Nov-2026 Players hub: every team's whole squad is listed (Not current chip) and a sponsor makes a player current; sponsors TV names stay on one line (and smaller), logo keeps its size.
 //   v3.74.0 26-Nov-2026 Sponsors thank-you TV page: optional rotation page, groups of teams, 4 x 2 tiles with tall tiles for sponsors with 4 or more players, one dot per slide; All logos and players view on the Sponsors tab.
 //   v3.73.0 26-Nov-2026 Players and sponsors hub refresh: sponsor admin, add and remove players, logos, backup and exports all inside the one page, nothing links away.
@@ -402,7 +403,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.75.0";
+const VERSION = "v3.76.0";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -451,6 +452,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.76.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.0_games_called_off.zip | v3.75.0
 v3.75.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
 v3.74.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.74.0_sponsors_tv_page.zip | v3.73.0
 v3.73.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.73.0_sponsors_hub_refresh.zip | v3.72.0
@@ -825,6 +827,16 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.76.0 - Games called off
+- Owner request (27-Nov-2026): the Vandals' game was cancelled but the RFU feed still listed it. Wanted a way to mark a game as off by hand.
+- New: Admin page /games-off (club PIN), under Club set-up. Choose a team, choose one of its upcoming games (read from the RFU feed), choose Cancelled or Postponed, add an optional note, press Mark this game as off. Marked games are listed with a Remove button.
+- Effect: the marked game is taken out of the fixtures as they are read (the stored RFU copy is left alone), so every page moves on to the team's following game: Match Centre, Next game, Fixtures board, Match day, Win Predictor and the calendar. The Match Centre team panel, the Next game page and the Fixtures board also show a red CANCELLED (or POSTPONED) notice with the date, opponent and note.
+- Clears itself: a mark ends the day after the game date. Remove brings the game back at once. Marking or removing refreshes the scores clock (as Refresh scores now does) so cached pages catch up within about a minute.
+- Stored in Cloudflare KV under games-off (up to 40 marks). No extra RFU requests are used when no game is marked; the Admin list reads the team's fixtures once (cached).
+- Not changed: the Match Centre "board" layout (a row per team) and the standard team page do not show the notice yet; the game is still skipped there.
+- Tests: new t_v3760 (page and API behind the PIN, list of games, mark, refused cases, next game moves on, notice on Next game, Fixtures board and Match Centre, none on the league table, postponed wording, remove, expiry).
+- Docs: What's new
 
 v3.75.0 - Sponsor a player who is not current; sponsors TV tiles keep names on one line
 - Owner request (26-Nov-2026): the Players tab only showed players ticked as current, so a player who was not marked current could not be given a sponsor. Wanted without bringing the old page back.
@@ -3198,6 +3210,7 @@ const DOCS = [
     { v: "/matchday", values: "none", where: "Club PIN", what: "Match day: the team sheets our teams have entered for a chosen match day, in shirt order, with each player's sponsor, who is available to sponsor, withheld names and new players, and a Copy list button. When more than one of our teams plays on the chosen day, a team box above the sheets lists each of them (team v opposition, Home or Away, and whether the sheet is ready); choose a team to see only that team. It starts on a team whose sheet is ready. Copy all still copies every team that has a sheet.", ex: [["Match day", "/matchday"]] },
     { v: "/sponsor-players", values: "none", where: "Club PIN", what: "Players: the club's players by team and season, with the sponsor for each, a Current tick and the team-sheet scan (Sponsors and Players).", ex: [["Player sponsors", "/sponsor-players"]] },
     { v: "/sponsors-tv", values: "g, p", where: "Open (a TV frame)", what: "One slide of the sponsors thank-you page for the TV rotation: g is the group (0 is the first) and p the slide (1 is the first). Used by the rotator; set up in Admin, TV rotation.", ex: [["First slide", "/sponsors-tv?g=0&p=1"]] },
+    { v: "/games-off", values: "none", where: "Club PIN", what: "Games called off: mark one of a team's upcoming games as cancelled or postponed when the RFU feed has not been updated yet. Every screen then skips that game and moves on to the following one, and the Match Centre, Next game page and Fixtures board show a notice. The mark clears itself the day after the game, or press Remove if the game is back on.", ex: [["Games called off", "/games-off"]] },
     { v: "/past-meetings", values: "none", where: "Club PIN", what: "Past meetings: choose one of our teams and search for another club to see every meeting the RFU results feed holds, with the score and a win, draw or loss, and how far back the feed goes. One season is read at a time, from the current season back.", ex: [["Past meetings", "/past-meetings"]] },
     { v: "/sponsor-list", values: "none", where: "Club PIN", what: "Sponsor list: every sponsor with the players they sponsor this season, filtered by team (all teams by default), with an Export button that downloads the list as a CSV file.", ex: [["Sponsor list", "/sponsor-list"]] },
     { v: "/sponsors", values: "none", where: "Club PIN", what: "The Sponsors list: the club's sponsors, added once each (stage 1 of player sponsors).", ex: [["Sponsors", "/sponsors"]] },
@@ -3536,6 +3549,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.76.0", "New Admin page, Games called off (under Club set-up): mark a game as cancelled or postponed when the RFU feed has not been updated yet. Every screen then skips it and moves on to the following game, and the Match Centre, Next game page and Fixtures board show a red notice. It clears itself the day after the game, or press Remove."],
       ["v3.75.0", "Players who are not current can now be given a sponsor: every team's whole squad is listed, with a Not current chip, and a sponsor makes the player current. On the sponsors TV page a name never wraps onto a second line and the logo keeps its size."],
       ["v3.74.0", "Thank you to our sponsors, an optional page for the TV rotation (off until you add it in Admin, TV rotation). Sponsors with their players, in groups of teams you choose (for example Men and Women), 4 across and 2 down, with a tall tile for a sponsor with four or more players so every name can be read. Each slide is its own step with its own dot, and the round total counts them. Overview warns when the number of slides changes. The Sponsors tab also has an All logos and players view."],
       ["v3.73.0", "Players and sponsors page refreshed. Three tabs and nothing sends you to another page. Players: add a player, remove one from the club list, edit the name we use, give or take off sponsors. Sponsors: add, paste a list, rename, remove, logos and tile colour, add or remove players, export one sponsor. Admin: season set-up, backup (with days since the last one), logos with stats, and exports."],
@@ -4549,6 +4563,7 @@ ${setup}
 <div class="adw" id="adw"><nav class="adn" id="adn"><div class="adh"><small>Admin</small><b>${ea(CLUB_LABEL)}</b></div><a href="#home" data-s="home">Overview</a>
 <a href="/matchday">Match day</a>
 <div class="adt">Club set-up</div>
+<a href="/games-off">Games called off</a>
 <a href="/?view=teams">Link builder</a>
 <a href="#teams" data-s="teams">Our teams</a>
 <a href="/past-meetings">Past meetings</a>
@@ -4838,7 +4853,7 @@ async function maintenanceGate(request) {
     }
     return maintenancePage(m, true);
   }
-  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/sponsor-list", "/past-meetings", "/api/past-meetings", "/matchday", "/api/matchday", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
+  if (["/admin", "/api/admin", "/inbox", "/api/inbox", "/sponsors", "/api/sponsors", "/sponsor-players", "/api/sponsor-players", "/sponsor-list", "/past-meetings", "/api/past-meetings", "/games-off", "/api/games-off", "/matchday", "/api/matchday", "/unlock", "/club-unlock", "/club-signout", "/manifest.webmanifest"].includes(path) || isIconPath(path)) return null;
   const st = await siteSettings();
   if (!st.maintenance.on) return null;
   const data = path === "/calendar.ics" || path.startsWith("/api/") || url.searchParams.has("format");
@@ -5350,6 +5365,131 @@ b.disabled=true;fetch("/api/contact",{method:"POST",headers:{"Content-Type":"app
 // Each sponsor has a hidden ID (8 hex characters) so a rename never breaks a later link to a player. Behind the club PIN; one settings-store read per
 // page load and one read plus one write per change. No outside calls. Later stages link sponsors to players, season by season.
 // v3.72.0: Past meetings. One season per request (the free plan allows 50 outside requests a visit and 10 ms of work), the page walks back through the seasons.
+// ---- v3.76.0: Games called off. Marks are kept in KV under "games-off": [{id, t (team), tn (team name), d (game date, YYYY-MM-DD as the RFU gives it), o (opponent id), on (opponent name), h (true = we are at home), tm (time), k ("c" cancelled, "p" postponed), n (note), at}].
+const OFF_KEY = "games-off";
+let offMem = { at: 0, list: [] };
+function offDay() { return new Date().toISOString().slice(0, 10); }
+async function offMarks(force) {
+  const kv = kvOf(); if (!kv) return [];
+  if (!force && Date.now() - offMem.at < 20000) return offMem.list;
+  let list = [];
+  try { const j = await kv.get(OFF_KEY, { type: "json" }); if (Array.isArray(j)) list = j; } catch (_) { list = offMem.list; }
+  // a mark clears itself the day after the game
+  const today = offDay();
+  list = list.filter(m => m && /^\d{4}-\d{2}-\d{2}$/.test(String(m.d || "")) && String(m.d) >= today);
+  offMem = { at: Date.now(), list };
+  return list;
+}
+async function offSave(list) { const kv = kvOf(); if (!kv) return false; try { await kv.put(OFF_KEY, JSON.stringify(list)); offMem = { at: Date.now(), list }; return true; } catch (_) { return false; } }
+function offIdOf(t) { return String(t && (t.commonId != null ? t.commonId : t.id) != null ? (t.commonId != null ? t.commonId : t.id) : ""); }
+function offHit(m, marks) {
+  if (!m || !m.homeTeam || !m.awayTeam || typeof m.homeTeam !== "object" || typeof m.awayTeam !== "object") return null;
+  const d = String(m.date || "").slice(0, 10), h = offIdOf(m.homeTeam), a = offIdOf(m.awayTeam);
+  return marks.find(k => k.d === d && (h === String(k.t) || a === String(k.t)) && (!k.o || h === String(k.o) || a === String(k.o))) || null;
+}
+// takes the marked games out of the fixtures part of a team feed (changes j in place) and says how many it took out
+function offStrip(j, marks) {
+  let n = 0;
+  const seen = new WeakSet();
+  const clean = v => {
+    if (!v || typeof v !== "object" || seen.has(v)) return; seen.add(v);
+    if (Array.isArray(v)) { for (let i = v.length - 1; i >= 0; i--) { if (offHit(v[i], marks)) { v.splice(i, 1); n++; } else clean(v[i]); } return; }
+    for (const [k, x] of Object.entries(v)) if (k !== "html" && k !== "description") clean(x);
+  };
+  if (j && typeof j === "object") clean(j.fixtures);
+  return { n };
+}
+// the mark for one of our teams on its next game days, for the pages that show the notice (a list: usually none)
+async function offFor(teamId) { const t = String(teamId || ""); return (await offMarks()).filter(m => String(m.t) === t); }
+function offDateLabel(d) { try { return new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" }); } catch (_) { return d; } }
+const offEsc = x => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function offLine(m) { return offDateLabel(m.d) + (m.on ? " v " + m.on : ""); }
+// the red notice at the top of a page, in the page flow so it never covers anything
+function offBannerInject(html, list) {
+  const b = list.map(m => '<div role="note" style="flex:none;display:block;box-sizing:border-box;width:100%;text-align:center;background:#b3261e;color:#fff;font:800 clamp(15px,1.5vw,32px)/1.3 Arial,Helvetica,sans-serif;letter-spacing:.04em;padding:.45em .9em;position:relative;z-index:5">' + (m.k === "p" ? "POSTPONED" : "CANCELLED") + " &middot; " + offEsc(offLine(m)) + (m.n ? ' &middot; <span style="font-weight:400">' + offEsc(m.n) + "</span>" : "") + "</div>").join("");
+  return /<body[^>]*>/i.test(html) ? html.replace(/<body([^>]*)>/i, m => m + b) : html;
+}
+// the same notice as a strip inside a Match Centre team panel
+function offNotice(list) {
+  return list.length ? list.map(m => '<div role="note" style="margin:0 0 .6em;padding:.35em .7em;border-radius:.7em;background:#b3261e;color:#fff;text-align:center;font-weight:800;font-size:clamp(13px,1.15vw,24px);line-height:1.25">' + (m.k === "p" ? "POSTPONED" : "CANCELLED") + " &middot; " + offEsc(offLine(m)) + (m.n ? '<br><span style="font-weight:400">' + offEsc(m.n) + "</span>" : "") + "</div>").join("") : "";
+}
+async function offBump() { const kv = kvOf(); if (!kv) return; const now = Date.now(); try { await kv.put(SCORES_KEY, JSON.stringify({ t: now })); SCORES_AT = now; SCORES_READ = now; } catch (_) { /* the pages catch up when their copies expire */ } }
+async function gamesOffApi(request, url) {
+  const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+  const kv = kvOf(); if (!kv) return J({ ok: false, error: "Saving needs the Cloudflare KV store, which is not connected here." }, 503);
+  try {
+    const cleanTxt = (x, n) => String(x == null ? "" : x).replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
+    if (request.method === "POST") {
+      let b = {}; try { b = await request.json(); } catch (_) { return J({ ok: false, error: "That did not look right. Reload the page." }, 400); }
+      let list = await offMarks(true);
+      if (b.act === "remove") { const id = cleanTxt(b.id, 30); list = list.filter(m => m.id !== id); if (!(await offSave(list))) return J({ ok: false, error: "Could not save. Try again." }, 502); await offBump(); return J({ ok: true, marks: list }); }
+      if (b.act === "add") {
+        const team = TEAMS.find(x => !x.hidden && String(x.team) === String(b.team));
+        const d = String(b.d || ""), k = b.k === "p" ? "p" : "c";
+        if (!team || !/^\d{4}-\d{2}-\d{2}$/.test(d) || d < offDay()) return J({ ok: false, error: "Choose one of the club's teams and a game that has not been played yet." }, 400);
+        if (list.some(m => String(m.t) === String(team.team) && m.d === d)) return J({ ok: false, error: "That game is already marked." }, 409);
+        if (list.length >= 40) return J({ ok: false, error: "There are too many marks. Remove some first." }, 400);
+        list.push({ id: Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), t: String(team.team), tn: team.name, d, o: /^\d{1,12}$/.test(String(b.o || "")) ? String(b.o) : "", on: cleanTxt(b.on, 80), h: b.h === true, tm: cleanTxt(b.tm, 8), k, n: cleanTxt(b.n, 60), at: new Date().toISOString() });
+        if (!(await offSave(list))) return J({ ok: false, error: "Could not save. Try again." }, 502);
+        await offBump();
+        return J({ ok: true, marks: list });
+      }
+      return J({ ok: false, error: "That did not look right. Reload the page." }, 400);
+    }
+    const team = (url.searchParams.get("team") || "").trim(), marks = await offMarks(true);
+    if (!team) return J({ ok: true, marks });
+    if (!TEAMS.some(x => !x.hidden && String(x.team) === team)) return J({ ok: false, error: "That team is not in the club list." }, 400);
+    const season = dateSeasonName(offDay()), u = new URL("https://cluster.england-rfu.com/fixtures-and-results/full-matches");
+    u.searchParams.set("season", season); u.searchParams.set("teamId", team);
+    const fr = await cachedTextBase(u, "application/json, text/plain, */*");
+    if (!fr.ok) return J({ ok: false, error: "The RFU results feed did not answer. Try again in a minute." }, 502);
+    let dd = null; try { dd = JSON.parse(fr.text); } catch (_) { return J({ ok: false, error: "The RFU results feed gave an answer that could not be read." }, 502); }
+    const found = [], seen = new WeakSet();
+    (function visit(v) { if (!v || typeof v !== "object" || seen.has(v)) return; seen.add(v); if (Array.isArray(v)) { for (const x of v) visit(x); return; } if (v.homeTeam && v.awayTeam && typeof v.homeTeam === "object" && typeof v.awayTeam === "object") found.push(v); for (const [k, x] of Object.entries(v)) if (k !== "html" && k !== "description") visit(x); })(dd && dd.fixtures);
+    const nm = t => String((t && (t.name || t.displayName || t.clubName)) || "").replace(/&amp;/g, "&").replace(/&#0?39;/g, "'").replace(/&quot;/g, '"');
+    const today = offDay(), games = [], have = new Set();
+    for (const m of found) {
+      const d = String(m.date || "").slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < today) continue;
+      const home = offIdOf(m.homeTeam) === team, opp = home ? m.awayTeam : m.homeTeam, key = d + "|" + offIdOf(opp); if (have.has(key)) continue; have.add(key);
+      games.push({ d, tm: String(m.time || "").slice(0, 5), h: home, o: offIdOf(opp), on: nm(opp), c: nm(m.group) || nm(m.competition) || "", off: marks.some(k => String(k.t) === team && k.d === d) });
+    }
+    games.sort((x, y) => x.d < y.d ? -1 : x.d > y.d ? 1 : 0);
+    return J({ ok: true, season, games: games.slice(0, 12), marks });
+  } catch (err) { return J({ ok: false, error: "Something went wrong. Try again." }, 502); }
+}
+function gamesOffPage(theme, isDev, teams) {
+  const t = theme === "light" ? "light" : "dark";
+  const opts = (teams || []).filter(x => x && !x.hidden && x.team).map(x => `<option value="${String(x.team).replace(/[^0-9]/g, "")}">${String(x.name || x.team).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</option>`).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Games called off</title>
+<style>${MENU_CSS}.wrap.wcp{max-width:860px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:12px 14px;margin:10px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{font:16px Arial,Helvetica,sans-serif;padding:10px 12px;border-radius:10px;border:1px solid #2c4337;background:#0b1210;color:#e8f1ec;box-sizing:border-box;width:100%}.gm{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid #23362d;border-radius:10px;margin:6px 0;cursor:pointer}.gm.on{border-color:#2f9d57;background:#12261b}.gm.off{opacity:.55;cursor:default}.gm small{color:#91a49a;display:block}.sg{display:flex;gap:8px}.sg span{padding:8px 16px;border:1px solid #2c4337;border-radius:20px;cursor:pointer}.sg .a{background:#c0392b;border-color:#c0392b;color:#fff;font-weight:700}.pl3{background:#c0392b;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}.msg3{min-height:20px;margin:6px 0;font-size:14px}.msg3.er{color:#ff8a80}.msg3.ok{color:#7fd89a}.lb{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#91a49a;margin:12px 0 6px}body.light .cd2{background:#fff;border-color:#cbd8ce}body.light .in2{background:#fff;color:#17211c;border-color:#b9c9bd}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<h1>Games called off</h1><p class="sub" style="margin:10px 0 0">For a game that is off but not yet written off on the RFU feed. Mark it here and every screen moves on to the team's following game and shows a notice. The mark clears itself the day after the game, or press Remove if the game is back on.</p>
+<div class="cd2"><div class="lb" style="margin-top:0">Team</div><select class="in2" id="tm">${opts}</select>
+<div class="lb">Which game</div><div id="gl"><p class="sub">Choose a team.</p></div>
+<div class="lb">What happened</div><div class="sg" id="sg"><span class="a" data-k="c">Cancelled</span><span data-k="p">Postponed</span></div>
+<div class="lb">Note shown on screen (optional)</div><input class="in2" id="nt" maxlength="60" placeholder="For example: pitch unplayable">
+<div class="rw2" style="margin-top:14px"><button type="button" class="b2 go" id="go" disabled>Mark this game as off</button></div></div>
+<div class="msg3" id="ms" role="status"></div>
+<div class="cd2"><div style="font-weight:700;margin-bottom:6px">Marked as off now</div><div id="mk"><p class="sub">None.</p></div></div>
+<p class="ver">${VERSION_LABEL}${isDev ? " &middot; DEV" : ""}</p></div>${themeToggleScript}
+<script>(function(){var G=[],pick=-1,kind="c",run=0;
+function $(i){return document.getElementById(i)}
+function e(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function say(t,c){var m=$("ms");m.textContent=t||"";m.className="msg3"+(c?" "+c:"")}
+var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function dl(d){var x=new Date(d+"T12:00:00Z");return DN[x.getUTCDay()]+" "+x.getUTCDate()+" "+MN[x.getUTCMonth()]}
+function api(q,cb){fetch("/api/games-off?"+q,{cache:"no-store"}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not read the answer."}})}).then(cb).catch(function(){cb({ok:false,error:"No connection. Try again."})})}
+function post(b,cb){fetch("/api/games-off",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not read the answer."}})}).then(cb).catch(function(){cb({ok:false,error:"No connection. Try again."})})}
+function drawMarks(ms){var h="";(ms||[]).slice().sort(function(a,b){return a.d<b.d?-1:1}).forEach(function(m){h+='<div class="gm off" style="opacity:1;cursor:default"><span><b>'+e(m.tn)+"</b> &middot; "+e(dl(m.d))+(m.on?" v "+e(m.on):"")+" &nbsp;<span class=\\"pl3\\">"+(m.k==="p"?"Postponed":"Cancelled")+"</span>"+(m.n?"<small>"+e(m.n)+"</small>":"")+'</span><button type="button" class="b2" data-rm="'+e(m.id)+'">Remove</button></div>'});$("mk").innerHTML=h||'<p class="sub">None.</p>'}
+function drawGames(){var h="";G.forEach(function(g,i){h+='<div class="gm'+(g.off?" off":i===pick?" on":"")+'" data-i="'+i+'"><span><b>'+e(dl(g.d))+(g.tm?", "+e(g.tm):"")+"</b> &nbsp;"+(g.h?"Home":"Away")+" v "+e(g.on)+"<small>"+e(g.c)+(g.off?" &middot; already marked":"")+"</small></span><span>"+(g.off?"":i===pick?"&#9679;":"&#9675;")+"</span></div>"});$("gl").innerHTML=h||'<p class="sub">No upcoming games found for this team in the RFU feed.</p>';$("go").disabled=pick<0}
+function load(){var t=$("tm").value;if(!t)return;var my=++run;pick=-1;$("gl").innerHTML='<p class="sub">Reading the fixtures...</p>';api("team="+encodeURIComponent(t),function(j){if(my!==run)return;if(!j.ok){say(j.error||"Could not read the fixtures.","er");G=[];drawGames();return}say("");G=j.games||[];drawGames();drawMarks(j.marks)})}
+$("tm").onchange=load;
+$("gl").onclick=function(ev){var el=ev.target.closest&&ev.target.closest("[data-i]");if(!el)return;var g=G[+el.getAttribute("data-i")];if(!g||g.off)return;pick=+el.getAttribute("data-i");drawGames()};
+$("sg").onclick=function(ev){var el=ev.target.closest&&ev.target.closest("[data-k]");if(!el)return;kind=el.getAttribute("data-k");var s=$("sg").children;for(var i=0;i<s.length;i++)s[i].className=s[i].getAttribute("data-k")===kind?"a":""};
+$("go").onclick=function(){var g=G[pick];if(!g)return;$("go").disabled=true;post({act:"add",team:$("tm").value,d:g.d,o:g.o,on:g.on,h:g.h,tm:g.tm,k:kind,n:$("nt").value},function(j){if(!j.ok){say(j.error||"Could not save.","er");$("go").disabled=false;return}say("Marked. Screens move on to the following game within about a minute.","ok");$("nt").value="";drawMarks(j.marks);load()})};
+$("mk").onclick=function(ev){var el=ev.target.closest&&ev.target.closest("[data-rm]");if(!el)return;post({act:"remove",id:el.getAttribute("data-rm")},function(j){if(!j.ok){say(j.error||"Could not remove.","er");return}say("Removed. The game shows as normal again within about a minute.","ok");drawMarks(j.marks);load()})};
+load();
+})()</script></body></html>`;
+}
 async function pastMeetingsApi(request, url) {
   const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   const sp = url.searchParams;
@@ -6352,7 +6492,7 @@ function usageClassify(request, url) {
   if (!ua || USAGE_BOT.test(ua)) return null;
   let kind = "", view = "";
   if (p === "/calendar.ics") { kind = "cal"; view = "calendar"; }
-  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players" || p === "/sponsor-list" || p === "/past-meetings" || p === "/matchday") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
+  else if (p === "/docs" || p === "/admin" || p === "/usage" || (p === "/" && q.get("view") === "teams") || p === "/teams" || p === "/winchance" || p === "/feedlog" || p === "/inbox" || p === "/sponsors" || p === "/sponsor-players" || p === "/sponsor-list" || p === "/past-meetings" || p === "/games-off" || p === "/matchday") { kind = "club"; view = p === "/" || p === "/teams" ? "links" : p.slice(1); }
   else if (p === "/api/builder/search") { kind = "search"; view = "search"; } // counted only; the typed text is never read
   else if (p === "/api/builder/team") { kind = "pick"; view = "pick"; }
   else if (p === "/") {
@@ -7916,7 +8056,20 @@ async function rememberFailure(cache, key, v) {
   if (!cache) return;
   try { SUB.n++; await cache.put(failKeyOf(key), new Response("x", { headers: { "Cache-Control": "public, max-age=" + secs, "x-until": String(until), "x-status": String(v.status || 0), "x-blocked": v.blocked ? "1" : "" } })); } catch (_) { /* in-memory note still used */ }
 }
+// v3.76.0: games the club has marked as cancelled or postponed (Admin, Games called off) are taken out of the RFU fixtures as they are read, so every page
+// moves on to the following game. The stored copy is left as the RFU gave it, so removing a mark brings the game straight back.
 async function cachedText(target, accept, optional) {
+  const r = await cachedTextBase(target, accept, optional);
+  try {
+    const key = String(target);
+    if (!r || !r.ok || !/\/fixtures-and-results\/full-matches\?/.test(key)) return r;
+    const marks = await offMarks();
+    if (!marks.length) return r;
+    const j = JSON.parse(r.text), t = offStrip(j, marks);
+    return t.n ? { ...r, text: JSON.stringify(j) } : r;
+  } catch (_) { return r; }
+}
+async function cachedTextBase(target, accept, optional) {
   const key = String(target);
   const now = Date.now();
   const ttlS = ttlFor(key), ttl = ttlS * 1000;
@@ -8360,11 +8513,18 @@ const worker = {
     if (isDev === true && url.searchParams.get("debug") === "season") {
       return new Response(JSON.stringify({ today: AUTO.today || todayIso(url, true), pinned: !AUTO.auto, chosenSeason: AUTO.season, why: AUTO.why, gap: !!AUTO.gap, newSeasonFixtures: AUTO.newSeasonFixtures, banner: AUTO.banner || null, previous: AUTO.prev, next: AUTO.next, listSource: AUTO.source, seasonsInList: AUTO.seasonsCount, seasonsError: AUTO.seasonsError || null, league: AUTO.league || null, correctedCompetition: AUTO.competition || null, correctedDivision: AUTO.division || null }, null, 2), { headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store" } });
     }
-    if (AUTO.banner && request.method === "GET" && url.searchParams.get("embed") !== "1" && !url.searchParams.get("format")) {
+    // v3.76.0: a game the club has marked as off gets a notice at the top of that team's own pages (Next game, Fixtures board, the standard page)
+    const offTeam = url.searchParams.get("team") || "", offView = url.searchParams.get("view") || "";
+    const wantOff = request.method === "GET" && /^\d{1,12}$/.test(offTeam) && (offView === "match" || offView === "fixtures") && url.searchParams.get("embed") !== "1" && !url.searchParams.get("format");
+    const offList = wantOff ? await offFor(offTeam) : [];
+    if ((AUTO.banner || offList.length) && request.method === "GET" && url.searchParams.get("embed") !== "1" && !url.searchParams.get("format")) {
       const inner = await worker._main(request, isDev, AUTO);
       if (!(inner.headers.get("Content-Type") || "").includes("text/html")) return inner;
       const h = new Headers(inner.headers); h.delete("Content-Length");
-      return new Response(seasonBannerInject(await inner.text(), AUTO.banner), { status: inner.status, statusText: inner.statusText, headers: h });
+      let body = await inner.text();
+      if (offList.length) body = offBannerInject(body, offList);
+      if (AUTO.banner) body = seasonBannerInject(body, AUTO.banner);
+      return new Response(body, { status: inner.status, statusText: inner.statusText, headers: h });
     }
     return worker._main(request, isDev, AUTO);
   },
@@ -8416,6 +8576,11 @@ const worker = {
     if (url.pathname === "/api/sponsors") return sponsorsApi(request, url);
     if (url.pathname === "/api/sponsor-players") return sponsorPlayersApi(request, url, worker);
     if (url.pathname === "/api/past-meetings") return pastMeetingsApi(request, url);
+    if (url.pathname === "/api/games-off") return gamesOffApi(request, url);
+    if (url.pathname.replace(/\/+$/, "") === "/games-off") {
+      const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+      return new Response(gamesOffPage(th, isDev === true, TEAMS), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
     if (url.pathname.replace(/\/+$/, "") === "/past-meetings") {
       const th = (url.searchParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
       return new Response(pastMeetingsPage(th, isDev === true, TEAMS), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
@@ -9572,13 +9737,14 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       };
       // v3.30.9: if the feed's league name is still only "Group 1" (no competition name came with it), use the league text saved for the team in Admin
       const leagueOf = (t, s) => /^(group|pool|section)\s*[0-9a-z]{1,3}$/i.test(String(s.league || "").trim()) && t.league ? t.league : s.league;
+      const offAll = await offMarks();
       const colHtml = ({t, s, error, loading}, idx) => {
         if (error || !s) return `<section class="cw" ${acStyle(t, idx)}><div class="ch"><div class="cx"><div class="cn">${e(t.name)}</div><div class="cl">${e(t.league)}</div></div></div><div class="cnx"><div class="empty" style="color:var(--on)">${loading ? "Updating this team&hellip;" : "Couldn't load this team. It will retry on the next refresh."}</div></div></section>`;
         const L = lastOf(s.last), N = nextOf(s.next);
         const pos = s.position ? `<b class="ps2">${ordOf(s.position)}</b>` : "";
         const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
         const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
-        const next = N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="onw"><div class="on">${e(N.opp)}</div></div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div><div class="nb"><div class="nw">${N.win ? winBarHtml(N.win, mcWin(N.win, N.mine, t, idx, true)) : ""}</div><div class="og">${e(N.venue || "")}</div><div class="oq">${clashOf(s, s.next) || ""}</div></div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`;
+        const next = offNotice(offAll.filter(m => String(m.t) === String(t.team))) + (N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="onw"><div class="on">${e(N.opp)}</div></div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div><div class="nb"><div class="nw">${N.win ? winBarHtml(N.win, mcWin(N.win, N.mine, t, idx, true)) : ""}</div><div class="og">${e(N.venue || "")}</div><div class="oq">${clashOf(s, s.next) || ""}</div></div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`);
         const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
         return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(leagueOf(t, s))}</div></div></div><div class="cnx${N ? "" : " e"}">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
@@ -11118,7 +11284,7 @@ async function clubGate(request, env, label) {
     }
     return pinPage(label, "Enter the club PIN to see the dashboard links.", cleanNext(url.searchParams.get("next") || ""), 200, "/club-unlock", H);
   }
-  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/sponsor-list" || path === "/past-meetings" || path === "/api/past-meetings" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens" || path === "/api/scores-refresh";
+  const isLinks = url.searchParams.get("view") === "teams" || path === "/teams" || path === "/docs" || path === "/admin" || path === "/api/admin" || path === "/matchsheet" || path === "/winchance" || path === "/feedlog" || path === "/maintenance-preview" || path === "/usage" || path === "/api/usage" || path === "/api/cflimits" || path === "/inbox" || path === "/api/inbox" || path === "/sponsors" || path === "/api/sponsors" || path === "/sponsor-players" || path === "/sponsor-list" || path === "/past-meetings" || path === "/api/past-meetings" || path === "/games-off" || path === "/api/games-off" || path === "/api/sponsor-players" || path === "/matchday" || path === "/api/matchday" || path === "/p" || path.startsWith("/p/") || path === "/pair" || path.startsWith("/pair/") || path === "/api/pair-send" || path === "/api/screens" || path === "/api/scores-refresh";
   if (!isLinks) return null;
   if (!pin) {
     if (label) return null; // DEV is already behind DEV_PIN
@@ -11330,7 +11496,7 @@ fetch("/api/pair-send",{method:"POST",headers:{"Content-Type":"application/json"
 if(x.j&&x.j.ok){$("f").hidden=true;$("d").hidden=false;$("dh").textContent="Sent to the screen";$("dp").textContent=x.j.label+". The screen picks it up within a few seconds.";setTimeout(function(){check(0)},3000)}
 else{b.disabled=false;$("er").textContent=(x.j&&x.j.error)||"Sign in again, then retry.";$("er").hidden=false}}).catch(function(){b.disabled=false;$("er").textContent="No connection. Try again.";$("er").hidden=false})}})()</script></body></html>`;
 }
-const KNOWN_PATHS = new Set(["/", "/setup", "/sponsors-tv", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/sponsor-list", "/past-meetings", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
+const KNOWN_PATHS = new Set(["/", "/setup", "/sponsors-tv", "/p", "/pair", "/admin", "/usage", "/inbox", "/teams", "/calendar.ics", "/winchance", "/docs", "/feedlog", "/sponsors", "/sponsor-players", "/sponsor-list", "/past-meetings", "/games-off", "/matchday", "/contact", "/matchsheet", "/release-notes", "/probe", "/version", "/tv", "/unlock", "/club-unlock", "/club-signout", "/maintenance-preview", "/manifest.webmanifest", "/og-image.jpg", "/favicon.ico", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]);
 function unknownPathGate(request) {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const path = new URL(request.url).pathname, p = path.replace(/\/+$/, "") || "/";
@@ -11467,7 +11633,7 @@ const VERSION_STAMP = `<div id="sbv" style="position:fixed;left:50%;transform:tr
 // Home-screen support: every page gets the manifest and icon links (so "Add to Home Screen" opens that same page),
 // and team pages on phones get an Install / Add to Home Screen button in the top bar.
 function pwaInject(html, url) {
-  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/sponsor-list" || url.pathname === "/past-meetings" || url.pathname === "/matchday" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
+  if (url.searchParams.get("view") === "teams" || url.pathname.replace(/\/+$/, "") === "/teams" || url.pathname === "/release-notes" || url.pathname === "/admin" || url.pathname === "/sponsors" || url.pathname === "/sponsor-players" || url.pathname === "/sponsor-list" || url.pathname === "/past-meetings" || url.pathname === "/games-off" || url.pathname === "/matchday" || url.pathname === "/matchsheet" || url.pathname === "/winchance" || url.pathname === "/feedlog" || url.pathname === "/usage" || url.pathname === "/inbox" || url.pathname === "/contact") return html;
   const name = (url.searchParams.get("friendlyName") || "").replace(/[<>"&]/g, "").slice(0, 45);
   const start = url.pathname + url.search;
   let tags = `<link rel="manifest" href="/manifest.webmanifest?s=${encodeURIComponent(start).replace(/'/g, "%27")}&amp;n=${encodeURIComponent(name)}" crossorigin="use-credentials"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="shortcut icon" href="/favicon.ico">`;

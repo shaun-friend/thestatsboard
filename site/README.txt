@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.76.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.0_games_called_off.zip | v3.75.0
 v3.75.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
 v3.74.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.74.0_sponsors_tv_page.zip | v3.73.0
 v3.73.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.73.0_sponsors_hub_refresh.zip | v3.72.0
@@ -417,6 +418,16 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.76.0 - Games called off
+- Owner request (27-Nov-2026): the Vandals' game was cancelled but the RFU feed still listed it. Wanted a way to mark a game as off by hand.
+- New: Admin page /games-off (club PIN), under Club set-up. Choose a team, choose one of its upcoming games (read from the RFU feed), choose Cancelled or Postponed, add an optional note, press Mark this game as off. Marked games are listed with a Remove button.
+- Effect: the marked game is taken out of the fixtures as they are read (the stored RFU copy is left alone), so every page moves on to the team's following game: Match Centre, Next game, Fixtures board, Match day, Win Predictor and the calendar. The Match Centre team panel, the Next game page and the Fixtures board also show a red CANCELLED (or POSTPONED) notice with the date, opponent and note.
+- Clears itself: a mark ends the day after the game date. Remove brings the game back at once. Marking or removing refreshes the scores clock (as Refresh scores now does) so cached pages catch up within about a minute.
+- Stored in Cloudflare KV under games-off (up to 40 marks). No extra RFU requests are used when no game is marked; the Admin list reads the team's fixtures once (cached).
+- Not changed: the Match Centre "board" layout (a row per team) and the standard team page do not show the notice yet; the game is still skipped there.
+- Tests: new t_v3760 (page and API behind the PIN, list of games, mark, refused cases, next game moves on, notice on Next game, Fixtures board and Match Centre, none on the league table, postponed wording, remove, expiry).
+- Docs: What's new
 
 v3.75.0 - Sponsor a player who is not current; sponsors TV tiles keep names on one line
 - Owner request (26-Nov-2026): the Players tab only showed players ticked as current, so a player who was not marked current could not be given a sponsor. Wanted without bringing the old page back.
