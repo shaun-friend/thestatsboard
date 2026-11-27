@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.78.1 27-Nov-2026 Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there.
 //   v3.78.0 27-Nov-2026 Club sponsors section is slimmer: one row per sponsor that opens for its description and logo (with the same light/dark choice as the sponsor's own panel); a new club sponsor opens ready for its logo.
 //   v3.77.2 27-Nov-2026 Club sponsors section: a new sponsor can be typed in and added straight there, not only picked from the existing list.
 //   v3.77.1 27-Nov-2026 Fix: adding a logo to a sponsor works again on the Players and sponsors page.
@@ -410,7 +411,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.78.0";
+const VERSION = "v3.78.1";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -459,6 +460,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.78.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.1_club_row_rename.zip | v3.78.0
 v3.78.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.0_club_sponsors_compact.zip | v3.77.2
 v3.77.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.2_new_club_sponsor.zip | v3.77.1
 v3.77.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.1_logo_upload_fix.zip | v3.77.0
@@ -841,6 +843,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.78.1 - Club sponsors: rename from the open row
+- Owner report (27-Nov-2026): the open club sponsor row did not allow the name to be edited.
+- Added: a Name box and a Save name button at the top of the open row. The name changes everywhere, since it is the same sponsor.
+- Docs: What's new
 
 v3.78.0 - Club sponsors: slimmer rows with the logo built in
 - Owner request (27-Nov-2026): the Club sponsors section took too much space, and a new club sponsor meant scrolling down to the list to add its logo.
@@ -3606,6 +3613,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.78.1", "Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there."],
       ["v3.78.0", "Club sponsors section is slimmer: one row per sponsor that opens for its description and logo (with the same light/dark choice as the sponsor's own panel); a new club sponsor opens ready for its logo."],
       ["v3.77.2", "Club sponsors section: a new sponsor can be typed in and added straight there, not only picked from the existing list."],
       ["v3.77.1", "Fix: adding a logo to a sponsor works again on the Players and sponsors page. Choosing a logo file now shows its preview and Save logo, as it should. Each sponsor's panel also has an Add to Club sponsors button."],
@@ -6358,7 +6366,7 @@ else{var S=items(),np=S.filter(function(s){return!users(s.id).length&&!s.club}).
 function clubHtml(){var S=items().filter(function(x){return x.club}),h='<h3>Club sponsors</h3><p class="sub" style="margin:0 0 6px">Sponsors who back the club itself. Players are added and changed further down, never here.</p>',o="";
 S.forEach(function(x){var n=users(x.id).length,op=cOpen===x.id,bg=x.logo?(x.logo.bg==="l"?"l":x.logo.bg==="c"?"c":"d"):"no";
 h+='<div class="k4"><div class="hd" data-ck="'+x.id+'"><span class="lgb '+bg+'">'+(x.logo?'<img alt="" src="/api/logo/'+x.id+"?v="+e(x.logo.v)+'">':"No logo")+'</span><div class="nm"><b>'+e(x.name)+"</b>"+(n?'<span class="tg3">Also sponsors '+n+" player"+(n===1?"":"s")+"</span>":"")+'<span class="pv'+(x.desc?"":" e")+'">'+(x.desc?e(x.desc):"No description yet")+'</span></div><button type="button" class="b2 sm" aria-expanded="'+(op?"true":"false")+'">'+(op?"Close &#8963;":"Edit &#8964;")+"</button></div>";
-if(op)h+='<div class="ex"><div class="dl">Description</div><textarea class="in2 ds" data-d="'+x.id+'" maxlength="300" rows="2" placeholder="What they do for the club (optional)" aria-label="Description for '+e(x.name)+'">'+e(x.desc||"")+'</textarea><div class="cn3"><span data-c="'+x.id+'">'+(x.desc||"").length+'</span> / 300</div><div class="dl">Logo</div>'+lgBlock(x,"c")+'<div class="rw2" style="margin-top:10px"><button type="button" class="b2 sm" data-cx="'+x.id+'">Remove from this section</button></div></div>';
+if(op)h+='<div class="ex"><div class="dl">Name</div><div class="rw2"><input class="in2" data-rn="'+x.id+'" maxlength="60" value="'+e(x.name)+'" aria-label="Sponsor name"><button type="button" class="b2 go sm" data-rnb="'+x.id+'">Save name</button></div><div class="dl">Description</div><textarea class="in2 ds" data-d="'+x.id+'" maxlength="300" rows="2" placeholder="What they do for the club (optional)" aria-label="Description for '+e(x.name)+'">'+e(x.desc||"")+'</textarea><div class="cn3"><span data-c="'+x.id+'">'+(x.desc||"").length+'</span> / 300</div><div class="dl">Logo</div>'+lgBlock(x,"c")+'<div class="rw2" style="margin-top:10px"><button type="button" class="b2 sm" data-cx="'+x.id+'">Remove from this section</button></div></div>';
 h+="</div>"});
 if(!S.length)h+='<p class="sub" style="margin:6px 0">No club sponsors yet.</p>';
 items().forEach(function(x){if(!x.club)o+='<option value="'+x.id+'">'+e(x.name)+"</option>"});
@@ -6455,6 +6463,7 @@ if(t.id==="ab"){spost({act:"bulk",text:$("pt").value},function(j){if(!j.ok){say(
 if(t.id==="cab"){var cs=$("cas").value;if(!cs){say("Choose a sponsor first.","er");return}lpost({act:"club",id:cs,on:true},function(){cOpen=cs;say("Added to Club sponsors.","ok")});return}
 if(t.id==="cnb"){var cn=$("cnn").value.trim();if(!cn){say("Type the sponsor's name first.","er");return}spost({act:"add",name:cn,club:true},function(j){if(!j.ok){say(j.error||"Could not save.","er");return}$("cnn").value="";pend="Added "+cn+" as a club sponsor. Add its logo below.";cOpen=((j.items||[]).filter(function(i){return i.name===cn})[0]||{}).id||"";loadAll()});return}
 var cab2=t.closest("[data-cadd]");if(cab2){lpost({act:"club",id:cab2.getAttribute("data-cadd"),on:true},function(){say("Added to Club sponsors, at the top of this page.","ok")});return}
+var rnb=t.closest("[data-rnb]");if(rnb){var ri=rnb.getAttribute("data-rnb"),rin=document.querySelector('[data-rn="'+ri+'"]'),rnn=rin?rin.value.trim():"";if(!rnn){say("Type the sponsor's name first.","er");return}lpost({act:"rename",id:ri,name:rnn},function(){say("Name saved.","ok")});return}
 var ckb=t.closest("[data-ck]");if(ckb){var ki=ckb.getAttribute("data-ck");cOpen=cOpen===ki?"":ki;drawClub(true);return}
 var cxb=t.closest("[data-cx]");if(cxb){if(cOpen===cxb.getAttribute("data-cx"))cOpen="";lpost({act:"club",id:cxb.getAttribute("data-cx"),on:false},function(){say("Taken out of Club sponsors. The sponsor and its players are unchanged.","ok")});return}
 if(t.id==="ap"){form={m:"p"};sel=null;hist=[];draw();var fn=$("fn");if(fn)fn.focus();return}
