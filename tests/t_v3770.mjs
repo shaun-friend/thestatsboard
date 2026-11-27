@@ -98,6 +98,13 @@ sp2.length=0;await p.click('#det [data-cadd="aaaaaaa1"]');await p.waitForTimeout
 c('button posts club on and the sponsor joins the section',sp2.some(b=>b.act==='club'&&b.id==='aaaaaaa1'&&b.on===true)&&/Thatchers/.test(await txt('#cl')));
 c('panel then offers Remove from Club sponsors',await q('#det [data-cx="aaaaaaa1"]')===1&&/Club sponsor/.test(await txt('#det')));
 await p.click('#det [data-cx="aaaaaaa1"]');await p.waitForTimeout(400);
+// Current chip on the Players tab
+await p.click('#t1');await p.waitForTimeout(300);
+c('Players chips include Current (every current player) next to Sponsored',await p.$$eval('#ch .fc',l=>l.map(b=>b.dataset.f).join())==='need,has,cur,notcur,all',await p.$$eval('#ch .fc',l=>l.map(b=>b.dataset.f).join()));
+await p.click('#ch [data-f=cur]');const curN=await q('#ls .pr[data-go]');const curChip=await txt('#ch [data-f=cur]');
+c('Current lists current and sponsored players, and its number matches',curN===+/(\d+)/.exec(curChip)[1]&&curN===5,curChip+' '+curN);
+c('Current leaves out players who are not current and have no sponsor',!/Not Cur/i.test(await txt('#ls')));
+await p.click('#ch [data-f=need]');
 // logo upload (broken since v3.73.0: the page forgot which sponsor it was for)
 await p.click('#t2');await p.waitForTimeout(300);await p.click('#ls .pr[data-go="s:aaaaaaa3"] .pn');await p.waitForTimeout(300);
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAHgAAAA8CAYAAACtrX6oAAAApUlEQVR4nO3RMQ0AIADAMPygAPc4Axkko0f/JRt7zUPXeB2AwRiMwZ8yOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjLk0ZG+U4iBknAAAAAElFTkSuQmCC','base64');

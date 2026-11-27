@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.78.2 27-Nov-2026 Players tab: a Current chip lists every current player, with or without a sponsor.
 //   v3.78.1 27-Nov-2026 Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there.
 //   v3.78.0 27-Nov-2026 Club sponsors section is slimmer: one row per sponsor that opens for its description and logo (with the same light/dark choice as the sponsor's own panel); a new club sponsor opens ready for its logo.
 //   v3.77.2 27-Nov-2026 Club sponsors section: a new sponsor can be typed in and added straight there, not only picked from the existing list.
@@ -411,7 +412,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.78.1";
+const VERSION = "v3.78.2";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -460,6 +461,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.78.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.2_current_chip.zip | v3.78.1
 v3.78.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.1_club_row_rename.zip | v3.78.0
 v3.78.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.78.0_club_sponsors_compact.zip | v3.77.2
 v3.77.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.2_new_club_sponsor.zip | v3.77.1
@@ -843,6 +845,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.78.2 - Players tab: Current chip
+- Owner question (27-Nov-2026): there was no way to list all the current players together.
+- Added: a Current chip (between Sponsored and Not current) listing every current player, sponsored or not. Its number matches the "N of M current players" line above the chips.
+- Docs: What's new
 
 v3.78.1 - Club sponsors: rename from the open row
 - Owner report (27-Nov-2026): the open club sponsor row did not allow the name to be edited.
@@ -3613,6 +3620,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.78.2", "Players tab: a Current chip lists every current player, with or without a sponsor."],
       ["v3.78.1", "Club sponsors: an open row now has a Name box and Save name button, so the sponsor can be renamed there."],
       ["v3.78.0", "Club sponsors section is slimmer: one row per sponsor that opens for its description and logo (with the same light/dark choice as the sponsor's own panel); a new club sponsor opens ready for its logo."],
       ["v3.77.2", "Club sponsors section: a new sponsor can be typed in and added straight there, not only picked from the existing list."],
@@ -6354,14 +6362,14 @@ function inT(p){var t=$("ft").value;return!t||p.teams.indexOf(t)>-1}
 function sorted(a){return a.slice().sort(function(x,y){var a1=(x.name||"~").toLowerCase(),b1=(y.name||"~").toLowerCase();return a1<b1?-1:a1>b1?1:0})}
 function find(no){var l=allP();for(var i=0;i<l.length;i++)if(l[i].no===no)return l[i];return null}
 function users(sid){return allP().filter(function(p){return p.sids.indexOf(sid)>=0})}
-function shownList(){var q=$("fq").value.trim().toLowerCase();return sorted(allP().filter(function(p){if(!inT(p))return false;if(flt==="need"&&(p.sponsor||!p.cur))return false;if(flt==="notcur"&&(p.sponsor||p.cur))return false;if(flt==="has"&&!p.sponsor)return false;return!q||(tn(p)+" "+p.teams.join(" ")+" "+p.sponsor+" "+p.no).toLowerCase().indexOf(q)>=0}))}
+function shownList(){var q=$("fq").value.trim().toLowerCase();return sorted(allP().filter(function(p){if(!inT(p))return false;if(flt==="need"&&(p.sponsor||!p.cur))return false;if(flt==="notcur"&&(p.sponsor||p.cur))return false;if(flt==="has"&&!p.sponsor)return false;if(flt==="cur"&&!(p.cur||p.sponsor))return false;return!q||(tn(p)+" "+p.teams.join(" ")+" "+p.sponsor+" "+p.no).toLowerCase().indexOf(q)>=0}))}
 function post(o,ok,bad){if(busy)return;busy=true;fetch("/api/sponsor-players",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");if(bad)bad();return}ok(j)}).catch(function(){busy=false;say("Could not reach the site. Try again.","er");if(bad)bad()})}
 function spost(o,ok){if(busy)return;busy=true;fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Could not save. Try again."}})}).then(function(j){busy=false;ok(j||{ok:false,error:"Could not save. Try again."})}).catch(function(){busy=false;say("Could not reach the site. Try again.","er")})}
 function lpost(o,ok){spost(o,function(j){if(!j||!j.ok){say((j&&j.error)||"Could not save. Try again.","er");return}ok(j);loadAll(true)})}
 function bapi(o,cb){fetch("/api/sponsors",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"That did not work. Try again."}})}).then(cb).catch(function(){cb({ok:false,error:"That did not work. Try again."})})}
 function loadAll(quiet){var se=$("se").value||"";fetch("/api/sponsor-players?all=1&season="+encodeURIComponent(se),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok){say((j&&j.error)||"Could not read the players.","er");return}W=j;SM={};j.sponsors.forEach(function(s){SM[s.id]=s});if(!quiet||pend)say(pend,pend?"ok":"");pend="";var s2="";[j.seasons.prev,j.seasons.cur,j.seasons.next].forEach(function(x){s2+='<option value="'+x+'"'+(x===j.season?" selected":"")+">"+x+(x===j.seasons.cur?" (now)":"")+"</option>"});$("se").innerHTML=s2;var ts={};(j.teams||[]).forEach(function(x){ts[x.name]=1});allP().forEach(function(p){p.teams.forEach(function(t){ts[t]=1})});var cv=$("ft").value,o='<option value="">All teams</option>';Object.keys(ts).sort().forEach(function(t){o+='<option value="'+e(t)+'"'+(t===cv?" selected":"")+">"+e(t)+"</option>"});$("ft").innerHTML=o;draw()}).catch(function(){say("Could not read the players.","er")})}
 function chips(){var m=MD(),h="";
-if(m==="p"){var sc=allP().filter(inT),cur=sc.filter(function(p){return p.cur||p.sponsor}),sp=cur.filter(function(p){return p.sponsor}).length,nd=cur.length-sp;[["need","Needs a sponsor "+nd],["has","Sponsored "+sc.filter(function(p){return p.sponsor}).length]].concat([["notcur","Not current "+sc.filter(function(p){return!p.sponsor&&!p.cur}).length]],[["all","Everyone "+sc.length]]).forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="need"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+e($("ft").value||"All teams")+"</b>: "+sp+" of "+cur.length+" current players have a sponsor, "+nd+" still need one. Each player is listed once, with every team they play for."}
+if(m==="p"){var sc=allP().filter(inT),cur=sc.filter(function(p){return p.cur||p.sponsor}),sp=cur.filter(function(p){return p.sponsor}).length,nd=cur.length-sp;[["need","Needs a sponsor "+nd],["has","Sponsored "+sc.filter(function(p){return p.sponsor}).length],["cur","Current "+cur.length]].concat([["notcur","Not current "+sc.filter(function(p){return!p.sponsor&&!p.cur}).length]],[["all","Everyone "+sc.length]]).forEach(function(x){h+='<button type="button" class="fc'+(flt===x[0]?" on":"")+(x[0]==="need"?" am":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"});$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+e($("ft").value||"All teams")+"</b>: "+sp+" of "+cur.length+" current players have a sponsor, "+nd+" still need one. Each player is listed once, with every team they play for."}
 else{var S=items(),np=S.filter(function(s){return!users(s.id).length&&!s.club}).length,nl=S.filter(function(s){return!s.logo}).length;[["all","All "+S.length],["nop","No players "+np],["nol","No logo "+nl]].forEach(function(x){h+='<button type="button" class="fc'+(sflt===x[0]?" on":"")+'" data-sf="'+x[0]+'">'+x[1]+"</button>"});h+='<span class="vw"><button type="button" class="fc'+(vm==="list"?" on":"")+'" data-vm="list">List</button><button type="button" class="fc'+(vm==="cards"?" on":"")+'" data-vm="cards">All logos and players</button></span>';$("ch").innerHTML=h;$("sm2").innerHTML="<b>"+S.length+"</b> sponsors. Open one to change its logo and its players."}}
 function clubHtml(){var S=items().filter(function(x){return x.club}),h='<h3>Club sponsors</h3><p class="sub" style="margin:0 0 6px">Sponsors who back the club itself. Players are added and changed further down, never here.</p>',o="";
 S.forEach(function(x){var n=users(x.id).length,op=cOpen===x.id,bg=x.logo?(x.logo.bg==="l"?"l":x.logo.bg==="c"?"c":"d"):"no";
