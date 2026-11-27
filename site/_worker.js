@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.76.3 27-Nov-2026 Games called off: the buttons on the Admin page are now styled like the rest of the Admin centre.
 //   v3.76.2 27-Nov-2026 Games called off: red notice on the Match Centre only; the Fixtures board just says Cancelled against the game.
 //   v3.76.1 27-Nov-2026 Games called off: new version number so pages saved before the fix are not reused.
 //   v3.76.0 27-Nov-2026 Games called off: Admin page to mark a game as cancelled or postponed when the RFU feed has not caught up; every page skips it and shows a notice.
@@ -405,7 +406,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.76.2";
+const VERSION = "v3.76.3";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -454,6 +455,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.76.3 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.3_games_off_buttons.zip | v3.76.2
 v3.76.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.2_games_called_off_notice.zip | v3.76.1
 v3.76.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.1_games_called_off_cache.zip | v3.76.0
 v3.76.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.0_games_called_off.zip | v3.75.0
@@ -831,6 +833,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.76.3 - Games called off: Admin page buttons styled
+- Owner report (27-Nov-2026): the buttons on the Games called off page looked like plain browser buttons.
+- Fixed: Mark this game as off (green) and Remove (red outline) now match the Admin centre, light and dark.
+- Docs: What's new
 
 v3.76.2 - Games called off: the red notice is on the Match Centre only
 - Owner request (27-Nov-2026): the cancellation should only appear on the Match Centre, and on the Fixtures table page just the word Cancelled (or Postponed) against the fixture, not a red header.
@@ -3565,6 +3572,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.76.3", "Games called off: the buttons on the Admin page are now styled like the rest of the Admin centre. The Mark this game as off and Remove buttons now match the green and dark styling, in light and dark mode."],
       ["v3.76.2", "Games called off: the red notice now shows on the Match Centre only. On the Fixtures board the game stays in the list with just the word Cancelled (or Postponed) against it."],
       ["v3.76.1", "Games called off: a cancelled game now shows on the Fixtures board as Cancelled (pages saved before the fix are no longer reused)."],
       ["v3.76.0", "New Admin page, Games called off (under Club set-up): mark a game as cancelled or postponed when the RFU feed has not been updated yet. Every screen then skips it and moves on to the following game, and the Match Centre, Next game page and Fixtures board show a red notice. It clears itself the day after the game, or press Remove."],
@@ -5475,7 +5483,7 @@ function gamesOffPage(theme, isDev, teams) {
   const t = theme === "light" ? "light" : "dark";
   const opts = (teams || []).filter(x => x && !x.hidden && x.team).map(x => `<option value="${String(x.team).replace(/[^0-9]/g, "")}">${String(x.name || x.team).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</option>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Games called off</title>
-<style>${MENU_CSS}.wrap.wcp{max-width:860px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:12px 14px;margin:10px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{font:16px Arial,Helvetica,sans-serif;padding:10px 12px;border-radius:10px;border:1px solid #2c4337;background:#0b1210;color:#e8f1ec;box-sizing:border-box;width:100%}.gm{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid #23362d;border-radius:10px;margin:6px 0;cursor:pointer}.gm.on{border-color:#2f9d57;background:#12261b}.gm.off{opacity:.55;cursor:default}.gm small{color:#91a49a;display:block}.sg{display:flex;gap:8px}.sg span{padding:8px 16px;border:1px solid #2c4337;border-radius:20px;cursor:pointer}.sg .a{background:#c0392b;border-color:#c0392b;color:#fff;font-weight:700}.pl3{background:#c0392b;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}.msg3{min-height:20px;margin:6px 0;font-size:14px}.msg3.er{color:#ff8a80}.msg3.ok{color:#7fd89a}.lb{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#91a49a;margin:12px 0 6px}body.light .cd2{background:#fff;border-color:#cbd8ce}body.light .in2{background:#fff;color:#17211c;border-color:#b9c9bd}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
+<style>${MENU_CSS}.wrap.wcp{max-width:860px}h1{margin:0}.cd2{background:#111719;border:1px solid #26312d;border-radius:14px;padding:12px 14px;margin:10px 0}.rw2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.in2{font:16px Arial,Helvetica,sans-serif;padding:10px 12px;border-radius:10px;border:1px solid #2c4337;background:#0b1210;color:#e8f1ec;box-sizing:border-box;width:100%}.gm{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid #23362d;border-radius:10px;margin:6px 0;cursor:pointer}.gm.on{border-color:#2f9d57;background:#12261b}.gm.off{opacity:.55;cursor:default}.gm small{color:#91a49a;display:block}.sg{display:flex;gap:8px}.sg span{padding:8px 16px;border:1px solid #2c4337;border-radius:20px;cursor:pointer}.sg .a{background:#c0392b;border-color:#c0392b;color:#fff;font-weight:700}.pl3{background:#c0392b;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}.msg3{min-height:20px;margin:6px 0;font-size:14px}.msg3.er{color:#ff8a80}.msg3.ok{color:#7fd89a}.lb{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#91a49a;margin:12px 0 6px}.b2{font:700 14px Arial,Helvetica,sans-serif;border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid #2c3a34;background:#18211e;color:#e6efe9}.b2.go{background:#2f9d57;border-color:#2f9d57;color:#fff}.b2:disabled{opacity:.45;cursor:default}.b2[data-rm]{border-color:#6b2e2a;color:#ff8a80}body.light .b2{background:#fff;border-color:#b9c9bd;color:#17211c}body.light .b2.go{background:#1b7f3b;border-color:#1b7f3b;color:#fff}body.light .b2[data-rm]{border-color:#c0392b;color:#b02a1c}body.light .cd2{background:#fff;border-color:#cbd8ce}body.light .in2{background:#fff;color:#17211c;border-color:#b9c9bd}</style></head><body class="${t}">${themeBoot("true")}<div class="wrap wcp"><nav class="mbar"><a class="pill" href="/admin">&lsaquo; Admin</a><button type="button" class="pill tgl">Light mode</button></nav>
 <h1>Games called off</h1><p class="sub" style="margin:10px 0 0">For a game that is off but not yet written off on the RFU feed. Mark it here and every screen moves on to the team's following game and shows a notice. The mark clears itself the day after the game, or press Remove if the game is back on.</p>
 <div class="cd2"><div class="lb" style="margin-top:0">Team</div><select class="in2" id="tm">${opts}</select>
 <div class="lb">Which game</div><div id="gl"><p class="sub">Choose a team.</p></div>

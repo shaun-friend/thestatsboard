@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.76.3 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.3_games_off_buttons.zip | v3.76.2
 v3.76.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.2_games_called_off_notice.zip | v3.76.1
 v3.76.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.1_games_called_off_cache.zip | v3.76.0
 v3.76.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.0_games_called_off.zip | v3.75.0
@@ -420,6 +421,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.76.3 - Games called off: Admin page buttons styled
+- Owner report (27-Nov-2026): the buttons on the Games called off page looked like plain browser buttons.
+- Fixed: Mark this game as off (green) and Remove (red outline) now match the Admin centre, light and dark.
+- Docs: What's new
 
 v3.76.2 - Games called off: the red notice is on the Match Centre only
 - Owner request (27-Nov-2026): the cancellation should only appear on the Match Centre, and on the Fixtures table page just the word Cancelled (or Postponed) against the fixture, not a red header.
