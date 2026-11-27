@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.76.1 27-Nov-2026 Games called off: new version number so pages saved before the fix are not reused.
 //   v3.76.0 27-Nov-2026 Games called off: Admin page to mark a game as cancelled or postponed when the RFU feed has not caught up; every page skips it and shows a notice.
 //   v3.75.0 27-Nov-2026 Players hub: every team's whole squad is listed (Not current chip) and a sponsor makes a player current; sponsors TV names stay on one line (and smaller), logo keeps its size.
 //   v3.74.0 26-Nov-2026 Sponsors thank-you TV page: optional rotation page, groups of teams, 4 x 2 tiles with tall tiles for sponsors with 4 or more players, one dot per slide; All logos and players view on the Sponsors tab.
@@ -403,7 +404,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.76.0";
+const VERSION = "v3.76.1";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -452,6 +453,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.76.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.1_games_called_off_cache.zip | v3.76.0
 v3.76.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.0_games_called_off.zip | v3.75.0
 v3.75.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
 v3.74.0 | 26-Nov-2026 | RFU_Club_Dashboard_v3.74.0_sponsors_tv_page.zip | v3.73.0
@@ -827,6 +829,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.76.1 - Games called off: fix for saved pages from the first v3.76.0 build
+- Owner report (27-Nov-2026, DEV screenshot): the cancelled game was still missing from the Fixtures board after the fix, although the banner and the following next game were right.
+- Cause: the first and second v3.76.0 builds had the same version number, and saved copies of pages and team summaries are keyed by version, so the board kept the copy made before the fix.
+- Fixed: new version number (a new build always starts fresh copies). To force it on an older build: Admin, Overview, Refresh scores now, or press Remove and mark the game again.
+- Rule for later: a fix to a build that is already on DEV gets a new version number.
+- Docs: What's new
 
 v3.76.0 - Games called off
 - Owner request (27-Nov-2026): the Vandals' game was cancelled but the RFU feed still listed it. Wanted a way to mark a game as off by hand.
@@ -3549,6 +3558,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.76.1", "Games called off: a cancelled game now shows on the Fixtures board as Cancelled (pages saved before the fix are no longer reused)."],
       ["v3.76.0", "New Admin page, Games called off (under Club set-up): mark a game as cancelled or postponed when the RFU feed has not been updated yet. Every screen then skips it and moves on to the following game, and the Match Centre, Next game page and Fixtures board show a red notice. It clears itself the day after the game, or press Remove."],
       ["v3.75.0", "Players who are not current can now be given a sponsor: every team's whole squad is listed, with a Not current chip, and a sponsor makes the player current. On the sponsors TV page a name never wraps onto a second line and the logo keeps its size."],
       ["v3.74.0", "Thank you to our sponsors, an optional page for the TV rotation (off until you add it in Admin, TV rotation). Sponsors with their players, in groups of teams you choose (for example Men and Women), 4 across and 2 down, with a tall tile for a sponsor with four or more players so every name can be read. Each slide is its own step with its own dot, and the round total counts them. Overview warns when the number of slides changes. The Sponsors tab also has an All logos and players view."],
