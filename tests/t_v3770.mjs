@@ -33,7 +33,7 @@ await p.goto('https://x.test/sponsor-players');await p.waitForSelector('#ls .pr'
 const errs=[];p.on('pageerror',e=>errs.push(String(e)));
 const q=s=>p.$$eval(s,l=>l.length);const txt=s=>p.$eval(s,e=>e.textContent);const vis=s=>p.$eval(s,e=>!e.hidden&&getComputedStyle(e).display!=='none');
 const sp2=[];
-await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()!=='POST')return x.fallback();const b=JSON.parse(x.request().postData()||'{}');if(b.act==='desc'||b.act==='club'){sp2.push(b);const it=sponsors.find(z=>z.id===b.id);if(b.act==='desc'){if(b.desc)it.desc=b.desc;else delete it.desc}else{if(b.on)it.club=1;else delete it.club}return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}return x.fallback()});
+await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()!=='POST')return x.fallback();const b=JSON.parse(x.request().postData()||'{}');if(b.act==='logo'){sp2.push(b);return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}if(b.act==='desc'||b.act==='club'){sp2.push(b);const it=sponsors.find(z=>z.id===b.id);if(b.act==='desc'){if(b.desc)it.desc=b.desc;else delete it.desc}else{if(b.on)it.club=1;else delete it.club}return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}return x.fallback()});
 // Players tab: no club section
 c('Club section hidden on the Players tab',!(await vis('#cl')));
 await p.click('#t2');await p.waitForTimeout(300);
@@ -67,6 +67,21 @@ c('box is limited to 300 characters',await p.$eval('#sdesc',e=>e.maxLength)===30
 sp2.length=0;await p.fill('#sdesc','');await p.press('#sdesc','Tab');await p.waitForTimeout(400);
 c('clearing it posts an empty description',sp2.some(b=>b.act==='desc'&&b.id==='aaaaaaa1'&&b.desc===''),JSON.stringify(sp2));
 c('the panel still has its players and logo block',/Owen Garner/.test(await txt('#det'))&&/Logo/.test(await txt('#det')));
+// sponsor panel button to add to Club sponsors
+await p.click('#t2');await p.waitForTimeout(300);await p.click('#ls .pr[data-go="s:aaaaaaa1"] .pn');await p.waitForTimeout(300);
+c('panel offers Add to Club sponsors for a sponsor that is not one',await q('#det [data-cadd="aaaaaaa1"]')===1);
+sp2.length=0;await p.click('#det [data-cadd="aaaaaaa1"]');await p.waitForTimeout(400);
+c('button posts club on and the sponsor joins the section',sp2.some(b=>b.act==='club'&&b.id==='aaaaaaa1'&&b.on===true)&&/Thatchers/.test(await txt('#cl')));
+c('panel then offers Remove from Club sponsors',await q('#det [data-cx="aaaaaaa1"]')===1&&/Club sponsor/.test(await txt('#det')));
+await p.click('#det [data-cx="aaaaaaa1"]');await p.waitForTimeout(400);
+// logo upload (broken since v3.73.0: the page forgot which sponsor it was for)
+await p.click('#t2');await p.waitForTimeout(300);await p.click('#ls .pr[data-go="s:aaaaaaa3"] .pn');await p.waitForTimeout(300);
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAHgAAAA8CAYAAACtrX6oAAAApUlEQVR4nO3RMQ0AIADAMPygAPc4Axkko0f/JRt7zUPXeB2AwRiMwZ8yOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjDI4zOM7gOIPjLk0ZG+U4iBknAAAAAElFTkSuQmCC','base64');
+sp2.length=0;await p.setInputFiles('#lgf',{name:'a.png',mimeType:'image/png',buffer:png});
+await p.waitForSelector('#det button[data-a=lgsave]',{timeout:8000}).catch(()=>{});
+c('choosing a logo file shows the preview and a Save logo button',await q('#det button[data-a=lgsave]')===1,(await txt('#det')).slice(0,200));
+if(await q('#det button[data-a=lgsave]')===1){await p.click('#det button[data-a=lgsave]');await p.waitForTimeout(500)}
+c('Save logo posts the logo for that sponsor',sp2.some(b=>b.act==='logo'&&b.id==='aaaaaaa3'&&b.data&&b.w>0),JSON.stringify(sp2).slice(0,200));
 // player panel read only
 await p.click('#t1');await p.waitForTimeout(300);await p.click('#ch [data-f=has]');await p.click('#ls .pr[data-go="p:100"] .pn');
 c('club section not on the player page',!(await vis('#cl')));
