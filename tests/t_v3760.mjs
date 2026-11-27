@@ -53,8 +53,8 @@ let j1=await sm();c('after: the next game is the following one',j1.next&&/Alpha 
 g=await gj('/api/games-off?team=11039');c('a marked game shows as already marked',g.j.games.length===1||g.j.games.some(x=>x.off),JSON.stringify(g.j.games));
 // notices
 const nm=await get('/?'+base+'&view=match&layout=tv');const nt=await nm.text();
-c('Next game page carries the CANCELLED notice with the note',/CANCELLED &middot; [A-Za-z]{3} \d+ [A-Za-z]{3} v Okehampton/.test(nt)&&/Pitch unplayable/.test(nt)&&/role="note"/.test(nt),nt.slice(0,300));
-const fb=await (await get('/?'+base+'&view=fixtures&layout=tv')).text();c('Fixtures board carries the notice',/CANCELLED &middot;/.test(fb));
+c('Next game page has no red notice (it just moves on to the following game)',!/role="note"/.test(nt)&&!/CANCELLED &middot;/.test(nt));
+const fb=await (await get('/?'+base+'&view=fixtures&layout=tv')).text();c('Fixtures board has no red banner',!/CANCELLED &middot;/.test(fb)&&!/role="note"/.test(fb));
 c('Fixtures board still lists the game, marked Cancelled with the note',/Okehampton/.test(fb.split('</h1>').pop()||fb)&&/Cancelled/.test(fb),'');
 const fs0=await (await get('/?'+base+'&view=fixtures&theme=dark')).text();c('standard Fixtures page lists it under Upcoming as Cancelled',/Upcoming[\s\S]*Okehampton[\s\S]*Cancelled[\s\S]*Results/.test(fs0),'');
 const dj=JSON.parse(await (await get('/?'+base+'&format=summary&detail=fixtures')).text());const og=(dj.games||[]).find(x=>/Okehampton/.test(x.oppName)&&/^2026-11-14/.test(x.iso));c('the game stays in the games list, flagged off and void (so it is never the next game)',og&&og.status==='void'&&og.off==='c'&&og.offNote==='Pitch unplayable',JSON.stringify(og)+JSON.stringify((dj.games||[]).filter(x=>/2026-11/.test(x.iso))));
@@ -65,10 +65,10 @@ const id=a.j.marks[0].id;
 let rm=await post({act:'remove',id});c('removing a mark works',rm.j.ok&&rm.j.marks.length===0);
 a=await post({act:'add',team:'11039',d:d1,o:String(g.j.games[0]&&g.j.games[0].o||''),on:'Okehampton',h:true,k:'p',n:''});
 sc.clear();w=await load();
-const pp=await (await get('/?'+base+'&view=match&layout=tv')).text();c('postponed says POSTPONED',/POSTPONED &middot;/.test(pp)&&!/CANCELLED &middot;/.test(pp));
+const pp=await (await get('/?'+base+'&view=match&layout=tv')).text();const ppb=await (await get('/?'+base+'&view=fixtures&layout=tv')).text();c('postponed says Postponed against the fixture',/Postponed/.test(ppb)&&!/Cancelled/.test(ppb.split('</h1>').pop()));
 await post({act:'remove',id:a.j.marks[0].id});sc.clear();w=await load();
 let j2=await sm();c('after removal the game is back as the next game',/Okehampton/.test(JSON.stringify(j2.next)));
-const pr=await (await get('/?'+base+'&view=match&layout=tv')).text();c('and the notice is gone',!/CANCELLED &middot;|POSTPONED &middot;/.test(pr));
+const pr=await (await get('/?'+base+'&view=match&layout=tv')).text();const prb=await (await get('/?'+base+'&view=fixtures&layout=tv')).text();c('and the Cancelled word is gone',!/Cancelled|Postponed/.test(prb.split('</h1>').pop()));
 // clears itself the day after the game
 await post({act:'add',team:'11039',d:d1,o:'',on:'',h:true,k:'c',n:''});
 clock+=5*DAY;w=await load();

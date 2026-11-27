@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.76.2 27-Nov-2026 Games called off: red notice on the Match Centre only; the Fixtures board just says Cancelled against the game.
 //   v3.76.1 27-Nov-2026 Games called off: new version number so pages saved before the fix are not reused.
 //   v3.76.0 27-Nov-2026 Games called off: Admin page to mark a game as cancelled or postponed when the RFU feed has not caught up; every page skips it and shows a notice.
 //   v3.75.0 27-Nov-2026 Players hub: every team's whole squad is listed (Not current chip) and a sponsor makes a player current; sponsors TV names stay on one line (and smaller), logo keeps its size.
@@ -404,7 +405,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.76.1";
+const VERSION = "v3.76.2";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -453,6 +454,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.76.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.2_games_called_off_notice.zip | v3.76.1
 v3.76.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.1_games_called_off_cache.zip | v3.76.0
 v3.76.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.0_games_called_off.zip | v3.75.0
 v3.75.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.75.0_sponsor_not_current.zip | v3.74.0
@@ -829,6 +831,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.76.2 - Games called off: the red notice is on the Match Centre only
+- Owner request (27-Nov-2026): the cancellation should only appear on the Match Centre, and on the Fixtures table page just the word Cancelled (or Postponed) against the fixture, not a red header.
+- Changed: the red banner on the Next game page and the Fixtures board is gone. The Match Centre team panel keeps its red strip. The Fixtures board still lists the game in date order marked Cancelled or Postponed, and every page still moves on to the following game.
+- Docs: What's new
 
 v3.76.1 - Games called off: fix for saved pages from the first v3.76.0 build
 - Owner report (27-Nov-2026, DEV screenshot): the cancelled game was still missing from the Fixtures board after the fix, although the banner and the following next game were right.
@@ -3558,6 +3565,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.76.2", "Games called off: the red notice now shows on the Match Centre only. On the Fixtures board the game stays in the list with just the word Cancelled (or Postponed) against it."],
       ["v3.76.1", "Games called off: a cancelled game now shows on the Fixtures board as Cancelled (pages saved before the fix are no longer reused)."],
       ["v3.76.0", "New Admin page, Games called off (under Club set-up): mark a game as cancelled or postponed when the RFU feed has not been updated yet. Every screen then skips it and moves on to the following game, and the Match Centre, Next game page and Fixtures board show a red notice. It clears itself the day after the game, or press Remove."],
       ["v3.75.0", "Players who are not current can now be given a sponsor: every team's whole squad is listed, with a Not current chip, and a sponsor makes the player current. On the sponsors TV page a name never wraps onto a second line and the logo keeps its size."],
@@ -5415,11 +5423,6 @@ async function offFor(teamId) { const t = String(teamId || ""); return (await of
 function offDateLabel(d) { try { return new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" }); } catch (_) { return d; } }
 const offEsc = x => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 function offLine(m) { return offDateLabel(m.d) + (m.on ? " v " + m.on : ""); }
-// the red notice at the top of a page, in the page flow so it never covers anything
-function offBannerInject(html, list) {
-  const b = list.map(m => '<div role="note" style="flex:none;display:block;box-sizing:border-box;width:100%;text-align:center;background:#b3261e;color:#fff;font:800 clamp(15px,1.5vw,32px)/1.3 Arial,Helvetica,sans-serif;letter-spacing:.04em;padding:.45em .9em;position:relative;z-index:5">' + (m.k === "p" ? "POSTPONED" : "CANCELLED") + " &middot; " + offEsc(offLine(m)) + (m.n ? ' &middot; <span style="font-weight:400">' + offEsc(m.n) + "</span>" : "") + "</div>").join("");
-  return /<body[^>]*>/i.test(html) ? html.replace(/<body([^>]*)>/i, m => m + b) : html;
-}
 // the same notice as a strip inside a Match Centre team panel
 function offNotice(list) {
   return list.length ? list.map(m => '<div role="note" style="margin:0 0 .6em;padding:.35em .7em;border-radius:.7em;background:#b3261e;color:#fff;text-align:center;font-weight:800;font-size:clamp(13px,1.15vw,24px);line-height:1.25">' + (m.k === "p" ? "POSTPONED" : "CANCELLED") + " &middot; " + offEsc(offLine(m)) + (m.n ? '<br><span style="font-weight:400">' + offEsc(m.n) + "</span>" : "") + "</div>").join("") : "";
@@ -8524,18 +8527,11 @@ const worker = {
     if (isDev === true && url.searchParams.get("debug") === "season") {
       return new Response(JSON.stringify({ today: AUTO.today || todayIso(url, true), pinned: !AUTO.auto, chosenSeason: AUTO.season, why: AUTO.why, gap: !!AUTO.gap, newSeasonFixtures: AUTO.newSeasonFixtures, banner: AUTO.banner || null, previous: AUTO.prev, next: AUTO.next, listSource: AUTO.source, seasonsInList: AUTO.seasonsCount, seasonsError: AUTO.seasonsError || null, league: AUTO.league || null, correctedCompetition: AUTO.competition || null, correctedDivision: AUTO.division || null }, null, 2), { headers: { "Content-Type": "application/json;charset=utf-8", "Cache-Control": "no-store" } });
     }
-    // v3.76.0: a game the club has marked as off gets a notice at the top of that team's own pages (Next game, Fixtures board, the standard page)
-    const offTeam = url.searchParams.get("team") || "", offView = url.searchParams.get("view") || "";
-    const wantOff = request.method === "GET" && /^\d{1,12}$/.test(offTeam) && (offView === "match" || offView === "fixtures") && url.searchParams.get("embed") !== "1" && !url.searchParams.get("format");
-    const offList = wantOff ? await offFor(offTeam) : [];
-    if ((AUTO.banner || offList.length) && request.method === "GET" && url.searchParams.get("embed") !== "1" && !url.searchParams.get("format")) {
+    if (AUTO.banner && request.method === "GET" && url.searchParams.get("embed") !== "1" && !url.searchParams.get("format")) {
       const inner = await worker._main(request, isDev, AUTO);
       if (!(inner.headers.get("Content-Type") || "").includes("text/html")) return inner;
       const h = new Headers(inner.headers); h.delete("Content-Length");
-      let body = await inner.text();
-      if (offList.length) body = offBannerInject(body, offList);
-      if (AUTO.banner) body = seasonBannerInject(body, AUTO.banner);
-      return new Response(body, { status: inner.status, statusText: inner.statusText, headers: h });
+      return new Response(seasonBannerInject(await inner.text(), AUTO.banner), { status: inner.status, statusText: inner.statusText, headers: h });
     }
     return worker._main(request, isDev, AUTO);
   },
