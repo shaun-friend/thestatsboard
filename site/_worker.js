@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.77.2 27-Nov-2026 Club sponsors section: a new sponsor can be typed in and added straight there, not only picked from the existing list.
 //   v3.77.1 27-Nov-2026 Fix: adding a logo to a sponsor works again on the Players and sponsors page.
 //   v3.77.0 27-Nov-2026 Club sponsors section and a description for every sponsor on the Players and sponsors page (data only, nothing new on any TV or public page).
 //   v3.76.3 27-Nov-2026 Games called off: the buttons on the Admin page are now styled like the rest of the Admin centre.
@@ -408,7 +409,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.77.1";
+const VERSION = "v3.77.2";
 const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -457,6 +458,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.77.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.2_new_club_sponsor.zip | v3.77.1
 v3.77.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.1_logo_upload_fix.zip | v3.77.0
 v3.77.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.0_club_sponsors.zip | v3.76.3
 v3.76.3 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.3_games_off_buttons.zip | v3.76.2
@@ -837,6 +839,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.77.2 - Add a brand-new club sponsor
+- Owner report (27-Nov-2026): the Club sponsors section could only pick sponsors already in the list.
+- Added: a New club sponsor name box and an Add new club sponsor button in the Club sponsors section. It creates the sponsor and puts it in the section in one go; add its logo from its own panel further down.
+- Docs: What's new
 
 v3.77.1 - Fix: adding a logo to a sponsor
 - Owner report (27-Nov-2026): adding a logo did not work on the Players and sponsors page.
@@ -3590,6 +3597,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.77.2", "Club sponsors section: a new sponsor can be typed in and added straight there, not only picked from the existing list."],
       ["v3.77.1", "Fix: adding a logo to a sponsor works again on the Players and sponsors page. Choosing a logo file now shows its preview and Save logo, as it should. Each sponsor's panel also has an Add to Club sponsors button."],
       ["v3.77.0", "Players and sponsors, Sponsors tab: a Club sponsors section at the top lists the sponsors you choose, each with its logo and a short description. Every sponsor can have a description (up to 300 characters, in its own panel), and a player's panel shows their sponsors' descriptions. Nothing changes on the TV pages yet."],
       ["v3.76.3", "Games called off: the buttons on the Admin page are now styled like the rest of the Admin centre. The Mark this game as off and Remove buttons now match the green and dark styling, in light and dark mode."],
@@ -5807,7 +5815,7 @@ async function sponsorsApi(request, url) {
     if (!name) return J({ ok: false, error: "Type the sponsor's name first." }, 400);
     if (has(name)) return J({ ok: false, error: name + " is already in the list." }, 409);
     if (items.length >= SPONSOR_MAX) return J({ ok: false, error: "The list is full (" + SPONSOR_MAX + " sponsors)." }, 400);
-    items.push({ id: newSponsorId(items), name }); added = 1;
+    const nw = { id: newSponsorId(items), name }; if (b.club === true) nw.club = 1; items.push(nw); added = 1; // v3.77.2: a new sponsor can be created straight into the Club sponsors section
   } else if (b.act === "bulk") {
     const lines = String(b.text || "").slice(0, 20000).split("\n");
     for (const ln of lines) {
@@ -6341,7 +6349,8 @@ function clubHtml(){var S=items().filter(function(x){return x.club}),h='<h3>Club
 S.forEach(function(x){var n=users(x.id).length;h+='<div class="cr3">'+tile(x.id,1)+'<div class="cm3"><b>'+e(x.name)+"</b>"+(n?'<span class="tg3">Also sponsors '+n+" player"+(n===1?"":"s")+"</span>":"")+'<textarea class="in2 ds" data-d="'+x.id+'" maxlength="300" rows="3" placeholder="What they do for the club (optional)" aria-label="Description for '+e(x.name)+'">'+e(x.desc||"")+'</textarea><div class="cn3"><span data-c="'+x.id+'">'+(x.desc||"").length+"</span> / 300</div></div><button type='button' class='b2 sm' data-cx='"+x.id+"'>Remove from this section</button></div>"});
 if(!S.length)h+='<p class="sub" style="margin:6px 0">No club sponsors yet.</p>';
 items().forEach(function(x){if(!x.club)o+='<option value="'+x.id+'">'+e(x.name)+"</option>"});
-if(o)h+='<div class="rw2" style="margin-top:10px"><select class="in2" id="cas" aria-label="Sponsor to add"><option value="">Add a club sponsor: choose from your sponsors</option>'+o+'</select><button type="button" class="b2 go" id="cab">Add club sponsor</button></div>';
+h+='<div class="rw2" style="margin-top:10px"><input class="in2" id="cnn" maxlength="60" placeholder="New club sponsor name" autocomplete="off" aria-label="New club sponsor name"><button type="button" class="b2 go" id="cnb">Add new club sponsor</button></div>';
+if(o)h+='<div class="rw2" style="margin-top:8px"><select class="in2" id="cas" aria-label="Sponsor to add"><option value="">Add a club sponsor: choose from your sponsors</option>'+o+'</select><button type="button" class="b2 go" id="cab">Add club sponsor</button></div>';
 return h}
 function drawClub(){var c=$("cl");if(!c)return;c.hidden=MD()!=="s";if(MD()!=="s")return;var a=document.activeElement;if(a&&a.className&&String(a.className).indexOf("ds")>=0&&c.contains(a))return;c.innerHTML=clubHtml()}
 function bulkBar(){var n=Object.keys(chk).length,o="";if(MD()!=="p"||!n){$("bu").innerHTML="";return}items().forEach(function(s){o+='<option value="'+s.id+'">'+e(s.name)+"</option>"});$("bu").innerHTML='<div class="bulk"><b>'+n+" selected</b><select class='in2' id='bs' style='flex:1;min-width:150px'><option value=''>Choose a sponsor</option>"+o+"</select><button type='button' class='b2 go' id='bg'>Give sponsor</button><button type='button' class='b2' id='bc'>Clear</button></div>"}
@@ -6432,6 +6441,7 @@ if(t.id==="bg"){var sid=$("bs").value;if(!sid){say("Choose a sponsor first.","er
 if(t.id==="nsb"){var n=$("nsn").value.trim();if(!n){say("Type the sponsor's name first.","er");return}spost({act:"add",name:n},function(j){if(!j.ok){say(j.error||"Could not save.","er");return}$("nsn").value="";pend="Added "+n+".";loadAll()});return}
 if(t.id==="ab"){spost({act:"bulk",text:$("pt").value},function(j){if(!j.ok){say(j.error||"Could not save.","er");return}$("pt").value="";pend="Added "+j.added+(j.skipped?", skipped "+j.skipped+" already in the list":"")+".";loadAll()});return}
 if(t.id==="cab"){var cs=$("cas").value;if(!cs){say("Choose a sponsor first.","er");return}lpost({act:"club",id:cs,on:true},function(){say("Added to Club sponsors.","ok")});return}
+if(t.id==="cnb"){var cn=$("cnn").value.trim();if(!cn){say("Type the sponsor's name first.","er");return}spost({act:"add",name:cn,club:true},function(j){if(!j.ok){say(j.error||"Could not save.","er");return}$("cnn").value="";pend="Added "+cn+" as a club sponsor. Open it further down to add its logo.";loadAll()});return}
 var cab2=t.closest("[data-cadd]");if(cab2){lpost({act:"club",id:cab2.getAttribute("data-cadd"),on:true},function(){say("Added to Club sponsors, at the top of this page.","ok")});return}
 var cxb=t.closest("[data-cx]");if(cxb){lpost({act:"club",id:cxb.getAttribute("data-cx"),on:false},function(){say("Taken out of Club sponsors. The sponsor and its players are unchanged.","ok")});return}
 if(t.id==="ap"){form={m:"p"};sel=null;hist=[];draw();var fn=$("fn");if(fn)fn.focus();return}

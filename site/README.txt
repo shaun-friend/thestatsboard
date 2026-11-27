@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.77.2 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.2_new_club_sponsor.zip | v3.77.1
 v3.77.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.1_logo_upload_fix.zip | v3.77.0
 v3.77.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.77.0_club_sponsors.zip | v3.76.3
 v3.76.3 | 27-Nov-2026 | RFU_Club_Dashboard_v3.76.3_games_off_buttons.zip | v3.76.2
@@ -423,6 +424,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.77.2 - Add a brand-new club sponsor
+- Owner report (27-Nov-2026): the Club sponsors section could only pick sponsors already in the list.
+- Added: a New club sponsor name box and an Add new club sponsor button in the Club sponsors section. It creates the sponsor and puts it in the section in one go; add its logo from its own panel further down.
+- Docs: What's new
 
 v3.77.1 - Fix: adding a logo to a sponsor
 - Owner report (27-Nov-2026): adding a logo did not work on the Players and sponsors page.

@@ -33,7 +33,7 @@ await p.goto('https://x.test/sponsor-players');await p.waitForSelector('#ls .pr'
 const errs=[];p.on('pageerror',e=>errs.push(String(e)));
 const q=s=>p.$$eval(s,l=>l.length);const txt=s=>p.$eval(s,e=>e.textContent);const vis=s=>p.$eval(s,e=>!e.hidden&&getComputedStyle(e).display!=='none');
 const sp2=[];
-await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()!=='POST')return x.fallback();const b=JSON.parse(x.request().postData()||'{}');if(b.act==='logo'){sp2.push(b);return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}if(b.act==='desc'||b.act==='club'){sp2.push(b);const it=sponsors.find(z=>z.id===b.id);if(b.act==='desc'){if(b.desc)it.desc=b.desc;else delete it.desc}else{if(b.on)it.club=1;else delete it.club}return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}return x.fallback()});
+await p.route('https://x.test/api/sponsors',x=>{if(x.request().method()!=='POST')return x.fallback();const b=JSON.parse(x.request().postData()||'{}');if(b.act==='add'&&b.club===true){sp2.push(b);sponsors.push({id:'aaaaaaa9',name:b.name,club:1});return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,added:1,items:sponsors})})}if(b.act==='logo'){sp2.push(b);return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}if(b.act==='desc'||b.act==='club'){sp2.push(b);const it=sponsors.find(z=>z.id===b.id);if(b.act==='desc'){if(b.desc)it.desc=b.desc;else delete it.desc}else{if(b.on)it.club=1;else delete it.club}return x.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:sponsors})})}return x.fallback()});
 // Players tab: no club section
 c('Club section hidden on the Players tab',!(await vis('#cl')));
 await p.click('#t2');await p.waitForTimeout(300);
@@ -67,6 +67,11 @@ c('box is limited to 300 characters',await p.$eval('#sdesc',e=>e.maxLength)===30
 sp2.length=0;await p.fill('#sdesc','');await p.press('#sdesc','Tab');await p.waitForTimeout(400);
 c('clearing it posts an empty description',sp2.some(b=>b.act==='desc'&&b.id==='aaaaaaa1'&&b.desc===''),JSON.stringify(sp2));
 c('the panel still has its players and logo block',/Owen Garner/.test(await txt('#det'))&&/Logo/.test(await txt('#det')));
+// brand-new club sponsor typed into the section
+sp2.length=0;await p.click('#cnb');c('empty name asks first',/Type the sponsor/.test(await txt('#ms'))&&!sp2.length);
+await p.fill('#cnn','Dart Dental');await p.click('#cnb');await p.waitForTimeout(500);
+c('Add new club sponsor posts add with club on',sp2.some(b=>b.act==='add'&&b.name==='Dart Dental'&&b.club===true),JSON.stringify(sp2));
+c('new sponsor appears in the section',/Dart Dental/.test(await txt('#cl')));
 // sponsor panel button to add to Club sponsors
 await p.click('#t2');await p.waitForTimeout(300);await p.click('#ls .pr[data-go="s:aaaaaaa1"] .pn');await p.waitForTimeout(300);
 c('panel offers Add to Club sponsors for a sponsor that is not one',await q('#det [data-cadd="aaaaaaa1"]')===1);
@@ -96,14 +101,14 @@ let j=await J2({act:'desc',id:'aaaaaaa1',desc:'  Hello   <b>there</b>\n friends 
 c('API: description is cleaned and saved',j.ok&&j.items.find(x=>x.id==='aaaaaaa1').desc==='Hello b there /b friends',JSON.stringify(j));
 j=await J2({act:'desc',id:'aaaaaaa1',desc:'x'.repeat(500)});c('API: description cut at 300',j.items.find(x=>x.id==='aaaaaaa1').desc.length===300);
 j=await J2({act:'club',id:'aaaaaaa2',on:true});c('API: club on',j.ok&&j.items.find(x=>x.id==='aaaaaaa2').club===1);
-j=await J2({act:'club',id:'zzzzzzzz',on:true});c('API: unknown sponsor refused',!j.ok);
+j=await J2({act:'add',name:'Brand New Club Co',club:true});c('API: add with club creates a club sponsor',j.ok&&j.items.find(x=>x.name==='Brand New Club Co').club===1);j=await J2({act:'add',name:'Plain Co'});c('API: plain add is not a club sponsor',j.ok&&!j.items.find(x=>x.name==='Plain Co').club);j=await J2({act:'club',id:'zzzzzzzz',on:true});c('API: unknown sponsor refused',!j.ok);
 let b0=await J2({act:'backup'});const f0=b0.file;
 c('API: backup carries club and descriptions',b0.ok&&f0.sponsors.find(x=>x.id==='aaaaaaa2').club===1&&f0.sponsors.find(x=>x.id==='aaaaaaa1').desc.length===300);
 store.sponsors=JSON.stringify({v:1,items:[{id:'aaaaaaa1',name:'Thatchers'}]});
 const rs=await J2({act:'restore',file:f0,confirm:true});
 const back=JSON.parse(store.sponsors).items;
 c('API: restore brings them back',rs.ok&&back.find(x=>x.id==='aaaaaaa2')&&back.find(x=>x.id==='aaaaaaa2').club===1&&back.find(x=>x.id==='aaaaaaa1').desc.length===300,JSON.stringify(rs).slice(0,200));
-j=await J2({act:'club',id:'aaaaaaa2',on:false});c('API: club off clears it, name and others stay',j.ok&&!j.items.find(x=>x.id==='aaaaaaa2').club&&j.items.length===2);
+j=await J2({act:'club',id:'aaaaaaa2',on:false});c('API: club off clears it, name and others stay',j.ok&&!j.items.find(x=>x.id==='aaaaaaa2').club&&j.items.length===4);
 j=await J2({act:'desc',id:'aaaaaaa1',desc:''});c('API: empty description removes it',!('desc' in j.items.find(x=>x.id==='aaaaaaa1')));
 c('no page errors',!errs.length,errs.join('|'));
 console.log(ok+' pass, '+bad+' fail');await br.close();
