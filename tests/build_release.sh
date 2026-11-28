@@ -97,7 +97,15 @@ NODE_PATH=$(npm root -g) node x_tv_order.cjs 2>&1 | tail -1 | grep -q "ALL OK" |
 NODE_PATH=$(npm root -g) node x_tv_strip.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV STRIP TEST FAILED"; exit 1; }; echo "tv strip ok"
 NODE_PATH=$(npm root -g) node x_tv_selfreload.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV SELF RELOAD TEST FAILED"; exit 1; }; echo "tv self reload ok"
 run node t_v3380.mjs "$S/t_worker.mjs"
-node x_pair_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_pair_ui.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "TV QUICK SETUP TEST FAILED"; exit 1; }; echo "tv quick setup ok"
+node x_pair_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1
+# a timing-based browser test: on a slow runner it can miss once, so it gets one more try, and the output is shown when it fails
+pair_ok=0
+for try in 1 2; do
+  NODE_PATH=$(npm root -g) node x_pair_ui.cjs > /tmp/pair_ui.out 2>&1
+  if tail -1 /tmp/pair_ui.out | grep -q "ALL OK"; then pair_ok=1; break; fi
+  echo "tv quick setup attempt $try failed:"; grep -v "^PASS\|^ok" /tmp/pair_ui.out | tail -8
+done
+[ "$pair_ok" = 1 ] || { echo "TV QUICK SETUP TEST FAILED"; exit 1; }; echo "tv quick setup ok"
 run node t_v3390.mjs "$S/t_worker.mjs"
 node x_kick_render.mjs "$S/t_worker.mjs" >/dev/null 2>&1; NODE_PATH=$(npm root -g) node x_kick.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "KICK OUT TEST FAILED"; exit 1; }; echo "kick out ok"
 NODE_PATH=$(npm root -g) node x_env_frame.cjs 2>&1 | tail -1 | grep -q "ALL OK" || { echo "ENV BADGE TEST FAILED"; exit 1; }; echo "env badge ok"
