@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.1_snowflake_no_bar.zip | v3.81.0
 v3.81.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.0_snowflake_theme.zip | v3.80.1
 v3.80.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.80.1_walkover_last.zip | v3.80.0
 v3.80.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.80.0_notice_bar.zip | v3.79.1
@@ -433,10 +434,15 @@ v3.74.0 - Sponsors thank-you TV page
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
 
+v3.81.1 - Snowflake theme: blue bar and greeting removed
+- Owner report (28-Nov-2026): the blue bar across the top was not asked for.
+- Removed: the thin icy bar along the top edge. The Happy Christmas greeting is removed too (not requested).
+- Docs: Releases and versions
+
 v3.81.0 - Seasonal theme: Snowflake (Auto 10 Dec - 2 Jan)
 - Owner request (scheduled reminder, 28-Nov-2026): a Christmas look for the TV, phones/iPads and the Home page.
 - New: Admin > Seasonal theme. Auto by dates (default 10 Dec to 2 Jan, last day included, repeats every year), On, or Off. The dates are set in Admin. Separate switches for TV, phones/iPads and the Home page, and for falling snow on the TV (default off, still snowflakes only).
-- Look: deep winter-blue background, white text, light-blue accents, slow falling snowflakes, a thin icy edge and a small "Happy Christmas" tab at the top. Team colours on the Match Centre panels are unchanged. Light theme pages (theme=light) are left alone. Snow stops when the device asks for reduced motion.
+- Look: deep winter-blue background, white text, light-blue accents, slow falling snowflakes, Team colours on the Match Centre panels are unchanged. Light theme pages (theme=light) are left alone. Snow stops when the device asks for reduced motion.
 - No extra subrequests or KV reads (uses the settings already loaded); a few lines of CSS and no extra scripts.
 - Testing on DEV before December: add &today=2026-12-15 to any DEV address, or set the theme to On in Admin.
 - Docs: Admin guide, Releases and versions

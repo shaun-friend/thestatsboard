@@ -51,10 +51,10 @@ c('reduced motion rule present',r.t.includes('prefers-reduced-motion:reduce'));
 c('script free: no script added by the theme',(r.t.match(/<script/g)||[]).length===(await (async()=>{await setTheme({mode:'off'});const o=await pageD(TVQ+'&today=2026-12-15');await setTheme(undefined);return (o.t.match(/<script/g)||[]).length})()));
 // 4. phone page animates, has a shorter edge
 await setTheme(undefined);r=await pageD(PHQ+'&today=2026-12-15');
-c('phone page themed and animated',snowy(r.t)&&/animation:sbfall/.test(r.t)&&r.t.includes('>Happy Christmas<'));
+c('phone page themed and animated',snowy(r.t)&&/animation:sbfall/.test(r.t)&&r.t.includes('Happy Christmas')===false);
 // 5. home page
 r=await pageD('/?today=2026-12-15');
-c('home page has the line and snow',snowy(r.t)&&r.t.includes('Happy Christmas, rugby fans')&&r.t.includes('class="wrap wl"'),r.s);
+c('home page has the line and snow',snowy(r.t)&&!r.t.includes('Happy Christmas')&&r.t.includes('class="wrap wl"'),r.s);
 r=await pageD('/?today=2026-11-11');c('home page plain outside the dates',!snowy(r.t)&&!r.t.includes('rugby fans'));
 // 6. modes and show-on switches
 await setTheme({mode:'on'});r=await pageD(TVQ+'&today=2026-07-01');c('On works outside the dates',snowy(r.t));
