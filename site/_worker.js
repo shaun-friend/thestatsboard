@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.81.4 28-Nov-2026 Snowflake theme: TV footer sits fully on the snow bank; Match day shirt numbers in a coloured pill.
 //   v3.81.3 28-Nov-2026 Logo or tile changes show within a minute; Screen settings in cards; wintry Snowflake theme; clearer shirt numbers; centred single cancellation; better logo tile detection.
 //   v3.81.2 28-Nov-2026 Snowflake theme: normal background, more and varied snowflakes, faster fall.
 //   v3.81.1 28-Nov-2026 Snowflake theme: blue bar and Happy Christmas greeting removed.
@@ -420,7 +421,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.81.3";
+const VERSION = "v3.81.4";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -469,6 +470,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.4_snow_footer.zip | v3.81.3
 v3.81.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.3_logo_change_shows.zip | v3.81.2
 v3.81.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.2_snowflake_snow_only.zip | v3.81.1
 v3.81.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.1_snowflake_no_bar.zip | v3.81.0
@@ -862,6 +864,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
 
+v3.81.4 - Snowflake theme: TV footer sits fully on the snow; Match day shirt numbers in a pill; bigger single cancellation notice
+- Owner report (28-Nov-2026): on the TV the "Powered by The Stats Board" line was only partly over the snow bank, so part of the dark text sat on the dark background.
+- Fix: on TV screens the snow bank is taller and flatter, so the whole footer line sits on it. Phones and the Home page are unchanged.
+- Changed: when only one team has a cancelled game, its red notice in the Match Centre title bar is bigger (larger text and padding, still centred and not full width).
+- Changed: owner feedback (28-Nov-2026) that the shirt numbers from v3.81.3 were still hard to see on the TV, so Match day now shows each number in a large, bold pill in the team colour (black or white text by real contrast) instead of on a shirt shape.
+- Docs: Releases and versions
+
 v3.81.3 - Logo and tile changes show within a minute; wintry Snowflake theme; Screen settings regrouped; better logo tile detection; clearer shirt numbers; centred single cancellation
 - Owner report (28-Nov-2026): a sponsor logo's tile was changed to Light but the Match day TV page kept showing the dark tile.
 - Cause: the Match day page is kept at the edge for up to 30 minutes once the team sheet is found, and a sponsor change did not clear it.
@@ -869,7 +878,7 @@ v3.81.3 - Logo and tile changes show within a minute; wintry Snowflake theme; Sc
 - Changed: Admin, Screen settings is regrouped into three cards: Match Centre (layout, Win Predictor, Walkover colours, Around the league strip), TV banner and footer (weather, Last checked, Powered by) and Seasonal theme (Status line, When it runs, Where it shows), with a box pointing to TV rotation, Site notices and Paired screens. Same switches and wording, nothing moves page.
 - New: Snowflake theme is more wintry. Flakes come in mixed shapes, sizes and softness; faint stars twinkle; a thin drift of snow lies along the bottom (all behind the page content, so nothing covers text); the TV footer text turns dark over the snow; the Stats Board logo turns icy blue with a snowflake in place of the gold ball. The Home page also gets a winter scene along the bottom (hills, fir trees, rugby posts and a frozen pond with skaters; hidden on short screens), with flakes kept to the outer edges so the text stays clear. Background colours, layout and text sizes are unchanged.
 - Changed: when a single team is cancelled, its notice in the Match Centre title bar is centred on the screen.
-- Changed: Match day shirt numbers are bigger and bolder with an outline, in black or white by real contrast, so they read on a 1080p TV.
+- Changed: Match day shirt numbers sit in a large, bold pill in the team colour, with black or white text by real contrast, so they read on a 1080p TV.
 - Fix: the logo tile check no longer fails on stored logos with rounded transparent corners (it now ignores transparent corner pixels and samples a little inside the corner), so a white-background logo is worked out as As supplied instead of a dark tile. Existing logos keep their saved tile; change it in Admin if needed.
 - Docs: Admin guide, Releases and versions
 
@@ -3690,6 +3699,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.81.4", "Snowflake theme: on TV screens the footer line now sits fully on the snow. Match day shirt numbers now sit in a large coloured pill so they are easier to read."],
       ["v3.81.3", "A sponsor logo or tile change now shows on the TV screens within about a minute (it could take up to 30 minutes). Screen settings are grouped into cards. The Snowflake theme is more wintry (varied flakes, twinkling stars, snow along the bottom, an icy logo and a Home page winter scene). Shirt numbers on Match day are easier to read, a single cancellation is centred, and logo tiles are worked out better for white-background logos."],
       ["v3.81.2", "Snowflake theme: normal background with more, varied snowflakes falling a little faster."],
       ["v3.81.1", "Snowflake theme: the blue bar across the top is gone; the Happy Christmas greeting is removed too."],
@@ -4696,7 +4706,7 @@ function themeHtml(kind, anim) {
     + ".sbs{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 6px #cfe8ff}"
     + (anim ? ".sbs.g0{animation:sbtw 3.4s ease-in-out infinite}.sbs.g1{animation:sbtw 4.6s ease-in-out -1.2s infinite}.sbs.g2{animation:sbtw 5.8s ease-in-out -2.6s infinite}.sbs.g3{animation:sbtw 3.9s ease-in-out -3.1s infinite}" : "")
     + "#sbfr{position:absolute;inset:0;background:radial-gradient(ellipse at 0 0,rgba(220,240,255,.09),transparent 22%),radial-gradient(ellipse at 100% 0,rgba(220,240,255,.09),transparent 22%)}"
-    + "#sbdr{position:absolute;left:0;bottom:0;width:100%;height:" + (tv ? "2.8vh" : "22px") + ";opacity:" + (tv ? ".6" : ".45") + "}"
+    + "#sbdr{position:absolute;left:0;bottom:0;width:100%;height:" + (tv ? "3.6vh" : "22px") + ";opacity:" + (tv ? ".6" : ".45") + "}"
     + (home ? "#sbsc{position:absolute;left:0;right:0;bottom:0;width:100%;height:min(170px,22vh)}@media (max-height:640px){#sbsc{display:none}}" : "")
     + (tv ? "#sbv{color:#0b1a24!important}" : "")
     // the Stats Board logo goes cold: icy blue leaf, frost, a white snowflake for the ball, BOARD in ice blue
@@ -4709,7 +4719,8 @@ function themeHtml(kind, anim) {
     + '<symbol id="sbf1" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="3" r="1.3"/><circle cx="12" cy="21" r="1.3"/><circle cx="3" cy="12" r="1.3"/><circle cx="21" cy="12" r="1.3"/></symbol>'
     + '<symbol id="sbf2" viewBox="0 0 24 24"><path d="M12 2v20M4 7l16 10M4 17L20 7"/><path d="M12 7l-3-3M12 7l3-3M12 17l-3 3M12 17l3 3"/><circle cx="12" cy="12" r="2.2"/></symbol>'
     + '<symbol id="sbf3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#fff" stroke="none"/></symbol></defs></svg>';
-  const bank = '<svg id="sbdr" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="sbdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#cfe3f5" stop-opacity=".7"/></linearGradient></defs><path d="M0 40V26C90 14 170 29 290 21S500 11 620 23S860 31 990 17S1130 15 1200 23V40Z" fill="url(#sbdg)"/></svg>';
+  const bankPath = tv ? 'M0 40V16C90 8 170 17 290 12S500 7 620 14S860 18 990 10S1130 9 1200 14V40Z' : 'M0 40V26C90 14 170 29 290 21S500 11 620 23S860 31 990 17S1130 15 1200 23V40Z';
+  const bank = '<svg id="sbdr" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="sbdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#cfe3f5" stop-opacity=".7"/></linearGradient></defs><path d="' + bankPath + '" fill="url(#sbdg)"/></svg>';
   const snow = '<div id="sbsnow" aria-hidden="true">' + sym + '<div id="sbfr"></div>' + stars + flakes + (home ? SB_SCENE : bank) + "</div>";
   return { css, snow };
 }
@@ -5236,11 +5247,11 @@ function mdAvailColour(teamHex, light) { // amber that stands out from the team 
   const t = [1, 3, 5].map(k => parseInt(teamHex.slice(k, k + 2), 16)), a = [240, 170, 40], d = Math.sqrt(t.reduce((s, v, i) => s + (v - a[i]) ** 2, 0));
   return d < 110 ? (light ? "#1f5fa8" : "#8ecbff") : (light ? "#9a6a00" : "#ffd978");
 }
-function mdShirt(n, ac) { // v3.81.3: bigger, bolder number with an outline; black or white by real contrast (WCAG) so it reads on any team colour
+function mdShirt(n, ac) { // v3.81.4: the shirt number sits in a pill in the team colour, large and bold; black or white by real contrast (WCAG) so it reads on any team colour
   const lum = h => { const c = [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
   const cr = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05);
-  const dark = /^#[0-9a-f]{6}$/i.test(ac) ? cr(ac, "#0b120e") >= cr(ac, "#ffffff") : true, tc = dark ? "#0b120e" : "#ffffff", oc = dark ? "#ffffff" : "#0b120e", s = String(n).replace(/[^0-9A-Za-z]/g, "");
-  return `<svg class="sh" viewBox="0 0 40 36" aria-hidden="true"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="${ac}" stroke="rgba(0,0,0,.45)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="27" text-anchor="middle" font-family="Arial" font-weight="900" font-size="${s.length > 2 ? 12 : s.length > 1 ? 15 : 22}" fill="${tc}" stroke="${oc}" stroke-width="1.1" paint-order="stroke" stroke-linejoin="round">${s}</text></svg>`;
+  const ok = /^#[0-9a-f]{6}$/i.test(ac), dark = ok ? cr(ac, "#0b120e") >= cr(ac, "#ffffff") : true, tc = dark ? "#0b120e" : "#ffffff", s = String(n).replace(/[^0-9A-Za-z]/g, "");
+  return `<b class="sh" aria-hidden="true" style="background:${ok ? ac : "#6fdc98"};color:${tc}">${s}</b>`;
 }
 const MD_TV_CSS = `body.md .top{display:none}
 body.md{padding-bottom:max(2.8rem,46px)}
@@ -5252,7 +5263,7 @@ body.md{padding-bottom:max(2.8rem,46px)}
 .lc{display:flex;flex-direction:column;gap:.5rem;min-height:0;min-width:0}
 .lu{flex:15 1 0;display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
 .rw{display:flex;align-items:center;gap:.7rem;min-width:0;background:var(--card);border:1px solid var(--bd);border-radius:.45rem;padding:0 .7rem;font-size:1.3rem;overflow:hidden}
-.rw .sh{height:100%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
+.rw .sh{flex:none;min-width:2.7em;text-align:center;font-size:1.45em;font-weight:900;line-height:1.2;padding:.02em .3em;border-radius:.4em;box-shadow:0 0 0 1px rgba(0,0,0,.35)}.rw .pn1{flex:1 1 auto;min-width:0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
 .rw .sp{line-height:1.4;flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.05rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
 .fh{font-size:.95rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tx)}
 .rp{display:flex;flex-direction:column;gap:.25rem;min-height:0}.rp .g{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--r),1fr);grid-auto-flow:column;gap:.2rem .5rem}.rp .rw{font-size:1.1rem}.rp .rw .sp{font-size:.95rem}
@@ -10089,7 +10100,7 @@ body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--wb:
 body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:grid;grid-template-rows:auto ${ly === "classic" ? `repeat(${Math.max(results.length, 1)},minmax(0,1fr))` : "minmax(0,1fr)"};gap:.8rem;padding:max(1rem,env(safe-area-inset-top)) max(1.4rem,env(safe-area-inset-right)) max(1.9rem,env(safe-area-inset-bottom)) max(1.4rem,env(safe-area-inset-left))}
 .hd{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}.hd b{font-size:1.9rem;font-weight:700;letter-spacing:.01em}.hd span{font-size:.95rem;color:var(--mu)}
 .hdn{display:none}.hd>b,.hd>span{white-space:nowrap;flex:none}.hdn div{background:#b3261e;color:#fff;border-radius:.7em;text-align:center;line-height:1.2;padding:.25em .8em;font-weight:800}.hd .hdn b{font-size:1.15em;letter-spacing:0}.hd .hdn span{font-size:inherit;color:inherit;font-weight:600}.hdn em{font-style:normal;font-weight:400}
-@media(min-width:801px){body.ly-on .hdn{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;gap:.4rem .6rem;justify-content:center;align-items:stretch;margin:0 1.5rem;align-self:center}body.ly-on .hdn div{flex:1 1 0;max-width:46%;font-size:clamp(11px,.78vw,16px)}body.ly-on .hd>b,body.ly-on .hd>span{flex:1 1 0;min-width:0}body.ly-on .hd>span{text-align:right}body.ly-on .hdn.hd1{flex:0 1 44%;margin:0 1.5rem}body.ly-on .hdn.hd1 div{flex:0 1 auto;max-width:none}body.ly-on .hdn.hdm div{flex:0 1 auto;max-width:none;font-size:clamp(10px,.72vw,15px)}body.ly-on .offn{display:none}}
+@media(min-width:801px){body.ly-on .hdn{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;gap:.4rem .6rem;justify-content:center;align-items:stretch;margin:0 1.5rem;align-self:center}body.ly-on .hdn div{flex:1 1 0;max-width:46%;font-size:clamp(11px,.78vw,16px)}body.ly-on .hd>b,body.ly-on .hd>span{flex:1 1 0;min-width:0}body.ly-on .hd>span{text-align:right}body.ly-on .hdn.hd1{flex:0 1 52%;margin:0 1.5rem}body.ly-on .hdn.hd1 div{flex:0 1 auto;max-width:none;font-size:clamp(14px,1.15vw,26px);padding:.4em 1.3em;border-radius:.8em}body.ly-on .hdn.hdm div{flex:0 1 auto;max-width:none;font-size:clamp(10px,.72vw,15px)}body.ly-on .offn{display:none}}
 .rw{display:grid;grid-template-columns:.7fr 1.05fr 2.1fr;gap:.8rem;min-height:0;position:relative;padding-left:1.1rem}.rw::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.45rem;border-radius:.3rem;background:var(--ac,var(--bd))}.rw>.bx{border-color:var(--at,var(--bd))}.rw>.bx.tbx{border-color:var(--ac,var(--bd));background:linear-gradient(var(--at,transparent),var(--at,transparent)),var(--card)}
 .bx{background:var(--card);border:1px solid var(--bd);border-radius:1rem;padding:.7rem 1.1rem;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.3rem;overflow:hidden}.bx.wide{grid-column:span 2}
 .lb{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--mu)}.hdg{display:flex;align-items:baseline;gap:.4rem;min-width:0;flex-wrap:wrap}.hl{font-size:1.35rem;font-weight:700;color:var(--tx)}.dt{font-size:1.35rem;font-weight:700;color:var(--mu)}.jump{display:none}

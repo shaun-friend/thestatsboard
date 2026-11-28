@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.4_snow_footer.zip | v3.81.3
 v3.81.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.3_logo_change_shows.zip | v3.81.2
 v3.81.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.2_snowflake_snow_only.zip | v3.81.1
 v3.81.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.1_snowflake_no_bar.zip | v3.81.0
@@ -436,6 +437,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
 
+v3.81.4 - Snowflake theme: TV footer sits fully on the snow; Match day shirt numbers in a pill; bigger single cancellation notice
+- Owner report (28-Nov-2026): on the TV the "Powered by The Stats Board" line was only partly over the snow bank, so part of the dark text sat on the dark background.
+- Fix: on TV screens the snow bank is taller and flatter, so the whole footer line sits on it. Phones and the Home page are unchanged.
+- Changed: when only one team has a cancelled game, its red notice in the Match Centre title bar is bigger (larger text and padding, still centred and not full width).
+- Changed: owner feedback (28-Nov-2026) that the shirt numbers from v3.81.3 were still hard to see on the TV, so Match day now shows each number in a large, bold pill in the team colour (black or white text by real contrast) instead of on a shirt shape.
+- Docs: Releases and versions
+
 v3.81.3 - Logo and tile changes show within a minute; wintry Snowflake theme; Screen settings regrouped; better logo tile detection; clearer shirt numbers; centred single cancellation
 - Owner report (28-Nov-2026): a sponsor logo's tile was changed to Light but the Match day TV page kept showing the dark tile.
 - Cause: the Match day page is kept at the edge for up to 30 minutes once the team sheet is found, and a sponsor change did not clear it.
@@ -443,7 +451,7 @@ v3.81.3 - Logo and tile changes show within a minute; wintry Snowflake theme; Sc
 - Changed: Admin, Screen settings is regrouped into three cards: Match Centre (layout, Win Predictor, Walkover colours, Around the league strip), TV banner and footer (weather, Last checked, Powered by) and Seasonal theme (Status line, When it runs, Where it shows), with a box pointing to TV rotation, Site notices and Paired screens. Same switches and wording, nothing moves page.
 - New: Snowflake theme is more wintry. Flakes come in mixed shapes, sizes and softness; faint stars twinkle; a thin drift of snow lies along the bottom (all behind the page content, so nothing covers text); the TV footer text turns dark over the snow; the Stats Board logo turns icy blue with a snowflake in place of the gold ball. The Home page also gets a winter scene along the bottom (hills, fir trees, rugby posts and a frozen pond with skaters; hidden on short screens), with flakes kept to the outer edges so the text stays clear. Background colours, layout and text sizes are unchanged.
 - Changed: when a single team is cancelled, its notice in the Match Centre title bar is centred on the screen.
-- Changed: Match day shirt numbers are bigger and bolder with an outline, in black or white by real contrast, so they read on a 1080p TV.
+- Changed: Match day shirt numbers sit in a large, bold pill in the team colour, with black or white text by real contrast, so they read on a 1080p TV.
 - Fix: the logo tile check no longer fails on stored logos with rounded transparent corners (it now ignores transparent corner pixels and samples a little inside the corner), so a white-background logo is worked out as As supplied instead of a dark tile. Existing logos keep their saved tile; change it in Admin if needed.
 - Docs: Admin guide, Releases and versions
 
