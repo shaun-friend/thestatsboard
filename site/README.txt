@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
 v3.83.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.2_pitch_footer.zip | v3.83.1
 v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
 v3.83.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.0_pitch_allocation_table.zip | v3.82.0
@@ -441,6 +442,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.3 - Pitch allocation: step buttons work, empty publish clears the screen, letters allowed in PINs
+- Owner report (28-Nov-2026) after testing v3.83.2.
+- Fixed, fixtures team page: the green 1 Edit / 2 Preview / 3 Publish buttons at the top now work, so you can jump back to edit from the preview.
+- Fixed: if every age group is deleted for a day that is already published, Publish now clears it, so the TV screen and the parents' phone view go back to waiting for allocations (the preview already showed this). It also removes that day from the season record. A warning shows before you publish.
+- Fixed, PIN pages: the PIN box no longer forces the number keypad, so letters can be typed in an alphanumeric DEV_PIN, CLUB_PIN or FIXTURES_PIN. (The test site itself sits behind DEV_PIN, which is why the parents' link asks for a PIN on DEV; the live site does not.)
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.2 - Pitch allocation: footer line sits below the content
 - Owner report (28-Nov-2026): on the phone view the Powered by line sat on top of the bottom of the age group card.

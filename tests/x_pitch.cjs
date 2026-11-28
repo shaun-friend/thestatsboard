@@ -45,7 +45,7 @@ await p.click('button[data-pv="ph"]');await p.waitForTimeout(1200);
 const phf=p.frames().find(f=>/phone\?preview=1/.test(f.url()));c('preview shows the phone view',!!phf&&/Please select your age group/.test(await phf.innerText('body')));
 await p.waitForSelector('button[data-eg]');
 c('preview lists each game with an Edit button',(await p.$$('button[data-eg]')).length===2);
-await p.click('button[data-eg="0"]');await p.waitForSelector('tr[data-i="0"] select[data-f="pitch"]');
+await p.click('.st button[data-sv="e"]');await p.waitForSelector('#pr');c('step pill 1 goes back to edit',true);await p.click('.st button[data-sv="p"]');await p.waitForSelector('button[data-eg]');c('step pill 2 goes to preview',true);await p.click('button[data-eg="0"]');await p.waitForSelector('tr[data-i="0"] select[data-f="pitch"]');
 c('Edit from the preview opens that game for editing, others stay collapsed',(await p.$$('tr.cl')).length===1);
 await p.click('#pr');await p.waitForSelector('button[data-eg]');
 await p.waitForSelector('#pb:not([disabled])');

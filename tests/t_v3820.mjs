@@ -114,4 +114,9 @@ r=await adm({a:'save',lists:L,date:'',rows:r.j.doc.rows});r=await adm({a:'publis
  const after=await rq('/api/pitch').then(x=>x.json());c('deleted day leaves the public screen empty',after.rows.length===0&&after.date==='');
  r=await adm({a:'load',date:'2026-11-29'});c('deleted day cannot be loaded',r.s===404);
  const u=await rq('/api/pitch/usage',{headers:{Cookie:fix}}).then(x=>x.json());c('deleted day no longer marked as an allocation in usage',!u.days.some(d=>d.date==='2026-11-29'&&d.pub>0))}
+// publishing with no age groups clears the public screen
+{await adm({a:'save',lists:L,date:'2026-12-27',rows:[row('U9','Pitch 1','10:00',['c1'],['c2'])]});await adm({a:'publish'});
+ await adm({a:'save',lists:L,date:'2026-12-27',rows:[]});let r=await adm({a:'publish'});const pb=await rq('/api/pitch').then(x=>x.json());
+ c('publishing an empty day clears the screen',r.j.ok&&pb.rows.length===0&&pb.date==='');
+ await adm({a:'save',lists:L,date:'2027-01-03',rows:[]});r=await adm({a:'publish'});c('empty publish for an unpublished date is refused',r.s===422)}
 console.log(ok+' ok, '+bad+' failed');process.exit(bad?1:0);

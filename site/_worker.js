@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.3 28-Nov-2026 Pitch allocation: step buttons work, empty publish clears the screen, PIN boxes allow letters.
 //   v3.83.2 28-Nov-2026 Pitch allocation: footer line sits below the content on phone and manage pages.
 //   v3.83.1 28-Nov-2026 Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on phone card.
 //   v3.83.0 28-Nov-2026 Pitch allocation: TV screen matches the approved mockup, table editing page, previews, season record, usage by day, own Admin section.
@@ -426,7 +427,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.2";
+const VERSION = "v3.83.3";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -475,6 +476,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
 v3.83.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.2_pitch_footer.zip | v3.83.1
 v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
 v3.83.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.0_pitch_allocation_table.zip | v3.82.0
@@ -873,6 +875,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.3 - Pitch allocation: step buttons work, empty publish clears the screen, letters allowed in PINs
+- Owner report (28-Nov-2026) after testing v3.83.2.
+- Fixed, fixtures team page: the green 1 Edit / 2 Preview / 3 Publish buttons at the top now work, so you can jump back to edit from the preview.
+- Fixed: if every age group is deleted for a day that is already published, Publish now clears it, so the TV screen and the parents' phone view go back to waiting for allocations (the preview already showed this). It also removes that day from the season record. A warning shows before you publish.
+- Fixed, PIN pages: the PIN box no longer forces the number keypad, so letters can be typed in an alphanumeric DEV_PIN, CLUB_PIN or FIXTURES_PIN. (The test site itself sits behind DEV_PIN, which is why the parents' link asks for a PIN on DEV; the live site does not.)
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.2 - Pitch allocation: footer line sits below the content
 - Owner report (28-Nov-2026): on the phone view the Powered by line sat on top of the bottom of the age group card.
@@ -3787,6 +3796,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.3", "Pitch allocation: the step buttons at the top work, publishing with no age groups clears the screen and phones, and PIN boxes accept letters."],
       ["v3.83.2", "Pitch allocation: the small footer line no longer sits on top of the phone view; it follows the content."],
       ["v3.83.1", "Pitch allocation: list items can be deleted, the opposition search shows one entry per club, pitches are A to Z, and the phone card names the teams instead of Home and Away."],
       ["v3.83.0", "Pitch allocation: the TV screen now matches the approved design, the fixtures team page is a table with taken rooms greyed out, previews show the real TV and phone screens, every published day is kept for season reports (with a CSV download), and Admin has its own Pitch allocation section with usage by day."],
@@ -5059,7 +5069,7 @@ ${sw("fs", s.features.screens, "Count clubhouse screen loads", "Adds each TV scr
 <section class="sec" id="s-status" hidden><h1>Site status</h1><p class="sub">Maintenance mode and its pun lines.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Maintenance mode</b><small>Shows a &ldquo;Back soon&rdquo; page in place of every page, TV screen, calendar and data call. Only this Admin page and the PIN pages stay open.</small></div><label class="tg"><input type="checkbox" id="mon"${m.on ? " checked" : ""}><span></span></label></div>
-<div id="mpr" hidden style="margin-top:10px"><div class="l">Enter the club PIN to switch maintenance mode on</div><input class="in" id="mpin" type="password" inputmode="numeric" autocomplete="off" maxlength="40" placeholder="Club PIN" style="max-width:220px"></div>
+<div id="mpr" hidden style="margin-top:10px"><div class="l">Enter the club PIN to switch maintenance mode on</div><input class="in" id="mpin" type="password" inputmode="text" autocapitalize="off" autocomplete="off" maxlength="40" placeholder="Club PIN" style="max-width:220px"></div>
 <div class="l">Pun line</div><select class="in" id="mpun"><option value="random"${m.pun === "random" ? " selected" : ""}>Random each visit</option>${m.lines.map(x => `<option value="${ea(x)}"${m.pun === x ? " selected" : ""}>${ea(x)}</option>`).join("")}<option value="none"${m.pun === "none" ? " selected" : ""}>None (leave the line out)</option></select>
 <div class="l">Extra line for visitors <span>(optional, e.g. a return time)</span></div><input class="in" id="mex" maxlength="120" autocomplete="off" placeholder="e.g. Back around 8pm tonight" value="${ea(m.extra)}"><div class="cnt" id="mxc"></div>
 <div class="save" style="margin-top:10px"><button type="button" class="btn" id="mlb" style="background:#26312d;color:#e6efe9">Manage lines</button><a class="btn" id="mpv" href="/maintenance-preview" target="_blank" rel="noopener" style="background:#26312d;color:#e6efe9;text-decoration:none">Preview page</a></div>
@@ -11619,7 +11629,7 @@ function cookieOf(request, name) {
 function pinPage(label, message, next, status, action, heading) {
   action = action || "/unlock";
   const esc = x => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const form = next === null ? "" : `<form method="post" action="${action}"><input type="hidden" name="next" value="${esc(next)}"><label for="p">PIN</label><input id="p" name="pin" type="password" inputmode="numeric" autocomplete="current-password" autofocus required><button type="submit">Unlock</button></form>`;
+  const form = next === null ? "" : `<form method="post" action="${action}"><input type="hidden" name="next" value="${esc(next)}"><label for="p">PIN</label><input id="p" name="pin" type="password" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="current-password" autofocus required><button type="submit">Unlock</button></form>`;
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${label ? "[" + esc(label) + "] " : ""}Enter PIN</title>
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;font-family:Arial,Helvetica,sans-serif;background:#080b0d;color:#f5f7f6}.c{width:100%;max-width:340px;background:#111719;border:1px solid #26312d;border-radius:16px;padding:22px}h1{font-size:20px;margin:0 0 6px}p{margin:0 0 14px;color:#91a49a;font-size:14px}p.e{color:#f09595}label{display:block;font-size:13px;font-weight:700;color:#9eafa5;margin-bottom:6px}input[type=password]{width:100%;font-size:18px;letter-spacing:.2em;color:#f5f7f6;background:#0b1110;border:1px solid #2c3a34;border-radius:10px;padding:11px 12px}button{width:100%;margin-top:12px;font:700 16px Arial,Helvetica,sans-serif;color:#fff;background:#18512f;border:0;border-radius:10px;padding:12px;cursor:pointer}</style></head><body><div class="c"><div style="margin-bottom:14px">${sbWordmark(false)}</div><h1>${esc(heading || label + " environment")}</h1><p${message && status !== 200 ? ' class="e"' : ""}>${esc(message)}</p>${form}</div>${VERSION_STAMP}</body></html>`;
   return new Response(html, { status, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex", "X-Stats-Board-Version": VERSION } });
@@ -12132,7 +12142,13 @@ async function pitchRoutes(request, url, label, env) {
   if (b.a === "publish") {
     const errs = ptValidate(doc.rows, doc.lists);
     if (!doc.date) return J({ ok: false, error: "Choose the date first." }, 422);
-    if (!doc.rows.length) return J({ ok: false, error: "Add at least one age group first." }, 422);
+    if (!doc.rows.length) {
+      if (!doc.pub || doc.pub.date !== doc.date) return J({ ok: false, error: "Add at least one age group first." }, 422);
+      doc.pub = null; delete hist[doc.date];
+      if (!(await ptSave(doc))) return J({ ok: false, error: "Could not publish. Try again." }, 502);
+      if (!(await ptHistSave(hist))) return J({ ok: false, error: "Cleared, but the season record could not be saved. Publish again." }, 502);
+      return J(out(doc));
+    }
     if (errs.length) return J({ ok: false, error: "Fix the problems shown first.", errors: errs }, 422);
     doc.pub = { date: doc.date, rows: doc.rows.map(r => ({ ...r })), rep: ptNamed(doc.rows, doc.lists), at: new Date().toISOString() };
     if (!(await ptSave(doc))) return J({ ok: false, error: "Could not publish. Try again." }, 502);
@@ -12293,7 +12309,7 @@ function pitchManagePage(label) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>${label ? "[" + String(label).replace(/[<>&"]/g, "") + "] " : ""}Pitch and changing room allocation</title>
 <style>:root{color-scheme:dark}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#080b0d;color:#f2f6f4;font-family:Arial,Helvetica,sans-serif;font-size:16px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}#sbv{position:static!important;transform:none!important;display:block;text-align:center;margin:18px 0 0;white-space:normal!important}
 .w{max-width:1100px;margin:0 auto}h1{margin:6px 0 4px;font-size:24px}.sub{margin:0 0 12px;color:#9fb5a8;font-size:15px;line-height:1.4}
-.st{display:flex;gap:6px;margin:10px 0 14px}.st span{flex:1;text-align:center;padding:9px 4px;border-radius:10px;background:#111a16;color:#6f8f7c;font-weight:800;font-size:14px;border:1px solid #1d3327}.st span.on{background:#2f9e5b;color:#06100b;border-color:#2f9e5b}.st span.dn{color:#7fd89a}
+.st{display:flex;gap:6px;margin:10px 0 14px}.st span,.st button{font-family:inherit;cursor:pointer;flex:1;text-align:center;padding:9px 4px;border-radius:10px;background:#111a16;color:#6f8f7c;font-weight:800;font-size:14px;border:1px solid #1d3327}.st .on{background:#2f9e5b;color:#06100b;border-color:#2f9e5b}.st .dn{color:#7fd89a}
 .cd{background:#0f1a15;border:1px solid #234032;border-radius:16px;padding:14px;margin:0 0 12px}.cd h2{margin:0 0 10px;font-size:18px}
 .lb{display:block;margin:10px 0 6px;font-size:12px;letter-spacing:.12em;color:#7fd89a;font-weight:700}
 select,input[type=text]{width:100%;height:48px;border-radius:12px;border:1px solid #2a3b33;background:#111a16;color:#f2f6f4;font:16px Arial;padding:0 12px}select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%234fc27d' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
@@ -12363,7 +12379,7 @@ h+='<span class="lb">SAVED DAYS (SEASON RECORD)</span>';if(DAYS.length){DAYS.for
 h+='<div class="rw" style="margin:6px 0 4px"><a class="bt sm" style="display:inline-flex;align-items:center;color:#e9f3ec;text-decoration:none" href="/api/pitch/season">Download season report (CSV)</a></div>';
 h+='<span class="lb">TOOLS</span><div class="rw"><button type="button" class="bt sm" id="cp"'+(PUB?"":" disabled")+'>Copy last week</button><button type="button" class="bt sm" id="ls">Edit the lists</button></div></details>';return h}
 function render(){var L=S.lists,h='<h1>Pitch and changing room allocation</h1><p class="sub">Set the pitches and changing rooms for the minis and juniors, check the preview, then publish to the screen and the parents&rsquo; phones.</p>';
-h+='<div class="st"><span class="'+(V==="edit"?"on":"dn")+'">1 Edit</span><span class="'+(V==="preview"?"on":PUBD?"dn":"")+'">2 Preview</span><span class="'+(PUBD?"on":"")+'">3 Publish</span></div>';
+h+='<div class="st"><button type="button" data-sv="e" class="'+(V==="edit"?"on":"dn")+'">1 Edit</button><button type="button" data-sv="p" class="'+(V==="preview"?"on":PUBD?"dn":"")+'">2 Preview</button><button type="button" data-sv="p" class="'+(PUBD?"on":"")+'">3 Publish</button></div>';
 if(V==="edit"){h+=setup();h+='<div class="cd"><span class="lb" style="margin-top:0">DATE</span><button type="button" class="dtb" id="dt"><span>'+E(fmtL(S.date))+'</span><span>&#9662;</span></button>'+cal()+(S.rows.length||PUB&&PUB.date===S.date||DAYS.some(function(d){return d.date===S.date})?(DELC?'<div class="er" style="margin-top:10px"><div>Delete everything set up for '+E(fmtL(S.date))+'? This clears the draft, takes it off the screen and phones and removes it from the season record.</div><div class="rw" style="margin-top:8px"><button type="button" class="bt sm" data-dy="1" style="border-color:#c0494f;color:#ffb8bc">Yes, delete the whole day</button><button type="button" class="bt sm" data-dn="1">Cancel</button></div></div>':'<div class="rw" style="margin-top:10px"><button type="button" class="bt sm" data-dd="1" style="color:#ffb8bc">Delete this day</button></div>'):"")+"</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});
 h+='<div class="tb"><button type="button" data-t="am"'+(TAB==="am"?' class="on"':"")+">Morning ("+am+')</button><button type="button" data-t="pm"'+(TAB==="pm"?' class="on"':"")+">Afternoon ("+pm+")</button></div>";
@@ -12378,7 +12394,7 @@ return'<div class="cd" style="margin-top:12px"><h2>Set up for '+E(fmtL(S.date))+
 function pvRows(s){var L=S.lists,rows=S.rows.filter(function(r){return r.ko&&sess(r.ko)===s}).sort(function(a,b){var d=ai(a.age)-ai(b.age);return d||(a.ko<b.ko?-1:1)});return rows}
 function ai(id){for(var i=0;i<S.lists.ages.length;i++)if(S.lists.ages[i].id===id)return i;return 99}
 function preview(){var L=S.lists,h='<div class="cd"><h2>Check '+E(fmtL(S.date))+"</h2>";
-if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+='<div class="er">Add at least one age group first.</div>';
+if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+=PUB&&PUB.date===S.date?'<div class="er" style="color:#ffd98a;border-color:#7a5a1a">No age groups are set up. Publishing now clears the screen and the parents&rsquo; phones, so they show &ldquo;waiting for allocations&rdquo;.</div>':'<div class="er">Add at least one age group first.</div>';
 if(ERR.length){h+='<div class="er">';ERR.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}else if(S.date&&S.rows.length)h+='<div class="ok">All checks passed. Nothing is used twice.</div>';h+="</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});if(!PS||(PS==="am"&&!am)||(PS==="pm"&&!pm))PS=am?"am":"pm";
 h+='<div class="cd"><div class="tb" style="margin-bottom:10px"><button type="button" data-pv="tv"'+(PVW==="tv"?' class="on"':"")+'>TV screen</button><button type="button" data-pv="ph"'+(PVW==="ph"?' class="on"':"")+'>Phone view</button></div>';
@@ -12389,7 +12405,7 @@ h+='<p class="sub" style="margin:10px 0 0">This is the draft exactly as it will 
 h+='<div class="g"><b>'+E(nm(L.ages,r.age))+'</b><span class="x">'+(r.opp&&r.opp.n?cr(r.opp.id,r.opp.n)+" Ivybridge v "+E(r.opp.n)+"<br>":"")+E(nm(L.pitches,r.pitch))+" &middot; Home "+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span><span class="k">'+E(r.ko)+'</span><button type="button" class="bt sm" data-eg="'+i+'">Edit</button></div>'});h+="</div>"});return h}
 function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var st=SAVING?"Saving...":MSG?MSG:"Draft saved";
 if(V==="edit")i.innerHTML="<small>"+E(st)+'</small><button type="button" class="bt go" id="pr">Preview</button>';
-else{var ok=!ERR.length&&S.date&&S.rows.length;i.innerHTML='<button type="button" class="bt" id="bk">Back to edit</button><button type="button" class="bt go" id="pb"'+(ok&&!SAVING?"":" disabled")+">"+(PUBD?"Published":"Publish")+"</button>"}}
+else{var ok=!ERR.length&&S.date&&(S.rows.length||PUB&&PUB.date===S.date);i.innerHTML='<button type="button" class="bt" id="bk">Back to edit</button><button type="button" class="bt go" id="pb"'+(ok&&!SAVING?"":" disabled")+">"+(PUBD?"Published":"Publish")+"</button>"}}
 function srt(){S.lists.pitches.sort(function(a,b){return a.n.localeCompare(b.n,"en",{numeric:true,sensitivity:"base"})})}
 function lists(){srt();var L=S.lists,h='<div class="ov" id="lov"><div class="pn"><div class="rw" style="justify-content:space-between"><h2 style="margin:0">Edit the lists</h2><button type="button" class="bt sm" data-lx="1">Done</button></div><p class="sub">Rename, reorder, add or delete items. Days already published keep the names they had.</p>';
 [["ages","Age groups (youngest first)",CAP.age],["pitches","Pitches (A to Z)",CAP.pitch],["rooms","Changing rooms",CAP.room]].forEach(function(g){h+='<span class="lb">'+g[1].toUpperCase()+"</span>";L[g[0]].forEach(function(x,j){h+='<div class="li"><input type="text" maxlength="'+g[2]+'" value="'+E(x.n)+'" data-ln="'+g[0]+'|'+j+'">'+(g[0]==="pitches"?"":'<button type="button" data-lu="'+g[0]+'|'+j+'" aria-label="Move up">&uarr;</button><button type="button" data-ld="'+g[0]+'|'+j+'" aria-label="Move down">&darr;</button>')+'<button type="button" data-lr="'+g[0]+'|'+j+'"'+(LDC===g[0]+'|'+j?' style="border-color:#c0494f;color:#ffb8bc;min-width:64px"':"")+' aria-label="Delete">'+(LDC===g[0]+'|'+j?"Sure?":"&times;")+"</button></div>"});
@@ -12405,7 +12421,7 @@ function doMap(f){var mm=$("mm");mm.textContent="Resizing...";var im=new Image()
 function send(bl){if(!bl){mm.textContent="Could not read that picture.";return}fetch("/api/pitch/map",{method:"POST",headers:{"Content-Type":bl.type},body:bl}).then(function(r){return r.json()}).then(function(j){if(j.ok){MAPV=j.v;mm.textContent="Map saved.";render();var d=document.querySelector("details.cd");if(d)d.open=true}else mm.textContent=j.error||"Could not save the map."}).catch(function(){mm.textContent="Could not save. Check your connection."})}
 c.toBlob(function(b){if(b&&b.size>2300000)c.toBlob(send,"image/jpeg",0.85);else send(b)},f.type==="image/png"?"image/png":"image/jpeg",0.88)};im.onerror=function(){mm.textContent="That is not a picture I can read."};im.src=u}
 var app=$("app");
-app.addEventListener("click",function(e){var t=e.target.closest("button,a");if(!t)return;
+app.addEventListener("click",function(e){var t=e.target.closest("button,a");if(!t)return;if(t.getAttribute("data-sv")==="e"){if(V!=="edit"){V="edit";window.scrollTo(0,0);render()}return}if(t.getAttribute("data-sv")==="p"){if(V!=="preview"){ERR=vals(S.rows);clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()})}return}
 if(t.id==="dt"){CALO=!CALO;render();return}if(t.getAttribute("data-c")){var m=(CALM||(S.date||TODAY).slice(0,7)),d=new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7)-1+ +t.getAttribute("data-c"),1));CALM=d.toISOString().slice(0,7);render();return}
 if(t.getAttribute("data-d")){S.date=t.getAttribute("data-d");CALO=false;CALM="";changed();render();return}
 if(t.getAttribute("data-t")){TAB=t.getAttribute("data-t");render();return}
@@ -12434,7 +12450,7 @@ if(t.getAttribute("data-k")){var k=t.getAttribute("data-k"),o=k==="home"?"away":
 app.addEventListener("input",function(e){var t=e.target,q=t.getAttribute("data-q");if(q===null)return;OPQ[q]=t.value.trim();clearTimeout(t._t);t._t=setTimeout(function(){find(OPQ[q],q)},350)});
 $("bar").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
 if(t.id==="pr"){ERR=vals(S.rows);clearTimeout(SV);t.disabled=true;t.textContent="Saving...";api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()}).catch(function(){t.disabled=false;t.textContent="Preview"});return}if(t.id==="bk"){V="edit";render();return}
-if(t.id==="pb"){t.disabled=true;t.textContent="Publishing...";clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){if(!j.ok)throw j;return api({a:"publish"})}).then(function(j){if(j&&j.ok){PUBD=true;PUB=j.pub;DAYS=j.days||DAYS;MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">Published for '+E(fmtL(S.date))+'. Screens and phones update within about 3 minutes.</div>')}else{MSG=(j&&j.error)||"Could not publish.";if(j&&j.errors)ERR=j.errors;render()}}).catch(function(j){MSG=(j&&j.error)||"Could not publish. Try again.";render()})}});
+if(t.id==="pb"){t.disabled=true;t.textContent="Publishing...";clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){if(!j.ok)throw j;return api({a:"publish"})}).then(function(j){if(j&&j.ok){PUBD=true;PUB=j.pub;DAYS=j.days||DAYS;MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">'+(j.pub?"Published for "+E(fmtL(S.date))+". Screens and phones update within about 3 minutes.":"Cleared. The screen and phones now show waiting for allocations.")+'</div>')}else{MSG=(j&&j.error)||"Could not publish.";if(j&&j.errors)ERR=j.errors;render()}}).catch(function(j){MSG=(j&&j.error)||"Could not publish. Try again.";render()})}});
 $("ovl").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;var L=S.lists,p;
 if(t.getAttribute("data-lx")){closeLists();return}
 function mv(a,j,dl){if(j+dl<0||j+dl>=L[a].length)return;var x=L[a][j];L[a][j]=L[a][j+dl];L[a][j+dl]=x;lists()}
