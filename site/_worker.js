@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.1 28-Nov-2026 Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on phone card.
 //   v3.83.0 28-Nov-2026 Pitch allocation: TV screen matches the approved mockup, table editing page, previews, season record, usage by day, own Admin section.
 //   v3.82.0 28-Nov-2026 Pitch and Changing Room allocation: TV screen, parents' phone view and a fixtures team page.
 //   v3.81.5 28-Nov-2026 TV rotation: dots and progress line are separate switches; Admin theme date selectors restyled.
@@ -424,7 +425,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.0";
+const VERSION = "v3.83.1";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -473,6 +474,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
 v3.83.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.0_pitch_allocation_table.zip | v3.82.0
 v3.82.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.82.0_pitch_allocation.zip | v3.81.5
 v3.81.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.5_dots_progress_dates.zip | v3.81.4
@@ -869,6 +871,14 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.1 - Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on the phone card
+- Owner feedback (28-Nov-2026) after testing v3.83.0.
+- Changed, Edit the lists: the On/off tick is gone; each item has a Delete button (tap twice to confirm). Days already published and the season record keep the names they had.
+- Changed, opposition search: only one entry per club is shown (Kingsbridge, Kingsbridge U14, Kingsbridge RFC U16W and similar collapse to Kingsbridge), A to Z, using the club's main crest.
+- Changed: pitches are always in alphabetical order, in the drop-down and the list editor.
+- Changed, phone view: the changing room boxes show the team name (Ivybridge and the opposition) instead of Home and Away, unless the opposition is not known.
+- Docs: Pitch and changing room allocation, Admin guide, What's new, Releases and versions
 
 v3.83.0 - Pitch allocation: approved TV look, table editing, previews, season record, usage and an Admin section of its own
 - Owner feedback (28-Nov-2026) after testing v3.82.0.
@@ -3770,6 +3780,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.1", "Pitch allocation: list items can be deleted, the opposition search shows one entry per club, pitches are A to Z, and the phone card names the teams instead of Home and Away."],
       ["v3.83.0", "Pitch allocation: the TV screen now matches the approved design, the fixtures team page is a table with taken rooms greyed out, previews show the real TV and phone screens, every published day is kept for season reports (with a CSV download), and Admin has its own Pitch allocation section with usage by day."],
       ["v3.82.0", "New Pitch and Changing Room allocation screen for the minis and juniors: a TV list (with a holding screen and QR code), a parents' phone view with the pitch map, and a mobile page where the fixtures team sets the pitch, changing rooms and kick-off, previews, then publishes."],
       ["v3.81.5", "TV rotation: dots and the progress line are now two separate switches. The Snowflake theme date pickers in Admin look better and show a summary of the dates."],
@@ -11920,14 +11931,14 @@ function ptCleanList(arr, cap, fallback, prefix) {
   for (const x of src.slice(0, 40)) {
     const n = ptTxt(x && x.n, cap); let id = ptIdOk(x && x.id); if (!n) continue;
     if (!id || seen.has(id)) { let k = 1; while (seen.has(prefix + k)) k++; id = prefix + k; }
-    seen.add(id); out.push({ id, n, on: !(x && x.on === false) });
+    seen.add(id); out.push({ id, n, on: true });
   }
   return out;
 }
 function ptCleanLists(l) {
   const d = PT_DEF_LISTS(), r = l && typeof l === "object" ? l : {};
   const kos = Array.isArray(r.kos) ? [...new Set(r.kos.map(ptKoOk).filter(Boolean))].sort().slice(0, 40) : d.kos;
-  return { ages: ptCleanList(r.ages, PT_CAP.age, d.ages, "a"), pitches: ptCleanList(r.pitches, PT_CAP.pitch, d.pitches, "p"), rooms: ptCleanList(r.rooms, PT_CAP.room, d.rooms, "c"), kos };
+  return { ages: ptCleanList(r.ages, PT_CAP.age, d.ages, "a"), pitches: ptCleanList(r.pitches, PT_CAP.pitch, d.pitches, "p").sort((a, b) => a.n.localeCompare(b.n, "en", { numeric: true, sensitivity: "base" })), rooms: ptCleanList(r.rooms, PT_CAP.room, d.rooms, "c"), kos };
 }
 function ptCleanRows(rows, lists) {
   const has = (arr, id) => arr.some(x => x.id === id), out = [], seen = new Set();
@@ -11943,7 +11954,7 @@ function ptCleanRows(rows, lists) {
 }
 function ptClean(raw) {
   const r = raw && typeof raw === "object" ? raw : {}, lists = ptCleanLists(r.lists);
-  const pub = r.pub && typeof r.pub === "object" && ptDateOk(r.pub.date) ? { date: ptDateOk(r.pub.date), rows: ptCleanRows(r.pub.rows, lists), at: ptTxt(r.pub.at, 40) } : null;
+  const pub = r.pub && typeof r.pub === "object" && ptDateOk(r.pub.date) ? { date: ptDateOk(r.pub.date), rows: ptCleanRows(r.pub.rows, lists), at: ptTxt(r.pub.at, 40), rep: ptCleanRep(r.pub.rep) } : null;
   return { lists, date: ptDateOk(r.date), rows: ptCleanRows(r.rows, lists), pub, mapv: Math.max(0, Math.floor(Number(r.mapv)) || 0), mapt: r.mapt === "png" ? "png" : r.mapt === "jpg" ? "jpg" : "" };
 }
 // Rules: an age group once per session; a changing room once per session (home and away together); a pitch once at any kick-off time. Morning is before 12:00.
@@ -11978,7 +11989,8 @@ function ptPublic(doc, s) {
   const pc = s.pitch || {}, o = { v: VERSION, club: pc.club || "Ivybridge Rugby Club", welcome: pc.welcome || "", crest: String((TEAMS[0] && TEAMS[0].team) || "11039"), powered: s.features.powered !== false, map: doc.mapv > 0 ? doc.mapv : 0, date: "", rows: [], today: ptUkDate() };
   if (doc.pub) {
     o.date = doc.pub.date; o.at = doc.pub.at;
-    o.rows = ptSortRows(doc.pub.rows, L).map(r => ({ age: nm(L.ages, r.age), pitch: nm(L.pitches, r.pitch), home: r.home.map(x => nm(L.rooms, x)), away: r.away.map(x => nm(L.rooms, x)), ko: r.ko, opp: r.opp }));
+    if (doc.pub.rep) o.rows = doc.pub.rep.map(r => ({ age: r.age, pitch: r.pitch, home: r.home, away: r.away, ko: r.ko, opp: { id: r.oppId, n: r.opp } }));
+    else o.rows = ptSortRows(doc.pub.rows, L).map(r => ({ age: nm(L.ages, r.age), pitch: nm(L.pitches, r.pitch), home: r.home.map(x => nm(L.rooms, x)), away: r.away.map(x => nm(L.rooms, x)), ko: r.ko, opp: r.opp }));
   }
   return o;
 }
@@ -12004,6 +12016,7 @@ function ptNamed(rows, L) {
   const nm = (arr, id) => { const x = arr.find(y => y.id === id); return x ? x.n : ""; };
   return ptSortRows(rows, L).map(r => ({ age: nm(L.ages, r.age), pitch: nm(L.pitches, r.pitch), home: r.home.map(x => nm(L.rooms, x)), away: r.away.map(x => nm(L.rooms, x)), ko: r.ko, opp: r.opp.n || "", oppId: r.opp.id || "" }));
 }
+const ptCleanRep = a => Array.isArray(a) ? a.slice(0, PT_ROWS_MAX).map(r => ({ age: ptTxt(r && r.age, PT_CAP.age), pitch: ptTxt(r && r.pitch, PT_CAP.pitch), home: (Array.isArray(r && r.home) ? r.home : []).slice(0, 8).map(x => ptTxt(x, PT_CAP.room)), away: (Array.isArray(r && r.away) ? r.away : []).slice(0, 8).map(x => ptTxt(x, PT_CAP.room)), ko: ptKoOk(r && r.ko), opp: ptTxt(r && r.opp, PT_CAP.opp), oppId: /^\d{1,9}$/.test(String(r && r.oppId || "")) ? String(r.oppId) : "" })) : null;
 async function ptHistLoad() {
   const kv = kvOf(); if (!kv) return {};
   try { const h = await kv.get(PT_HIST, { type: "json" }); return h && typeof h === "object" && !Array.isArray(h) ? h : {}; } catch (_) { return {}; }
@@ -12113,7 +12126,7 @@ async function pitchRoutes(request, url, label, env) {
     if (!doc.date) return J({ ok: false, error: "Choose the date first." }, 422);
     if (!doc.rows.length) return J({ ok: false, error: "Add at least one age group first." }, 422);
     if (errs.length) return J({ ok: false, error: "Fix the problems shown first.", errors: errs }, 422);
-    doc.pub = { date: doc.date, rows: doc.rows.map(r => ({ ...r })), at: new Date().toISOString() };
+    doc.pub = { date: doc.date, rows: doc.rows.map(r => ({ ...r })), rep: ptNamed(doc.rows, doc.lists), at: new Date().toISOString() };
     if (!(await ptSave(doc))) return J({ ok: false, error: "Could not publish. Try again." }, 502);
     hist[doc.date] = { at: doc.pub.at, rows: doc.pub.rows, rep: ptNamed(doc.pub.rows, doc.lists) };
     if (!(await ptHistSave(hist))) return J({ ok: false, error: "Published, but the season record could not be saved. Publish again." }, 502);
@@ -12245,7 +12258,7 @@ if(am.length&&pm.length)h+='<div class="tg"><button type="button" data-s="am"'+(
 var ages=rows.map(function(r){return r.age});if(ages.indexOf(SA)<0)SA=ages[0];
 h+='<div class="chips">';ages.forEach(function(a){h+='<button type="button" data-a="'+E(a)+'"'+(a===SA?' class="on"':"")+'>'+E(a)+'</button>'});h+='</div>';
 var r=rows.filter(function(x){return x.age===SA})[0];
-if(r){var rm=roomTxt(r);h+='<div class="card"><h2>'+E(r.age)+'</h2>'+(r.opp&&r.opp.n?'<div class="fxr">'+cr(D.crest,D.club)+'<u>v</u>'+cr(r.opp.id,r.opp.n)+'<b>'+E(r.opp.n)+'</b></div>':"")+'<div class="kv"><div><small>PITCH</small><b>'+E(r.pitch)+'</b></div><div><small>KICK-OFF</small><b>'+E(r.ko)+'</b></div><div><small>HOME CHANGING ROOM</small><b>'+(rm.h?E(rm.h):"&ndash;")+'</b></div><div><small>AWAY CHANGING ROOM</small><b>'+(rm.a?E(rm.a):"&ndash;")+'</b></div></div>'+(D.map?'<button type="button" class="mp" id="mp"><img alt="" src="/api/pitch/map?v='+D.map+'"><span>Tap to open the pitch map</span></button>':"")+'</div>'}
+if(r){var rm=roomTxt(r);h+='<div class="card"><h2>'+E(r.age)+'</h2>'+(r.opp&&r.opp.n?'<div class="fxr">'+cr(D.crest,D.club)+'<u>v</u>'+cr(r.opp.id,r.opp.n)+'<b>'+E(r.opp.n)+'</b></div>':"")+'<div class="kv"><div><small>PITCH</small><b>'+E(r.pitch)+'</b></div><div><small>KICK-OFF</small><b>'+E(r.ko)+'</b></div><div><small>'+E((D.club||"Home").replace(/ (rugby|rfc|rufc).*$/i,"").toUpperCase())+' CHANGING ROOM</small><b>'+(rm.h?E(rm.h):"&ndash;")+'</b></div><div><small>'+(r.opp&&r.opp.n?E(r.opp.n.toUpperCase())+' CHANGING ROOM':"AWAY CHANGING ROOM")+'</small><b>'+(rm.a?E(rm.a):"&ndash;")+'</b></div></div>'+(D.map?'<button type="button" class="mp" id="mp"><img alt="" src="/api/pitch/map?v='+D.map+'"><span>Tap to open the pitch map</span></button>':"")+'</div>'}
 h+='<div class="lb">ALL GAMES</div>';rows.forEach(function(x){h+='<button type="button" class="gm" data-a="'+E(x.age)+'"><b>'+E(x.age)+'</b><span class="x">'+E(x.pitch)+(x.opp&&x.opp.n?" &middot; v "+E(x.opp.n):"")+'</span><span class="ko">'+E(x.ko)+'</span></button>'});
 $("app").innerHTML=h;wire($("app"))}
 $("app").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;if(t.id==="mp"){openMap();return}if(t.getAttribute("data-s")){SS=t.getAttribute("data-s");box();return}if(t.getAttribute("data-a")){SA=t.getAttribute("data-a");box();window.scrollTo(0,0)}});
@@ -12303,7 +12316,7 @@ details summary{cursor:pointer;font-weight:800;font-size:18px;padding:4px 0}deta
 <div id="bar" hidden><div class="in" id="bi"></div></div><div id="ovl"></div>
 <script>${QR_JS}</script>
 <script>(function(){${PT_COMMON}
-var COL={},DAYS=[],DELC=false,DDC="",PS="",PVW="tv",PVT=0,S=null,PUB=null,TODAY="",V="edit",TAB="am",ERR=[],MSG="",PUBD=false,CALM="",CALO=false,SAVING=0,SV=null,LST=false,OPQ={},OPR={},MAPV=0;
+var LDC="",COL={},DAYS=[],DELC=false,DDC="",PS="",PVW="tv",PVT=0,S=null,PUB=null,TODAY="",V="edit",TAB="am",ERR=[],MSG="",PUBD=false,CALM="",CALO=false,SAVING=0,SV=null,LST=false,OPQ={},OPR={},MAPV=0;
 var CAP={age:${PT_CAP.age},pitch:${PT_CAP.pitch},room:${PT_CAP.room}};
 function rid(){return"r"+Math.random().toString(36).slice(2,7)}
 function nm(arr,id){for(var i=0;i<arr.length;i++)if(arr[i].id===id)return arr[i].n;return""}
@@ -12322,7 +12335,7 @@ function cal(){if(!CALO)return"";var m=CALM||(S.date||TODAY).slice(0,7),y=+m.sli
 var nmo=new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric",timeZone:"UTC"}).format(first),h='<div id="cal"><div class="hd"><button type="button" data-c="-1" aria-label="Previous month">&lsaquo;</button><span>'+E(nmo)+'</span><button type="button" data-c="1" aria-label="Next month">&rsaquo;</button></div><div class="gr">';
 ["Mo","Tu","We","Th","Fr","Sa","Su"].forEach(function(d){h+="<b>"+d+"</b>"});for(var i=0;i<lead;i++)h+="<i></i>";
 for(var d=1;d<=days;d++){var ds=m+"-"+(d<10?"0":"")+d,wd=(lead+d-1)%7;h+='<button type="button" data-d="'+ds+'" class="'+(wd===6?"su ":"")+(ds===TODAY?"td ":"")+(ds===S.date?"sel":"")+'">'+d+"</button>"}return h+"</div></div>"}
-function opts(arr,cur,dis){var h='<option value="">Choose...</option>';arr.forEach(function(x){if((x.on||x.id===cur)&&!(dis&&dis[x.id]&&x.id!==cur)){h+='<option value="'+E(x.id)+'"'+(x.id===cur?" selected":"")+">"+E(x.n)+(x.on?"":" (off)")+"</option>"}});return h}
+function opts(arr,cur,dis){if(arr===S.lists.pitches)srt();var h='<option value="">Choose...</option>';arr.forEach(function(x){if((x.on||x.id===cur)&&!(dis&&dis[x.id]&&x.id!==cur)){h+='<option value="'+E(x.id)+'"'+(x.id===cur?" selected":"")+">"+E(x.n)+(x.on?"":" (off)")+"</option>"}});return h}
 function sumRow(r,i){var L=S.lists,H=r.home.map(function(x){return nm(L.rooms,x)}).join(" & "),A=r.away.map(function(x){return nm(L.rooms,x)}).join(" & ");
 return'<tr class="cl"><td colspan="7" class="nl"><div class="rw" style="justify-content:space-between;gap:10px"><div style="flex:1;min-width:180px;line-height:1.4"><b style="font-size:17px">'+E(nm(L.ages,r.age))+"</b>"+(r.opp&&r.opp.n?" v "+E(r.opp.n):"")+' &middot; '+E(nm(L.pitches,r.pitch))+" &middot; "+E(r.ko)+'<br><span style="color:#9fb5a8">Home '+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span></div><button type="button" class="bt sm" data-ex="'+i+'">Edit</button><button type="button" class="xb" data-del="'+i+'" aria-label="Remove">&times;</button></div></td></tr>'}
 function row(r,i){if(COL[r.id]&&r.age&&r.pitch&&r.ko&&!ERR.some(function(e){return e.i===i}))return sumRow(r,i);var L=S.lists,s=r.ko?sess(r.ko):TAB,ageT={},pitT={},roomT={};
@@ -12369,15 +12382,17 @@ h+='<div class="g"><b>'+E(nm(L.ages,r.age))+'</b><span class="x">'+(r.opp&&r.opp
 function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var st=SAVING?"Saving...":MSG?MSG:"Draft saved";
 if(V==="edit")i.innerHTML="<small>"+E(st)+'</small><button type="button" class="bt go" id="pr">Preview</button>';
 else{var ok=!ERR.length&&S.date&&S.rows.length;i.innerHTML='<button type="button" class="bt" id="bk">Back to edit</button><button type="button" class="bt go" id="pb"'+(ok&&!SAVING?"":" disabled")+">"+(PUBD?"Published":"Publish")+"</button>"}}
-function lists(){var L=S.lists,h='<div class="ov" id="lov"><div class="pn"><div class="rw" style="justify-content:space-between"><h2 style="margin:0">Edit the lists</h2><button type="button" class="bt sm" data-lx="1">Done</button></div><p class="sub">Rename, reorder or switch items off. Nothing is deleted, so past allocations still read correctly.</p>';
-[["ages","Age groups (youngest first)",CAP.age],["pitches","Pitches",CAP.pitch],["rooms","Changing rooms",CAP.room]].forEach(function(g){h+='<span class="lb">'+g[1].toUpperCase()+"</span>";L[g[0]].forEach(function(x,j){h+='<div class="li"><input type="text" maxlength="'+g[2]+'" value="'+E(x.n)+'" data-ln="'+g[0]+'|'+j+'"><button type="button" data-lu="'+g[0]+'|'+j+'" aria-label="Move up">&uarr;</button><button type="button" data-ld="'+g[0]+'|'+j+'" aria-label="Move down">&darr;</button><label><input type="checkbox" data-lo="'+g[0]+'|'+j+'"'+(x.on?" checked":"")+">On</label></div>"});
+function srt(){S.lists.pitches.sort(function(a,b){return a.n.localeCompare(b.n,"en",{numeric:true,sensitivity:"base"})})}
+function lists(){srt();var L=S.lists,h='<div class="ov" id="lov"><div class="pn"><div class="rw" style="justify-content:space-between"><h2 style="margin:0">Edit the lists</h2><button type="button" class="bt sm" data-lx="1">Done</button></div><p class="sub">Rename, reorder, add or delete items. Days already published keep the names they had.</p>';
+[["ages","Age groups (youngest first)",CAP.age],["pitches","Pitches (A to Z)",CAP.pitch],["rooms","Changing rooms",CAP.room]].forEach(function(g){h+='<span class="lb">'+g[1].toUpperCase()+"</span>";L[g[0]].forEach(function(x,j){h+='<div class="li"><input type="text" maxlength="'+g[2]+'" value="'+E(x.n)+'" data-ln="'+g[0]+'|'+j+'">'+(g[0]==="pitches"?"":'<button type="button" data-lu="'+g[0]+'|'+j+'" aria-label="Move up">&uarr;</button><button type="button" data-ld="'+g[0]+'|'+j+'" aria-label="Move down">&darr;</button>')+'<button type="button" data-lr="'+g[0]+'|'+j+'"'+(LDC===g[0]+'|'+j?' style="border-color:#c0494f;color:#ffb8bc;min-width:64px"':"")+' aria-label="Delete">'+(LDC===g[0]+'|'+j?"Sure?":"&times;")+"</button></div>"});
 h+='<div class="li"><input type="text" maxlength="'+g[2]+'" placeholder="Add new" id="na-'+g[0]+'"><button type="button" data-la="'+g[0]+'">Add</button></div>'});
 h+='<span class="lb">KICK-OFF TIMES</span><div class="ks">';L.kos.forEach(function(k,j){h+='<button type="button" data-kx="'+j+'">'+k+" &times;</button>"});h+='</div><div class="li" style="margin-top:10px"><select id="kh" style="flex:1">';for(var a=7;a<=18;a++)h+="<option>"+(a<10?"0":"")+a+"</option>";h+='</select><select id="km" style="flex:1"><option>00</option><option>15</option><option>30</option><option>45</option></select><button type="button" data-ka="1">Add time</button></div></div></div>';$("ovl").innerHTML=h}
 function closeLists(){$("ovl").innerHTML="";LST=false;changed();render()}
 function find(q,i){var box=document.querySelector('[data-sr="'+i+'"]');if(q.length<2){box.hidden=true;return}box.hidden=false;box.innerHTML='<button type="button" disabled>Searching...</button>';
 fetch("/api/builder/search?name="+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(d){if(OPQ[i]!==q)return;var g=groupTeams(d.teams||[]),h="";g.forEach(function(t,k){h+='<button type="button" data-pk="'+i+'|'+k+'">'+cr(t.id,t.n)+"<span>"+E(t.n)+"</span></button>"});OPR[i]=g;h+='<button type="button" data-pn="'+i+'|'+E(q)+'"><span>Use &ldquo;'+E(q)+'&rdquo; without a crest</span></button>';box.innerHTML=h;wire(box)}).catch(function(){box.innerHTML='<button type="button" disabled>Search failed. Try again.</button>'})}
-function baseName(n){var w=String(n||"").split(" "),re=/^(I|II|III|IV|V|VI|VII|VIII|IX|X|XV|XVs|1st|2nd|3rd|4th|5th|A|B|C|D|Colts|Vets|Girls|Ladies|Women|Mini|Minis|Youth|Junior|Juniors|Seniors|Development|Dev|Under|[0-9]+s?|U[0-9]+s?|[0-9]+XV|[0-9]+(st|nd|rd|th))$/i;while(w.length>1&&re.test(w[w.length-1]))w.pop();return w.join(" ")}
-function groupTeams(ts){var m={},o=[];ts.forEach(function(t){var b=baseName(t.name),k=b.toLowerCase(),sc=t.name===b?0:/(^| )(1st|1XV|I)$/i.test(t.name)?1:2+t.name.length/100;if(!m[k]){m[k]={id:t.id,n:b,sc:sc};o.push(m[k])}else if(sc<m[k].sc){m[k].id=t.id;m[k].sc=sc}});return o.slice(0,12)}
+var STRIP=/^(i|ii|iii|iv|v|vi|vii|viii|ix|x|xv|xvs|[0-9]+xv|[0-9]+(st|nd|rd|th)?|[0-9]+s|u[0-9]+[a-z]*|under|colts|vets|veterans|girls|ladies|women|womens|mini|minis|youth|junior|juniors|seniors|development|dev|a|b|c|d|rfc|rfu|rufc)$/i;
+function split(n){var o=String(n||"").split(" ").filter(Boolean),k=0;while(o.length>1&&STRIP.test(o[o.length-1].replace(/'/g,""))){o.pop();k++}return{b:o.join(" "),k:k}}
+function groupTeams(ts){var m={},o=[];ts.forEach(function(t){var p=split(t.name),key=p.b.toLowerCase();if(!m[key]){m[key]={id:t.id,n:p.b,k:p.k};o.push(m[key])}else if(p.k<m[key].k){m[key].id=t.id;m[key].k=p.k}});o.sort(function(a,b){return a.n.localeCompare(b.n,"en",{sensitivity:"base"})});return o.slice(0,12)}
 function doMap(f){var mm=$("mm");mm.textContent="Resizing...";var im=new Image(),u=URL.createObjectURL(f);im.onload=function(){var s=Math.min(1,2000/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.round(im.naturalWidth*s),h=Math.round(im.naturalHeight*s),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);URL.revokeObjectURL(u);
 function send(bl){if(!bl){mm.textContent="Could not read that picture.";return}fetch("/api/pitch/map",{method:"POST",headers:{"Content-Type":bl.type},body:bl}).then(function(r){return r.json()}).then(function(j){if(j.ok){MAPV=j.v;mm.textContent="Map saved.";render();var d=document.querySelector("details.cd");if(d)d.open=true}else mm.textContent=j.error||"Could not save the map."}).catch(function(){mm.textContent="Could not save. Check your connection."})}
 c.toBlob(function(b){if(b&&b.size>2300000)c.toBlob(send,"image/jpeg",0.85);else send(b)},f.type==="image/png"?"image/png":"image/jpeg",0.88)};im.onerror=function(){mm.textContent="That is not a picture I can read."};im.src=u}
@@ -12417,10 +12432,10 @@ if(t.getAttribute("data-lx")){closeLists();return}
 function mv(a,j,dl){if(j+dl<0||j+dl>=L[a].length)return;var x=L[a][j];L[a][j]=L[a][j+dl];L[a][j+dl]=x;lists()}
 if(p=t.getAttribute("data-lu")){var s=p.split("|");mv(s[0],+s[1],-1);return}if(p=t.getAttribute("data-ld")){var s2=p.split("|");mv(s2[0],+s2[1],1);return}
 if(p=t.getAttribute("data-la")){var inp=$("na-"+p),v=inp.value.trim();if(!v)return;var pre=p==="ages"?"a":p==="pitches"?"p":"c",n=1;while(L[p].some(function(x){return x.id===pre+n}))n++;L[p].push({id:pre+n,n:v.slice(0,40),on:true});lists();return}
+if(p=t.getAttribute("data-lr")){if(LDC!==p){LDC=p;lists();return}var s3=p.split("|");L[s3[0]].splice(+s3[1],1);LDC="";lists();return}
 if(p=t.getAttribute("data-kx")){L.kos.splice(+p,1);lists();return}
 if(t.getAttribute("data-ka")){var k=$("kh").value+":"+$("km").value;if(L.kos.indexOf(k)<0){L.kos.push(k);L.kos.sort()}lists()}});
 $("ovl").addEventListener("input",function(e){var t=e.target,p=t.getAttribute("data-ln");if(p){var s=p.split("|");S.lists[s[0]][+s[1]].n=t.value.slice(0,40)}});
-$("ovl").addEventListener("change",function(e){var t=e.target,p=t.getAttribute("data-lo");if(p){var s=p.split("|");S.lists[s[0]][+s[1]].on=t.checked}});
 fetch("/api/pitch/admin").then(function(r){return r.json()}).then(function(j){if(!j.ok)throw 0;S=j.doc;PUB=j.pub;TODAY=j.today;DAYS=j.days||[];MAPV=S.mapv;if(!S.date){S.date=nextSun(TODAY)}ERR=j.errors||[];render()}).catch(function(){$("app").innerHTML='<h1>Pitch and changing room allocation</h1><p class="sub">Could not load. Reload the page, or sign in again.</p>'});
 })();</script></body></html>`;
 }

@@ -22,7 +22,7 @@ await p.click('#ad');await fill(0,'U7','Pitch 1','09:30',[1],[2]);
 // search for the opposition and pick one entry per club
 await p.fill('input[data-q="0"]','new');await p.waitForSelector('button[data-pk]');
 c('one entry per club (3 Newton Abbot teams collapse to one)',(await p.$$('button[data-pk]')).length===2);
-await p.click('button[data-pk="0|0"]');
+await p.click('button[data-pk="0|1"]');
 await p.click('#ad');
 c('adding a group collapses the finished one',(await p.$$('tr.cl')).length===1&&/U7/.test(await p.innerText('tr.cl')));
 await fill(1,'U8','Pitch 1','10:00',[3],[]);

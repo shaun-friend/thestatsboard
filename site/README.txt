@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
 v3.83.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.0_pitch_allocation_table.zip | v3.82.0
 v3.82.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.82.0_pitch_allocation.zip | v3.81.5
 v3.81.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.5_dots_progress_dates.zip | v3.81.4
@@ -439,6 +440,14 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.1 - Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on the phone card
+- Owner feedback (28-Nov-2026) after testing v3.83.0.
+- Changed, Edit the lists: the On/off tick is gone; each item has a Delete button (tap twice to confirm). Days already published and the season record keep the names they had.
+- Changed, opposition search: only one entry per club is shown (Kingsbridge, Kingsbridge U14, Kingsbridge RFC U16W and similar collapse to Kingsbridge), A to Z, using the club's main crest.
+- Changed: pitches are always in alphabetical order, in the drop-down and the list editor.
+- Changed, phone view: the changing room boxes show the team name (Ivybridge and the opposition) instead of Home and Away, unless the opposition is not known.
+- Docs: Pitch and changing room allocation, Admin guide, What's new, Releases and versions
 
 v3.83.0 - Pitch allocation: approved TV look, table editing, previews, season record, usage and an Admin section of its own
 - Owner feedback (28-Nov-2026) after testing v3.82.0.

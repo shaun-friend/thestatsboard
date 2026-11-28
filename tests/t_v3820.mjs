@@ -59,8 +59,15 @@ pub=await rq('/api/pitch').then(x=>x.json());c('published copy unchanged by draf
 r=await adm({a:'copy'});c('copy last week moves a week on',r.j.ok&&r.j.doc.date==='2026-12-06'&&r.j.doc.rows.length===4&&r.j.errors.length===0);
 r=await adm({a:'save',lists:L,date:'',rows:r.j.doc.rows});r=await adm({a:'publish'});c('publish needs a date',r.s===422);
 // lists keep history: a switched-off item stays on old rows
-{const L2=JSON.parse(JSON.stringify(L));L2.pitches.find(x=>x.n==='Pitch 3').on=false;L2.ages[0].n='U7s '+'x'.repeat(60);r=await adm({a:'save',lists:L2,date:'2026-12-06',rows:[]});
- c('names capped',r.j.doc.lists.ages[0].n.length<=24);c('switched off kept',r.j.doc.lists.pitches.some(x=>x.n==='Pitch 3'&&x.on===false))}
+{const L2=JSON.parse(JSON.stringify(L));L2.ages[0].n='U7s '+'x'.repeat(60);r=await adm({a:'save',lists:L2,date:'2026-12-06',rows:[]});
+ c('names capped',r.j.doc.lists.ages[0].n.length<=24);
+ // a list item can be deleted; a day already published keeps its names
+ await adm({a:'save',lists:L,date:'2026-12-13',rows:[row('U9','Pitch 1','10:00',['c1'],['c2'])]});await adm({a:'publish'});
+ const L3=JSON.parse(JSON.stringify(L));L3.pitches=L3.pitches.filter(x=>x.n!=='Pitch 1');L3.ages=L3.ages.filter(x=>x.n!=='U9');
+ r=await adm({a:'save',lists:L3,date:'2026-12-20',rows:[]});c('list item deleted',!r.j.doc.lists.pitches.some(x=>x.n==='Pitch 1')&&!r.j.doc.lists.ages.some(x=>x.n==='U9'));
+ const pb=await rq('/api/pitch').then(x=>x.json());c('published day keeps its names after the item is deleted',pb.rows[0].age==='U9'&&pb.rows[0].pitch==='Pitch 1'&&pb.rows[0].home[0]==='1');
+ const g2=await rq('/api/pitch/season',{headers:{Cookie:fix}}).then(x=>x.text());c('season record keeps deleted names',/2026-12-13,Morning,U9,Pitch 1/.test(g2));
+ await adm({a:'save',lists:L,date:'2026-12-20',rows:[]})}
 // map
 {const png=new Uint8Array(200);png.set([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
  let m=await rq('/api/pitch/map',{method:'POST',headers:{'Content-Type':'image/png',Cookie:fix},body:png});let j=await m.json();c('map upload',j.ok&&j.v>0);
@@ -102,7 +109,7 @@ r=await adm({a:'save',lists:L,date:'',rows:r.j.doc.rows});r=await adm({a:'publis
  c('season CSV',csv.status===200&&/text\/csv/.test(csv.headers.get('Content-Type'))&&/Date,Session,Age group/.test(ct)&&/2026-11-29,Morning,U9,Pitch 1,1,2,10:00,Newton Abbot/.test(ct)&&/2026-11-29,Afternoon,U9/.test(ct));
  c('season CSV needs sign-in',(await rq('/api/pitch/season')).status===401);
  let r=await adm({a:'load',date:'2026-11-29'});c('load a saved day as the draft',r.j.ok&&r.j.doc.date==='2026-11-29'&&r.j.doc.rows.length===4&&r.j.errors.length===0);
- const before=(await rq('/api/pitch').then(x=>x.json()));c('day is live',before.rows.length===4);
+ await adm({a:'publish'});const before=(await rq('/api/pitch').then(x=>x.json()));c('day is live',before.rows.length===4);
  r=await adm({a:'delday',date:'2026-11-29'});c('delete a whole day',r.j.ok&&r.j.pub===null&&r.j.doc.rows.length===0&&!r.j.days.some(d=>d.date==='2026-11-29'));
  const after=await rq('/api/pitch').then(x=>x.json());c('deleted day leaves the public screen empty',after.rows.length===0&&after.date==='');
  r=await adm({a:'load',date:'2026-11-29'});c('deleted day cannot be loaded',r.s===404);
