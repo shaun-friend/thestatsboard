@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.7 28-Nov-2026 Pitch allocation: every published day stays live for its own date.
 //   v3.83.6 28-Nov-2026 Pitch allocation: changes go live by themselves, edge cached, TV link works on a phone.
 //   v3.83.5 28-Nov-2026 Pitch allocation: Publish on the bar, warnings for pitch/rooms, welcome heading, footer clear.
 //   v3.83.4 28-Nov-2026 PIN pages: number pad back.
@@ -430,7 +431,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.6";
+const VERSION = "v3.83.7";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -479,6 +480,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.7 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.7_pitch_days.zip | v3.83.6
 v3.83.6 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.6_pitch_autolive.zip | v3.83.5
 v3.83.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.5_pitch_flow.zip | v3.83.4
 v3.83.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.4_pin_numpad.zip | v3.83.3
@@ -881,6 +883,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.7 - Pitch allocation: every published day stays live for its own date
+- Owner report (28-Nov-2026): only one day could be live at a time, so setting up next week replaced this week's screen.
+- Fixed: each saved day is kept under its own date and the TV screen and phone view show today's day. You can set up next week (or several weeks) while today's allocations stay on screen, and clearing one day leaves the others alone.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.6 - Pitch allocation: changes go live by themselves, edge caching, TV link works on a phone
 - Owner feedback (28-Nov-2026) after testing v3.83.5.
@@ -3822,6 +3829,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.7", "Pitch allocation: every day you set up stays live for its own date, so next week can be prepared while today is on screen."],
       ["v3.83.6", "Pitch allocation: no Publish button, every change goes live by itself, the public list is cached at the edge and checked every minute, and the TV link works on a phone."],
       ["v3.83.5", "Pitch allocation: Publish is always on the bar, a missing pitch or changing room is a warning, the TV heading welcomes the club, and the footer no longer overlaps."],
       ["v3.83.4", "PIN boxes open the number pad again."],
@@ -12033,6 +12041,8 @@ async function ptLoad() {
 }
 async function ptSave(doc) { const kv = kvOf(); if (!kv) return false; try { await kv.put(PT_KEY, JSON.stringify(doc)); return true; } catch (_) { return false; } }
 const ptUkDate = () => { const p = {}; for (const x of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())) p[x.type] = x.value; return p.year + "-" + p.month + "-" + p.day; };
+// Every published day is kept under its own date, so next week can be set up while this week is still on screen. The public list uses today's day when there is one.
+const ptLatest = h => { const k = Object.keys(h).sort().pop(); return k ? { date: k, rows: h[k].rows, rep: h[k].rep, at: h[k].at } : null; };
 function ptPublic(doc, s) {
   const L = doc.lists, nm = (arr, id) => { const x = arr.find(y => y.id === id); return x ? x.n : ""; };
   const pc = s.pitch || {}, o = { v: VERSION, club: pc.club || "Ivybridge Rugby Club", welcome: pc.welcome || "", crest: String((TEAMS[0] && TEAMS[0].team) || "11039"), powered: s.features.powered !== false, map: doc.mapv > 0 ? doc.mapv : 0, date: "", rows: [], today: ptUkDate() };
@@ -12095,7 +12105,7 @@ async function pitchRoutes(request, url, label, env) {
     // Public and the same for everyone, so it is cached at the edge for a minute: a crowd scanning the QR code costs one read of the settings store per minute per location, not one each. The browser keeps it for 30 seconds. A save clears this location's copy at once; other locations catch up within the minute.
     const ec = typeof caches !== "undefined" && caches.default ? caches.default : null, ek = new Request(url.origin + "/api/pitch?edge=1");
     if (ec) { try { const hit = await ec.match(ek); if (hit) return hit; } catch (_) {} }
-    const doc = await ptLoad(), res = J(ptPublic(doc, await siteSettings()), 200, "public, max-age=30, s-maxage=60");
+    const doc = await ptLoad(), hs = await ptHistLoad(), td = ptUkDate(), te = hs[td], res = J(ptPublic(te ? { ...doc, pub: { date: td, rows: te.rows, rep: te.rep, at: te.at } } : doc, await siteSettings()), 200, "public, max-age=30, s-maxage=60");
     if (ec) { try { await ec.put(ek, res.clone()); } catch (_) {} }
     return res;
   }
@@ -12170,8 +12180,8 @@ async function pitchRoutes(request, url, label, env) {
     if (!(await ptSave(doc))) return J({ ok: false, error: "Could not save. Try again." }, 502);
     // Saving is publishing: a clean day goes live straight away so nobody has to remember a Publish button. A day with a blocking problem stays a draft (the last live version stays on screen).
     const bl = ptValidate(doc.rows, doc.lists).filter(e => !e.w);
-    if (doc.date && !bl.length && (doc.rows.length || (doc.pub && doc.pub.date === doc.date))) {
-      if (!doc.rows.length) { doc.pub = null; delete hist[doc.date]; }
+    if (doc.date && !bl.length && (doc.rows.length || hist[doc.date])) {
+      if (!doc.rows.length) { delete hist[doc.date]; if (doc.pub && doc.pub.date === doc.date) doc.pub = ptLatest(hist); }
       else {
         doc.pub = { date: doc.date, rows: doc.rows.map(r => ({ ...r })), rep: ptNamed(doc.rows, doc.lists), at: new Date().toISOString() };
         hist[doc.date] = { at: doc.pub.at, rows: doc.pub.rows, rep: ptNamed(doc.pub.rows, doc.lists) };
@@ -12194,8 +12204,8 @@ async function pitchRoutes(request, url, label, env) {
     const errs = ptValidate(doc.rows, doc.lists).filter(e => !e.w);
     if (!doc.date) return J({ ok: false, error: "Choose the date first." }, 422);
     if (!doc.rows.length) {
-      if (!doc.pub || doc.pub.date !== doc.date) return J({ ok: false, error: "Add at least one age group first." }, 422);
-      doc.pub = null; delete hist[doc.date];
+      if (!hist[doc.date]) return J({ ok: false, error: "Add at least one age group first." }, 422);
+      delete hist[doc.date]; if (doc.pub && doc.pub.date === doc.date) doc.pub = ptLatest(hist);
       if (!(await ptSave(doc))) return J({ ok: false, error: "Could not publish. Try again." }, 502);
       if (!(await ptHistSave(hist))) return J({ ok: false, error: "Cleared, but the season record could not be saved. Publish again." }, 502);
       return J(out(doc));
@@ -12218,7 +12228,7 @@ async function pitchRoutes(request, url, label, env) {
   if (b.a === "delday") {
     const d = ptDateOk(b.date); if (!d) return J({ ok: false, error: "Choose a date first." }, 400);
     delete hist[d]; if (!(await ptHistSave(hist))) return J({ ok: false, error: "Could not delete. Try again." }, 502);
-    if (doc.pub && doc.pub.date === d) doc.pub = null;
+    if (doc.pub && doc.pub.date === d) doc.pub = ptLatest(hist);
     if (doc.date === d) doc.rows = [];
     try { let u = await kv.get(PT_USE, { type: "json" }); if (u && u[d]) { delete u[d].pub; await kv.put(PT_USE, JSON.stringify(u)); } } catch (_) { /* counts stay */ }
     if (!(await ptSave(doc))) return J({ ok: false, error: "Could not delete. Try again." }, 502);
@@ -12447,7 +12457,7 @@ return'<div class="cd" style="margin-top:12px"><h2>Set up for '+E(fmtL(S.date))+
 function pvRows(s){var L=S.lists,rows=S.rows.filter(function(r){return r.ko&&sess(r.ko)===s}).sort(function(a,b){var d=ai(a.age)-ai(b.age);return d||(a.ko<b.ko?-1:1)});return rows}
 function ai(id){for(var i=0;i<S.lists.ages.length;i++)if(S.lists.ages[i].id===id)return i;return 99}
 function preview(){var L=S.lists,h='<div class="cd"><h2>Check '+E(fmtL(S.date))+"</h2>";
-if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+=PUB&&PUB.date===S.date?'<div class="er" style="color:#ffd98a;border-color:#7a5a1a">No age groups are set up, so the screen and the parents&rsquo; phones show &ldquo;waiting for allocations&rdquo;.</div>':'<div class="er">Add at least one age group first.</div>';
+if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+=DAYS.some(function(d){return d.date===S.date})?'<div class="er" style="color:#ffd98a;border-color:#7a5a1a">No age groups are set up, so the screen and the parents&rsquo; phones show &ldquo;waiting for allocations&rdquo;.</div>':'<div class="er">Add at least one age group first.</div>';
 var EB=ERR.filter(function(e){return !e.w}),EW=ERR.filter(function(e){return e.w});if(EB.length){h+='<div class="er">';EB.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}else if(S.date&&S.rows.length)h+='<div class="ok">All checks passed. Nothing is used twice.</div>';if(EW.length){h+='<div class="er" style="color:#ffd98a;border-color:#7a5a1a"><div>These are live, but check them:</div>';EW.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}h+="</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});if(!PS||(PS==="am"&&!am)||(PS==="pm"&&!pm))PS=am?"am":"pm";
 h+='<div class="cd"><div class="tb" style="margin-bottom:10px"><button type="button" data-pv="tv"'+(PVW==="tv"?' class="on"':"")+'>TV screen</button><button type="button" data-pv="ph"'+(PVW==="ph"?' class="on"':"")+'>Phone view</button></div>';
@@ -12456,7 +12466,7 @@ h+=PVW==="tv"?'<div class="pvf"><iframe title="TV preview" src="'+PT+"?preview=1
 h+='<p class="sub" style="margin:10px 0 0">This is the draft exactly as it will look once published. On the day it will show the matching session automatically.</p></div>';
 ["am","pm"].forEach(function(s){var rows=pvRows(s);if(!rows.length)return;h+='<div class="cd pv"><h2>'+(s==="am"?"Morning session":"Afternoon session")+"</h2>";rows.forEach(function(r){var i=S.rows.indexOf(r),H=r.home.map(function(x){return nm(L.rooms,x)}).join(", "),A=r.away.map(function(x){return nm(L.rooms,x)}).join(", ");
 h+='<div class="g"><b>'+E(nm(L.ages,r.age))+'</b><span class="x">'+(r.opp&&r.opp.n?cr(r.opp.id,r.opp.n)+" Ivybridge v "+E(r.opp.n)+"<br>":"")+E(nm(L.pitches,r.pitch))+" &middot; Home "+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span><span class="k">'+E(r.ko)+'</span><button type="button" class="bt sm" data-eg="'+i+'">Edit</button></div>'});h+="</div>"});return h}
-function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var bk=ERR.some(function(e){return !e.w}),live=PUB&&PUB.date===S.date&&!bk,st=SAVING?"Saving...":MSG?MSG:bk?"Saved, not live yet. Fix the problems shown.":!S.date?"Choose the date.":live?"Saved and live on the screen and phones":"Saved";
+function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var bk=ERR.some(function(e){return !e.w}),live=DAYS.some(function(d){return d.date===S.date})&&!bk,st=SAVING?"Saving...":MSG?MSG:bk?"Saved, not live yet. Fix the problems shown.":!S.date?"Choose the date.":live?"Saved and live on the screen and phones":"Saved";
 if(V==="edit")i.innerHTML='<small style="flex:1.4">'+E(st)+'</small><button type="button" class="bt" id="pr">Preview</button>';
 else i.innerHTML='<small style="flex:1.4">'+E(st)+'</small><button type="button" class="bt" id="bk">Back to edit</button>'}
 function srt(){S.lists.pitches.sort(function(a,b){return a.n.localeCompare(b.n,"en",{numeric:true,sensitivity:"base"})})}
