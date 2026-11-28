@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.80.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.80.1_walkover_last.zip | v3.80.0
 v3.80.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.80.0_notice_bar.zip | v3.79.1
 v3.79.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.1_crest_tile_fix.zip | v3.79.0
 v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
@@ -430,6 +431,12 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.80.1 - Match Centre: Last result shows a walkover
+- Owner report (28-Nov-2026): after a walkover win the Match Centre still showed the game before, with its score.
+- Fixed: Last result now shows the newest game even when it was a walkover: Win (or Loss) with W/O in place of a score, and "Walkover" beside the opponent. On phones the awarded side shows W/O.
+- Also: a cup walkover is no longer skipped when working out the last cup result.
+- Docs: What's new
 
 v3.80.0 - Match Centre: cancellation notices in the title bar; crest tile no longer looks bigger
 - Owner request (27-Nov-2026): a cancellation notice pushed that team's panel down so crests, names and dates no longer lined up.

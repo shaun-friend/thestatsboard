@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.80.1 28-Nov-2026 Match Centre: Last result shows a walkover instead of the game before it.
 //   v3.80.0 27-Nov-2026 Match Centre: cancellation notices go in the title bar; the crest tile is smaller.
 //   v3.79.1 27-Nov-2026 Match Centre crest tile: wider test so a pale gold crest on a gold panel is caught.
 //   v3.79.0 27-Nov-2026 Match Centre: a tile appears behind an opposition crest that blends into the panel colour.
@@ -415,8 +416,8 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.80.0";
-const BUILD_DATE = "27-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
+const VERSION = "v3.80.1";
+const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
 const RELEASE_NOTES = `THE STATS BOARD - RELEASE NOTES
@@ -464,6 +465,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.80.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.80.1_walkover_last.zip | v3.80.0
 v3.80.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.80.0_notice_bar.zip | v3.79.1
 v3.79.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.1_crest_tile_fix.zip | v3.79.0
 v3.79.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.0_crest_tile.zip | v3.78.2
@@ -851,6 +853,12 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.80.1 - Match Centre: Last result shows a walkover
+- Owner report (28-Nov-2026): after a walkover win the Match Centre still showed the game before, with its score.
+- Fixed: Last result now shows the newest game even when it was a walkover: Win (or Loss) with W/O in place of a score, and "Walkover" beside the opponent. On phones the awarded side shows W/O.
+- Also: a cup walkover is no longer skipped when working out the last cup result.
+- Docs: What's new
 
 v3.80.0 - Match Centre: cancellation notices in the title bar; crest tile no longer looks bigger
 - Owner request (27-Nov-2026): a cancellation notice pushed that team's panel down so crests, names and dates no longer lined up.
@@ -3644,6 +3652,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.80.1", "Match Centre: Last result now shows a walkover (W/O) instead of skipping back to the game before."],
       ["v3.80.0", "Match Centre: games called off show in the title bar so the panels stay level; the crest tile no longer makes a crest look bigger."],
       ["v3.79.1", "Match Centre: the crest tile now also catches a pale gold crest on a gold panel."],
       ["v3.79.0", "Match Centre: a crest that blends into the panel colour now gets a light or dark tile behind it."],
@@ -9855,7 +9864,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
       const ordOf = p => p + ([,"st","nd","rd"][p % 10] && ![11,12,13].includes(p % 100) ? [,"st","nd","rd"][p % 10] : "th");
       // Match Centre layouts for TV screens (v3.21): "next" = a column per team with the next game first, "board" = one row per team.
       // Phones always use the stacked cards above, so these are hidden under 800px (and the cards are hidden above it).
-      const lastOf = l => { if (!l) return null; const mine = l.mineHome ? l.homeScore : l.awayScore, theirs = l.mineHome ? l.awayScore : l.homeScore; const res = mine > theirs ? "w" : mine < theirs ? "l" : "d"; return { mine, theirs, res, word: res === "w" ? "Win" : res === "l" ? "Loss" : "Draw", opp: l.mineHome ? l.awayName : l.homeName, oppId: l.mineHome ? l.awayId : l.homeId, where: l.mineHome === null || l.mineHome === undefined ? "" : l.mineHome ? "Home" : "Away" }; };
+      const lastOf = l => { if (!l) return null; const mine = l.mineHome ? l.homeScore : l.awayScore, theirs = l.mineHome ? l.awayScore : l.homeScore; const res = l.wo ? (l.outcome === "W" ? "w" : "l") : mine > theirs ? "w" : mine < theirs ? "l" : "d"; return { wo: !!l.wo, mine, theirs, res, word: res === "w" ? "Win" : res === "l" ? "Loss" : "Draw", opp: l.mineHome ? l.awayName : l.homeName, oppId: l.mineHome ? l.awayId : l.homeId, where: l.mineHome === null || l.mineHome === undefined ? "" : l.mineHome ? "Home" : "Away" }; };
       // v3.22: "2nd v 3rd · 1 point apart" from the public league table (league games only; a cup game has no opponent position)
       const clashOf = (s, n) => {
         if (!(s && n && s.position && n.oppPos)) return "";
@@ -9879,7 +9888,7 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         const pts = s.points !== null && s.points !== undefined ? `<span class="pt">${s.points} pts</span>` : "";
         const pl = s.played ? `<span class="pd">Played ${s.played}</span>` : "";
         const next = offNotice(offAll.filter(m => String(m.t) === String(t.team))) + (N ? `<div class="k"><b>Next game</b></div>${crest(N.oppId, N.opp)}<div class="onw"><div class="on">${e(N.opp)}</div></div><div class="od">${e(N.date)}</div><div class="oc">${N.where ? `<span>${N.where}</span>` : ""}${N.cd ? `<i>${e(N.cd)}</i>` : ""}</div><div class="nb"><div class="nw">${N.win ? winBarHtml(N.win, mcWin(N.win, N.mine, t, idx, true)) : ""}</div><div class="og">${e(N.venue || "")}</div><div class="oq">${clashOf(s, s.next) || ""}</div></div>` : `<div class="k"><b>Next game</b></div><div class="empty" style="color:var(--on)">No upcoming fixture found in this competition</div>`);
-        const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.mine}<i class="dsh">&ndash;</i>${L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
+        const last = L ? `${crest(L.oppId, L.opp)}<div class="ln"><div class="k"><b>Last result</b></div><div class="rs"><span class="pl ${L.res}">${L.word}</span><span class="rsc">${L.wo ? "W/O" : L.mine + '<i class="dsh">&ndash;</i>' + L.theirs}</span></div><div class="lo">${e(L.opp)}${L.where ? " &middot; " + L.where : ""}${L.wo ? " &middot; Walkover" : ""}</div></div>` : `<div class="ln"><div class="k"><b>Last result</b></div><div class="empty">No results available yet</div></div>`;
         return `<section class="cw" ${acStyle(t, idx)}><div class="ch">${crest(s.teamId, s.team)}<div class="cx"><div class="cn">${e(s.team)}</div><div class="cl">${e(leagueOf(t, s))}</div></div></div><div class="cnx${N ? "" : " e"}">${next}</div><div class="clw"><div class="cls">${last}</div><div class="ctb"><span class="k"><b>Table</b></span>${pos}${pts}${pl}</div></div></section>`;
       };
       const rowHtml = ({t, s, error, loading}, idx) => {
@@ -9888,10 +9897,11 @@ document.addEventListener("click",function(ev){var b=ev.target.closest(".copy");
         if (error || !s) return `<div class="rw" id="t${idx}" ${acStyle(t, idx)}>${extra}<div class="bx tbx"><div class="tn">${e(t.name)}</div><div class="sm">${e(t.league)}</div>${tsl}</div><div class="bx wide"><div class="empty">${loading ? "Updating this team&hellip;" : "Couldn't load this team. It will retry on the next refresh."}</div></div></div>`;
         const stats = [s.position ? `<span class="pl h">${s.position}${[,"st","nd","rd"][s.position % 10] && ![11,12,13].includes(s.position % 100) ? [,"st","nd","rd"][s.position % 10] : "th"}</span>` : "", s.points !== null && s.points !== undefined ? `<span class="pl h">${s.points} pts</span>` : "", s.played ? `<span class="pl h">Played ${s.played}</span>` : ""].join("");
         const l = s.last, n = s.next;
+        const woHome = !!(l && l.wo && (l.outcome === "W") === !!l.mineHome);
         const pillOf = h => h === null || h === undefined ? "" : `<span class="pl h">${h ? "Home" : "Away"}</span>`;
         const lastBox = l ? `<div class="bx lastbx"><div class="lb"><span class="k"><b>Last result</b> &middot; ${e(l.dateLabel)}${l.comp ? " &middot; " + e(l.comp) : ""}</span>${pillOf(l.mineHome)}</div>
-<div class="sl ${l.homeScore >= l.awayScore ? "lead" : ""}">${crest(l.homeId, l.homeName)}<span class="nm">${e(l.homeName)}</span><b>${l.homeScore}</b></div>
-<div class="sl ${l.awayScore >= l.homeScore ? "lead" : ""}">${crest(l.awayId, l.awayName)}<span class="nm">${e(l.awayName)}</span><b>${l.awayScore}</b></div></div>`
+<div class="sl ${l.wo ? (woHome ? "lead" : "") : l.homeScore >= l.awayScore ? "lead" : ""}">${crest(l.homeId, l.homeName)}<span class="nm">${e(l.homeName)}</span><b>${l.wo ? (woHome ? "W/O" : "") : l.homeScore}</b></div>
+<div class="sl ${l.wo ? (woHome ? "" : "lead") : l.awayScore >= l.homeScore ? "lead" : ""}">${crest(l.awayId, l.awayName)}<span class="nm">${e(l.awayName)}</span><b>${l.wo ? (woHome ? "" : "W/O") : l.awayScore}</b></div></div>`
           : `<div class="bx lastbx"><div class="lb"><span class="k"><b>Last result</b></span></div><div class="empty">No results available yet</div></div>`;
         // Next game: big weekday and date plus a countdown, teams stacked beside it.
         const countdown = cdOf(n);
@@ -10658,7 +10668,7 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
         return tm === "00:00" ? "" : tm;
       };
       if (url.searchParams.get("format") === "summary") {
-        const last = completed.find(m => !walkoverInfo(m)) || null;
+        const last = completed[0] || null; // v3.80.1: the newest game, a walkover included (it used to be skipped, so the game before it showed)
         const lastX = last ? getSide(last) : null;
         let nextWx = null;
         if (url.searchParams.get("detail") === "match" && next && nextSide && nextVenue && dateOf(next)) { try { nextWx = await weatherFor(nextVenue, dateOf(next), nextSide.home ? ownClubName : clubOf(nextHomeName)); } catch (_) {} }
@@ -10671,7 +10681,8 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
           form,
           last: last ? {
             dateLabel: dateLabel(last),
-            outcome: lastX.mineScore > lastX.oppScore ? "W" : lastX.mineScore < lastX.oppScore ? "L" : "D",
+            outcome: lastX.wo ? lastX.res : lastX.mineScore > lastX.oppScore ? "W" : lastX.mineScore < lastX.oppScore ? "L" : "D",
+            wo: lastX.wo || undefined,
             mineHome: lastX.home,
             homeName: lastX.home ? displayTeamName : teamNameOf(last.homeTeam), awayName: lastX.home ? teamNameOf(last.awayTeam) : displayTeamName,
             homeId: teamIdOf(last.homeTeam), awayId: teamIdOf(last.awayTeam),
@@ -10709,8 +10720,8 @@ html.${p} .foot{flex-direction:column;gap:4px;font-size:10px;margin-top:0}
                 }
                 summary.next = { dateLabel: ng.dateLabel, iso: ng.iso, time: ng.time || "", ...sideOf(ng), venue: cv, venueElite: false, wx: null, comp: ng.comp };
               }
-              const dn = gs.filter(g => g.status === "done" && !g.wo).pop();
-              if (dn && dn.cup) summary.last = { dateLabel: dn.dateLabel, outcome: dn.outcome, ...sideOf(dn), homeScore: dn.home ? dn.mineScore : dn.oppScore, awayScore: dn.home ? dn.oppScore : dn.mineScore, comp: dn.comp };
+              const dn = gs.filter(g => g.status === "done").pop();
+              if (dn && dn.cup) summary.last = { dateLabel: dn.dateLabel, outcome: dn.outcome, wo: dn.wo || undefined, ...sideOf(dn), homeScore: dn.wo ? null : dn.home ? dn.mineScore : dn.oppScore, awayScore: dn.wo ? null : dn.home ? dn.oppScore : dn.mineScore, comp: dn.comp };
             }
           } catch (_) { summary.partial = true; summary.partialWhy = ["fixtures list"]; PARTIAL_COUNT++; /* league only */ }
         }
