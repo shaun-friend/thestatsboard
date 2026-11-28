@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.8 28-Nov-2026 Pitch allocation: instant ordered saves, Preview works first time, phone list shows the teams.
 //   v3.83.7 28-Nov-2026 Pitch allocation: every published day stays live for its own date.
 //   v3.83.6 28-Nov-2026 Pitch allocation: changes go live by themselves, edge cached, TV link works on a phone.
 //   v3.83.5 28-Nov-2026 Pitch allocation: Publish on the bar, warnings for pitch/rooms, welcome heading, footer clear.
@@ -431,7 +432,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.7";
+const VERSION = "v3.83.8";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -480,6 +481,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.8 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.8_pitch_save.zip | v3.83.7
 v3.83.7 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.7_pitch_days.zip | v3.83.6
 v3.83.6 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.6_pitch_autolive.zip | v3.83.5
 v3.83.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.5_pitch_flow.zip | v3.83.4
@@ -883,6 +885,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.8 - Pitch allocation: saves at once and in order, Preview works first time, phone list shows the teams
+- Owner feedback (28-Nov-2026) after testing v3.83.6.
+- Fixed, fixtures team page: a change is now saved the moment you make it (the short wait is gone) and saves go one at a time, in order, so an older save can never overwrite a newer one. The bar shows Saving... and then Saved and live with the time.
+- Fixed: Preview needed two presses. The bar was being redrawn under your finger after a change, so the first press was lost. The bar now keeps its buttons, and Preview waits for any save in progress.
+- Changed, phone view: the All games list shows the age group and the teams (Ivybridge v Tavistock) on the first line, then the pitch and kick-off below, instead of pitch v team.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.7 - Pitch allocation: every published day stays live for its own date
 - Owner report (28-Nov-2026): only one day could be live at a time, so setting up next week replaced this week's screen.
@@ -3829,6 +3838,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.8", "Pitch allocation: changes save at once and in order, Preview works on the first press, and the phone list shows Ivybridge v the opposition."],
       ["v3.83.7", "Pitch allocation: every day you set up stays live for its own date, so next week can be prepared while today is on screen."],
       ["v3.83.6", "Pitch allocation: no Publish button, every change goes live by itself, the public list is cached at the edge and checked every minute, and the TV link works on a phone."],
       ["v3.83.5", "Pitch allocation: Publish is always on the bar, a missing pitch or changing room is a warning, the TV heading welcomes the club, and the footer no longer overlaps."],
@@ -12346,7 +12356,7 @@ var ages=rows.map(function(r){return r.age});if(ages.indexOf(SA)<0)SA=ages[0];
 h+='<div class="chips">';ages.forEach(function(a){h+='<button type="button" data-a="'+E(a)+'"'+(a===SA?' class="on"':"")+'>'+E(a)+'</button>'});h+='</div>';
 var r=rows.filter(function(x){return x.age===SA})[0];
 if(r){var rm=roomTxt(r);h+='<div class="card"><h2>'+E(r.age)+'</h2>'+(r.opp&&r.opp.n?'<div class="fxr">'+cr(D.crest,D.club)+'<u>v</u>'+cr(r.opp.id,r.opp.n)+'<b>'+E(r.opp.n)+'</b></div>':"")+'<div class="kv"><div><small>PITCH</small><b>'+E(r.pitch)+'</b></div><div><small>KICK-OFF</small><b>'+E(r.ko)+'</b></div><div><small>'+E((D.club||"Home").replace(/ (rugby|rfc|rufc).*$/i,"").toUpperCase())+' CHANGING ROOM</small><b>'+(rm.h?E(rm.h):"&ndash;")+'</b></div><div><small>'+(r.opp&&r.opp.n?E(r.opp.n.toUpperCase())+' CHANGING ROOM':"AWAY CHANGING ROOM")+'</small><b>'+(rm.a?E(rm.a):"&ndash;")+'</b></div></div>'+(D.map?'<button type="button" class="mp" id="mp"><img alt="" src="/api/pitch/map?v='+D.map+'"><span>Tap to open the pitch map</span></button>':"")+'</div>'}
-h+='<div class="lb">ALL GAMES</div>';rows.forEach(function(x){h+='<button type="button" class="gm" data-a="'+E(x.age)+'"><b>'+E(x.age)+'</b><span class="x">'+E(x.pitch)+(x.opp&&x.opp.n?" &middot; v "+E(x.opp.n):"")+'</span><span class="ko">'+E(x.ko)+'</span></button>'});
+h+='<div class="lb">ALL GAMES</div>';rows.forEach(function(x){h+='<button type="button" class="gm" data-a="'+E(x.age)+'"><span class="x"><span style="display:block;color:#f2f6f4"><b style="min-width:0">'+E(x.age)+'</b>'+(x.opp&&x.opp.n?" &middot; "+E((D.club||"Home").replace(/ (rugby|rfc|rufc|football).*$/i,""))+" v "+E(x.opp.n):"")+'</span><span style="display:block;margin-top:2px">'+(x.pitch?E(x.pitch)+" &middot; ":"")+'<span style="color:#ffd166;font-weight:700">'+E(x.ko)+'</span></span></span></button>'});
 $("app").innerHTML=h;wire($("app"))}
 $("app").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;if(t.id==="mp"){openMap();return}if(t.getAttribute("data-s")){SS=t.getAttribute("data-s");box();return}if(t.getAttribute("data-a")){SA=t.getAttribute("data-a");box();window.scrollTo(0,0)}});
 var M={s:1,x:0,y:0,min:1,w:0,h:0},P={},pd=0,pm0=null,lastTap=0;
@@ -12413,7 +12423,10 @@ if(r.age){var k=s+"|"+r.age;if(ag[k]!==undefined)add(an+" is already in the "+(s
 if(r.pitch){var k2=r.ko+"|"+r.pitch;if(pk[k2]!==undefined)add(nm(L.pitches,r.pitch)+" is already used at "+r.ko+".");else pk[k2]=i}
 r.home.concat(r.away).forEach(function(id){var k3=s+"|"+id;if(rmS[k3]!==undefined)add("Changing room "+nm(L.rooms,id)+" is already used by "+(nm(L.ages,rows[rmS[k3]].age)||"another team")+".");else rmS[k3]=i})});return er}
 function api(body){return fetch("/api/pitch/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Sorry, that did not work."}})})}
-function save(){clearTimeout(SV);SV=setTimeout(function(){SAVING++;api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){SAVING--;if(!j.ok){MSG=j.error||"Could not save.";bar()}else{MSG="";PUB=j.pub;DAYS=j.days||DAYS}bar()}).catch(function(){SAVING--;MSG="Could not save. Check your connection.";bar()})},700)}
+var SPEND=false,LASTOK="";
+function runSave(){SAVING++;SPEND=false;api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){SAVING--;if(!j.ok){MSG=j.error||"Could not save."}else{MSG="";PUB=j.pub;DAYS=j.days||DAYS;LASTOK=new Date().toLocaleTimeString("en-GB",{timeZone:"Europe/London"})}if(SPEND)runSave();else bar()}).catch(function(){SAVING--;MSG="Could not save. Check your connection.";if(SPEND)runSave();else bar()})}
+function save(){if(SAVING){SPEND=true;bar();return}runSave();bar()}
+function whenSaved(cb){if(!SAVING&&!SPEND){cb();return}setTimeout(function(){whenSaved(cb)},50)}
 function changed(){PUBD=false;ERR=vals(S.rows);save()}
 function fmtL(y){return y?fmtD(y)+" "+y.slice(0,4):"Choose a date"}
 function addDays(y,n){var d=new Date(Date.UTC(+y.slice(0,4),+y.slice(5,7)-1,+y.slice(8,10)+n));return d.toISOString().slice(0,10)}
@@ -12466,9 +12479,9 @@ h+=PVW==="tv"?'<div class="pvf"><iframe title="TV preview" src="'+PT+"?preview=1
 h+='<p class="sub" style="margin:10px 0 0">This is the draft exactly as it will look once published. On the day it will show the matching session automatically.</p></div>';
 ["am","pm"].forEach(function(s){var rows=pvRows(s);if(!rows.length)return;h+='<div class="cd pv"><h2>'+(s==="am"?"Morning session":"Afternoon session")+"</h2>";rows.forEach(function(r){var i=S.rows.indexOf(r),H=r.home.map(function(x){return nm(L.rooms,x)}).join(", "),A=r.away.map(function(x){return nm(L.rooms,x)}).join(", ");
 h+='<div class="g"><b>'+E(nm(L.ages,r.age))+'</b><span class="x">'+(r.opp&&r.opp.n?cr(r.opp.id,r.opp.n)+" Ivybridge v "+E(r.opp.n)+"<br>":"")+E(nm(L.pitches,r.pitch))+" &middot; Home "+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span><span class="k">'+E(r.ko)+'</span><button type="button" class="bt sm" data-eg="'+i+'">Edit</button></div>'});h+="</div>"});return h}
-function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var bk=ERR.some(function(e){return !e.w}),live=DAYS.some(function(d){return d.date===S.date})&&!bk,st=SAVING?"Saving...":MSG?MSG:bk?"Saved, not live yet. Fix the problems shown.":!S.date?"Choose the date.":live?"Saved and live on the screen and phones":"Saved";
-if(V==="edit")i.innerHTML='<small style="flex:1.4">'+E(st)+'</small><button type="button" class="bt" id="pr">Preview</button>';
-else i.innerHTML='<small style="flex:1.4">'+E(st)+'</small><button type="button" class="bt" id="bk">Back to edit</button>'}
+function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var bk=ERR.some(function(e){return !e.w}),live=DAYS.some(function(d){return d.date===S.date})&&!bk,st=SAVING||SPEND?"Saving...":MSG?MSG:bk?"Saved, not live yet. Fix the problems shown.":!S.date?"Choose the date.":live?"Saved and live"+(LASTOK?" "+LASTOK:""):"Saved";
+if(i.getAttribute("data-v")!==V){i.setAttribute("data-v",V);i.innerHTML='<small style="flex:1.4" id="bst"></small>'+(V==="edit"?'<button type="button" class="bt" id="pr">Preview</button>':'<button type="button" class="bt" id="bk">Back to edit</button>')}
+$("bst").textContent=st}
 function srt(){S.lists.pitches.sort(function(a,b){return a.n.localeCompare(b.n,"en",{numeric:true,sensitivity:"base"})})}
 function lists(){srt();var L=S.lists,h='<div class="ov" id="lov"><div class="pn"><div class="rw" style="justify-content:space-between"><h2 style="margin:0">Edit the lists</h2><button type="button" class="bt sm" data-lx="1">Done</button></div><p class="sub">Rename, reorder, add or delete items. Days already published keep the names they had.</p>';
 [["ages","Age groups (youngest first)",CAP.age],["pitches","Pitches (A to Z)",CAP.pitch],["rooms","Changing rooms",CAP.room]].forEach(function(g){h+='<span class="lb">'+g[1].toUpperCase()+"</span>";L[g[0]].forEach(function(x,j){h+='<div class="li"><input type="text" maxlength="'+g[2]+'" value="'+E(x.n)+'" data-ln="'+g[0]+'|'+j+'">'+(g[0]==="pitches"?"":'<button type="button" data-lu="'+g[0]+'|'+j+'" aria-label="Move up">&uarr;</button><button type="button" data-ld="'+g[0]+'|'+j+'" aria-label="Move down">&darr;</button>')+'<button type="button" data-lr="'+g[0]+'|'+j+'"'+(LDC===g[0]+'|'+j?' style="border-color:#c0494f;color:#ffb8bc;min-width:64px"':"")+' aria-label="Delete">'+(LDC===g[0]+'|'+j?"Sure?":"&times;")+"</button></div>"});
@@ -12484,7 +12497,7 @@ function doMap(f){var mm=$("mm");mm.textContent="Resizing...";var im=new Image()
 function send(bl){if(!bl){mm.textContent="Could not read that picture.";return}fetch("/api/pitch/map",{method:"POST",headers:{"Content-Type":bl.type},body:bl}).then(function(r){return r.json()}).then(function(j){if(j.ok){MAPV=j.v;mm.textContent="Map saved.";render();var d=document.querySelector("details.cd");if(d)d.open=true}else mm.textContent=j.error||"Could not save the map."}).catch(function(){mm.textContent="Could not save. Check your connection."})}
 c.toBlob(function(b){if(b&&b.size>2300000)c.toBlob(send,"image/jpeg",0.85);else send(b)},f.type==="image/png"?"image/png":"image/jpeg",0.88)};im.onerror=function(){mm.textContent="That is not a picture I can read."};im.src=u}
 var app=$("app");
-app.addEventListener("click",function(e){var t=e.target.closest("button,a");if(!t)return;if(t.getAttribute("data-sv")==="e"){if(V!=="edit"){V="edit";window.scrollTo(0,0);render()}return}if(t.getAttribute("data-sv")==="p"){if(V!=="preview"){ERR=vals(S.rows);clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()})}return}
+app.addEventListener("click",function(e){var t=e.target.closest("button,a");if(!t)return;if(t.getAttribute("data-sv")==="e"){if(V!=="edit"){V="edit";window.scrollTo(0,0);render()}return}if(t.getAttribute("data-sv")==="p"){if(V!=="preview"){ERR=vals(S.rows);save();whenSaved(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()})}return}
 if(t.id==="dt"){CALO=!CALO;render();return}if(t.getAttribute("data-c")){var m=(CALM||(S.date||TODAY).slice(0,7)),d=new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7)-1+ +t.getAttribute("data-c"),1));CALM=d.toISOString().slice(0,7);render();return}
 if(t.getAttribute("data-d")){S.date=t.getAttribute("data-d");CALO=false;CALM="";changed();render();return}
 if(t.getAttribute("data-t")){TAB=t.getAttribute("data-t");render();return}
@@ -12512,8 +12525,8 @@ if(t.getAttribute("data-f")){var f=t.getAttribute("data-f");row[f]=t.value;if(f=
 if(t.getAttribute("data-k")){var k=t.getAttribute("data-k"),o=k==="home"?"away":"home",id=t.value;row[k]=row[k].filter(function(x){return x!==id});if(t.checked){row[k].push(id);row[o]=row[o].filter(function(x){return x!==id})}changed();render()}});
 app.addEventListener("input",function(e){var t=e.target,q=t.getAttribute("data-q");if(q===null)return;OPQ[q]=t.value.trim();clearTimeout(t._t);t._t=setTimeout(function(){find(OPQ[q],q)},350)});
 $("bar").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
-if(t.id==="pr"){ERR=vals(S.rows);clearTimeout(SV);t.disabled=true;t.textContent="Saving...";api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()}).catch(function(){t.disabled=false;t.textContent="Preview"});return}if(t.id==="bk"){V="edit";render();return}
-if(t.id==="pb"){if(V==="edit"){ERR=vals(S.rows);var bk2=ERR.some(function(e){return !e.w});if(bk2||!S.date||!(S.rows.length||PUB&&PUB.date===S.date)){clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()});return}}t.disabled=true;t.textContent="Publishing...";clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){if(!j.ok)throw j;return api({a:"publish"})}).then(function(j){if(j&&j.ok){PUBD=true;PUB=j.pub;DAYS=j.days||DAYS;MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">'+(j.pub?"Published for "+E(fmtL(S.date))+". Screens and phones update within about 3 minutes.":"Cleared. The screen and phones now show waiting for allocations.")+'</div>')}else{MSG=(j&&j.error)||"Could not publish.";if(j&&j.errors)ERR=j.errors;render()}}).catch(function(j){MSG=(j&&j.error)||"Could not publish. Try again.";render()})}});
+if(t.id==="pr"){ERR=vals(S.rows);save();whenSaved(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()});return}if(t.id==="bk"){V="edit";render();return}
+if(t.id==="pb-unused"){if(V==="edit"){ERR=vals(S.rows);var bk2=ERR.some(function(e){return !e.w});if(bk2||!S.date||!(S.rows.length||PUB&&PUB.date===S.date)){clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()});return}}t.disabled=true;t.textContent="Publishing...";clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){if(!j.ok)throw j;return api({a:"publish"})}).then(function(j){if(j&&j.ok){PUBD=true;PUB=j.pub;DAYS=j.days||DAYS;MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">'+(j.pub?"Published for "+E(fmtL(S.date))+". Screens and phones update within about 3 minutes.":"Cleared. The screen and phones now show waiting for allocations.")+'</div>')}else{MSG=(j&&j.error)||"Could not publish.";if(j&&j.errors)ERR=j.errors;render()}}).catch(function(j){MSG=(j&&j.error)||"Could not publish. Try again.";render()})}});
 $("ovl").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;var L=S.lists,p;
 if(t.getAttribute("data-lx")){closeLists();return}
 function mv(a,j,dl){if(j+dl<0||j+dl>=L[a].length)return;var x=L[a][j];L[a][j]=L[a][j+dl];L[a][j+dl]=x;lists()}

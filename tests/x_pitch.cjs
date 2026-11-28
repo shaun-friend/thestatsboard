@@ -38,6 +38,10 @@ c('rooms used by the other team are greyed out (home 1 and 2)',dis[0]&&dis[1]&&!
 await p.selectOption('tr[data-i="1"] select[data-f="ko"]',{label:'10:00'});
 c('summary lists the age groups set up',/Set up for/.test(await p.innerText('#app'))&&/Morning \(2\): U7, U8/.test(await p.innerText('#app')));
 // preview step: TV and phone
+await p.evaluate(()=>{document.getElementById('pr').setAttribute('data-mark','1')});
+await p.selectOption('tr[data-i="1"] select[data-f="ko"]',{label:'10:30'});await p.waitForTimeout(300);
+c('the Preview button is not replaced by a change, so one press is enough',await p.evaluate(()=>document.getElementById('pr').getAttribute('data-mark')==='1'));
+await p.selectOption('tr[data-i="1"] select[data-f="ko"]',{label:'10:00'});
 await p.click('#pr');await p.waitForSelector('iframe');await p.waitForTimeout(1200);
 const tvf=p.frames().find(f=>/preview=1/.test(f.url())&&!/phone/.test(f.url()));
 c('preview shows the real TV screen with the draft',!!tvf&&/U7/.test(await tvf.innerText('body'))&&/Newton Abbot/.test(await tvf.innerText('body'))&&/HOME/i.test(await tvf.innerText('body')));

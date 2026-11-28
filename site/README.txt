@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.8 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.8_pitch_save.zip | v3.83.7
 v3.83.7 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.7_pitch_days.zip | v3.83.6
 v3.83.6 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.6_pitch_autolive.zip | v3.83.5
 v3.83.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.5_pitch_flow.zip | v3.83.4
@@ -446,6 +447,13 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.8 - Pitch allocation: saves at once and in order, Preview works first time, phone list shows the teams
+- Owner feedback (28-Nov-2026) after testing v3.83.6.
+- Fixed, fixtures team page: a change is now saved the moment you make it (the short wait is gone) and saves go one at a time, in order, so an older save can never overwrite a newer one. The bar shows Saving... and then Saved and live with the time.
+- Fixed: Preview needed two presses. The bar was being redrawn under your finger after a change, so the first press was lost. The bar now keeps its buttons, and Preview waits for any save in progress.
+- Changed, phone view: the All games list shows the age group and the teams (Ivybridge v Tavistock) on the first line, then the pitch and kick-off below, instead of pitch v team.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.7 - Pitch allocation: every published day stays live for its own date
 - Owner report (28-Nov-2026): only one day could be live at a time, so setting up next week replaced this week's screen.
