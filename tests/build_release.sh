@@ -153,5 +153,6 @@ NODE_PATH=$(npm root -g) node x_shell.cjs | tail -1 | grep -q "ALL OK" || { echo
 NODE_PATH=$(npm root -g) node x_shelljump.cjs | tail -1 | grep -q "ALL OK" || { echo "APP SHELL JUMP LINK TEST FAILED"; exit 1; }; echo "app shell jump links ok"
 NODE_PATH=$(npm root -g) node x_laptop.cjs | tail -1 | grep -q "ALL OK" || { echo "LAPTOP APP VIEW TEST FAILED"; exit 1; }; echo "laptop app view ok"
 NODE_PATH=$(npm root -g) node x_colourfix.cjs | tail -1 | grep -q "ALL OK" || { echo "TEAM COLOUR TEST FAILED"; exit 1; }; echo "team colour kept ok"
+NODE_PATH=$(npm root -g) node x_pitch.cjs "$S/t_worker.mjs" | tail -1 | grep -q " 0 failed" || { echo "PITCH ALLOCATION PAGE TEST FAILED"; exit 1; }; echo "pitch allocation page ok"
 node t_v310.mjs "$S/t_worker.mjs" | grep -q "0 fail" || { echo "counting tests failed"; exit 1; }
 mkdir -p ../dist && (cd ../site && rm -f "../dist/$Z" && zip -q "../dist/$Z" _worker.js README.txt index.html) && echo "BUILT dist/$Z"

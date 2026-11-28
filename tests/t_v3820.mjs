@@ -15,8 +15,8 @@ const U='/pitch-and-changing-room-allocation';
 for(const p of [U,U+'/phone']){const r=await rq(p,{headers:{'User-Agent':'Mozilla/5.0'}});const t=await r.text();c('public page '+p,r.status===200&&/Pitch and changing room allocation/i.test(t));
  for(const m of t.matchAll(/<script>([\s\S]*?)<\/script>/g)){try{new vm.Script(m[1])}catch(e){c('script syntax '+p+' '+e.message,false)}}
  c('no backslash or template leftovers '+p,!/\$\{/.test(t))}
-{const t=await (await rq(U)).text();c('tv has holding texts',/KICK-OFF PREP IN PROGRESS/.test(t)&&/Pop to the club kitchen for a coffee and a bacon roll/.test(t)&&/Check back later, or use this QR code to check from your phone/.test(t)&&/Scan for times and pitch map/.test(t)&&/Powered by The Stats Board/.test(t))}
-{const t=await (await rq(U+'/phone')).text();c('phone has welcome texts',/Welcome to /.test(t)&&/Pitch and changing room allocations are below\./.test(t)&&/will appear here when available/.test(t)&&/Tap to open the pitch map/.test(t))}
+{const t=await (await rq(U)).text();c('tv has holding texts',/KICK-OFF PREP IN PROGRESS/.test(t)&&/Pop to the club kitchen for a coffee and a bacon roll/.test(t)&&/Check back later, or use this QR code to check from your phone/.test(t)&&/Scan for times<br>and pitch map/.test(t)&&/Powered by The Stats Board/.test(t)&&/\?s=qr/.test(t))}
+{const t=await (await rq(U+'/phone')).text();c('phone has welcome texts',/Welcome to /.test(t)&&/Please select your age group from the options below\./.test(t)&&/will appear here when available/.test(t)&&/Tap to open the pitch map/.test(t))}
 c('not a 404',(await rq(U)).status===200);
 // sign-in
 {const r=await rq(U+'/manage',{redirect:'manual'});c('manage redirects to unlock',r.status===303&&/unlock/.test(r.headers.get('Location')||''))}
@@ -73,4 +73,38 @@ r=await adm({a:'save',lists:L,date:'',rows:r.j.doc.rows});r=await adm({a:'publis
 {const a=await rq('/admin',{headers:{Cookie:club}}).then(x=>x.text());c('admin card',/id="pcn"/.test(a)&&/id="pcw"/.test(a)&&/FIXTURES_PIN/.test(a));
  clock+=2000;const s=await rq('/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Cookie:club},body:JSON.stringify({pitch:{club:'Test Rugby Club',welcome:'Hello <b>all'}})}).then(x=>x.json());c('admin saves',s.ok);
  clock+=2000;const pb=await rq('/api/pitch').then(x=>x.json());c('club name and welcome in payload',pb.club==='Test Rugby Club'&&pb.welcome==='Hello b all'.replace('b all','b all')||pb.welcome.indexOf('<')<0)}
+// v3.83.0: usage by day, Admin section, tabular edit page, previews
+{await new Promise(r=>setTimeout(r,50));
+ const u0=await rq('/api/pitch/usage',{headers:{Cookie:fix}}).then(x=>x.json());const b0=u0.days.find(d=>d.date===u0.today)||{ph:0,qr:0,tv:0};
+ const ph=await rq('/pitch-and-changing-room-allocation/phone?s=qr',{headers:{'User-Agent':'Mozilla/5.0 iPhone'}});await ph.text();
+ await rq('/pitch-and-changing-room-allocation/phone',{headers:{'User-Agent':'Mozilla/5.0 iPhone'}});
+ await rq('/pitch-and-changing-room-allocation',{headers:{'User-Agent':'Mozilla/5.0 TV'}});
+ await rq('/pitch-and-changing-room-allocation/phone?s=qr',{headers:{'User-Agent':'Googlebot/2.1'}});
+ await rq('/pitch-and-changing-room-allocation/phone?preview=1&s=qr',{headers:{'User-Agent':'Mozilla/5.0 iPhone'}});
+ await new Promise(r=>setTimeout(r,80));
+ const u=await rq('/api/pitch/usage',{headers:{Cookie:fix}}).then(x=>x.json());const t=u.days.find(d=>d.date===u.today);
+ c('usage counts phone, qr and tv; skips bots and previews',t&&t.ph-b0.ph===2&&t.qr-b0.qr===1&&t.tv-b0.tv===1);
+ c('usage shows the published date with its games',u.days.some(d=>d.date==='2026-11-29'&&d.pub===4));
+ c('usage needs sign-in',(await rq('/api/pitch/usage')).status===401);
+ const a=await rq('/admin',{headers:{Cookie:club}}).then(x=>x.text());
+ c('admin has its own Pitch allocation section',/data-s="pitch">Pitch allocation</.test(a)&&/id="s-pitch"/.test(a)&&/id="pu"/.test(a)&&/Usage by day/.test(a));
+ const acc=a.slice(a.indexOf('id="s-access"'),a.indexOf('id="s-pitch"'));c('club name no longer in Club PIN and access',!/id="pcn"/.test(acc));
+ const m=await rq('/pitch-and-changing-room-allocation/manage',{headers:{Cookie:fix}}).then(x=>x.text());
+ c('manage page is a table with Home and Away columns',/class="tb2"/.test(m)||/tb2/.test(m))&&c('manage: taken options are removed not labelled',!/taken by/.test(m)&&!/other side/.test(m));
+ c('manage has TV and phone previews and Edit the lists',/data-pv="tv"/.test(m)&&/data-pv="ph"/.test(m)&&/Edit the lists/.test(m));
+ const tv=await rq('/pitch-and-changing-room-allocation').then(x=>x.text());
+ c('tv screen follows the approved mockup',/Changing room/.test(tv)&&/>Home</.test(tv)&&/>Away</.test(tv)&&/skewX\(-6deg\)/.test(tv)&&/repeating-linear-gradient\(115deg/.test(tv));
+ c('tv and phone support preview',/preview=1/.test(tv)&&/preview=1/.test(await rq('/pitch-and-changing-room-allocation/phone').then(x=>x.text())));}
+// v3.83.0: season record, delete a day, load a day, CSV
+{const g=await rq('/api/pitch/admin',{headers:{Cookie:fix}}).then(x=>x.json());
+ c('published days are kept in the season record',g.days.some(d=>d.date==='2026-11-29'&&d.n===4));
+ const csv=await rq('/api/pitch/season',{headers:{Cookie:fix}});const ct=await csv.text();
+ c('season CSV',csv.status===200&&/text\/csv/.test(csv.headers.get('Content-Type'))&&/Date,Session,Age group/.test(ct)&&/2026-11-29,Morning,U9,Pitch 1,1,2,10:00,Newton Abbot/.test(ct)&&/2026-11-29,Afternoon,U9/.test(ct));
+ c('season CSV needs sign-in',(await rq('/api/pitch/season')).status===401);
+ let r=await adm({a:'load',date:'2026-11-29'});c('load a saved day as the draft',r.j.ok&&r.j.doc.date==='2026-11-29'&&r.j.doc.rows.length===4&&r.j.errors.length===0);
+ const before=(await rq('/api/pitch').then(x=>x.json()));c('day is live',before.rows.length===4);
+ r=await adm({a:'delday',date:'2026-11-29'});c('delete a whole day',r.j.ok&&r.j.pub===null&&r.j.doc.rows.length===0&&!r.j.days.some(d=>d.date==='2026-11-29'));
+ const after=await rq('/api/pitch').then(x=>x.json());c('deleted day leaves the public screen empty',after.rows.length===0&&after.date==='');
+ r=await adm({a:'load',date:'2026-11-29'});c('deleted day cannot be loaded',r.s===404);
+ const u=await rq('/api/pitch/usage',{headers:{Cookie:fix}}).then(x=>x.json());c('deleted day no longer marked as an allocation in usage',!u.days.some(d=>d.date==='2026-11-29'&&d.pub>0))}
 console.log(ok+' ok, '+bad+' failed');process.exit(bad?1:0);

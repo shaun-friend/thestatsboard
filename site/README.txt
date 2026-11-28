@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.0_pitch_allocation_table.zip | v3.82.0
 v3.82.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.82.0_pitch_allocation.zip | v3.81.5
 v3.81.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.5_dots_progress_dates.zip | v3.81.4
 v3.81.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.4_snow_footer.zip | v3.81.3
@@ -438,6 +439,18 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.0 - Pitch allocation: approved TV look, table editing, previews, season record, usage and an Admin section of its own
+- Owner feedback (28-Nov-2026) after testing v3.82.0.
+- Changed, TV screen: rebuilt to the approved mockup: green textured background, italic title, cream date banner, QR code top right, and a grid with separate Home and Away changing room columns (two matching grids when there are more than six games). The holding screen uses the same style with the message panel. Text still never wraps or is cut off; it shrinks to fit and each column shrinks together.
+- Changed, fixtures team page: the editing view is now a table (Age, Fixture, Pitch, Home, Away, KO) that becomes one card per age group on a phone. A changing room used by either side of any game in the session, or by the other side of the same game, is greyed out and cannot be ticked (the team that has it shows in small text). An age group or pitch already used (pitch at the same kick-off time) is removed from the drop-down instead of showing a label. Edit the lists is now a visible button above the table (pitches, age groups, rooms and kick-off times are all editable).
+- New: adding an age group collapses the finished ones above to a single line (tap Edit to open one again). A summary under the table lists the age groups set up so far, by session.
+- New: Step 2 Preview now shows the real TV screen and the phone view, drawn from the saved draft, with a Morning/Afternoon switch. Under it every game is listed with an Edit button that takes you straight back to that game (the others stay collapsed), so a mistake spotted in the preview can be fixed in one step.
+- New: Delete this day (asks to confirm) clears the draft, takes the day off the screen and phones and removes it from the season record.
+- New, season record: every day you publish is now kept (names as they were that day, up to 150 days; publishing a date again replaces it). Setup lists the saved days with Load (as a draft) and Delete, and Download season report (CSV) gives one row per game: date, session, age group, pitch, Home and Away rooms, kick-off, opposition.
+- New, Admin, Pitch allocation (own section): addresses, club name, welcome line and a Usage by day table (phone visits, visits via the QR code, TV screen loads, and the games published, for each day). Counts are approximate, hold no visitor details and skip robots and previews. The QR code now carries a small source marker so visits through it can be counted.
+- Changed: the phone view says "Please select your age group from the options below." The club name and welcome line moved out of Club PIN and access.
+- Docs: Pitch and changing room allocation, Admin guide, What's new, Releases and versions
 
 v3.82.0 - Pitch and Changing Room allocation (new stand-alone screen, phone view and fixtures team page)
 - Owner request (28-Nov-2026): the Sunday-morning minis and juniors guideline slide (age group, pitch, changing rooms, kick-off) is rebuilt by hand every week. The chairman wanted a single screen the fixtures team fills in, shown on a TV only at the right times.
