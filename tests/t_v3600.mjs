@@ -23,7 +23,7 @@ const g0=A.gets,p0=A.puts;
 let r=await api(env,ck,{act:'logo',id:'00000001',t:'png',w:1,h:1,data:b64(png(300,120))});
 c('upload a PNG: ok and the sponsor now carries the marker',r.j&&r.j.ok&&r.j.items.find(x=>x.id==='00000001').logo.t==='png'&&r.j.items.find(x=>x.id==='00000001').logo.w===300&&r.j.items.find(x=>x.id==='00000001').logo.h===120,JSON.stringify(r.j).slice(0,200));
 c('the image is stored in its own key with its details',A.store['splogo:00000001'] instanceof Uint8Array&&A.meta['splogo:00000001'].t==='png'&&A.meta['splogo:00000001'].w===300);
-c('an upload is two writes and few reads, no RFU reads',A.puts-p0===2&&(A.gets-g0)<=4,(A.puts-p0)+' writes '+(A.gets-g0)+' reads');
+c('an upload is three writes (logo, list, screens clock) and few reads, no RFU reads',A.puts-p0===3&&(A.gets-g0)<=4,(A.puts-p0)+' writes '+(A.gets-g0)+' reads');
 c('size comes from the image itself, not the label the page sent',r.j.items.find(x=>x.id==='00000001').logo.w===300);
 const v1=r.j.items.find(x=>x.id==='00000001').logo.v;
 // --- serving

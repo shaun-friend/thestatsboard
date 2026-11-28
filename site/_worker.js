@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.81.3 28-Nov-2026 Logo or tile changes show within a minute; Screen settings in cards; wintry Snowflake theme; clearer shirt numbers; centred single cancellation; better logo tile detection.
 //   v3.81.2 28-Nov-2026 Snowflake theme: normal background, more and varied snowflakes, faster fall.
 //   v3.81.1 28-Nov-2026 Snowflake theme: blue bar and Happy Christmas greeting removed.
 //   v3.81.0 28-Nov-2026 Seasonal theme: Snowflake (Auto 10 Dec - 2 Jan; TV, phones, Home; Admin switches).
@@ -419,7 +420,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.81.2";
+const VERSION = "v3.81.3";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -468,6 +469,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.3_logo_change_shows.zip | v3.81.2
 v3.81.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.2_snowflake_snow_only.zip | v3.81.1
 v3.81.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.1_snowflake_no_bar.zip | v3.81.0
 v3.81.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.0_snowflake_theme.zip | v3.80.1
@@ -859,6 +861,17 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.81.3 - Logo and tile changes show within a minute; wintry Snowflake theme; Screen settings regrouped; better logo tile detection; clearer shirt numbers; centred single cancellation
+- Owner report (28-Nov-2026): a sponsor logo's tile was changed to Light but the Match day TV page kept showing the dark tile.
+- Cause: the Match day page is kept at the edge for up to 30 minutes once the team sheet is found, and a sponsor change did not clear it.
+- Fix: changing a logo's tile, uploading or replacing a logo, or removing one now clears the screens' built pages straight away, the same way Refresh scores now does, so the change shows within about a minute. It costs one extra settings-store write per logo change (daily limit 1,000).
+- Changed: Admin, Screen settings is regrouped into three cards: Match Centre (layout, Win Predictor, Walkover colours, Around the league strip), TV banner and footer (weather, Last checked, Powered by) and Seasonal theme (Status line, When it runs, Where it shows), with a box pointing to TV rotation, Site notices and Paired screens. Same switches and wording, nothing moves page.
+- New: Snowflake theme is more wintry. Flakes come in mixed shapes, sizes and softness; faint stars twinkle; a thin drift of snow lies along the bottom (all behind the page content, so nothing covers text); the TV footer text turns dark over the snow; the Stats Board logo turns icy blue with a snowflake in place of the gold ball. The Home page also gets a winter scene along the bottom (hills, fir trees, rugby posts and a frozen pond with skaters; hidden on short screens), with flakes kept to the outer edges so the text stays clear. Background colours, layout and text sizes are unchanged.
+- Changed: when a single team is cancelled, its notice in the Match Centre title bar is centred on the screen.
+- Changed: Match day shirt numbers are bigger and bolder with an outline, in black or white by real contrast, so they read on a 1080p TV.
+- Fix: the logo tile check no longer fails on stored logos with rounded transparent corners (it now ignores transparent corner pixels and samples a little inside the corner), so a white-background logo is worked out as As supplied instead of a dark tile. Existing logos keep their saved tile; change it in Admin if needed.
+- Docs: Admin guide, Releases and versions
 
 v3.81.2 - Snowflake theme: original background, more and varied snowflakes, a little faster
 - Owner request (28-Nov-2026): keep the normal dark background (the blue was not asked for), more snowflakes in mixed sizes, and a faster fall.
@@ -3534,7 +3547,7 @@ const DOC_SECTIONS = [
       ["Last checked feed time", "The small line at the bottom of the Fixtures board."],
       ["Powered by The Stats Board line", "The small credit line at the bottom of team pages and TV screens. Off shows only the version."],
       ["Match Centre layout", "Modern (the default) shows the next game first with club and opponent crests, the ground and a table line such as 2nd v 3rd. Classic shows one row per team. Phones always get the stacked cards. With more than four teams Modern switches to Classic by itself. Preview links for both are on the Admin page, or add ly=next or ly=classic to a Match Centre link."],
-      ["Seasonal theme", "Snowflake: slowly falling snow over the normal background, in a mix of sizes. Auto turns it on from 10 Dec to 2 Jan each year (change the dates here), or force On or Off. Separate switches for the TV, phones and iPads, and the Home page, and for falling snow on the TV (off by default, still snowflakes only). Light theme pages are left alone."],
+      ["Seasonal theme", "Snowflake: slowly falling snow in a mix of sizes, with a thin drift along the bottom, over the normal background. Auto turns it on from 10 Dec to 2 Jan each year (change the dates here), or force On or Off. Separate switches for the TV, phones and iPads, and the Home page, and for falling snow on the TV (off by default, still snowflakes only). Light theme pages are left alone."],
       ["Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip. Off means the winner is simply bold."],
       ["Win Predictor on the next game", "A percentage chance for each side, shown as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Off by default. Read the Win Predictor check page first. How it works is in the Win Predictor section."]
     ] },
@@ -3677,6 +3690,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.81.3", "A sponsor logo or tile change now shows on the TV screens within about a minute (it could take up to 30 minutes). Screen settings are grouped into cards. The Snowflake theme is more wintry (varied flakes, twinkling stars, snow along the bottom, an icy logo and a Home page winter scene). Shirt numbers on Match day are easier to read, a single cancellation is centred, and logo tiles are worked out better for white-background logos."],
       ["v3.81.2", "Snowflake theme: normal background with more, varied snowflakes falling a little faster."],
       ["v3.81.1", "Snowflake theme: the blue bar across the top is gone; the Happy Christmas greeting is removed too."],
       ["v3.81.0", "New seasonal Snowflake theme for the TV, phones and Home page: automatic 10 Dec to 2 Jan, or On/Off, in Admin."],
@@ -4649,27 +4663,54 @@ function themeOn(t, url, isDev) {
   const td = noticeToday(url, isDev), md = Number(td.slice(5, 7)) * 100 + Number(td.slice(8, 10)), a = t.from.m * 100 + t.from.d, b = t.to.m * 100 + t.to.d;
   return a <= b ? md >= a && md <= b : md >= a || md <= b;
 }
-// Flakes are generated once from a fixed sequence (same every time, no randomness at request time): [left %, size, opacity, seconds, delay, drift px, top vh].
-// Mixed sizes: small ones are fainter and slower, big ones bolder and quicker.
-function makeFlakes(n, min, max, drift) {
-  let x = 7, out = [];
-  const r = () => (x = (x * 48271) % 2147483647) / 2147483647;
+// Flakes and stars are generated once from a fixed sequence (the same every time, no randomness at request time).
+// Flake: [left %, size, opacity, seconds, delay, drift px, top vh, shape 0-3, blur 0-2]. Mixed sizes: small ones are fainter, softer and slower, big ones bolder and sharper.
+// Home page: flakes and stars stay in the outer fifth on each side so nothing drifts behind the text.
+function makeFlakes(n, min, max, drift, side, cap) {
+  let x = 7; const out = [], r = () => (x = (x * 48271) % 2147483647) / 2147483647;
   for (let k = 0; k < n; k++) {
-    const q = r() * r() * .6 + r() * .4, size = Math.round((min + (max - min) * q) * 10) / 10;
-    out.push([Math.round((k + r()) * 1000 / n) / 10, size, Math.round((.14 + .2 * q) * 100) / 100, Math.round(30 - 9 * q), Math.round(r() * 30), Math.round((r() - .5) * 2 * drift), Math.round(r() * 90)]);
+    const q = r() * r() * .7 + r() * .3, size = Math.round((min + (max - min) * q) * 10) / 10;
+    let left = Math.round((k + r()) * 1000 / n) / 10; if (side) left = k % 2 ? 78 + r() * 21 : r() * 21; left = Math.round(left * 10) / 10;
+    out.push([left, size, Math.min(cap || 1, Math.round((.16 + .3 * q) * 100) / 100), Math.round(30 - 9 * q), Math.round(r() * 30), Math.round((r() - .5) * 2 * drift), Math.round(r() * 90), q < .12 ? 3 : Math.floor(r() * 3), q < .22 ? 2 : q < .45 ? 1 : 0]);
   }
   return out;
 }
-const THEME_SETS = { tv: { u: "vmin", f: makeFlakes(24, 3.5, 14, 80) }, phone: { u: "px", f: makeFlakes(16, 14, 66, 50) } };
+function makeStars(n, side) {
+  let x = 31; const out = [], r = () => (x = (x * 48271) % 2147483647) / 2147483647;
+  for (let k = 0; k < n; k++) out.push([Math.round((side ? (k % 2 ? 79 + r() * 20 : r() * 20) : r() * 100) * 10) / 10, Math.round(r() * 68 * 10) / 10, Math.round((.8 + r() * 1.6) * 10) / 10, k % 4, Math.round((.25 + r() * .5) * 100) / 100]);
+  return out;
+}
+const THEME_SETS = {
+  tv: { u: "vmin", f: makeFlakes(24, 3.5, 14, 80), s: makeStars(34, false) },
+  phone: { u: "px", f: makeFlakes(16, 14, 66, 50), s: makeStars(30, false) },
+  home: { u: "px", f: makeFlakes(22, 14, 70, 60, true, .4), s: makeStars(30, true) }
+};
+const SB_SCENE = "<svg viewBox=\"0 0 1280 170\" preserveAspectRatio=\"xMidYMax slice\" width=\"100%\" height=\"100%\" aria-hidden=\"true\" id=\"sbsc\"><defs><linearGradient id=\"sbsg\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#ffffff\" stop-opacity=\".97\"/><stop offset=\"1\" stop-color=\"#d4e6f6\" stop-opacity=\".9\"/></linearGradient><linearGradient id=\"sbic\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#bfe3ff\"/><stop offset=\"1\" stop-color=\"#7fb8e6\"/></linearGradient></defs><path d=\"M0 105C192 59 384 94 640 85S1050 54 1280 94V170H0Z\" fill=\"#9db9d3\" opacity=\".42\"/><path d=\"M9.2 138.5L35.8 82.4L62.5 138.5Z\" fill=\"#16384f\"/><path d=\"M24.1 107.7L35.8 82.4L47.6 107.7Q35.8 115 24.1 107.7Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M16.6 103.8L35.8 47.8L55.1 103.8Z\" fill=\"#16384f\"/><path d=\"M27.4 73.0L35.8 47.8L44.3 73.0Q35.8 80.3 27.4 73.0Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M24.1 69.1L35.8 13.1L47.6 69.1Z\" fill=\"#16384f\"/><path d=\"M30.7 38.3L35.8 13.1L41 38.3Q35.8 45.6 30.7 38.3Z\" fill=\"#f4faff\" opacity=\".9\"/><rect x=\"33.2\" y=\"135.8\" width=\"5.3\" height=\"21.3\" fill=\"#16384f\"/><path d=\"M158.3 147.1L173.1 116.1L187.9 147.1Z\" fill=\"#16384f\"/><path d=\"M166.6 130.0L173.1 116.1L179.6 130.0Q173.1 134.1 166.6 130.0Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M162.5 127.9L173.1 96.9L183.7 127.9Z\" fill=\"#16384f\"/><path d=\"M168.4 110.9L173.1 96.9L177.8 110.9Q173.1 114.9 168.4 110.9Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M166.6 108.7L173.1 77.7L179.6 108.7Z\" fill=\"#16384f\"/><path d=\"M170.3 91.7L173.1 77.7L176 91.7Q173.1 95.7 170.3 91.7Z\" fill=\"#f4faff\" opacity=\".9\"/><rect x=\"171.6\" y=\"145.6\" width=\"3\" height=\"11.8\" fill=\"#16384f\"/><path d=\"M282.2 150.8L298.6 116.2L315.1 150.8Z\" fill=\"#16384f\"/><path d=\"M291.4 131.8L298.6 116.2L305.8 131.8Q298.6 136.3 291.4 131.8Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M286.8 129.4L298.6 94.8L310.5 129.4Z\" fill=\"#16384f\"/><path d=\"M293.4 110.4L298.6 94.8L303.8 110.4Q298.6 114.9 293.4 110.4Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M291.4 108.0L298.6 73.5L305.8 108.0Z\" fill=\"#16384f\"/><path d=\"M295.4 89.0L298.6 73.5L301.8 89.0Q298.6 93.5 295.4 89.0Z\" fill=\"#f4faff\" opacity=\".9\"/><rect x=\"297\" y=\"149.1\" width=\"3.3\" height=\"13.2\" fill=\"#16384f\"/><path d=\"M351 147.0L370.7 105.5L390.5 147.0Z\" fill=\"#16384f\"/><path d=\"M362 124.2L370.7 105.5L379.4 124.2Q370.7 129.6 362 124.2Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M356.5 121.3L370.7 79.8L384.9 121.3Z\" fill=\"#16384f\"/><path d=\"M364.5 98.5L370.7 79.8L377 98.5Q370.7 103.9 364.5 98.5Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M362 95.6L370.7 54.1L379.4 95.6Z\" fill=\"#16384f\"/><path d=\"M366.9 72.8L370.7 54.1L374.5 72.8Q370.7 78.2 366.9 72.8Z\" fill=\"#f4faff\" opacity=\".9\"/><rect x=\"368.7\" y=\"145.1\" width=\"4\" height=\"15.8\" fill=\"#16384f\"/><path d=\"M1233.6 143.1L1252.4 103.7L1271.2 143.1Z\" fill=\"#16384f\"/><path d=\"M1244.1 121.4L1252.4 103.7L1260.7 121.4Q1252.4 126.6 1244.1 121.4Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M1238.9 118.7L1252.4 79.3L1265.9 118.7Z\" fill=\"#16384f\"/><path d=\"M1246.5 97.1L1252.4 79.3L1258.3 97.1Q1252.4 102.2 1246.5 97.1Z\" fill=\"#f4faff\" opacity=\".9\"/><path d=\"M1244.1 94.3L1252.4 54.9L1260.7 94.3Z\" fill=\"#16384f\"/><path d=\"M1248.8 72.7L1252.4 54.9L1256 72.7Q1252.4 77.8 1248.8 72.7Z\" fill=\"#f4faff\" opacity=\".9\"/><rect x=\"1250.5\" y=\"141.2\" width=\"3.8\" height=\"15\" fill=\"#16384f\"/><g stroke=\"#f2f6fa\" stroke-width=\"3.7\" stroke-linecap=\"round\" fill=\"none\" opacity=\".95\"><path d=\"M1152 136V3\"/><path d=\"M1197.1 136V3\"/><path d=\"M1152 107H1197.1\"/></g><rect x=\"1146.8\" y=\"120.1\" width=\"10.4\" height=\"15.9\" rx=\"1.5\" fill=\"#e8353a\" opacity=\".9\" stroke=\"none\"/><rect x=\"1191.9\" y=\"120.1\" width=\"10.4\" height=\"15.9\" rx=\"1.5\" fill=\"#e8353a\" opacity=\".9\" stroke=\"none\"/><path d=\"M0 133C154 112 320 143 538 129S896 116 1088 136S1229 122 1280 129V170H0Z\" fill=\"url(#sbsg)\"/><ellipse cx=\"742\" cy=\"153\" rx=\"256\" ry=\"17\" fill=\"url(#sbic)\" opacity=\".95\"/><path d=\"M589 156Q717 144 845 155\" fill=\"none\" stroke=\"#fff\" stroke-opacity=\".85\" stroke-width=\"1.2\"/><path d=\"M614 162Q768 151 922 160\" fill=\"none\" stroke=\"#fff\" stroke-opacity=\".7\" stroke-width=\"1\"/><ellipse cx=\"640\" cy=\"146\" rx=\"46\" ry=\"3\" fill=\"#fff\" opacity=\".5\"/><g transform=\"translate(627.2 156.4) scale(1.5)\" stroke=\"#16384f\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M0 -15L1 -1\" stroke-width=\"5\"/><path d=\"M0 -15L-12 -19L-19 -23\" stroke-width=\"5\"/><path d=\"M0 -14L7 -25\" stroke-width=\"8\"/><path d=\"M5 -23L-3 -27L-9 -30\" stroke-width=\"3.4\"/><path d=\"M6 -23L15 -24L21 -22\" stroke-width=\"3.4\"/><circle cx=\"10\" cy=\"-31\" r=\"4.6\" fill=\"#16384f\" stroke=\"none\"/><path d=\"M-5 1L7 1\" stroke-width=\"1.6\"/></g><g transform=\"translate(755.2 158.9) scale(1.5)\" stroke=\"#16384f\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M0 -15L0 -1\" stroke-width=\"5\"/><path d=\"M0 -15L5 -9L2 -6\" stroke-width=\"5\"/><path d=\"M0 -14L0 -27\" stroke-width=\"8\"/><path d=\"M-2 -25L-5 -21L0 -19\" stroke-width=\"3.4\"/><path d=\"M2 -25L5 -21L0 -19\" stroke-width=\"3.4\"/><circle cx=\"0\" cy=\"-33\" r=\"4.6\" fill=\"#16384f\" stroke=\"none\"/><path d=\"M-6 1L8 1\" stroke-width=\"1.6\"/></g><g transform=\"translate(870.4 155) scale(-1.5 1.5)\" stroke=\"#16384f\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M0 -15L-3 -1\" stroke-width=\"5\"/><path d=\"M0 -15L6 -2\" stroke-width=\"5\"/><path d=\"M0 -14L0 -27\" stroke-width=\"8\"/><path d=\"M-2 -25L-11 -23L-17 -26\" stroke-width=\"3.4\"/><path d=\"M2 -25L11 -23L17 -26\" stroke-width=\"3.4\"/><circle cx=\"0\" cy=\"-33\" r=\"4.6\" fill=\"#16384f\" stroke=\"none\"/><path d=\"M-6 1L8 1\" stroke-width=\"1.6\"/></g></svg>";
+const SB_SPARK = '<g stroke="#fff" stroke-linecap="round" fill="none"><path d="M53 8V20M47 14H59M48.8 9.8L57.2 18.2M57.2 9.8L48.8 18.2" stroke-width="1.6"/><path d="M14 22L19 22M16.5 19.5V24.5" stroke-width="1.3" opacity=".9"/><path d="M38 12L41 12M39.5 10.5V13.5" stroke-width="1.2" opacity=".8"/></g>';
 function themeHtml(kind, anim) {
-  const set = THEME_SETS[kind === "tv" ? "tv" : "phone"], tv = kind === "tv";
-  const flakes = set.f.map((f, i) => '<svg class="sbfl" aria-hidden="true" style="--t:' + f[6] + "vh;--dx:" + f[5] + "px;left:" + f[0] + "%;width:" + f[1] + set.u + ";height:" + f[1] + set.u + ";opacity:" + f[2] + (anim ? ";animation:sbfall " + Math.round(f[3] * 6) / 10 + "s linear -" + Math.round(f[4] * 6) / 10 + 's infinite;top:-14vh"' : '"') + ' viewBox="0 0 24 24"><use href="#sbf"/></svg>').join("");
+  const set = THEME_SETS[kind], tv = kind === "tv", home = kind === "home";
+  const flakes = set.f.map(f => '<svg class="sbfl b' + f[8] + '" aria-hidden="true" style="--t:' + f[6] + "vh;--dx:" + f[5] + "px;left:" + f[0] + "%;width:" + f[1] + set.u + ";height:" + f[1] + set.u + ";opacity:" + f[2] + (anim ? ";animation:sbfall " + Math.round(f[3] * 6) / 10 + "s linear -" + Math.round(f[4] * 6) / 10 + 's infinite;top:-14vh"' : '"') + ' viewBox="0 0 24 24"><use href="#sbf' + f[7] + '"/></svg>').join("");
+  const stars = set.s.map(t => '<i class="sbs g' + t[3] + '" style="left:' + t[0] + "%;top:" + t[1] + "%;width:" + t[2] + "px;height:" + t[2] + "px;opacity:" + t[4] + '"></i>').join("");
   const css = '<style id="sbxs">'
-    + "#sbsnow{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.sbfl{position:absolute;top:var(--t);fill:none;stroke:#cfe8ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;will-change:transform}"
-    + "@keyframes sbfall{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(var(--dx),130vh,0) rotate(180deg)}}"
-    + "@media (prefers-reduced-motion:reduce){.sbfl{animation:none!important;top:var(--t)!important}}"
+    + "#sbsnow{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.sbfl{position:absolute;top:var(--t);fill:none;stroke:#e3f1ff;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;will-change:transform}.sbfl.b2{filter:blur(1.4px)}.sbfl.b1{filter:blur(.6px)}"
+    + ".sbs{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 6px #cfe8ff}"
+    + (anim ? ".sbs.g0{animation:sbtw 3.4s ease-in-out infinite}.sbs.g1{animation:sbtw 4.6s ease-in-out -1.2s infinite}.sbs.g2{animation:sbtw 5.8s ease-in-out -2.6s infinite}.sbs.g3{animation:sbtw 3.9s ease-in-out -3.1s infinite}" : "")
+    + "#sbfr{position:absolute;inset:0;background:radial-gradient(ellipse at 0 0,rgba(220,240,255,.09),transparent 22%),radial-gradient(ellipse at 100% 0,rgba(220,240,255,.09),transparent 22%)}"
+    + "#sbdr{position:absolute;left:0;bottom:0;width:100%;height:" + (tv ? "2.8vh" : "22px") + ";opacity:" + (tv ? ".6" : ".45") + "}"
+    + (home ? "#sbsc{position:absolute;left:0;right:0;bottom:0;width:100%;height:min(170px,22vh)}@media (max-height:640px){#sbsc{display:none}}" : "")
+    + (tv ? "#sbv{color:#0b1a24!important}" : "")
+    // the Stats Board logo goes cold: icy blue leaf, frost, a white snowflake for the ball, BOARD in ice blue
+    + "svg.sblg stop:first-of-type{stop-color:#d9f1ff}svg.sblg stop:last-of-type{stop-color:#3f8fd0}svg.sblg ellipse{stroke:#fff;stroke-opacity:.75;stroke-width:1.6}svg.sblg rect{fill:#0e2a45}"
+    + "@keyframes sbfall{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(var(--dx),130vh,0) rotate(180deg)}}@keyframes sbtw{0%,100%{opacity:.15}50%{opacity:.85}}"
+    + "@media (prefers-reduced-motion:reduce){.sbfl{animation:none!important;top:var(--t)!important}.sbs{animation:none!important}}"
     + "</style>";
-  const snow = '<div id="sbsnow" aria-hidden="true"><svg width="0" height="0" style="position:absolute"><symbol id="sbf" viewBox="0 0 24 24"><path d="M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7M9.5 4L12 6.5 14.5 4M9.5 20L12 17.5 14.5 20"/></symbol></svg>' + flakes + '</div>';
+  const sym = '<svg width="0" height="0" style="position:absolute"><defs>'
+    + '<symbol id="sbf0" viewBox="0 0 24 24"><path d="M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7M9.5 4L12 6.5 14.5 4M9.5 20L12 17.5 14.5 20"/></symbol>'
+    + '<symbol id="sbf1" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="3" r="1.3"/><circle cx="12" cy="21" r="1.3"/><circle cx="3" cy="12" r="1.3"/><circle cx="21" cy="12" r="1.3"/></symbol>'
+    + '<symbol id="sbf2" viewBox="0 0 24 24"><path d="M12 2v20M4 7l16 10M4 17L20 7"/><path d="M12 7l-3-3M12 7l3-3M12 17l-3 3M12 17l3 3"/><circle cx="12" cy="12" r="2.2"/></symbol>'
+    + '<symbol id="sbf3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#fff" stroke="none"/></symbol></defs></svg>';
+  const bank = '<svg id="sbdr" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="sbdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#cfe3f5" stop-opacity=".7"/></linearGradient></defs><path d="M0 40V26C90 14 170 29 290 21S500 11 620 23S860 31 990 17S1130 15 1200 23V40Z" fill="url(#sbdg)"/></svg>';
+  const snow = '<div id="sbsnow" aria-hidden="true">' + sym + '<div id="sbfr"></div>' + stars + flakes + (home ? SB_SCENE : bank) + "</div>";
   return { css, snow };
 }
 async function themeInject(html, url, isDev) {
@@ -4679,6 +4720,7 @@ async function themeInject(html, url, isDev) {
   const welcome = html.includes('class="wrap wl"'), kind = welcome ? "home" : url.searchParams.get("layout") === "tv" ? "tv" : "phone";
   if (!(kind === "tv" ? t.tv : kind === "home" ? t.home : t.phone) || !themeOn(t, url, isDev)) return html;
   const th = themeHtml(kind, kind === "tv" ? t.tvAnim : true);
+  html = html.split('<circle cx="53" cy="14" r="4.6" fill="#e8c26a"/>').join(SB_SPARK).split('<span style="color:#4fc27d">BOARD</span>').join('<span style="color:#8fd0ff">BOARD</span>');
   html = /<\/head>/i.test(html) ? html.replace(/<\/head>/i, () => th.css + "</head>") : html.replace(/<body([^>]*)>/i, m => th.css + m);
   html = html.replace(/<body([^>]*)>/i, m => m + th.snow);
   return html;
@@ -4748,7 +4790,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .ad h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:26px 0 8px}
 .cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:6px 18px}
 .r{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #1f2925}.r:last-child{border:0}.r b{font-size:15px;display:block}.r small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
-.nb{padding:14px 0;border-bottom:1px solid #1f2925}.nb:last-child{border:0}.nh{display:flex;justify-content:space-between;align-items:center;gap:14px}.nh b{font-size:15px;display:block}.nh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
+.nb{padding:14px 0;border-bottom:1px solid #1f2925}.thx{margin:0;padding:6px 0 14px;border:0!important;background:none}.sgrp{margin-top:6px}.og{margin:0 0 18px;border:1px solid #2a3a33;border-radius:14px;background:#0f1613;overflow:hidden}.og>.oh{padding:14px 20px;background:#13201a;border-bottom:1px solid #2a3a33}.og>.oh b{display:block;font-size:15.5px}.og>.oh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}.og>.ob{padding:0 20px}.og>.ob>.r:last-child,.og>.ob>.nb:last-child{border-bottom:0}.rel{margin:6px 0 18px;padding:14px 20px;border:1px dashed #34564a;border-radius:14px;color:#91a49a;font-size:13px;line-height:1.6}.rel b{color:#e6efe9}.rel a{color:#7fe0a6}body.light .og{background:#fff;border-color:#cbd8ce}body.light .og>.oh{background:#eef5f0;border-color:#cbd8ce}body.light .og>.oh small{color:#53665a}body.light .rel{border-color:#b9cfc2;color:#53665a}body.light .rel b{color:#1c2a22}body.light .rel a{color:#1b7f3b}.thx .thst{margin:6px 0 4px;padding:9px 12px;border-radius:9px;background:#14262e;color:#cfe8ff;font-weight:600;font-size:13.5px}.thx .thh2{margin:16px 0 6px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#7fb7a0;font-weight:700}.thx .thsp{margin-top:18px;padding-top:16px;border-top:1px solid #2a4137}body.light .thx .thst{background:#e3eef6;color:#1c4560}body.light .thx .thh2{color:#2d7a5c}body.light .thx .thsp{border-top-color:#cfded5}.nb:last-child{border:0}.nh{display:flex;justify-content:space-between;align-items:center;gap:14px}.nh b{font-size:15px;display:block}.nh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
 .ad .in{margin-top:9px}.ad input.in[type=date]{display:block;-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;height:46px;text-align:left}.ad input.in[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}.ad input.in[type=date]::-webkit-calendar-picker-indicator{margin:0}.two{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.two>div{flex:1;min-width:200px}.l{font-size:12px;color:#9eafa5;font-weight:700;margin-top:10px}.l span{font-weight:400}
 .cnt{font-size:12px;color:#91a49a;text-align:right;margin-top:3px}
 .env{position:relative;display:inline-flex;align-items:center;justify-content:center}.bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#2f9d57;color:#06150d;font:700 11px/14px Arial,Helvetica,sans-serif;text-align:center;border:2px solid #080b0d;box-sizing:border-box;display:block}.bdg[hidden]{display:none}body.light .bdg{border-color:#eef2ef;color:#fff}.tg{position:relative;flex:0 0 auto;width:46px;height:27px}.tg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}.tg span{position:absolute;inset:0;border-radius:99px;background:#2c3a34;transition:.15s}.tg span::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#cfd8d3;transition:.15s}.tg input:checked+span{background:#2f9d57}.tg input:checked+span::after{left:22px;background:#fff}.tg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}
@@ -4828,22 +4870,31 @@ ${sw("fm", s.features.contact, "Message form for visitors", "Adds a Message the 
 </div>
 </section>
 <section class="sec" id="s-screens" hidden><h1>Screen settings</h1><p class="sub">What appears on the clubhouse TVs and the Match Centre. Phones are not affected.</p>
-<div class="cd">
+<div class="sgrp">
+<div class="og" id="og-mc"><div class="oh"><b>Match Centre</b><small>The all-teams screen on the clubhouse TV.</small></div><div class="ob">
+<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
+${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
+${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 ${sw("fa", s.features.around, "&ldquo;Around the league today&rdquo; strip", "Other results in the same division on match days (Fixtures TV board).")}
+</div></div>
+<div class="og" id="og-bf"><div class="oh"><b>TV banner and footer</b><small>Small extras along the top and bottom of TV and team pages.</small></div><div class="ob">
 ${sw("fw", s.features.weather, "Weather on the TV banner", "Forecast for the next game, home or away (Fixtures TV board).")}
 ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The small line at the bottom of the Fixtures TV board.")}
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
-<div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
-${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
-<div class="nb"><div class="nh"><div><b>Seasonal theme: Snowflake</b><small>Slowly falling snowflakes of mixed sizes over the normal background. Nothing else changes: colours, layout, text sizes and what is shown stay the same. <span id="thst" style="color:#cfe8ff;font-weight:600">${ea(themeStatus(s.theme, null, isDev))}</span></small></div></div>${seg("tm", s.theme.mode, [["auto", "Auto (by dates)"], ["on", "On"], ["off", "Off"]])}
+</div></div>
+<div class="og" id="og-th"><div class="oh"><b>Seasonal theme: Snowflake</b><small>Slowly falling snowflakes of mixed sizes, twinkling stars and a thin drift of snow along the bottom, over the normal background. The Stats Board logo turns icy blue and the Home page gets a winter scene. Colours, layout, text sizes and what is shown stay the same.</small></div><div class="ob">
+<div class="nb thx">
+<div class="thst">Status: <span id="thst">${ea(themeStatus(s.theme, null, isDev))}</span></div>
+<div class="thh2">When it runs</div>${seg("tm", s.theme.mode, [["auto", "Auto (by dates)"], ["on", "On"], ["off", "Off"]])}
 <small style="display:block;margin:8px 0 4px">Auto switches on at the start of the first date and off after the last (that day included), every year. On forces it on whatever the dates say (handy for testing); Off forces it off.</small>
 <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:8px 0">${[["Starts", "tf", s.theme.from], ["Ends (last day included)", "tt", s.theme.to]].map(x => `<div><small>${x[0]}</small><div style="display:flex;gap:6px;margin-top:4px"><select id="${x[1]}d" aria-label="${x[0]} day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${x[2].d === i + 1 ? " selected" : ""}>${i + 1}</option>`).join("")}</select><select id="${x[1]}m" aria-label="${x[0]} month">${UK_MONTHS.map((n, i) => `<option value="${i + 1}"${x[2].m === i + 1 ? " selected" : ""}>${n}</option>`).join("")}</select></div></div>`).join("")}</div>
-${sw("tht", s.theme.tv, "Show on TV screens", "Fixtures, Match Centre and the other TV pages.")}
+<div class="thh2 thsp">Where it shows</div>${sw("tht", s.theme.tv, "Show on TV screens", "Fixtures, Match Centre and the other TV pages.")}
 ${sw("tha", s.theme.tvAnim, "Falling snow on TV screens", "Off shows still snowflakes on TVs. Try it on a TV before leaving it on: it is a gentle, slow fall. Phones always get the falling snow (unless the phone asks for reduced motion).")}
 ${sw("thp", s.theme.phone, "Show on phones and iPads", "The team pages people open on their own devices.")}
 ${sw("thh", s.theme.home, "Show on the Home (welcome) page", "The page where visitors pick a team.")}
 <small style="display:block;margin-top:6px">Screens pick the change up within about a minute. On DEV, add <code>&amp;today=2026-12-15</code> to a link to see how Auto looks on another day.</small></div>
-${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
+</div></div>
+<div class="rel"><b>Looking for something else?</b> TV page order, page names and dots: <a href="#tv">TV rotation</a> &middot; Homepage and TV notices, visitor message form: <a href="#notices">Site notices</a> &middot; Pairing a screen: <a href="#paired">Paired screens</a></div>
 </div>
 </section>
 <section class="sec" id="s-tv" hidden><h1>TV rotation</h1><p class="sub">One link for a clubhouse TV that plays the pages below in turn. Each page builds on its own and fades in only when it is ready. Save before you preview. On a phone the preview shows a shrunk-down TV screen, so you see the TV layout, order and timings.</p>
@@ -5185,9 +5236,11 @@ function mdAvailColour(teamHex, light) { // amber that stands out from the team 
   const t = [1, 3, 5].map(k => parseInt(teamHex.slice(k, k + 2), 16)), a = [240, 170, 40], d = Math.sqrt(t.reduce((s, v, i) => s + (v - a[i]) ** 2, 0));
   return d < 110 ? (light ? "#1f5fa8" : "#8ecbff") : (light ? "#9a6a00" : "#ffd978");
 }
-function mdShirt(n, ac) {
-  const h = ac.replace("#", ""), l = (0.299 * parseInt(h.substr(0, 2), 16) + 0.587 * parseInt(h.substr(2, 2), 16) + 0.114 * parseInt(h.substr(4, 2), 16)) / 255, tc = l > 0.62 ? "#101814" : "#ffffff", s = String(n);
-  return `<svg class="sh" viewBox="0 0 40 36" aria-hidden="true"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="${ac}" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="25" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${s.length > 2 ? 10 : 15}" fill="${tc}">${s.replace(/[^0-9A-Za-z]/g, "")}</text></svg>`;
+function mdShirt(n, ac) { // v3.81.3: bigger, bolder number with an outline; black or white by real contrast (WCAG) so it reads on any team colour
+  const lum = h => { const c = [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+  const cr = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05);
+  const dark = /^#[0-9a-f]{6}$/i.test(ac) ? cr(ac, "#0b120e") >= cr(ac, "#ffffff") : true, tc = dark ? "#0b120e" : "#ffffff", oc = dark ? "#ffffff" : "#0b120e", s = String(n).replace(/[^0-9A-Za-z]/g, "");
+  return `<svg class="sh" viewBox="0 0 40 36" aria-hidden="true"><path d="M12 2 L4 6 L1 14 L7 17 L9 14 L9 34 L31 34 L31 14 L33 17 L39 14 L36 6 L28 2 C26 5 14 5 12 2 Z" fill="${ac}" stroke="rgba(0,0,0,.45)" stroke-width="1" stroke-linejoin="round"/><text x="20" y="27" text-anchor="middle" font-family="Arial" font-weight="900" font-size="${s.length > 2 ? 12 : s.length > 1 ? 15 : 22}" fill="${tc}" stroke="${oc}" stroke-width="1.1" paint-order="stroke" stroke-linejoin="round">${s}</text></svg>`;
 }
 const MD_TV_CSS = `body.md .top{display:none}
 body.md{padding-bottom:max(2.8rem,46px)}
@@ -5199,7 +5252,7 @@ body.md{padding-bottom:max(2.8rem,46px)}
 .lc{display:flex;flex-direction:column;gap:.5rem;min-height:0;min-width:0}
 .lu{flex:15 1 0;display:grid;grid-template-rows:repeat(15,1fr);gap:.2rem;min-height:0}
 .rw{display:flex;align-items:center;gap:.7rem;min-width:0;background:var(--card);border:1px solid var(--bd);border-radius:.45rem;padding:0 .7rem;font-size:1.3rem;overflow:hidden}
-.rw .sh{height:88%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
+.rw .sh{height:100%;width:auto;flex:none}.rw .pn1{flex:1 1 auto;min-width:0;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rw .pn1 i{font-style:normal;color:var(--mu);font-size:.8em;margin-left:.4rem}.rw .pn1 em{font-style:italic;color:var(--mu)}
 .rw .sp{line-height:1.4;flex:0 1 auto;max-width:48%;margin-left:auto;font-size:1.05rem;font-weight:700;color:var(--ca);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}.rw .sp.av{color:var(--av)}
 .fh{font-size:.95rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tx)}
 .rp{display:flex;flex-direction:column;gap:.25rem;min-height:0}.rp .g{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--r),1fr);grid-auto-flow:column;gap:.2rem .5rem}.rp .rw{font-size:1.1rem}.rp .rw .sp{font-size:.95rem}
@@ -5626,7 +5679,7 @@ function offNotice(list) {
 function offBar(list) {
   if (!list.length) return "";
   const few = list.length <= 2;
-  return '<div class="hdn' + (few ? "" : " hdm") + '">' + list.map(m => '<div role="note"><b>' + offEsc(m.tn || "") + "</b> &middot; " + (m.k === "p" ? "POSTPONED" : "CANCELLED") + (few ? "<br><span>" + offEsc(offLine(m)) + "</span>" + (m.n ? "<br><em>" + offEsc(m.n) + "</em>" : "") : " &middot; <span>" + offEsc(m.on ? "v " + m.on : offDateLabel(m.d)) + "</span>") + "</div>").join("") + "</div>";
+  return '<div class="hdn' + (few ? "" : " hdm") + (list.length === 1 ? " hd1" : "") + '">' + list.map(m => '<div role="note"><b>' + offEsc(m.tn || "") + "</b> &middot; " + (m.k === "p" ? "POSTPONED" : "CANCELLED") + (few ? "<br><span>" + offEsc(offLine(m)) + "</span>" + (m.n ? "<br><em>" + offEsc(m.n) + "</em>" : "") : " &middot; <span>" + offEsc(m.on ? "v " + m.on : offDateLabel(m.d)) + "</span>") + "</div>").join("") + "</div>";
 }
 async function offBump() { const kv = kvOf(); if (!kv) return; const now = Date.now(); try { await kv.put(SCORES_KEY, JSON.stringify({ t: now })); SCORES_AT = now; SCORES_READ = now; } catch (_) { /* the pages catch up when their copies expire */ } }
 async function gamesOffApi(request, url) {
@@ -5935,6 +5988,7 @@ async function sponsorsApi(request, url) {
     it.logo.bg = b.bg; it.logo.au = b.au === 1 ? 1 : 0;
     if (typeof b.bc === "string" && /^#[0-9a-f]{6}$/.test(b.bc)) it.logo.bc = b.bc;
     try { await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() })); } catch (_) { return J({ ok: false, error: "Could not save that. Try again." }, 502); }
+    await offBump(); // v3.81.3: screens keep built pages (Match day: up to 30 minutes), so a tile change clears them like Refresh scores now does
     const use4 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use4[x.id] = u.length; }
     return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use: use4, season });
   }
@@ -5970,6 +6024,7 @@ async function sponsorsApi(request, url) {
       }
       await kv.put(SPONSOR_KEY, JSON.stringify({ v: 1, items, savedAt: new Date().toISOString() }));
     } catch (_) { return J({ ok: false, error: "Could not save the logo. Try again." }, 502); }
+    await offBump(); // v3.81.3: a new, replaced or removed logo clears the screens' built pages straight away
     const use3 = {}; for (const x of items) { const u = useOf(x.id); if (u.length) use3[x.id] = u.length; }
     return J({ ok: true, items: sponsorSorted(items), max: SPONSOR_MAX, use: use3, season });
   }
@@ -6102,7 +6157,7 @@ var LGMAX=200000,LG={cur:null,file:null,arm:"",trim:true};
 function lgWebp(){try{var c=document.createElement("canvas");c.width=c.height=1;return c.toDataURL("image/webp").indexOf("data:image/webp")===0}catch(x){return false}}
 function lgBox(d,w,h){var A=[w,h,-1,-1],B=[w,h,-1,-1],hasT=false,x,y,i,a,k;for(y=0;y<h;y++){for(x=0;x<w;x++){i=(y*w+x)*4;a=d[i+3];if(a<250)hasT=true;if(a<=16)continue;k=A;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y;if(a>=240&&d[i]>=240&&d[i+1]>=240&&d[i+2]>=240)continue;k=B;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y}}
 var r=hasT?A:B;if(r[2]<0)return null;r.t=hasT;return r}
-function lgCorner(c,w,h){var s=Math.max(1,Math.min(3,w>>1,h>>1)),P=[[0,0],[w-s,0],[0,h-s],[w-s,h-s]],m=[],i,j,d,n,R,G,B;for(i=0;i<4;i++){d=c.getImageData(P[i][0],P[i][1],s,s).data;R=G=B=n=0;for(j=0;j<d.length;j+=4){R+=d[j];G+=d[j+1];B+=d[j+2];n++}m.push([R/n,G/n,B/n])}for(i=1;i<4;i++)for(j=0;j<3;j++)if(Math.abs(m[i][j]-m[0][j])>40)return null;var a=[0,0,0];for(i=0;i<4;i++)for(j=0;j<3;j++)a[j]+=m[i][j]/4;return"rgb("+Math.round(a[0])+","+Math.round(a[1])+","+Math.round(a[2])+")"}
+function lgCorner(c,w,h){var s=Math.max(1,Math.min(3,w>>1,h>>1)),k=Math.max(0,Math.min(w>>2,h>>2,Math.round(Math.min(w,h)*.06))),P=[[k,k],[w-s-k,k],[k,h-s-k],[w-s-k,h-s-k]],m=[],i,j,d,n,R,G,B;for(i=0;i<4;i++){d=c.getImageData(P[i][0],P[i][1],s,s).data;R=G=B=n=0;for(j=0;j<d.length;j+=4){if(d[j+3]<200)continue;R+=d[j];G+=d[j+1];B+=d[j+2];n++}if(!n)return null;m.push([R/n,G/n,B/n])}for(i=1;i<4;i++)for(j=0;j<3;j++)if(Math.abs(m[i][j]-m[0][j])>48)return null;var a=[0,0,0];for(i=0;i<4;i++)for(j=0;j<3;j++)a[j]+=m[i][j]/4;return"rgb("+Math.round(a[0])+","+Math.round(a[1])+","+Math.round(a[2])+")"}
 function lgHex(r){var m=/^rgb[(]([0-9]+),([0-9]+),([0-9]+)[)]$/.exec(r||"");if(!m)return"";var h="#",i,x;for(i=1;i<4;i++){x=Math.max(0,Math.min(255,+m[i])).toString(16);h+=x.length<2?"0"+x:x}return h}
 function lgTone(q,w,h){var d=q.getImageData(0,0,w,h).data,n=0,L=0,i;for(i=0;i<d.length;i+=4)if(d[i+3]>128){n++;L+=.299*d[i]+.587*d[i+1]+.114*d[i+2]}return n?(L/n<110?"l":"d"):"d"}
 function lgMake(img,svg,trim,cb){var W=img.naturalWidth||300,H=img.naturalHeight||300,bs=svg?1200/Math.max(W,H):Math.min(1,2400/Math.max(W,H)),BW=Math.max(1,Math.round(W*bs)),BH=Math.max(1,Math.round(H*bs));
@@ -6563,7 +6618,7 @@ var LGMAX=200000,LG={cur:null,file:null,arm:"",trim:true};
 function lgWebp(){try{var c=document.createElement("canvas");c.width=c.height=1;return c.toDataURL("image/webp").indexOf("data:image/webp")===0}catch(x){return false}}
 function lgBox(d,w,h){var A=[w,h,-1,-1],B=[w,h,-1,-1],hasT=false,x,y,i,a,k;for(y=0;y<h;y++){for(x=0;x<w;x++){i=(y*w+x)*4;a=d[i+3];if(a<250)hasT=true;if(a<=16)continue;k=A;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y;if(a>=240&&d[i]>=240&&d[i+1]>=240&&d[i+2]>=240)continue;k=B;if(x<k[0])k[0]=x;if(x>k[2])k[2]=x;if(y<k[1])k[1]=y;if(y>k[3])k[3]=y}}
 var r=hasT?A:B;if(r[2]<0)return null;r.t=hasT;return r}
-function lgCorner(c,w,h){var s=Math.max(1,Math.min(3,w>>1,h>>1)),P=[[0,0],[w-s,0],[0,h-s],[w-s,h-s]],m=[],i,j,d,n,R,G,B;for(i=0;i<4;i++){d=c.getImageData(P[i][0],P[i][1],s,s).data;R=G=B=n=0;for(j=0;j<d.length;j+=4){R+=d[j];G+=d[j+1];B+=d[j+2];n++}m.push([R/n,G/n,B/n])}for(i=1;i<4;i++)for(j=0;j<3;j++)if(Math.abs(m[i][j]-m[0][j])>40)return null;var a=[0,0,0];for(i=0;i<4;i++)for(j=0;j<3;j++)a[j]+=m[i][j]/4;return"rgb("+Math.round(a[0])+","+Math.round(a[1])+","+Math.round(a[2])+")"}
+function lgCorner(c,w,h){var s=Math.max(1,Math.min(3,w>>1,h>>1)),k=Math.max(0,Math.min(w>>2,h>>2,Math.round(Math.min(w,h)*.06))),P=[[k,k],[w-s-k,k],[k,h-s-k],[w-s-k,h-s-k]],m=[],i,j,d,n,R,G,B;for(i=0;i<4;i++){d=c.getImageData(P[i][0],P[i][1],s,s).data;R=G=B=n=0;for(j=0;j<d.length;j+=4){if(d[j+3]<200)continue;R+=d[j];G+=d[j+1];B+=d[j+2];n++}if(!n)return null;m.push([R/n,G/n,B/n])}for(i=1;i<4;i++)for(j=0;j<3;j++)if(Math.abs(m[i][j]-m[0][j])>48)return null;var a=[0,0,0];for(i=0;i<4;i++)for(j=0;j<3;j++)a[j]+=m[i][j]/4;return"rgb("+Math.round(a[0])+","+Math.round(a[1])+","+Math.round(a[2])+")"}
 function lgHex(r){var m=/^rgb[(]([0-9]+),([0-9]+),([0-9]+)[)]$/.exec(r||"");if(!m)return"";var h="#",i,x;for(i=1;i<4;i++){x=Math.max(0,Math.min(255,+m[i])).toString(16);h+=x.length<2?"0"+x:x}return h}
 function lgTone(q,w,h){var d=q.getImageData(0,0,w,h).data,n=0,L=0,i;for(i=0;i<d.length;i+=4)if(d[i+3]>128){n++;L+=.299*d[i]+.587*d[i+1]+.114*d[i+2]}return n?(L/n<110?"l":"d"):"d"}
 function lgMake(img,svg,trim,cb){var W=img.naturalWidth||300,H=img.naturalHeight||300,bs=svg?1200/Math.max(W,H):Math.min(1,2400/Math.max(W,H)),BW=Math.max(1,Math.round(W*bs)),BH=Math.max(1,Math.round(H*bs));
@@ -10034,7 +10089,7 @@ body.light{--bg:#eef2ef;--card:#fff;--bd:#cbd8ce;--tx:#18221c;--mu:#53665a;--wb:
 body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Arial,Helvetica,sans-serif;display:grid;grid-template-rows:auto ${ly === "classic" ? `repeat(${Math.max(results.length, 1)},minmax(0,1fr))` : "minmax(0,1fr)"};gap:.8rem;padding:max(1rem,env(safe-area-inset-top)) max(1.4rem,env(safe-area-inset-right)) max(1.9rem,env(safe-area-inset-bottom)) max(1.4rem,env(safe-area-inset-left))}
 .hd{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}.hd b{font-size:1.9rem;font-weight:700;letter-spacing:.01em}.hd span{font-size:.95rem;color:var(--mu)}
 .hdn{display:none}.hd>b,.hd>span{white-space:nowrap;flex:none}.hdn div{background:#b3261e;color:#fff;border-radius:.7em;text-align:center;line-height:1.2;padding:.25em .8em;font-weight:800}.hd .hdn b{font-size:1.15em;letter-spacing:0}.hd .hdn span{font-size:inherit;color:inherit;font-weight:600}.hdn em{font-style:normal;font-weight:400}
-@media(min-width:801px){body.ly-on .hdn{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;gap:.4rem .6rem;justify-content:center;align-items:stretch;margin:0 1.5rem;align-self:center}body.ly-on .hdn div{flex:1 1 0;max-width:46%;font-size:clamp(11px,.78vw,16px)}body.ly-on .hdn.hdm div{flex:0 1 auto;max-width:none;font-size:clamp(10px,.72vw,15px)}body.ly-on .offn{display:none}}
+@media(min-width:801px){body.ly-on .hdn{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;gap:.4rem .6rem;justify-content:center;align-items:stretch;margin:0 1.5rem;align-self:center}body.ly-on .hdn div{flex:1 1 0;max-width:46%;font-size:clamp(11px,.78vw,16px)}body.ly-on .hd>b,body.ly-on .hd>span{flex:1 1 0;min-width:0}body.ly-on .hd>span{text-align:right}body.ly-on .hdn.hd1{flex:0 1 44%;margin:0 1.5rem}body.ly-on .hdn.hd1 div{flex:0 1 auto;max-width:none}body.ly-on .hdn.hdm div{flex:0 1 auto;max-width:none;font-size:clamp(10px,.72vw,15px)}body.ly-on .offn{display:none}}
 .rw{display:grid;grid-template-columns:.7fr 1.05fr 2.1fr;gap:.8rem;min-height:0;position:relative;padding-left:1.1rem}.rw::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.45rem;border-radius:.3rem;background:var(--ac,var(--bd))}.rw>.bx{border-color:var(--at,var(--bd))}.rw>.bx.tbx{border-color:var(--ac,var(--bd));background:linear-gradient(var(--at,transparent),var(--at,transparent)),var(--card)}
 .bx{background:var(--card);border:1px solid var(--bd);border-radius:1rem;padding:.7rem 1.1rem;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.3rem;overflow:hidden}.bx.wide{grid-column:span 2}
 .lb{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--mu)}.hdg{display:flex;align-items:baseline;gap:.4rem;min-width:0;flex-wrap:wrap}.hl{font-size:1.35rem;font-weight:700;color:var(--tx)}.dt{font-size:1.35rem;font-weight:700;color:var(--mu)}.jump{display:none}

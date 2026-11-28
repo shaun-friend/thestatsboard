@@ -45,7 +45,7 @@ for(const [d,on] of [['2026-12-09',false],['2026-12-10',true],['2026-12-31',true
   r=await pageD(TVQ+'&today='+d);c('Auto on '+d+' is '+(on?'on':'off'),snowy(r.t)===on)}
 // 3. TV page content
 r=await pageD(TVQ+'&today=2026-12-15');
-c('TV snow is still by default (animation off)',!/animation:sbfall/.test(r.t)&&/class="sbfl"/.test(r.t));
+c('TV snow is still by default (animation off)',!/animation:sbfall/.test(r.t)&&/class="sbfl b\d"/.test(r.t));
 c('TV page keeps its content',r.t.includes('Match Centre'));
 c('reduced motion rule present',r.t.includes('prefers-reduced-motion:reduce'));
 c('script free: no script added by the theme',(r.t.match(/<script/g)||[]).length===(await (async()=>{await setTheme({mode:'off'});const o=await pageD(TVQ+'&today=2026-12-15');await setTheme(undefined);return (o.t.match(/<script/g)||[]).length})()));
@@ -71,7 +71,7 @@ await setTheme({mode:'auto',from:{d:31,m:2},to:{d:2,m:1}});r=await pageD(TVQ+'&t
 await setTheme({mode:'banana'});r=await pageD(TVQ+'&today=2026-12-15');c('unknown mode counts as Auto',snowy(r.t));
 // 8. Admin page
 await setTheme({mode:'auto'});
-const ad=await w.fetch(new Request('https://dev.thestatsboard.co.uk/admin',{headers:{'User-Agent':'Mozilla/5.0',Cookie:dck+'; '+ck}}),envD,ctx2);const at=await ad.text();
+const ad=await w.fetch(new Request('https://dev.thestatsboard.co.uk/admin',{headers:{'User-Agent':'Mozilla/5.0',Cookie:dck+'; '+ck}}),envD,ctx2);const at=await ad.text();if(process.env.DUMP)(await import('fs')).writeFileSync('/tmp/mk/snow_admin.html',at);
 c('Admin has the Seasonal theme controls',['Seasonal theme: Snowflake','name="tm"','id="tfd"','id="ttm"','id="tht"','id="tha"','id="thp"','id="thh"'].every(x=>at.includes(x)));
 c('Admin status line says Auto off with days to go',/Auto: off until 10 Dec \(\d+ days?\)/.test(at),(/Auto:[^<]*/.exec(at)||[''])[0]);
 c('Admin sends the theme when saving',at.includes('theme:{mode:radio("tm")'));

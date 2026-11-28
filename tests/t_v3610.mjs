@@ -23,7 +23,8 @@ r=await api(env,ck,{act:'logo',id:'00000002',t:'png',w:1,h:1,bg:'zzz',data:b64(p
 c('upload with a junk tile value stores no tile',r.j.ok&&idOf(r,'00000002').logo.bg===undefined);
 const v1=idOf(r,'00000001').logo.v,p0=A.puts;
 r=await api(env,ck,{act:'logo-bg',id:'00000001',bg:'d',au:0});
-c('changing the tile: ok, saved as chosen by hand, one write, image and version untouched',r.j.ok&&idOf(r,'00000001').logo.bg==='d'&&idOf(r,'00000001').logo.au===0&&idOf(r,'00000001').logo.v===v1&&A.puts-p0===1,JSON.stringify(r.j));
+c('changing the tile: ok, saved as chosen by hand, two writes (the list and the screens clock), image and version untouched',r.j.ok&&idOf(r,'00000001').logo.bg==='d'&&idOf(r,'00000001').logo.au===0&&idOf(r,'00000001').logo.v===v1&&A.puts-p0===2,JSON.stringify(r.j));
+c('changing the tile clears the screens built pages (scores clock written)',!!A.store['scores-refresh']);
 for(const b of ['c','l']){r=await api(env,ck,{act:'logo-bg',id:'00000001',bg:b,au:1});c('tile '+b+' accepted',r.j.ok&&idOf(r,'00000001').logo.bg===b)}
 r=await api(env,ck,{act:'logo-bg',id:'00000001',bg:'x'});c('a bad tile value is refused',r.s===400&&r.j.ok===false);
 A.store['sponsors']=JSON.stringify({v:1,items:[{id:'00000003',name:'No Logo Ltd'}]});
