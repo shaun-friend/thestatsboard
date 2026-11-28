@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.81.5 28-Nov-2026 TV rotation: dots and progress line are separate switches; Admin theme date selectors restyled.
 //   v3.81.4 28-Nov-2026 Snowflake theme: TV footer sits fully on the snow bank; Match day shirt numbers in a coloured pill.
 //   v3.81.3 28-Nov-2026 Logo or tile changes show within a minute; Screen settings in cards; wintry Snowflake theme; clearer shirt numbers; centred single cancellation; better logo tile detection.
 //   v3.81.2 28-Nov-2026 Snowflake theme: normal background, more and varied snowflakes, faster fall.
@@ -421,7 +422,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.81.4";
+const VERSION = "v3.81.5";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -470,6 +471,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.5_dots_progress_dates.zip | v3.81.4
 v3.81.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.4_snow_footer.zip | v3.81.3
 v3.81.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.3_logo_change_shows.zip | v3.81.2
 v3.81.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.2_snowflake_snow_only.zip | v3.81.1
@@ -863,6 +865,12 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.81.5 - TV rotation: dots and progress line are separate switches; Admin date selectors restyled
+- Owner request (28-Nov-2026): sometimes the dots are wanted without the progress line.
+- Changed: Admin, TV rotation now has Show the page name, Show dots and Show a progress line, each its own switch (off by default). A screen that already had the old Show dots and a progress line switch on keeps showing both until you change it.
+- Changed: Admin, Screen settings, Seasonal theme: the Starts and Ends day and month selectors are dark, rounded boxes in the Admin style (light version too), side by side with an arrow, and a line underneath reads, for example, "Runs 10 Dec to 2 Jan every year (24 days)". The dates and how they are saved are unchanged.
+- Docs: Admin guide, Releases and versions
 
 v3.81.4 - Snowflake theme: TV footer sits fully on the snow; Match day shirt numbers in a pill; bigger single cancellation notice
 - Owner report (28-Nov-2026): on the TV the "Powered by The Stats Board" line was only partly over the snow bank, so part of the dark text sat on the dark background.
@@ -3477,7 +3485,7 @@ const DOC_SECTIONS = [
       "Under each page, Shows every day is the default; tap Choose days (or Change) to open the day buttons (Mo to Su) that choose the days of the week it is shown; Every day and Weekends are shortcuts. A page left on every day shows every day. The day is the UK day, and the TV drops or brings back pages within about 2 minutes of midnight. At least one day must stay on; to stop a page altogether, use its switch. One full round lasts counts only the pages due today.",
       "The Thank you to our sponsors page (add it under All teams) shows each group of teams as slides of sponsor logos with the names of the players they back: groups you set up there, 8 sponsors to a slide, and a tall tile for a sponsor with four or more players. Every slide is a step in the round with its own dot and its own seconds, so the round total counts them, and the number of slides follows your sponsors and players.",
       "Under the link, One full round lasts shows the total of every page that is switched on, in minutes and seconds and as plain seconds, so you can set the same display time on a digital signage system. It updates as you change seconds or switch pages, before you save.",
-      "Theme chooses dark or light for every page. Two optional switches add a thin strip along the bottom, below the pages so nothing is covered: Show the page name, and Show dots and a progress line (both off by default).",
+      "Theme chooses dark or light for every page. Three optional switches add a thin strip along the bottom, below the pages so nothing is covered: Show the page name, Show dots, and Show a progress line (all off by default, and each works on its own).",
       "Add new teams to the TV automatically: off by default. When on, a team added in Our teams gets its four pages at the end of the list. When off, nothing appears for it until you add it.",
       "Save changes, then press Preview. A hidden team in Our teams is skipped on the TV."
     ] },
@@ -3699,6 +3707,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.81.5", "TV rotation: dots and the progress line are now two separate switches. The Snowflake theme date pickers in Admin look better and show a summary of the dates."],
       ["v3.81.4", "Snowflake theme: on TV screens the footer line now sits fully on the snow. Match day shirt numbers now sit in a large coloured pill so they are easier to read."],
       ["v3.81.3", "A sponsor logo or tile change now shows on the TV screens within about a minute (it could take up to 30 minutes). Screen settings are grouped into cards. The Snowflake theme is more wintry (varied flakes, twinkling stars, snow along the bottom, an icy logo and a Home page winter scene). Shirt numbers on Match day are easier to read, a single cancellation is centred, and logo tiles are worked out better for white-background logos."],
       ["v3.81.2", "Snowflake theme: normal background with more, varied snowflakes falling a little faster."],
@@ -4091,7 +4100,7 @@ const SETTINGS_DEFAULT = () => ({
   theme: { mode: "auto", from: { d: 10, m: 12 }, to: { d: 2, m: 1 }, tv: true, phone: true, home: true, tvAnim: false },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
   club: { teams: TEAMS_DEFAULT.map(t => ({ ...t })), saved: false },
-  tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", name: false, dots: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
+  tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", name: false, dots: false, prog: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
   savedAt: ""
 });
 // v3.74.0: the sponsors thank-you page for the TV. Sponsors with the players they back, for a group of teams, packed 4 columns wide
@@ -4224,7 +4233,7 @@ function cleanTv(r, ids) {
   for (const k of keys) if (!order.includes(k)) order.push(k);
   const off = [...new Set((Array.isArray(r.off) ? r.off : []).map(String).filter(t => keys.includes(t)))];
   const seen = Array.isArray(r.seen) ? [...new Set(r.seen.map(String).filter(t => idset.has(t)))] : ids.slice();
-  return { items, order, off, theme: r.theme === "light" ? "light" : "dark", name: r.name === undefined ? r.dots === true : r.name === true, dots: r.dots === true, auto: r.auto === true, seen };
+  return { items, order, off, theme: r.theme === "light" ? "light" : "dark", name: r.name === undefined ? r.dots === true : r.name === true, dots: r.dots === true, prog: r.prog === undefined ? r.dots === true : r.prog === true, auto: r.auto === true, seen };
 }
 // The groups the TV screen is made of, in play order: the Match Centre ("All teams") and one group per team. With "add new teams
 // automatically" on, a team that was not on the list at the last save gets all four of its pages, switched on, at the end.
@@ -4276,9 +4285,9 @@ function tvPlan(s, screen, day, spx) {
   return out;
 }
 function tvScreenPage(plan, opt, theme) {
-  const showName = !!(opt && opt.name), showDots = !!(opt && opt.dots), strip = showName || showDots;
+  const showName = !!(opt && opt.name), showDots = !!(opt && opt.dots), showProg = !!(opt && opt.prog), strip = showName || showDots || showProg;
   const light = theme === "light", bg = light ? "#f4f8f5" : "#0a100e", fg = light ? "#24332b" : "#c5d2cb";
-  const data = JSON.stringify({ p: plan, n: showName, d: showDots }).replace(/</g, "\\u003c");
+  const data = JSON.stringify({ p: plan, n: showName, d: showDots, g: showProg }).replace(/</g, "\\u003c");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="robots" content="noindex,nofollow"><title>TV screen - The Stats Board</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #st{position:fixed;inset:0 0 ${strip ? "5vh" : "0"} 0}.fr{position:absolute;left:0;top:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .8s ease;pointer-events:none;background:${bg}}.fr.on{opacity:1}
@@ -4292,16 +4301,16 @@ function tvScreenPage(plan, opt, theme) {
 <div id="bt" hidden><div id="bi"><span id="lab"></span><span id="dots"></span></div><div id="pg"><div id="bar"></div></div></div>
 <script type="application/json" id="tvd">${data}</script>
 <script>(function(){
-var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,N=C.n,D=C.d,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
+var C=JSON.parse(document.getElementById("tvd").textContent),P=C.p,N=C.n,D=C.d,G=C.g,st=document.getElementById("st"),ld=document.getElementById("ld"),bt=document.getElementById("bt"),lab=document.getElementById("lab"),dt=document.getElementById("dots"),bar=document.getElementById("bar");
 if(!P.length)return;
 var FADE=800,STAG=4000,TMO=30000,REF=300000;
 var S=P.map(function(p,i){return{p:p,i:i,f:null,fail:0,busy:null,v:0,rt:null}}),cur=-1,tm=null,TOP=0,T0=Date.now(),DL=0,WAIT=25000;
 // Each page reports the version it was built by. When one comes back newer than the others shown so far, the others are refreshed straight away (one every 4 seconds) so a deploy is not shown as a mixture of old and new for several minutes.
 function vn(s){var a=String(s||"").replace("v","").split(".");return a.length===3?(+a[0])*1e6+(+a[1])*1e3+(+a[2]):0}
-if(N||D){bt.hidden=false}if(D){P.forEach(function(){dt.appendChild(document.createElement("i"))})}else{dt.hidden=true;document.getElementById("pg").hidden=true}
+if(N||D||G){bt.hidden=false}if(D){P.forEach(function(){dt.appendChild(document.createElement("i"))})}else{dt.hidden=true}if(!G){document.getElementById("pg").hidden=true}
 // On a screen narrower than a TV (a phone or small tablet checking the link) the pages are drawn at a full 1920 x 1080 TV size and shrunk to fit, so they
 // use their TV layout instead of the phone one. A real TV (1280 wide or more) is untouched.
-function fit(){var w=innerWidth,h=innerHeight,q=(N||D)?.05:0;if(w>=1280){st.style.cssText="";return}var H=1080*(1-q),k=Math.min(w/1920,h*(1-q)/H);st.style.cssText="inset:auto;width:1920px;height:"+H+"px;transform-origin:0 0;transform:scale("+k+");left:"+Math.max(0,(w-1920*k)/2)+"px;top:"+Math.max(0,(h*(1-q)-H*k)/2)+"px"}
+function fit(){var w=innerWidth,h=innerHeight,q=(N||D||G)?.05:0;if(w>=1280){st.style.cssText="";return}var H=1080*(1-q),k=Math.min(w/1920,h*(1-q)/H);st.style.cssText="inset:auto;width:1920px;height:"+H+"px;transform-origin:0 0;transform:scale("+k+");left:"+Math.max(0,(w-1920*k)/2)+"px;top:"+Math.max(0,(h*(1-q)-H*k)/2)+"px"}
 fit();addEventListener("resize",fit);
 // Pinch-zooming a phone preview makes the browser redraw 1920 x 1080 pages at a huge size and iPhones run out of memory, so zooming is switched off here.
 ["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false,capture:true})});
@@ -4332,7 +4341,7 @@ function nextReady(from){for(var k=1;k<=S.length;k++){var j=(from+k)%S.length;if
 function show(j){
   if(cur>=0&&S[cur].f&&cur!==j)S[cur].f.className="fr";
   cur=j;S[j].f.className="fr on";ld.hidden=true;
-  if(N)lab.textContent=S[j].p.n;if(D){[].forEach.call(dt.children,function(x,k){x.className=k===j?"on":""});
+  if(N)lab.textContent=S[j].p.n;if(D){[].forEach.call(dt.children,function(x,k){x.className=k===j?"on":""})}if(G){
     bar.style.transition="none";bar.style.width="0";void bar.offsetWidth;bar.style.transition="width "+S[j].p.s+"s linear";bar.style.width="100%"}
   // Each page is timed from when the previous one was due to end, not from when this code happened to run, so small delays do not add up over a round.
   var now=Date.now();DL=(DL&&now-DL<2000&&now>=DL-2000)?DL+S[j].p.s*1000:now+S[j].p.s*1000;
@@ -4801,7 +4810,7 @@ body.light .adn,body.light .oc,body.light .tile{background:#fff;border-color:#cb
 .ad h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#91a49a;margin:26px 0 8px}
 .cd{background:#111719;border:1px solid #26312d;border-radius:16px;padding:6px 18px}
 .r{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #1f2925}.r:last-child{border:0}.r b{font-size:15px;display:block}.r small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
-.nb{padding:14px 0;border-bottom:1px solid #1f2925}.thx{margin:0;padding:6px 0 14px;border:0!important;background:none}.sgrp{margin-top:6px}.og{margin:0 0 18px;border:1px solid #2a3a33;border-radius:14px;background:#0f1613;overflow:hidden}.og>.oh{padding:14px 20px;background:#13201a;border-bottom:1px solid #2a3a33}.og>.oh b{display:block;font-size:15.5px}.og>.oh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}.og>.ob{padding:0 20px}.og>.ob>.r:last-child,.og>.ob>.nb:last-child{border-bottom:0}.rel{margin:6px 0 18px;padding:14px 20px;border:1px dashed #34564a;border-radius:14px;color:#91a49a;font-size:13px;line-height:1.6}.rel b{color:#e6efe9}.rel a{color:#7fe0a6}body.light .og{background:#fff;border-color:#cbd8ce}body.light .og>.oh{background:#eef5f0;border-color:#cbd8ce}body.light .og>.oh small{color:#53665a}body.light .rel{border-color:#b9cfc2;color:#53665a}body.light .rel b{color:#1c2a22}body.light .rel a{color:#1b7f3b}.thx .thst{margin:6px 0 4px;padding:9px 12px;border-radius:9px;background:#14262e;color:#cfe8ff;font-weight:600;font-size:13.5px}.thx .thh2{margin:16px 0 6px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#7fb7a0;font-weight:700}.thx .thsp{margin-top:18px;padding-top:16px;border-top:1px solid #2a4137}body.light .thx .thst{background:#e3eef6;color:#1c4560}body.light .thx .thh2{color:#2d7a5c}body.light .thx .thsp{border-top-color:#cfded5}.nb:last-child{border:0}.nh{display:flex;justify-content:space-between;align-items:center;gap:14px}.nh b{font-size:15px;display:block}.nh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
+.nb{padding:14px 0;border-bottom:1px solid #1f2925}.thx{margin:0;padding:6px 0 14px;border:0!important;background:none}.sgrp{margin-top:6px}.dts{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 4px}.dtf small{display:block;margin:0 0 6px;font-weight:700}.dtp{display:flex;gap:6px}.dto{font-size:22px;color:#4fc27d;padding-bottom:9px}.dts select{appearance:none;-webkit-appearance:none;font:700 17px Arial,Helvetica,sans-serif;color:#f1f7f3;background:#0b1110 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%237fdca0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid #33463d;border-radius:10px;padding:10px 34px 10px 14px;min-width:0;cursor:pointer}.dts select:hover{border-color:#4fc27d}.dts select:focus-visible{outline:2px solid #4fc27d;outline-offset:1px}.dsum{display:inline-block;margin:10px 0 4px;background:#13201a;border:1px solid #2a3a33;border-radius:999px;padding:7px 14px;font-size:14px;color:#cfe3d7}.dsum b{color:#7fdca0}body.light .dts select{color:#1c2a22;background-color:#fff;border-color:#b9cfc2}body.light .dsum{background:#eef5f0;border-color:#cbd8ce;color:#33443a}body.light .dsum b{color:#1f7a45}body.light .dto{color:#1f7a45}.og{margin:0 0 18px;border:1px solid #2a3a33;border-radius:14px;background:#0f1613;overflow:hidden}.og>.oh{padding:14px 20px;background:#13201a;border-bottom:1px solid #2a3a33}.og>.oh b{display:block;font-size:15.5px}.og>.oh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}.og>.ob{padding:0 20px}.og>.ob>.r:last-child,.og>.ob>.nb:last-child{border-bottom:0}.rel{margin:6px 0 18px;padding:14px 20px;border:1px dashed #34564a;border-radius:14px;color:#91a49a;font-size:13px;line-height:1.6}.rel b{color:#e6efe9}.rel a{color:#7fe0a6}body.light .og{background:#fff;border-color:#cbd8ce}body.light .og>.oh{background:#eef5f0;border-color:#cbd8ce}body.light .og>.oh small{color:#53665a}body.light .rel{border-color:#b9cfc2;color:#53665a}body.light .rel b{color:#1c2a22}body.light .rel a{color:#1b7f3b}.thx .thst{margin:6px 0 4px;padding:9px 12px;border-radius:9px;background:#14262e;color:#cfe8ff;font-weight:600;font-size:13.5px}.thx .thh2{margin:16px 0 6px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:#7fb7a0;font-weight:700}.thx .thsp{margin-top:18px;padding-top:16px;border-top:1px solid #2a4137}body.light .thx .thst{background:#e3eef6;color:#1c4560}body.light .thx .thh2{color:#2d7a5c}body.light .thx .thsp{border-top-color:#cfded5}.nb:last-child{border:0}.nh{display:flex;justify-content:space-between;align-items:center;gap:14px}.nh b{font-size:15px;display:block}.nh small{color:#91a49a;font-size:12.5px;line-height:1.4;display:block;margin-top:2px}
 .ad .in{margin-top:9px}.ad input.in[type=date]{display:block;-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;height:46px;text-align:left}.ad input.in[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}.ad input.in[type=date]::-webkit-calendar-picker-indicator{margin:0}.two{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.two>div{flex:1;min-width:200px}.l{font-size:12px;color:#9eafa5;font-weight:700;margin-top:10px}.l span{font-weight:400}
 .cnt{font-size:12px;color:#91a49a;text-align:right;margin-top:3px}
 .env{position:relative;display:inline-flex;align-items:center;justify-content:center}.bdg{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#2f9d57;color:#06150d;font:700 11px/14px Arial,Helvetica,sans-serif;text-align:center;border:2px solid #080b0d;box-sizing:border-box;display:block}.bdg[hidden]{display:none}body.light .bdg{border-color:#eef2ef;color:#fff}.tg{position:relative;flex:0 0 auto;width:46px;height:27px}.tg input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}.tg span{position:absolute;inset:0;border-radius:99px;background:#2c3a34;transition:.15s}.tg span::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#cfd8d3;transition:.15s}.tg input:checked+span{background:#2f9d57}.tg input:checked+span::after{left:22px;background:#fff}.tg input:focus-visible+span{outline:3px solid #7fd89a;outline-offset:2px}
@@ -4898,7 +4907,9 @@ ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", 
 <div class="thst">Status: <span id="thst">${ea(themeStatus(s.theme, null, isDev))}</span></div>
 <div class="thh2">When it runs</div>${seg("tm", s.theme.mode, [["auto", "Auto (by dates)"], ["on", "On"], ["off", "Off"]])}
 <small style="display:block;margin:8px 0 4px">Auto switches on at the start of the first date and off after the last (that day included), every year. On forces it on whatever the dates say (handy for testing); Off forces it off.</small>
-<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:8px 0">${[["Starts", "tf", s.theme.from], ["Ends (last day included)", "tt", s.theme.to]].map(x => `<div><small>${x[0]}</small><div style="display:flex;gap:6px;margin-top:4px"><select id="${x[1]}d" aria-label="${x[0]} day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${x[2].d === i + 1 ? " selected" : ""}>${i + 1}</option>`).join("")}</select><select id="${x[1]}m" aria-label="${x[0]} month">${UK_MONTHS.map((n, i) => `<option value="${i + 1}"${x[2].m === i + 1 ? " selected" : ""}>${n}</option>`).join("")}</select></div></div>`).join("")}</div>
+<div class="dts">${[["Starts", "tf", s.theme.from], ["Ends (last day included)", "tt", s.theme.to]].map((x, k) => `${k ? '<span class="dto" aria-hidden="true">&rarr;</span>' : ""}<div class="dtf"><small>${x[0]}</small><div class="dtp"><select id="${x[1]}d" aria-label="${x[0]} day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${x[2].d === i + 1 ? " selected" : ""}>${i + 1}</option>`).join("")}</select><select id="${x[1]}m" aria-label="${x[0]} month">${UK_MONTHS.map((n, i) => `<option value="${i + 1}"${x[2].m === i + 1 ? " selected" : ""}>${n}</option>`).join("")}</select></div></div>`).join("")}</div>
+<div class="dsum" id="thsum" role="status"></div>
+<script>(function(){var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],L=[31,28,31,30,31,30,31,31,30,31,30,31],ids=["tfd","tfm","ttd","ttm"],o=document.getElementById("thsum");function v(i){return Number(document.getElementById(i).value)}function doy(d,m){var n=d,k;for(k=0;k<m-1;k++)n+=L[k];return n}function f(){if(!o||!document.getElementById("tfd"))return;var a=doy(v("tfd"),v("tfm")),b=doy(v("ttd"),v("ttm")),n=b>=a?b-a+1:365-a+1+b;o.innerHTML="Runs <b>"+v("tfd")+" "+M[v("tfm")-1]+"</b> to <b>"+v("ttd")+" "+M[v("ttm")-1]+"</b> every year ("+n+" days)"}ids.forEach(function(i){var e=document.getElementById(i);if(e)e.addEventListener("change",f)});f()})();</script>
 <div class="thh2 thsp">Where it shows</div>${sw("tht", s.theme.tv, "Show on TV screens", "Fixtures, Match Centre and the other TV pages.")}
 ${sw("tha", s.theme.tvAnim, "Falling snow on TV screens", "Off shows still snowflakes on TVs. Try it on a TV before leaving it on: it is a gentle, slow fall. Phones always get the falling snow (unless the phone asks for reduced motion).")}
 ${sw("thp", s.theme.phone, "Show on phones and iPads", "The team pages people open on their own devices.")}
@@ -4914,7 +4925,8 @@ ${sw("thh", s.theme.home, "Show on the Home (welcome) page", "The page where vis
 <div class="cd">
 <div class="r"><div><b>Theme</b><small>Dark or light colours for every page on this screen.</small></div>${seg("tvt", s.tv.theme, [["dark", "Dark"], ["light", "Light"]])}</div>
 ${sw("tvn", s.tv.name, "Show the page name", "The name of the page that is on, in a thin strip along the bottom of the TV (the pages sit above it, so nothing is covered). Off by default.")}
-${sw("tvd", s.tv.dots, "Show dots and a progress line", "One dot per page and a line showing how long is left, in the same thin strip. Off by default.")}
+${sw("tvd", s.tv.dots, "Show dots", "One dot per page, with the page that is on lit up, in the same thin strip. Off by default.")}
+${sw("tvg", s.tv.prog, "Show a progress line", "A thin line along the top of the strip showing how long is left on the page that is on. Works with or without the dots. Off by default.")}
 ${sw("tva", s.tv.auto, "Add new teams to the TV automatically", "A team added in Our teams gets its four pages (Fixtures board, Next game, League table, League Leaders) at the end of the list. Off: nothing appears until you add it.")}
 </div>
 <div class="tvt2"><h3>Pages, by team</h3><span id="tvsum"></span></div>
@@ -5055,7 +5067,7 @@ card.appendChild(ad);box.appendChild(card)});
 $("tvsum").textContent=n+" page"+(n===1?"":"s")+" on · about "+tvFmt(sec)+" for a full round"+(nd?" today ("+nd+" more on other days)":"");
 $("tvtot").textContent=n?tvFmt(sec)+" ("+sec+" seconds) · "+n+" page"+(n===1?"":"s")+(nd?" today":""):(nd?"Nothing is due today":"Nothing is switched on yet");
 $("tvtotbox").title="Adds up the seconds of every page that is switched on, including changes you have not saved yet"}
-function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){var x={page:it.page,team:g.key,secs:it.secs,on:it.on};if(it.d)x.d=it.d;if(it.g)x.g=it.g;if(it.sn!=null)x.sn=it.sn;o.items.push(x)})});return o}
+function tvOut(){var o={items:[],order:[],off:[],theme:radio("tvt"),name:$("tvn").checked,dots:$("tvd").checked,prog:$("tvg").checked,auto:$("tva").checked,seen:TVI.ids};TVI.groups.forEach(function(g){o.order.push(g.key);if(!g.on)o.off.push(g.key);g.items.forEach(function(it){var x={page:it.page,team:g.key,secs:it.secs,on:it.on};if(it.d)x.d=it.d;if(it.g)x.g=it.g;if(it.sn!=null)x.sn=it.sn;o.items.push(x)})});return o}
 var tvLink=location.origin+"/"+TVI.slug+"/tv";$("tvlk").textContent=tvLink.replace(/^https?:[/][/]/,"");$("tvpv").href=tvLink;
 $("tvcp").addEventListener("click",function(){var b=$("tvcp");function done(t){b.textContent=t;setTimeout(function(){b.textContent="Copy link"},2500)}try{navigator.clipboard.writeText(tvLink).then(function(){done("Copied")},function(){done("Select and copy it")})}catch(e){done("Select and copy it")}});
 tvDraw();
@@ -9028,7 +9040,7 @@ const worker = {
     { const tvm = url.pathname.match(/^\/([A-Za-z0-9-]{1,40})\/tv\/?$/), tvAlias = /^\/tv\/?$/.test(url.pathname);
       if (request.method === "GET" && ((tvm && tvm[1].toLowerCase() === CLUB_ID) || tvAlias)) {
         const ts = await siteSettings();
-        return new Response(tvScreenPage(tvPlan(ts, cleanScreenName(url.searchParams.get("screen")), undefined, await spTvCounts(ts, url)), { name: ts.tv.name, dots: ts.tv.dots }, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+        return new Response(tvScreenPage(tvPlan(ts, cleanScreenName(url.searchParams.get("screen")), undefined, await spTvCounts(ts, url)), { name: ts.tv.name, dots: ts.tv.dots, prog: ts.tv.prog }, ts.tv.theme), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
       } }
 
     // Welcome screen: the bare address with no team or view in the link.

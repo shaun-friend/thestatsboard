@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.5_dots_progress_dates.zip | v3.81.4
 v3.81.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.4_snow_footer.zip | v3.81.3
 v3.81.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.3_logo_change_shows.zip | v3.81.2
 v3.81.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.2_snowflake_snow_only.zip | v3.81.1
@@ -436,6 +437,12 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.81.5 - TV rotation: dots and progress line are separate switches; Admin date selectors restyled
+- Owner request (28-Nov-2026): sometimes the dots are wanted without the progress line.
+- Changed: Admin, TV rotation now has Show the page name, Show dots and Show a progress line, each its own switch (off by default). A screen that already had the old Show dots and a progress line switch on keeps showing both until you change it.
+- Changed: Admin, Screen settings, Seasonal theme: the Starts and Ends day and month selectors are dark, rounded boxes in the Admin style (light version too), side by side with an arrow, and a line underneath reads, for example, "Runs 10 Dec to 2 Jan every year (24 days)". The dates and how they are saved are unchanged.
+- Docs: Admin guide, Releases and versions
 
 v3.81.4 - Snowflake theme: TV footer sits fully on the snow; Match day shirt numbers in a pill; bigger single cancellation notice
 - Owner report (28-Nov-2026): on the TV the "Powered by The Stats Board" line was only partly over the snow bank, so part of the dark text sat on the dark background.
