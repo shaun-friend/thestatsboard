@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.6 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.6_pitch_autolive.zip | v3.83.5
 v3.83.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.5_pitch_flow.zip | v3.83.4
 v3.83.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.4_pin_numpad.zip | v3.83.3
 v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
@@ -444,6 +445,14 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.6 - Pitch allocation: changes go live by themselves, edge caching, TV link works on a phone
+- Owner feedback (28-Nov-2026) after testing v3.83.5.
+- Changed: there is no Publish button any more. Every change on the fixtures team page is saved and goes live straight away, so nobody has to remember to publish. The bar says Saved and live (or Saved, not live yet when a clash or a missing age group or kick-off needs fixing; the last good version stays on the screen until it is fixed). Emptying a day takes it off the screen. Preview stays as an optional look.
+- Changed: the public list is cached at the edge for a minute (30 seconds in the browser) so a crowd scanning the QR code costs very little; saving clears the nearest copy at once, other locations catch up within the minute.
+- Changed: the TV screen and phone view check for changes every minute (was 3 minutes).
+- Fixed: the TV address on a phone no longer jumps to the phone view, so the TV screen can be viewed from a phone. The screen now re-fits after a rotation.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.5 - Pitch allocation: simpler publish, warnings, welcome heading, footer clear of the content
 - Owner feedback (28-Nov-2026) after testing v3.83.4.

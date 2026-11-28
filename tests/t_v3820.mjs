@@ -47,7 +47,7 @@ r=await adm({a:'save',lists:L,date:'2026-11-29',rows:[row('U9','Pitch 1','10:00'
 const opp={id:'11039',n:'Newton Abbot'};
 r=await adm({a:'save',lists:L,date:'2026-11-29',rows:[row('U10','Pitch 2 (Top)','10:30',['c3'],[]),row('U9','Pitch 1','10:00',['c1'],['c2'],opp),row('U9','Pitch 1','13:00',['c1'],['c2']),row('Girls U11','Pitch 3','10:00',['c4'],['c5'])]});
 c('recycling between sessions is allowed, same pitch at another time too',r.j.ok&&r.j.errors.length===0);
-c('draft not public yet',(await rq('/api/pitch').then(x=>x.json())).rows.length===0);
+c('saving a clean day makes it live straight away',(await rq('/api/pitch').then(x=>x.json())).rows.length===4);
 r=await adm({a:'publish'});c('publish ok',r.j.ok&&r.j.pub&&r.j.pub.n===4);
 let pub=await rq('/api/pitch').then(x=>x.json());
 c('public payload',pub.date==='2026-11-29'&&pub.rows.length===4&&pub.club==='Ivybridge Rugby Club'&&pub.crest);
@@ -116,12 +116,22 @@ r=await adm({a:'save',lists:L,date:'',rows:r.j.doc.rows});r=await adm({a:'publis
  const u=await rq('/api/pitch/usage',{headers:{Cookie:fix}}).then(x=>x.json());c('deleted day no longer marked as an allocation in usage',!u.days.some(d=>d.date==='2026-11-29'&&d.pub>0))}
 // publishing with no age groups clears the public screen
 {await adm({a:'save',lists:L,date:'2026-12-27',rows:[row('U9','Pitch 1','10:00',['c1'],['c2'])]});await adm({a:'publish'});
- await adm({a:'save',lists:L,date:'2026-12-27',rows:[]});let r=await adm({a:'publish'});const pb=await rq('/api/pitch').then(x=>x.json());
- c('publishing an empty day clears the screen',r.j.ok&&pb.rows.length===0&&pb.date==='');
+ let r=await adm({a:'save',lists:L,date:'2026-12-27',rows:[]});const pb=await rq('/api/pitch').then(x=>x.json());
+ c('saving an empty day clears the screen',r.j.ok&&pb.rows.length===0&&pb.date==='');
+ // a day with a clash is saved as a draft and the last live day stays on screen
+ await adm({a:'save',lists:L,date:'2027-01-17',rows:[row('U9','Pitch 1','10:00',['c1'],['c2'])]});
+ await adm({a:'save',lists:L,date:'2027-01-17',rows:[row('U9','Pitch 1','10:00',['c1'],['c2']),row('U10','Pitch 2 (Btm)','10:30',['c1'],[])]});
+ const pc=await rq('/api/pitch').then(x=>x.json());c('a clash stays a draft; last good version stays live',pc.rows.length===1&&pc.date==='2027-01-17')
  await adm({a:'save',lists:L,date:'2027-01-03',rows:[]});r=await adm({a:'publish'});c('empty publish for an unpublished date is refused',r.s===422)}
 // missing pitch or changing rooms is a warning, not a blocker
 {let r=await adm({a:'save',lists:L,date:'2027-01-10',rows:[{...row('U9','Pitch 1','10:00',[],[]),pitch:''}]});
  c('no pitch or rooms: warnings only',r.j.ok&&r.j.errors.length===2&&r.j.errors.every(e=>e.w));
- r=await adm({a:'publish'});const pb=await rq('/api/pitch').then(x=>x.json());
- c('can publish with no pitch or rooms',r.j.ok&&pb.date==='2027-01-10'&&pb.rows.length===1&&pb.rows[0].pitch==='')}
+ const pb=await rq('/api/pitch').then(x=>x.json());
+ c('goes live with no pitch or rooms',r.j.ok&&pb.date==='2027-01-10'&&pb.rows.length===1&&pb.rows[0].pitch==='')}
+// edge cache: public data is served from the cache, and a save clears it at once
+{const m=new Map();let puts=0;globalThis.caches={default:{match:async k=>{const v=m.get(k.url);return v?v.clone():undefined},put:async(k,v)=>{puts++;m.set(k.url,v)},delete:async k=>m.delete(k.url)}};
+ const a1=await rq('/api/pitch');const cc=a1.headers.get('Cache-Control')||'';const a2=await rq('/api/pitch');
+ c('public data cached at the edge',puts===1&&/s-maxage=60/.test(cc)&&JSON.stringify(await a1.json())===JSON.stringify(await a2.json()));
+ await adm({a:'save',lists:L,date:'2027-02-07',rows:[row('U9','Pitch 1','10:00',['c1'],['c2'])]});
+ const a3=await rq('/api/pitch').then(x=>x.json());c('a save clears the edge copy',a3.date==='2027-02-07');delete globalThis.caches}
 console.log(ok+' ok, '+bad+' failed');process.exit(bad?1:0);

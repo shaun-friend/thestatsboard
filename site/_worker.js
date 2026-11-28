@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.6 28-Nov-2026 Pitch allocation: changes go live by themselves, edge cached, TV link works on a phone.
 //   v3.83.5 28-Nov-2026 Pitch allocation: Publish on the bar, warnings for pitch/rooms, welcome heading, footer clear.
 //   v3.83.4 28-Nov-2026 PIN pages: number pad back.
 //   v3.83.3 28-Nov-2026 Pitch allocation: step buttons work, empty publish clears the screen, PIN boxes allow letters.
@@ -429,7 +430,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.5";
+const VERSION = "v3.83.6";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -478,6 +479,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.6 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.6_pitch_autolive.zip | v3.83.5
 v3.83.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.5_pitch_flow.zip | v3.83.4
 v3.83.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.4_pin_numpad.zip | v3.83.3
 v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
@@ -879,6 +881,14 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.6 - Pitch allocation: changes go live by themselves, edge caching, TV link works on a phone
+- Owner feedback (28-Nov-2026) after testing v3.83.5.
+- Changed: there is no Publish button any more. Every change on the fixtures team page is saved and goes live straight away, so nobody has to remember to publish. The bar says Saved and live (or Saved, not live yet when a clash or a missing age group or kick-off needs fixing; the last good version stays on the screen until it is fixed). Emptying a day takes it off the screen. Preview stays as an optional look.
+- Changed: the public list is cached at the edge for a minute (30 seconds in the browser) so a crowd scanning the QR code costs very little; saving clears the nearest copy at once, other locations catch up within the minute.
+- Changed: the TV screen and phone view check for changes every minute (was 3 minutes).
+- Fixed: the TV address on a phone no longer jumps to the phone view, so the TV screen can be viewed from a phone. The screen now re-fits after a rotation.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.5 - Pitch allocation: simpler publish, warnings, welcome heading, footer clear of the content
 - Owner feedback (28-Nov-2026) after testing v3.83.4.
@@ -3556,7 +3566,7 @@ const DOC_SECTIONS = [
     { ol: [
       "Open the fixtures team page, check the date (or use Copy last week in Setup), and add a card for each age group.",
       "Pick the pitch, kick-off and Home and Away changing rooms. Anything already taken in that session is greyed out. Search for the opposition to show both crests.",
-      "Tap Publish when you are ready (Preview first if you want to see the TV and phone screens). A missing pitch or changing room only shows a warning. Fix any clash it reports. You can change things and tap Publish again at any time. Screens and phones update within about 3 minutes."
+      "Just make your changes. Everything is saved and goes live on the screen and phones by itself, so there is nothing to publish. The bar at the bottom says Saved and live. A missing pitch or changing room only shows a warning; a clash or a missing age group or kick-off keeps the day from going live until you fix it (the last good version stays on the screen). Preview is an optional look at the TV and phone screens. Screens and phones pick up changes within about a minute."
     ] },
     { h: "Rules and sessions" },
     { ul: [
@@ -3812,6 +3822,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.6", "Pitch allocation: no Publish button, every change goes live by itself, the public list is cached at the edge and checked every minute, and the TV link works on a phone."],
       ["v3.83.5", "Pitch allocation: Publish is always on the bar, a missing pitch or changing room is a warning, the TV heading welcomes the club, and the footer no longer overlaps."],
       ["v3.83.4", "PIN boxes open the number pad again."],
       ["v3.83.3", "Pitch allocation: the step buttons at the top work, publishing with no age groups clears the screen and phones, and PIN boxes accept letters."],
@@ -12080,7 +12091,14 @@ async function pitchRoutes(request, url, label, env) {
   const get = request.method === "GET" || request.method === "HEAD";
   if (path === PT_PATH && get) { if (request.method === "GET" && !url.search.includes("preview=1")) await ptBump(request, ["tv"]); return new Response(pitchTvPage(), { headers: H }); }
   if (path === PT_PATH + "/phone" && get) { if (request.method === "GET" && !url.search.includes("preview=1")) await ptBump(request, /[?&]s=qr(&|$)/.test(url.search) ? ["ph", "qr"] : ["ph"]); return new Response(pitchPhonePage(), { headers: H }); }
-  if (path === "/api/pitch" && get) { const doc = await ptLoad(); return J(ptPublic(doc, await siteSettings()), 200, "public, max-age=20"); }
+  if (path === "/api/pitch" && get) {
+    // Public and the same for everyone, so it is cached at the edge for a minute: a crowd scanning the QR code costs one read of the settings store per minute per location, not one each. The browser keeps it for 30 seconds. A save clears this location's copy at once; other locations catch up within the minute.
+    const ec = typeof caches !== "undefined" && caches.default ? caches.default : null, ek = new Request(url.origin + "/api/pitch?edge=1");
+    if (ec) { try { const hit = await ec.match(ek); if (hit) return hit; } catch (_) {} }
+    const doc = await ptLoad(), res = J(ptPublic(doc, await siteSettings()), 200, "public, max-age=30, s-maxage=60");
+    if (ec) { try { await ec.put(ek, res.clone()); } catch (_) {} }
+    return res;
+  }
   if (path === "/api/pitch/map" && get) {
     const kv = kvOf(), doc = await ptLoad(); if (!kv || !doc.mapv) return new Response("Not found", { status: 404, headers: { "Cache-Control": "public, max-age=60" } });
     let r = null; try { r = await kv.getWithMetadata(PT_MAP, { type: "arrayBuffer" }); } catch (_) { return new Response("Try again", { status: 502, headers: { "Cache-Control": "no-store" } }); }
@@ -12150,6 +12168,19 @@ async function pitchRoutes(request, url, label, env) {
     const lists = ptCleanLists(b.lists || doc.lists);
     doc.lists = lists; doc.date = ptDateOk(b.date); doc.rows = ptCleanRows(b.rows, lists);
     if (!(await ptSave(doc))) return J({ ok: false, error: "Could not save. Try again." }, 502);
+    // Saving is publishing: a clean day goes live straight away so nobody has to remember a Publish button. A day with a blocking problem stays a draft (the last live version stays on screen).
+    const bl = ptValidate(doc.rows, doc.lists).filter(e => !e.w);
+    if (doc.date && !bl.length && (doc.rows.length || (doc.pub && doc.pub.date === doc.date))) {
+      if (!doc.rows.length) { doc.pub = null; delete hist[doc.date]; }
+      else {
+        doc.pub = { date: doc.date, rows: doc.rows.map(r => ({ ...r })), rep: ptNamed(doc.rows, doc.lists), at: new Date().toISOString() };
+        hist[doc.date] = { at: doc.pub.at, rows: doc.pub.rows, rep: ptNamed(doc.pub.rows, doc.lists) };
+      }
+      if (!(await ptSave(doc))) return J({ ok: false, error: "Could not save. Try again." }, 502);
+      if (!(await ptHistSave(hist))) return J({ ok: false, error: "Saved, but the season record could not be updated." }, 502);
+      if (doc.pub) await ptBump(request, [], { date: doc.date, n: doc.rows.length });
+    }
+    if (typeof caches !== "undefined" && caches.default) { try { await caches.default.delete(new Request(url.origin + "/api/pitch?edge=1")); } catch (_) {} }
     return J(out(doc));
   }
   if (b.a === "copy") {
@@ -12175,6 +12206,7 @@ async function pitchRoutes(request, url, label, env) {
     hist[doc.date] = { at: doc.pub.at, rows: doc.pub.rows, rep: ptNamed(doc.pub.rows, doc.lists) };
     if (!(await ptHistSave(hist))) return J({ ok: false, error: "Published, but the season record could not be saved. Publish again." }, 502);
     await ptBump(request, [], { date: doc.date, n: doc.rows.length });
+    if (typeof caches !== "undefined" && caches.default) { try { await caches.default.delete(new Request(url.origin + "/api/pitch?edge=1")); } catch (_) {} }
     return J(out(doc));
   }
   if (b.a === "load") {
@@ -12190,6 +12222,7 @@ async function pitchRoutes(request, url, label, env) {
     if (doc.date === d) doc.rows = [];
     try { let u = await kv.get(PT_USE, { type: "json" }); if (u && u[d]) { delete u[d].pub; await kv.put(PT_USE, JSON.stringify(u)); } } catch (_) { /* counts stay */ }
     if (!(await ptSave(doc))) return J({ ok: false, error: "Could not delete. Try again." }, 502);
+    if (typeof caches !== "undefined" && caches.default) { try { await caches.default.delete(new Request(url.origin + "/api/pitch?edge=1")); } catch (_) {} }
     return J(out(doc));
   }
   return J({ ok: false, error: "Unknown request." }, 400);
@@ -12243,7 +12276,6 @@ td.pt{text-transform:uppercase}.fx{display:grid;grid-template-columns:var(--c) .
 <script>${QR_JS}</script>
 <script>(function(){${PT_COMMON}
 var DOT=String.fromCharCode(183),D=null,LINK=location.origin+PT+"/phone?s=qr",VER="",lastQ="",PV=location.search.indexOf("preview=1")>=0,FS=(/ps=(am|pm)/.exec(location.search)||[])[1]||"";
-if(!PV&&innerWidth<700&&innerHeight>innerWidth)location.replace(PT+"/phone");
 function scale(){var s=Math.min(innerWidth/1920,innerHeight/1080),st=$("st");st.style.transform="scale("+s+")";st.style.left=Math.max(0,(innerWidth-1920*s)/2)+"px";st.style.top=Math.max(0,(innerHeight-1080*s)/2)+"px"}
 function fitEl(el){if(!el)return;el.style.fontSize="";var b=parseFloat(getComputedStyle(el).fontSize),i=0;while(el.scrollWidth>el.clientWidth&&i<40){b=b*0.95;el.style.fontSize=b+"px";i++}}
 function fitCols(root){var tbs=root.querySelectorAll("table"),c,t,r;for(c=0;c<6;c++){var els=[],ratio=1;for(t=0;t<tbs.length;t++){var rows=tbs[t].querySelectorAll("tbody tr");for(r=0;r<rows.length;r++){var f=rows[r].children[c].querySelector(".fit");if(f)els.push(f)}}
@@ -12268,7 +12300,7 @@ var bd=$("bd");bd.innerHTML=h;wire(bd);var cc=bd.querySelectorAll(".fx .cr"),i;f
 function draw(){if(!D)return;var now=ukNow();if(PV?D.rows.length:D.date&&D.date===now.date&&D.rows.length)list(PV&&D.date?{date:D.date,hm:now.hm,wd:now.wd}:now);else holding(now)}
 function load(){if(PV){Promise.all([fetch("/api/pitch").then(function(r){return r.json()}),fetch("/api/pitch/admin").then(function(r){return r.json()})]).then(function(a){D=draftToD(a[0],a[1].doc);draw()}).catch(function(){});return}
 fetch("/api/pitch").then(function(r){return r.json()}).then(function(j){if(VER&&j.v!==VER){location.reload();return}VER=j.v;D=j;draw()}).catch(function(){})}
-addEventListener("resize",scale);scale();load();if(!PV){setInterval(load,180000);setInterval(draw,60000)}
+addEventListener("resize",scale);addEventListener("orientationchange",function(){setTimeout(scale,200)});scale();setTimeout(scale,300);load();if(!PV){setInterval(load,60000);setInterval(draw,30000)}
 })();</script></body></html>`;
 }
 
@@ -12322,7 +12354,7 @@ function up(e){delete P[e.pointerId];pd=0}mv.addEventListener("pointerup",up);mv
 mv.addEventListener("wheel",function(e){e.preventDefault();zoom(e.deltaY<0?1.2:1/1.2,e.clientX,e.clientY)},{passive:false});
 function load(){if(PV){Promise.all([fetch("/api/pitch").then(function(r){return r.json()}),fetch("/api/pitch/admin").then(function(r){return r.json()})]).then(function(a){D=draftToD(a[0],a[1].doc);box()}).catch(function(){});return}
 fetch("/api/pitch").then(function(r){return r.json()}).then(function(j){D=j;box()}).catch(function(){if(!D)$("app").innerHTML="<p>Could not load. Check your connection and refresh.</p>"})}
-load();if(!PV)setInterval(load,180000);
+load();if(!PV)setInterval(load,60000);
 })();</script></body></html>`;
 }
 // Fixtures team page: Edit and Preview, with Publish always on the bottom bar. Saves the draft as you go. Blocking problems (clashes, missing age group or kick-off) stop Publish; a missing pitch or changing rooms is only a warning.
@@ -12371,7 +12403,7 @@ if(r.age){var k=s+"|"+r.age;if(ag[k]!==undefined)add(an+" is already in the "+(s
 if(r.pitch){var k2=r.ko+"|"+r.pitch;if(pk[k2]!==undefined)add(nm(L.pitches,r.pitch)+" is already used at "+r.ko+".");else pk[k2]=i}
 r.home.concat(r.away).forEach(function(id){var k3=s+"|"+id;if(rmS[k3]!==undefined)add("Changing room "+nm(L.rooms,id)+" is already used by "+(nm(L.ages,rows[rmS[k3]].age)||"another team")+".");else rmS[k3]=i})});return er}
 function api(body){return fetch("/api/pitch/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false,error:"Sorry, that did not work."}})})}
-function save(){clearTimeout(SV);SV=setTimeout(function(){SAVING++;api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){SAVING--;if(!j.ok){MSG=j.error||"Could not save.";bar()}else{MSG=""}bar()}).catch(function(){SAVING--;MSG="Could not save. Check your connection.";bar()})},700)}
+function save(){clearTimeout(SV);SV=setTimeout(function(){SAVING++;api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){SAVING--;if(!j.ok){MSG=j.error||"Could not save.";bar()}else{MSG="";PUB=j.pub;DAYS=j.days||DAYS}bar()}).catch(function(){SAVING--;MSG="Could not save. Check your connection.";bar()})},700)}
 function changed(){PUBD=false;ERR=vals(S.rows);save()}
 function fmtL(y){return y?fmtD(y)+" "+y.slice(0,4):"Choose a date"}
 function addDays(y,n){var d=new Date(Date.UTC(+y.slice(0,4),+y.slice(5,7)-1,+y.slice(8,10)+n));return d.toISOString().slice(0,10)}
@@ -12399,7 +12431,7 @@ h+='<span class="lb">PITCH MAP</span><div id="mp">'+(MAPV?'<img alt="Pitch map" 
 h+='<span class="lb">SAVED DAYS (SEASON RECORD)</span>';if(DAYS.length){DAYS.forEach(function(d){h+='<div class="li"><span style="flex:1;font-weight:700">'+E(fmtL(d.date))+' <span style="color:#9fb5a8;font-weight:400">&middot; '+d.n+' games</span></span><button type="button" data-ld="'+d.date+'">Load</button><button type="button" data-xd="'+d.date+'"'+(DDC===d.date?' style="border-color:#c0494f;color:#ffb8bc"':"")+'>'+(DDC===d.date?"Sure?":"Delete")+'</button></div>'})}else h+='<p class="sub">Every day you publish is kept here, ready for season reports.</p>';
 h+='<div class="rw" style="margin:6px 0 4px"><a class="bt sm" style="display:inline-flex;align-items:center;color:#e9f3ec;text-decoration:none" href="/api/pitch/season">Download season report (CSV)</a></div>';
 h+='<span class="lb">TOOLS</span><div class="rw"><button type="button" class="bt sm" id="cp"'+(PUB?"":" disabled")+'>Copy last week</button><button type="button" class="bt sm" id="ls">Edit the lists</button></div></details>';return h}
-function render(){var L=S.lists,h='<h1>Pitch and changing room allocation</h1><p class="sub">Set the pitches and changing rooms for the minis and juniors, check the preview, then publish to the screen and the parents&rsquo; phones.</p>';
+function render(){var L=S.lists,h='<h1>Pitch and changing room allocation</h1><p class="sub">Set the pitches and changing rooms for the minis and juniors, every change is saved and goes live on the screen and the parents&rsquo; phones straight away. Preview shows how it will look.</p>';
 h+='<div class="st"><button type="button" data-sv="e" class="'+(V==="edit"?"on":"dn")+'">1 Edit</button><button type="button" data-sv="p" class="'+(V==="preview"?"on":PUBD?"dn":"")+'">2 Preview</button></div>';
 if(V==="edit"){h+=setup();h+='<div class="cd"><span class="lb" style="margin-top:0">DATE</span><button type="button" class="dtb" id="dt"><span>'+E(fmtL(S.date))+'</span><span>&#9662;</span></button>'+cal()+(S.rows.length||PUB&&PUB.date===S.date||DAYS.some(function(d){return d.date===S.date})?(DELC?'<div class="er" style="margin-top:10px"><div>Delete everything set up for '+E(fmtL(S.date))+'? This clears the draft, takes it off the screen and phones and removes it from the season record.</div><div class="rw" style="margin-top:8px"><button type="button" class="bt sm" data-dy="1" style="border-color:#c0494f;color:#ffb8bc">Yes, delete the whole day</button><button type="button" class="bt sm" data-dn="1">Cancel</button></div></div>':'<div class="rw" style="margin-top:10px"><button type="button" class="bt sm" data-dd="1" style="color:#ffb8bc">Delete this day</button></div>'):"")+"</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});
@@ -12415,8 +12447,8 @@ return'<div class="cd" style="margin-top:12px"><h2>Set up for '+E(fmtL(S.date))+
 function pvRows(s){var L=S.lists,rows=S.rows.filter(function(r){return r.ko&&sess(r.ko)===s}).sort(function(a,b){var d=ai(a.age)-ai(b.age);return d||(a.ko<b.ko?-1:1)});return rows}
 function ai(id){for(var i=0;i<S.lists.ages.length;i++)if(S.lists.ages[i].id===id)return i;return 99}
 function preview(){var L=S.lists,h='<div class="cd"><h2>Check '+E(fmtL(S.date))+"</h2>";
-if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+=PUB&&PUB.date===S.date?'<div class="er" style="color:#ffd98a;border-color:#7a5a1a">No age groups are set up. Publishing now clears the screen and the parents&rsquo; phones, so they show &ldquo;waiting for allocations&rdquo;.</div>':'<div class="er">Add at least one age group first.</div>';
-var EB=ERR.filter(function(e){return !e.w}),EW=ERR.filter(function(e){return e.w});if(EB.length){h+='<div class="er">';EB.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}else if(S.date&&S.rows.length)h+='<div class="ok">All checks passed. Nothing is used twice.</div>';if(EW.length){h+='<div class="er" style="color:#ffd98a;border-color:#7a5a1a"><div>You can still publish, but check these:</div>';EW.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}h+="</div>";
+if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+=PUB&&PUB.date===S.date?'<div class="er" style="color:#ffd98a;border-color:#7a5a1a">No age groups are set up, so the screen and the parents&rsquo; phones show &ldquo;waiting for allocations&rdquo;.</div>':'<div class="er">Add at least one age group first.</div>';
+var EB=ERR.filter(function(e){return !e.w}),EW=ERR.filter(function(e){return e.w});if(EB.length){h+='<div class="er">';EB.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}else if(S.date&&S.rows.length)h+='<div class="ok">All checks passed. Nothing is used twice.</div>';if(EW.length){h+='<div class="er" style="color:#ffd98a;border-color:#7a5a1a"><div>These are live, but check them:</div>';EW.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}h+="</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});if(!PS||(PS==="am"&&!am)||(PS==="pm"&&!pm))PS=am?"am":"pm";
 h+='<div class="cd"><div class="tb" style="margin-bottom:10px"><button type="button" data-pv="tv"'+(PVW==="tv"?' class="on"':"")+'>TV screen</button><button type="button" data-pv="ph"'+(PVW==="ph"?' class="on"':"")+'>Phone view</button></div>';
 if(am&&pm)h+='<div class="tb" style="margin-bottom:10px"><button type="button" data-ps="am"'+(PS==="am"?' class="on"':"")+'>Morning</button><button type="button" data-ps="pm"'+(PS==="pm"?' class="on"':"")+'>Afternoon</button></div>';
@@ -12424,9 +12456,9 @@ h+=PVW==="tv"?'<div class="pvf"><iframe title="TV preview" src="'+PT+"?preview=1
 h+='<p class="sub" style="margin:10px 0 0">This is the draft exactly as it will look once published. On the day it will show the matching session automatically.</p></div>';
 ["am","pm"].forEach(function(s){var rows=pvRows(s);if(!rows.length)return;h+='<div class="cd pv"><h2>'+(s==="am"?"Morning session":"Afternoon session")+"</h2>";rows.forEach(function(r){var i=S.rows.indexOf(r),H=r.home.map(function(x){return nm(L.rooms,x)}).join(", "),A=r.away.map(function(x){return nm(L.rooms,x)}).join(", ");
 h+='<div class="g"><b>'+E(nm(L.ages,r.age))+'</b><span class="x">'+(r.opp&&r.opp.n?cr(r.opp.id,r.opp.n)+" Ivybridge v "+E(r.opp.n)+"<br>":"")+E(nm(L.pitches,r.pitch))+" &middot; Home "+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span><span class="k">'+E(r.ko)+'</span><button type="button" class="bt sm" data-eg="'+i+'">Edit</button></div>'});h+="</div>"});return h}
-function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var st=SAVING?"Saving...":MSG?MSG:"Draft saved";
-if(V==="edit")i.innerHTML="<small>"+E(st)+'</small><button type="button" class="bt" id="pr">Preview</button><button type="button" class="bt go" id="pb"'+(SAVING?" disabled":"")+">Publish</button>";
-else{var ok=!ERR.some(function(e){return !e.w})&&S.date&&(S.rows.length||PUB&&PUB.date===S.date);i.innerHTML='<button type="button" class="bt" id="bk">Back to edit</button><button type="button" class="bt go" id="pb"'+(ok&&!SAVING?"":" disabled")+">Publish</button>"}}
+function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var bk=ERR.some(function(e){return !e.w}),live=PUB&&PUB.date===S.date&&!bk,st=SAVING?"Saving...":MSG?MSG:bk?"Saved, not live yet. Fix the problems shown.":!S.date?"Choose the date.":live?"Saved and live on the screen and phones":"Saved";
+if(V==="edit")i.innerHTML='<small style="flex:1.4">'+E(st)+'</small><button type="button" class="bt" id="pr">Preview</button>';
+else i.innerHTML='<small style="flex:1.4">'+E(st)+'</small><button type="button" class="bt" id="bk">Back to edit</button>'}
 function srt(){S.lists.pitches.sort(function(a,b){return a.n.localeCompare(b.n,"en",{numeric:true,sensitivity:"base"})})}
 function lists(){srt();var L=S.lists,h='<div class="ov" id="lov"><div class="pn"><div class="rw" style="justify-content:space-between"><h2 style="margin:0">Edit the lists</h2><button type="button" class="bt sm" data-lx="1">Done</button></div><p class="sub">Rename, reorder, add or delete items. Days already published keep the names they had.</p>';
 [["ages","Age groups (youngest first)",CAP.age],["pitches","Pitches (A to Z)",CAP.pitch],["rooms","Changing rooms",CAP.room]].forEach(function(g){h+='<span class="lb">'+g[1].toUpperCase()+"</span>";L[g[0]].forEach(function(x,j){h+='<div class="li"><input type="text" maxlength="'+g[2]+'" value="'+E(x.n)+'" data-ln="'+g[0]+'|'+j+'">'+(g[0]==="pitches"?"":'<button type="button" data-lu="'+g[0]+'|'+j+'" aria-label="Move up">&uarr;</button><button type="button" data-ld="'+g[0]+'|'+j+'" aria-label="Move down">&darr;</button>')+'<button type="button" data-lr="'+g[0]+'|'+j+'"'+(LDC===g[0]+'|'+j?' style="border-color:#c0494f;color:#ffb8bc;min-width:64px"':"")+' aria-label="Delete">'+(LDC===g[0]+'|'+j?"Sure?":"&times;")+"</button></div>"});

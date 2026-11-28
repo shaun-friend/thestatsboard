@@ -48,8 +48,8 @@ c('preview lists each game with an Edit button',(await p.$$('button[data-eg]')).
 await p.click('.st button[data-sv="e"]');await p.waitForSelector('#pr');c('step pill 1 goes back to edit',true);await p.click('.st button[data-sv="p"]');await p.waitForSelector('button[data-eg]');c('step pill 2 goes to preview',true);await p.click('button[data-eg="0"]');await p.waitForSelector('tr[data-i="0"] select[data-f="pitch"]');
 c('Edit from the preview opens that game for editing, others stay collapsed',(await p.$$('tr.cl')).length===1);
 await p.click('#pr');await p.waitForSelector('button[data-eg]');
-await p.waitForSelector('#pb:not([disabled])');
-await p.click('#pb');await p.waitForFunction(()=>/Published for/.test(document.body.innerText));
+c('no Publish button: changes go live by themselves',!(await p.$('#pb')));
+await p.waitForFunction(()=>/Saved and live/.test(document.body.innerText));
 // published, so the public API has it and the season record kept it
 const pub=await (await w.fetch(new Request('https://t.test/api/pitch'),env,ctxw)).json();
 c('published',pub.rows.length===2);
