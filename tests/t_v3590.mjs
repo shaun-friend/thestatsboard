@@ -70,7 +70,7 @@ r=await w.fetch(new Request('https://thestatsboard.co.uk'+Q.replace('&layout=tv'
 {const rp=await w.fetch(new Request('https://thestatsboard.co.uk'+Q+'&mdnow=12:00&mdfake=1',{headers:{'User-Agent':'Mozilla/5.0'}}),{...env,ENV_LABEL:''},{waitUntil(){}});const hp=await rp.text();ok('PROD ignores mdnow and mdfake',!isMd(hp));}
 // cache hold rule
 const ps=src.match(/function pageState\(builtAt, now, hold\) \{[\s\S]*?\n\}/)[0];const pageState=new Function('londonDay',ps+';return pageState')((ms)=>new Date(ms).toLocaleDateString('en-CA',{timeZone:'Europe/London'}));
-const t0=Date.now(),U=t0+3600e3;
+const t0=Date.parse(new Date().toLocaleDateString('en-CA',{timeZone:'Europe/London'})+'T12:00:00Z'),U=t0+3600e3; // midday of the London day, so the test does not depend on the time it runs (a page built before midnight is always rebuilt)
 ok('hold: fresh inside the seconds',pageState(t0-100e3,t0,{secs:300,until:U})==='fresh');
 ok('hold: rebuilt after the seconds',pageState(t0-400e3,t0,{secs:300,until:U})==='old');
 ok('hold: rebuilt at the stop time even if young',pageState(U-1000,U+1000,{secs:1800,until:U})==='old');
