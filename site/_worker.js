@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.81.2 28-Nov-2026 Snowflake theme: normal background, more and varied snowflakes, faster fall.
 //   v3.81.1 28-Nov-2026 Snowflake theme: blue bar and Happy Christmas greeting removed.
 //   v3.81.0 28-Nov-2026 Seasonal theme: Snowflake (Auto 10 Dec - 2 Jan; TV, phones, Home; Admin switches).
 //   v3.80.1 28-Nov-2026 Match Centre: Last result shows a walkover instead of the game before it.
@@ -418,7 +419,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.81.1";
+const VERSION = "v3.81.2";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -467,6 +468,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.2_snowflake_snow_only.zip | v3.81.1
 v3.81.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.1_snowflake_no_bar.zip | v3.81.0
 v3.81.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.0_snowflake_theme.zip | v3.80.1
 v3.80.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.80.1_walkover_last.zip | v3.80.0
@@ -858,6 +860,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
 
+v3.81.2 - Snowflake theme: original background, more and varied snowflakes, a little faster
+- Owner request (28-Nov-2026): keep the normal dark background (the blue was not asked for), more snowflakes in mixed sizes, and a faster fall.
+- Changed: the theme now adds only the falling snow. Colours, background and text stay exactly as normal. 24 snowflakes on the TV and 16 on phones, in a mix of sizes (small ones fainter and slower, big ones bolder and quicker). The fall is about 40% faster (12 to 18 seconds across the screen).
+- Docs: Admin guide, Releases and versions
+
 v3.81.1 - Snowflake theme: blue bar and greeting removed
 - Owner report (28-Nov-2026): the blue bar across the top was not asked for.
 - Removed: the thin icy bar along the top edge. The Happy Christmas greeting is removed too (not requested).
@@ -866,7 +873,7 @@ v3.81.1 - Snowflake theme: blue bar and greeting removed
 v3.81.0 - Seasonal theme: Snowflake (Auto 10 Dec - 2 Jan)
 - Owner request (scheduled reminder, 28-Nov-2026): a Christmas look for the TV, phones/iPads and the Home page.
 - New: Admin > Seasonal theme. Auto by dates (default 10 Dec to 2 Jan, last day included, repeats every year), On, or Off. The dates are set in Admin. Separate switches for TV, phones/iPads and the Home page, and for falling snow on the TV (default off, still snowflakes only).
-- Look: deep winter-blue background, white text, light-blue accents, slow falling snowflakes, Team colours on the Match Centre panels are unchanged. Light theme pages (theme=light) are left alone. Snow stops when the device asks for reduced motion.
+- Look: slow falling snowflakes over the normal background. Team colours on the Match Centre panels are unchanged. Light theme pages (theme=light) are left alone. Snow stops when the device asks for reduced motion.
 - No extra subrequests or KV reads (uses the settings already loaded); a few lines of CSS and no extra scripts.
 - Testing on DEV before December: add &today=2026-12-15 to any DEV address, or set the theme to On in Admin.
 - Docs: Admin guide, Releases and versions
@@ -3527,7 +3534,7 @@ const DOC_SECTIONS = [
       ["Last checked feed time", "The small line at the bottom of the Fixtures board."],
       ["Powered by The Stats Board line", "The small credit line at the bottom of team pages and TV screens. Off shows only the version."],
       ["Match Centre layout", "Modern (the default) shows the next game first with club and opponent crests, the ground and a table line such as 2nd v 3rd. Classic shows one row per team. Phones always get the stacked cards. With more than four teams Modern switches to Classic by itself. Preview links for both are on the Admin page, or add ly=next or ly=classic to a Match Centre link."],
-      ["Seasonal theme", "Snowflake: a winter-blue look with slow falling snow. Auto turns it on from 10 Dec to 2 Jan each year (change the dates here), or force On or Off. Separate switches for the TV, phones and iPads, and the Home page, and for falling snow on the TV (off by default, still snowflakes only). Light theme pages are left alone."],
+      ["Seasonal theme", "Snowflake: slowly falling snow over the normal background, in a mix of sizes. Auto turns it on from 10 Dec to 2 Jan each year (change the dates here), or force On or Off. Separate switches for the TV, phones and iPads, and the Home page, and for falling snow on the TV (off by default, still snowflakes only). Light theme pages are left alone."],
       ["Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip. Off means the winner is simply bold."],
       ["Win Predictor on the next game", "A percentage chance for each side, shown as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Off by default. Read the Win Predictor check page first. How it works is in the Win Predictor section."]
     ] },
@@ -3670,6 +3677,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.81.2", "Snowflake theme: normal background with more, varied snowflakes falling a little faster."],
       ["v3.81.1", "Snowflake theme: the blue bar across the top is gone; the Happy Christmas greeting is removed too."],
       ["v3.81.0", "New seasonal Snowflake theme for the TV, phones and Home page: automatic 10 Dec to 2 Jan, or On/Off, in Admin."],
       ["v3.80.1", "Match Centre: Last result now shows a walkover (W/O) instead of skipping back to the game before."],
@@ -4641,18 +4649,25 @@ function themeOn(t, url, isDev) {
   const td = noticeToday(url, isDev), md = Number(td.slice(5, 7)) * 100 + Number(td.slice(8, 10)), a = t.from.m * 100 + t.from.d, b = t.to.m * 100 + t.to.d;
   return a <= b ? md >= a && md <= b : md >= a || md <= b;
 }
-const THEME_SETS = {
-  tv: { u: "vmin", f: [[5, 8.9, .28, 21, 7, -36], [33, 5.6, .18, 24, 14, 42], [67, 12.2, .3, 27, 21, -48], [87, 7.2, .2, 19, 9, 54], [1.5, 12.5, .16, 22, 13, -60], [93, 9.7, .2, 25, 17, 66], [23, 10.6, .22, 28, 21, -72], [59, 6.7, .16, 20, 16, 78], [84, 11.7, .26, 23, 17, -84]] },
-  phone: { u: "px", f: [[77, 56, .28, 21, 7, -36], [5, 40, .2, 24, 14, 42], [82, 48, .22, 27, 21, -48], [9, 60, .18, 19, 9, 54], [45, 44, .18, 23, 12, -40]] }
-};
+// Flakes are generated once from a fixed sequence (same every time, no randomness at request time): [left %, size, opacity, seconds, delay, drift px, top vh].
+// Mixed sizes: small ones are fainter and slower, big ones bolder and quicker.
+function makeFlakes(n, min, max, drift) {
+  let x = 7, out = [];
+  const r = () => (x = (x * 48271) % 2147483647) / 2147483647;
+  for (let k = 0; k < n; k++) {
+    const q = r() * r() * .6 + r() * .4, size = Math.round((min + (max - min) * q) * 10) / 10;
+    out.push([Math.round((k + r()) * 1000 / n) / 10, size, Math.round((.14 + .2 * q) * 100) / 100, Math.round(30 - 9 * q), Math.round(r() * 30), Math.round((r() - .5) * 2 * drift), Math.round(r() * 90)]);
+  }
+  return out;
+}
+const THEME_SETS = { tv: { u: "vmin", f: makeFlakes(24, 3.5, 14, 80) }, phone: { u: "px", f: makeFlakes(16, 14, 66, 50) } };
 function themeHtml(kind, anim) {
   const set = THEME_SETS[kind === "tv" ? "tv" : "phone"], tv = kind === "tv";
-  const flakes = set.f.map((f, i) => '<svg class="sbfl" aria-hidden="true" style="--i:' + i + ";--dx:" + f[5] + "px;left:" + f[0] + "%;width:" + f[1] + set.u + ";height:" + f[1] + set.u + ";opacity:" + f[2] + (anim ? ";animation:sbfall " + f[3] + "s linear -" + f[4] + 's infinite;top:-14vh"' : '"') + ' viewBox="0 0 24 24"><use href="#sbf"/></svg>').join("");
-  const css = '<style id="sbxs">:root,body:not(.light){--bg:#0a1a2c!important;--card:rgba(8,24,40,.84)!important;--cd:rgba(8,24,40,.84)!important;--bd:#3b6a94!important;--tx:#fff!important;--fg:#fff!important;--mu:#a9c6e0!important;--ac:#7cc4ff!important;--bar:#07131f!important;--tr:#10304a!important}'
-    + "body:not(.light){background:linear-gradient(180deg,#0a1a2c 0%,#0c2338 100%) fixed!important;color:#fff!important}"
-    + "#sbsnow{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.sbfl{position:absolute;top:calc(8vh + var(--i)*8vh);fill:none;stroke:#cfe8ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;will-change:transform}"
+  const flakes = set.f.map((f, i) => '<svg class="sbfl" aria-hidden="true" style="--t:' + f[6] + "vh;--dx:" + f[5] + "px;left:" + f[0] + "%;width:" + f[1] + set.u + ";height:" + f[1] + set.u + ";opacity:" + f[2] + (anim ? ";animation:sbfall " + Math.round(f[3] * 6) / 10 + "s linear -" + Math.round(f[4] * 6) / 10 + 's infinite;top:-14vh"' : '"') + ' viewBox="0 0 24 24"><use href="#sbf"/></svg>').join("");
+  const css = '<style id="sbxs">'
+    + "#sbsnow{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.sbfl{position:absolute;top:var(--t);fill:none;stroke:#cfe8ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;will-change:transform}"
     + "@keyframes sbfall{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(var(--dx),130vh,0) rotate(180deg)}}"
-    + "@media (prefers-reduced-motion:reduce){.sbfl{animation:none!important;top:calc(8vh + var(--i)*8vh)!important}}"
+    + "@media (prefers-reduced-motion:reduce){.sbfl{animation:none!important;top:var(--t)!important}}"
     + "</style>";
   const snow = '<div id="sbsnow" aria-hidden="true"><svg width="0" height="0" style="position:absolute"><symbol id="sbf" viewBox="0 0 24 24"><path d="M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7M9.5 4L12 6.5 14.5 4M9.5 20L12 17.5 14.5 20"/></symbol></svg>' + flakes + '</div>';
   return { css, snow };
@@ -4820,7 +4835,7 @@ ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The smal
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
-<div class="nb"><div class="nh"><div><b>Seasonal theme: Snowflake</b><small>Icy blue and white with slowly falling snowflakes . Only colours change: layout, text sizes and what is shown stay the same. Team colours on the Match Centre stay as they are. <span id="thst" style="color:#cfe8ff;font-weight:600">${ea(themeStatus(s.theme, null, isDev))}</span></small></div></div>${seg("tm", s.theme.mode, [["auto", "Auto (by dates)"], ["on", "On"], ["off", "Off"]])}
+<div class="nb"><div class="nh"><div><b>Seasonal theme: Snowflake</b><small>Slowly falling snowflakes of mixed sizes over the normal background. Nothing else changes: colours, layout, text sizes and what is shown stay the same. <span id="thst" style="color:#cfe8ff;font-weight:600">${ea(themeStatus(s.theme, null, isDev))}</span></small></div></div>${seg("tm", s.theme.mode, [["auto", "Auto (by dates)"], ["on", "On"], ["off", "Off"]])}
 <small style="display:block;margin:8px 0 4px">Auto switches on at the start of the first date and off after the last (that day included), every year. On forces it on whatever the dates say (handy for testing); Off forces it off.</small>
 <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:8px 0">${[["Starts", "tf", s.theme.from], ["Ends (last day included)", "tt", s.theme.to]].map(x => `<div><small>${x[0]}</small><div style="display:flex;gap:6px;margin-top:4px"><select id="${x[1]}d" aria-label="${x[0]} day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${x[2].d === i + 1 ? " selected" : ""}>${i + 1}</option>`).join("")}</select><select id="${x[1]}m" aria-label="${x[0]} month">${UK_MONTHS.map((n, i) => `<option value="${i + 1}"${x[2].m === i + 1 ? " selected" : ""}>${n}</option>`).join("")}</select></div></div>`).join("")}</div>
 ${sw("tht", s.theme.tv, "Show on TV screens", "Fixtures, Match Centre and the other TV pages.")}
