@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.81.0 28-Nov-2026 Seasonal theme: Snowflake (Auto 10 Dec - 2 Jan; TV, phones, Home; Admin switches).
 //   v3.80.1 28-Nov-2026 Match Centre: Last result shows a walkover instead of the game before it.
 //   v3.80.0 27-Nov-2026 Match Centre: cancellation notices go in the title bar; the crest tile is smaller.
 //   v3.79.1 27-Nov-2026 Match Centre crest tile: wider test so a pale gold crest on a gold panel is caught.
@@ -416,7 +417,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.80.1";
+const VERSION = "v3.81.0";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -465,6 +466,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.81.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.0_snowflake_theme.zip | v3.80.1
 v3.80.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.80.1_walkover_last.zip | v3.80.0
 v3.80.0 | 27-Nov-2026 | RFU_Club_Dashboard_v3.80.0_notice_bar.zip | v3.79.1
 v3.79.1 | 27-Nov-2026 | RFU_Club_Dashboard_v3.79.1_crest_tile_fix.zip | v3.79.0
@@ -853,6 +855,14 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.81.0 - Seasonal theme: Snowflake (Auto 10 Dec - 2 Jan)
+- Owner request (scheduled reminder, 28-Nov-2026): a Christmas look for the TV, phones/iPads and the Home page.
+- New: Admin > Seasonal theme. Auto by dates (default 10 Dec to 2 Jan, last day included, repeats every year), On, or Off. The dates are set in Admin. Separate switches for TV, phones/iPads and the Home page, and for falling snow on the TV (default off, still snowflakes only).
+- Look: deep winter-blue background, white text, light-blue accents, slow falling snowflakes, a thin icy edge and a small "Happy Christmas" tab at the top. Team colours on the Match Centre panels are unchanged. Light theme pages (theme=light) are left alone. Snow stops when the device asks for reduced motion.
+- No extra subrequests or KV reads (uses the settings already loaded); a few lines of CSS and no extra scripts.
+- Testing on DEV before December: add &today=2026-12-15 to any DEV address, or set the theme to On in Admin.
+- Docs: Admin guide, Releases and versions
 
 v3.80.1 - Match Centre: Last result shows a walkover
 - Owner report (28-Nov-2026): after a walkover win the Match Centre still showed the game before, with its score.
@@ -3510,6 +3520,7 @@ const DOC_SECTIONS = [
       ["Last checked feed time", "The small line at the bottom of the Fixtures board."],
       ["Powered by The Stats Board line", "The small credit line at the bottom of team pages and TV screens. Off shows only the version."],
       ["Match Centre layout", "Modern (the default) shows the next game first with club and opponent crests, the ground and a table line such as 2nd v 3rd. Classic shows one row per team. Phones always get the stacked cards. With more than four teams Modern switches to Classic by itself. Preview links for both are on the Admin page, or add ly=next or ly=classic to a Match Centre link."],
+      ["Seasonal theme", "Snowflake: a winter-blue look with slow falling snow and a Happy Christmas tab. Auto turns it on from 10 Dec to 2 Jan each year (change the dates here), or force On or Off. Separate switches for the TV, phones and iPads, and the Home page, and for falling snow on the TV (off by default, still snowflakes only). Light theme pages are left alone."],
       ["Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip. Off means the winner is simply bold."],
       ["Win Predictor on the next game", "A percentage chance for each side, shown as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Off by default. Read the Win Predictor check page first. How it works is in the Win Predictor section."]
     ] },
@@ -3652,6 +3663,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.81.0", "New seasonal Snowflake theme for the TV, phones and Home page: automatic 10 Dec to 2 Jan, or On/Off, in Admin."],
       ["v3.80.1", "Match Centre: Last result now shows a walkover (W/O) instead of skipping back to the game before."],
       ["v3.80.0", "Match Centre: games called off show in the title bar so the panels stay level; the crest tile no longer makes a crest look bigger."],
       ["v3.79.1", "Match Centre: the crest tile now also catches a pale gold crest on a gold panel."],
@@ -4036,6 +4048,7 @@ const SETTINGS_DEFAULT = () => ({
   reporting: { days: 14 },
   signin: { days: 30 },
   matchCentre: { layout: "next" },
+  theme: { mode: "auto", from: { d: 10, m: 12 }, to: { d: 2, m: 1 }, tv: true, phone: true, home: true, tvAnim: false },
   maintenance: { on: false, pun: "random", extra: "", lines: MAINT_LINES_DEFAULT.slice() },
   club: { teams: TEAMS_DEFAULT.map(t => ({ ...t })), saved: false },
   tv: { items: [], order: ["all", ...TEAMS_DEFAULT.map(t => String(t.team))], off: [], theme: "dark", name: false, dots: false, auto: false, seen: TEAMS_DEFAULT.map(t => String(t.team)) },
@@ -4533,6 +4546,12 @@ function cleanSettings(raw) {
   d.features.winchance = f.winchance === true;
   { const rp = r.reporting && typeof r.reporting === "object" ? r.reporting : {}; d.reporting.days = [7, 14, 30, 90].includes(Number(rp.days)) ? Number(rp.days) : 14; }
   { const mc = r.matchCentre && typeof r.matchCentre === "object" ? r.matchCentre : {}; d.matchCentre.layout = ["next", "classic"].includes(mc.layout) ? mc.layout : "next"; }
+  { // v3.81.0: seasonal (Snowflake) theme. The dates repeat every year, so no yearly upkeep; an end date before the start date runs over New Year.
+    const th = r.theme && typeof r.theme === "object" ? r.theme : {};
+    const dm = (x, dd) => { const o = x && typeof x === "object" ? x : {}, m = Math.round(Number(o.m)), dy = Math.round(Number(o.d)); return m >= 1 && m <= 12 && dy >= 1 && dy <= [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1] ? { d: dy, m } : dd; };
+    d.theme.mode = ["auto", "on", "off"].includes(th.mode) ? th.mode : "auto";
+    d.theme.from = dm(th.from, d.theme.from); d.theme.to = dm(th.to, d.theme.to);
+    d.theme.tv = th.tv !== false; d.theme.phone = th.phone !== false; d.theme.home = th.home !== false; d.theme.tvAnim = th.tvAnim === true; }
   { const sg = r.signin && typeof r.signin === "object" ? r.signin : {}; d.signin.days = [1, 7, 14, 30].includes(Number(sg.days)) ? Number(sg.days) : 30; }
   { const m = r.maintenance && typeof r.maintenance === "object" ? r.maintenance : {};
     d.maintenance.on = m.on === true;
@@ -4603,6 +4622,57 @@ async function noticeInject(html, url, isDev) {
   if (welcome) { const n = homeNoticeFor(s, url, isDev); return n ? html.replace('<h1 style="display:flex;justify-content:center">', m => homeNoticeHtml(n) + m) : html; }
   const n = tvNoticeFor(s, url, isDev);
   return n && /<body[^>]*>/i.test(html) ? html.replace(/<body([^>]*)>/i, m => m + tvNoticeHtml(n, false, url.searchParams.get("view") === "stack" ? (html.includes('data-ly="') ? 1 : ((html.match(/class="rw"/g) || []).length || 3)) : false)) : html;
+}
+// ---- v3.81.0: Snowflake seasonal theme ----
+// Added to every normal page by the outer wrapper from the settings that are already loaded for the request, so it costs no extra
+// subrequest and almost no CPU (a few string replaces). Pages built on one day are rebuilt on the next (the cache keeps the London day),
+// so Auto switches on and off at midnight. Only colour variables, a thin edge, a greeting and the snow change: never layout or text size.
+function themeOn(t, url, isDev) {
+  if (!t || t.mode === "off") return false;
+  if (t.mode === "on") return true;
+  const td = noticeToday(url, isDev), md = Number(td.slice(5, 7)) * 100 + Number(td.slice(8, 10)), a = t.from.m * 100 + t.from.d, b = t.to.m * 100 + t.to.d;
+  return a <= b ? md >= a && md <= b : md >= a || md <= b;
+}
+const THEME_SETS = {
+  tv: { u: "vmin", f: [[5, 8.9, .28, 21, 7, -36], [33, 5.6, .18, 24, 14, 42], [67, 12.2, .3, 27, 21, -48], [87, 7.2, .2, 19, 9, 54], [1.5, 12.5, .16, 22, 13, -60], [93, 9.7, .2, 25, 17, 66], [23, 10.6, .22, 28, 21, -72], [59, 6.7, .16, 20, 16, 78], [84, 11.7, .26, 23, 17, -84]] },
+  phone: { u: "px", f: [[77, 56, .28, 21, 7, -36], [5, 40, .2, 24, 14, 42], [82, 48, .22, 27, 21, -48], [9, 60, .18, 19, 9, 54], [45, 44, .18, 23, 12, -40]] }
+};
+function themeHtml(kind, anim) {
+  const set = THEME_SETS[kind === "tv" ? "tv" : "phone"], tv = kind === "tv";
+  const flakes = set.f.map((f, i) => '<svg class="sbfl" aria-hidden="true" style="--i:' + i + ";--dx:" + f[5] + "px;left:" + f[0] + "%;width:" + f[1] + set.u + ";height:" + f[1] + set.u + ";opacity:" + f[2] + (anim ? ";animation:sbfall " + f[3] + "s linear -" + f[4] + 's infinite;top:-14vh"' : '"') + ' viewBox="0 0 24 24"><use href="#sbf"/></svg>').join("");
+  const css = '<style id="sbxs">:root,body:not(.light){--bg:#0a1a2c!important;--card:rgba(8,24,40,.84)!important;--cd:rgba(8,24,40,.84)!important;--bd:#3b6a94!important;--tx:#fff!important;--fg:#fff!important;--mu:#a9c6e0!important;--ac:#7cc4ff!important;--bar:#07131f!important;--tr:#10304a!important}'
+    + "body:not(.light){background:linear-gradient(180deg,#0a1a2c 0%,#0c2338 100%) fixed!important;color:#fff!important}"
+    + "#sbsnow{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.sbfl{position:absolute;top:calc(8vh + var(--i)*8vh);fill:none;stroke:#cfe8ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;will-change:transform}"
+    + "@keyframes sbfall{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(var(--dx),130vh,0) rotate(180deg)}}"
+    + "@media (prefers-reduced-motion:reduce){.sbfl{animation:none!important;top:calc(8vh + var(--i)*8vh)!important}}"
+    + "#sbedge{position:fixed;left:0;right:0;top:0;height:" + (tv ? 6 : 5) + "px;z-index:50;pointer-events:none;background:linear-gradient(90deg,#7cc4ff,#fff,#7cc4ff)}"
+    + (kind === "home" ? ".sbgh{margin:0 0 10px;text-align:center;font:700 12px/1.3 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9fd2ff}"
+      : "#sbgr{position:fixed;top:" + (tv ? 6 : 5) + "px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;padding:1px 14px 2px;border-radius:0 0 8px 8px;background:#7cc4ff;color:#06182a;font:700 " + (tv ? "max(11px,1.1vh)" : "11px") + "/1.3 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}")
+    + "</style>";
+  const snow = '<div id="sbsnow" aria-hidden="true"><svg width="0" height="0" style="position:absolute"><symbol id="sbf" viewBox="0 0 24 24"><path d="M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7M9.5 4L12 6.5 14.5 4M9.5 20L12 17.5 14.5 20"/></symbol></svg>' + flakes + '</div><div id="sbedge" aria-hidden="true"></div>'
+    + (kind === "home" ? "" : '<div id="sbgr">' + (tv ? "Happy Christmas from the club" : "Happy Christmas") + "</div>");
+  return { css, snow };
+}
+async function themeInject(html, url, isDev) {
+  if (url.pathname !== "/" || url.searchParams.get("theme") === "light" || html.includes('id="sbsnow"') || !/<body[^>]*>/i.test(html)) return html;
+  const t = (await siteSettings()).theme;
+  if (!t || t.mode === "off") return html;
+  const welcome = html.includes('class="wrap wl"'), kind = welcome ? "home" : url.searchParams.get("layout") === "tv" ? "tv" : "phone";
+  if (!(kind === "tv" ? t.tv : kind === "home" ? t.home : t.phone) || !themeOn(t, url, isDev)) return html;
+  const th = themeHtml(kind, kind === "tv" ? t.tvAnim : true);
+  html = /<\/head>/i.test(html) ? html.replace(/<\/head>/i, () => th.css + "</head>") : html.replace(/<body([^>]*)>/i, m => th.css + m);
+  html = html.replace(/<body([^>]*)>/i, m => m + th.snow);
+  return kind === "home" ? html.replace('<h1 style="display:flex;justify-content:center">', m => '<div class="sbgh">Happy Christmas, rugby fans</div>' + m) : html;
+}
+function themeStatus(t, url, isDev) {
+  const mn = x => x.d + " " + UK_MONTHS[x.m - 1];
+  if (t.mode === "on") return "On now (overriding the dates)";
+  if (t.mode === "off") return "Off (overriding the dates)";
+  if (themeOn(t, url, isDev)) return "Auto: on now, until " + mn(t.to);
+  const td = noticeToday(url, isDev), now = Date.UTC(Number(td.slice(0, 4)), Number(td.slice(5, 7)) - 1, Number(td.slice(8, 10)));
+  let go = Date.UTC(Number(td.slice(0, 4)), t.from.m - 1, t.from.d); if (go < now) go = Date.UTC(Number(td.slice(0, 4)) + 1, t.from.m - 1, t.from.d);
+  const n = Math.round((go - now) / 864e5);
+  return "Auto: off until " + mn(t.from) + " (" + n + " day" + (n === 1 ? "" : "s") + ")";
 }
 function adminPage(theme, isDev, s, kvOk, spx) {
   const t = theme === "light" ? "light" : "dark", ea = noticeEsc;
@@ -4746,6 +4816,14 @@ ${sw("fc", s.features.checked, "&ldquo;Last checked&rdquo; feed time", "The smal
 ${sw("fp", s.features.powered, "&ldquo;Powered by The Stats Board&rdquo; line", "The small line at the bottom of team pages and TV screens. Off shows only the version.")}
 <div class="nb"><div class="nh"><div><b>Match Centre layout</b><small>How the all-teams Match Centre screen is laid out on a TV. Phones always get the stacked cards. With more than four teams, &ldquo;Modern&rdquo; switches to Classic automatically. <a href="/?view=stack&amp;ly=next" target="_blank" rel="noopener" style="color:#7fd89a">Preview Modern</a> &middot; <a href="/?view=stack&amp;ly=classic" target="_blank" rel="noopener" style="color:#7fd89a">Classic</a></small></div></div>${seg("ml", s.matchCentre.layout, [["next", "Modern"], ["classic", "Classic"]])}</div>
 ${sw("fwc", s.features.winchance, "Win Predictor on the next game", "A percentage chance for each side, as a bar wherever the next game is shown (Match Stats, the team page and the Match Centre). Worked out from this and the last two seasons of results. Leave off until you have read the <a href=\"/winchance\" target=\"_blank\" rel=\"noopener\" style=\"color:#7fd89a\">Win Predictor check</a>.")}
+<div class="nb"><div class="nh"><div><b>Seasonal theme: Snowflake</b><small>Icy blue and white with slowly falling snowflakes and a small &ldquo;Happy Christmas&rdquo; greeting. Only colours change: layout, text sizes and what is shown stay the same. Team colours on the Match Centre stay as they are. <span id="thst" style="color:#cfe8ff;font-weight:600">${ea(themeStatus(s.theme, null, isDev))}</span></small></div></div>${seg("tm", s.theme.mode, [["auto", "Auto (by dates)"], ["on", "On"], ["off", "Off"]])}
+<small style="display:block;margin:8px 0 4px">Auto switches on at the start of the first date and off after the last (that day included), every year. On forces it on whatever the dates say (handy for testing); Off forces it off.</small>
+<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:8px 0">${[["Starts", "tf", s.theme.from], ["Ends (last day included)", "tt", s.theme.to]].map(x => `<div><small>${x[0]}</small><div style="display:flex;gap:6px;margin-top:4px"><select id="${x[1]}d" aria-label="${x[0]} day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}"${x[2].d === i + 1 ? " selected" : ""}>${i + 1}</option>`).join("")}</select><select id="${x[1]}m" aria-label="${x[0]} month">${UK_MONTHS.map((n, i) => `<option value="${i + 1}"${x[2].m === i + 1 ? " selected" : ""}>${n}</option>`).join("")}</select></div></div>`).join("")}</div>
+${sw("tht", s.theme.tv, "Show on TV screens", "Fixtures, Match Centre and the other TV pages.")}
+${sw("tha", s.theme.tvAnim, "Falling snow on TV screens", "Off shows still snowflakes on TVs. Try it on a TV before leaving it on: it is a gentle, slow fall. Phones always get the falling snow (unless the phone asks for reduced motion).")}
+${sw("thp", s.theme.phone, "Show on phones and iPads", "The team pages people open on their own devices.")}
+${sw("thh", s.theme.home, "Show on the Home (welcome) page", "The page where visitors pick a team.")}
+<small style="display:block;margin-top:6px">Screens pick the change up within about a minute. On DEV, add <code>&amp;today=2026-12-15</code> to a link to see how Auto looks on another day.</small></div>
 ${sw("fo", s.features.wocolour, "Walkover colours", "Green for the side awarded the win, red for the other, in the around-the-league strip.")}
 </div>
 </section>
@@ -4932,7 +5010,7 @@ fetch("/api/screens",{cache:"no-store",credentials:"same-origin"}).then(function
 try{ovGames();ovSp();ovTv()}catch(e){}
 $("as").addEventListener("click",function(){sync();var b=$("as"),m=$("am");b.disabled=true;m.textContent="Saving...";
 var teams=[].map.call(document.querySelectorAll(".tc:checked"),function(e){return e.value});
-var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},club:{teams:club},tv:tvOut()};
+var body={notices:{home:{on:$("hon").checked,text:$("ht").value,style:radio("hs"),until:$("hu").value},tv:{on:$("ton").checked,text:$("tt").value,style:radio("ts"),applies:radio("ta"),teams:teams,until:$("tu").value}},features:{around:$("fa").checked,weather:$("fw").checked,checked:$("fc").checked,wocolour:$("fo").checked,webfallback:$("fb").checked,count:$("fv").checked,screens:$("fs").checked,powered:$("fp").checked,winchance:$("fwc").checked,contact:$("fm").checked},reporting:{days:radio("rd")},pin:$("mpin").value,maintenance:{on:$("mon").checked,pun:$("mpun").value,extra:$("mex").value,lines:lines},signin:{days:radio("sd")},matchCentre:{layout:radio("ml")},theme:{mode:radio("tm"),from:{d:Number($("tfd").value),m:Number($("tfm").value)},to:{d:Number($("ttd").value),m:Number($("ttm").value)},tv:$("tht").checked,phone:$("thp").checked,home:$("thh").checked,tvAnim:$("tha").checked},club:{teams:club},tv:tvOut()};
 fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json().catch(function(){return{ok:false}})}).then(function(j){b.disabled=false;m.style.color="";if(j&&j.ok){dirty=false;$("dirty").hidden=true;$("dis").hidden=true;setTimeout(function(){if(!dirty)$("sbar").classList.remove("show")},5000);wasOn=$("mon").checked;$("mpin").value="";pv();m.textContent="Saved "+j.label+" UK time. Screens update within about a minute."}else{if(j&&j.needPin){$("mpr").hidden=false;$("mpin").focus()}m.style.color="#f09595";m.textContent=(j&&j.error)||"Sorry, that did not save. Try again."}}).catch(function(){b.disabled=false;m.style.color="#f09595";m.textContent="Sorry, that did not save. Check your connection."})});
 })();</script>
 </body></html>`;
@@ -11925,7 +12003,7 @@ export default {
     const response = await worker.fetch(request, !!label);
     if (!(response.headers.get("Content-Type") || "").includes("text/html")) return response;
     let page = await response.text();
-    if (response.status === 200) page = await noticeInject(page, new URL(request.url), !!label);
+    if (response.status === 200) { page = await noticeInject(page, new URL(request.url), !!label); page = await themeInject(page, new URL(request.url), !!label); }
     page = pwaInject(page, new URL(request.url));
     page = appInject(page, new URL(request.url));
     page = brandInject(page, new URL(request.url));
