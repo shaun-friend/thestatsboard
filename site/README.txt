@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.82.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.82.0_pitch_allocation.zip | v3.81.5
 v3.81.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.5_dots_progress_dates.zip | v3.81.4
 v3.81.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.4_snow_footer.zip | v3.81.3
 v3.81.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.81.3_logo_change_shows.zip | v3.81.2
@@ -437,6 +438,19 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.82.0 - Pitch and Changing Room allocation (new stand-alone screen, phone view and fixtures team page)
+- Owner request (28-Nov-2026): the Sunday-morning minis and juniors guideline slide (age group, pitch, changing rooms, kick-off) is rebuilt by hand every week. The chairman wanted a single screen the fixtures team fills in, shown on a TV only at the right times.
+- New, TV screen: /pitch-and-changing-room-allocation. It is never part of the TV rotation; add it as its own address in the signage system. It shows the club badge, PITCH & CHANGING ROOMS, the session (Morning before 12:00, Afternoon from 12:00, switched automatically by UK time when both exist), the date, a QR code top right, and a table of age group, fixture (club crest v opposition crest and name), pitch, changing room (Home and Away) and kick-off, youngest age group first. More than six games moves to two columns with matching columns and row heights. Text never wraps or is cut off: it shrinks to fit, and every row of a column shrinks together. The page refreshes every 3 minutes.
+- New, holding screen: shown when nothing is published or the published date is not today. It shows TODAY and the date and a centred QR code. On a Sunday it reads "KICK-OFF PREP IN PROGRESS" with the coffee and bacon roll line; on any other day it says the allocations will be available soon and to check back later or use the QR code, and never mentions the kitchen.
+- New, parents' phone view: /pitch-and-changing-room-allocation/phone (the QR code opens it, no PIN). Welcome to the club name (set in Admin), Morning and Afternoon, age group buttons, a card for the chosen team with both crests, pitch, kick-off and Home and Away changing rooms, the pitch map (tap to open full screen, then pinch, double-tap, + and -, Close) and a list of every game. Before the day it says the allocations will appear when available.
+- New, fixtures team page: /pitch-and-changing-room-allocation/manage, built for a phone or iPad. Three steps: 1 Edit, 2 Preview, 3 Publish. Publish stays locked until the Preview checks pass. Pick the date from the club-style calendar, switch between Morning and Afternoon, and add a card per age group with drop-downs for age group, pitch and kick-off, ticks for Home and Away changing rooms, and a search for the opposition club that shows its crest. The draft saves as you go. Setup holds the screen link, the phone link with a QR code, the pitch map upload (PNG or JPG, resized in the browser), Copy last week and a lists editor (rename, reorder, switch off, add; nothing is deleted so earlier allocations still read correctly).
+- Rules: an age group can be used once per session; a changing room once per session (Home and Away together); a pitch once at any kick-off time. Morning and afternoon sessions can reuse them. Items already taken are greyed out and name the team that has them.
+- Crests come from the RFU data by club name. The search shows one entry per club (the plain name without II, U16, 1XV and so on, or the nearest to it), so for example the Newton Abbot teams share one crest. A club with no crest shows its initials.
+- Sign-in: the fixtures team uses a new FIXTURES_PIN variable (Cloudflare Pages settings), separate from the club PIN. The club PIN also works. The screen and phone view are public.
+- Admin, Club PIN and access: new Club name (shown as Welcome to ...) and optional Welcome line.
+- Not changed: the TV rotation, Match Centre, anything already stored.
+- Docs: Pitch and changing room allocation, Setup and deployment, What's new, Releases and versions
 
 v3.81.5 - TV rotation: dots and progress line are separate switches; Admin date selectors restyled
 - Owner request (28-Nov-2026): sometimes the dots are wanted without the progress line.
