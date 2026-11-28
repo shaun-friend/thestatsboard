@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.2 28-Nov-2026 Pitch allocation: footer line sits below the content on phone and manage pages.
 //   v3.83.1 28-Nov-2026 Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on phone card.
 //   v3.83.0 28-Nov-2026 Pitch allocation: TV screen matches the approved mockup, table editing page, previews, season record, usage by day, own Admin section.
 //   v3.82.0 28-Nov-2026 Pitch and Changing Room allocation: TV screen, parents' phone view and a fixtures team page.
@@ -425,7 +426,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.1";
+const VERSION = "v3.83.2";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -474,6 +475,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.2_pitch_footer.zip | v3.83.1
 v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
 v3.83.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.0_pitch_allocation_table.zip | v3.82.0
 v3.82.0 | 28-Nov-2026 | RFU_Club_Dashboard_v3.82.0_pitch_allocation.zip | v3.81.5
@@ -871,6 +873,11 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.2 - Pitch allocation: footer line sits below the content
+- Owner report (28-Nov-2026): on the phone view the Powered by line sat on top of the bottom of the age group card.
+- Changed: on the parents' phone view and the fixtures team page the Powered by / version line now follows the content at the foot of the page instead of floating over it.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.1 - Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on the phone card
 - Owner feedback (28-Nov-2026) after testing v3.83.0.
@@ -3780,6 +3787,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.2", "Pitch allocation: the small footer line no longer sits on top of the phone view; it follows the content."],
       ["v3.83.1", "Pitch allocation: list items can be deleted, the opposition search shows one entry per club, pitches are A to Z, and the phone card names the teams instead of Home and Away."],
       ["v3.83.0", "Pitch allocation: the TV screen now matches the approved design, the fixtures team page is a table with taken rooms greyed out, previews show the real TV and phone screens, every published day is kept for season reports (with a CSV download), and Admin has its own Pitch allocation section with usage by day."],
       ["v3.82.0", "New Pitch and Changing Room allocation screen for the minis and juniors: a TV list (with a holding screen and QR code), a parents' phone view with the pitch map, and a mobile page where the fixtures team sets the pitch, changing rooms and kick-off, previews, then publishes."],
@@ -12230,7 +12238,7 @@ addEventListener("resize",scale);scale();load();if(!PV){setInterval(load,180000)
 // Parents' phone view: welcome, Morning/Afternoon, age-group chips, the team's card, a tap-to-open pitch map (pinch, double-tap, + and -), and every game.
 function pitchPhonePage() {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Pitch and changing room allocation</title>
-<style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080b0d;color:#f2f6f4;font-family:Arial,Helvetica,sans-serif;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+<style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080b0d;color:#f2f6f4;font-family:Arial,Helvetica,sans-serif;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(64px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}#sbv{position:static!important;transform:none!important;display:block;text-align:center;margin:18px 0 0;white-space:normal!important}
 .w{max-width:520px;margin:0 auto}.top{display:flex;align-items:center;gap:12px}.top .cr{width:54px;height:54px;font-size:24px}
 h1{margin:14px 0 4px;font-size:24px;line-height:1.2}p{margin:0 0 10px;color:#b4c9bc;font-size:16px;line-height:1.4}.dt{margin-left:auto;text-align:right;font-weight:800;font-size:15px;color:#ffd166}.dt small{display:block;color:#7fd89a;font-size:12px;letter-spacing:.1em}
 .tg{display:flex;gap:8px;margin:14px 0 8px}.tg button{flex:1;padding:12px;border-radius:12px;border:1px solid #2a3b33;background:#111a16;color:#cfe4d6;font:700 16px Arial;cursor:pointer}.tg button.on{background:#2f9e5b;border-color:#2f9e5b;color:#06100b}
@@ -12283,7 +12291,7 @@ load();if(!PV)setInterval(load,180000);
 // Fixtures team page: 1 Edit, 2 Preview, 3 Publish. Works on a phone or iPad. Saves the draft as you go; Publish only unlocks after a clean Preview.
 function pitchManagePage(label) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>${label ? "[" + String(label).replace(/[<>&"]/g, "") + "] " : ""}Pitch and changing room allocation</title>
-<style>:root{color-scheme:dark}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#080b0d;color:#f2f6f4;font-family:Arial,Helvetica,sans-serif;font-size:16px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+<style>:root{color-scheme:dark}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#080b0d;color:#f2f6f4;font-family:Arial,Helvetica,sans-serif;font-size:16px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}#sbv{position:static!important;transform:none!important;display:block;text-align:center;margin:18px 0 0;white-space:normal!important}
 .w{max-width:1100px;margin:0 auto}h1{margin:6px 0 4px;font-size:24px}.sub{margin:0 0 12px;color:#9fb5a8;font-size:15px;line-height:1.4}
 .st{display:flex;gap:6px;margin:10px 0 14px}.st span{flex:1;text-align:center;padding:9px 4px;border-radius:10px;background:#111a16;color:#6f8f7c;font-weight:800;font-size:14px;border:1px solid #1d3327}.st span.on{background:#2f9e5b;color:#06100b;border-color:#2f9e5b}.st span.dn{color:#7fd89a}
 .cd{background:#0f1a15;border:1px solid #234032;border-radius:16px;padding:14px;margin:0 0 12px}.cd h2{margin:0 0 10px;font-size:18px}
