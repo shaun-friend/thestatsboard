@@ -27,7 +27,7 @@ c('manage page loads for fixtures',(await rq(U+'/manage',{headers:{Cookie:fix}})
 c('manage page loads for club pin',(await rq(U+'/manage',{headers:{Cookie:club}})).status===200);
 c('fixtures cookie does not open Admin',(await rq('/admin',{headers:{Cookie:fix},redirect:'manual'})).status===303);
 {const t=await (await rq(U+'/manage',{headers:{Cookie:fix}})).text();for(const m of t.matchAll(/<script>([\s\S]*?)<\/script>/g)){try{new vm.Script(m[1])}catch(e){c('manage script syntax '+e.message,false)}}
- c('manage has steps and tools',/1 Edit/.test(t)&&/2 Preview/.test(t)&&/3 Publish/.test(t)&&/Copy last week/.test(t)&&/Upload map/.test(t)&&/Edit the lists/.test(t))}
+ c('manage has steps and tools',/1 Edit/.test(t)&&/2 Preview/.test(t)&&/Copy last week/.test(t)&&/Upload map/.test(t)&&/Edit the lists/.test(t))}
 const adm=(b,ck)=>rq('/api/pitch/admin',{method:'POST',headers:{'Content-Type':'application/json',Cookie:ck||fix},body:JSON.stringify(b)}).then(async r=>({s:r.status,j:await r.json()}));
 let st=await rq('/api/pitch/admin',{headers:{Cookie:fix}}).then(r=>r.json());
 c('defaults',st.ok&&st.doc.lists.ages.length>=13&&st.doc.lists.pitches.length===6&&st.doc.lists.rooms.length===6&&st.doc.lists.kos.length>5);
@@ -119,4 +119,9 @@ r=await adm({a:'save',lists:L,date:'',rows:r.j.doc.rows});r=await adm({a:'publis
  await adm({a:'save',lists:L,date:'2026-12-27',rows:[]});let r=await adm({a:'publish'});const pb=await rq('/api/pitch').then(x=>x.json());
  c('publishing an empty day clears the screen',r.j.ok&&pb.rows.length===0&&pb.date==='');
  await adm({a:'save',lists:L,date:'2027-01-03',rows:[]});r=await adm({a:'publish'});c('empty publish for an unpublished date is refused',r.s===422)}
+// missing pitch or changing rooms is a warning, not a blocker
+{let r=await adm({a:'save',lists:L,date:'2027-01-10',rows:[{...row('U9','Pitch 1','10:00',[],[]),pitch:''}]});
+ c('no pitch or rooms: warnings only',r.j.ok&&r.j.errors.length===2&&r.j.errors.every(e=>e.w));
+ r=await adm({a:'publish'});const pb=await rq('/api/pitch').then(x=>x.json());
+ c('can publish with no pitch or rooms',r.j.ok&&pb.date==='2027-01-10'&&pb.rows.length===1&&pb.rows[0].pitch==='')}
 console.log(ok+' ok, '+bad+' failed');process.exit(bad?1:0);

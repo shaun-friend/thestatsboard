@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.5 28-Nov-2026 Pitch allocation: Publish on the bar, warnings for pitch/rooms, welcome heading, footer clear.
 //   v3.83.4 28-Nov-2026 PIN pages: number pad back.
 //   v3.83.3 28-Nov-2026 Pitch allocation: step buttons work, empty publish clears the screen, PIN boxes allow letters.
 //   v3.83.2 28-Nov-2026 Pitch allocation: footer line sits below the content on phone and manage pages.
@@ -428,7 +429,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.4";
+const VERSION = "v3.83.5";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -477,6 +478,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.5 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.5_pitch_flow.zip | v3.83.4
 v3.83.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.4_pin_numpad.zip | v3.83.3
 v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
 v3.83.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.2_pitch_footer.zip | v3.83.1
@@ -877,6 +879,14 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.5 - Pitch allocation: simpler publish, warnings, welcome heading, footer clear of the content
+- Owner feedback (28-Nov-2026) after testing v3.83.4.
+- Changed, fixtures team page: Publish is now on the bottom bar while editing (Preview is optional beside it) and can be used again at any time to amend. The 3 Publish step button is gone.
+- Changed: a missing pitch or changing rooms is now only a warning (amber, listed in the checks) and no longer stops saving or publishing. Clashes, a missing age group or a missing kick-off still do.
+- Changed, TV screen: the heading reads Welcome to the club name, with Pitch and changing room allocations under it. The waiting screen has the same heading.
+- Fixed: the Powered by line no longer overlaps the content on iPads and other screens where the TV picture does not fill the window (more room left at the bottom). The TV address opened on a portrait phone now goes to the phone view.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.4 - PIN pages: number pad back
 - Owner decision (28-Nov-2026): PINs stay numeric for ease of entry while proper sign-in is planned, so the PIN boxes open the number pad again (reverts the keyboard change in v3.83.3). Use a numeric DEV_PIN on the test site.
@@ -3546,7 +3556,7 @@ const DOC_SECTIONS = [
     { ol: [
       "Open the fixtures team page, check the date (or use Copy last week in Setup), and add a card for each age group.",
       "Pick the pitch, kick-off and Home and Away changing rooms. Anything already taken in that session is greyed out. Search for the opposition to show both crests.",
-      "Tap Preview. Fix anything the checks show, then tap Publish. Screens and phones update within about 3 minutes."
+      "Tap Publish when you are ready (Preview first if you want to see the TV and phone screens). A missing pitch or changing room only shows a warning. Fix any clash it reports. You can change things and tap Publish again at any time. Screens and phones update within about 3 minutes."
     ] },
     { h: "Rules and sessions" },
     { ul: [
@@ -3802,6 +3812,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.5", "Pitch allocation: Publish is always on the bar, a missing pitch or changing room is a warning, the TV heading welcomes the club, and the footer no longer overlaps."],
       ["v3.83.4", "PIN boxes open the number pad again."],
       ["v3.83.3", "Pitch allocation: the step buttons at the top work, publishing with no age groups clears the screen and phones, and PIN boxes accept letters."],
       ["v3.83.2", "Pitch allocation: the small footer line no longer sits on top of the phone view; it follows the content."],
@@ -11988,7 +11999,9 @@ function ptValidate(rows, lists) {
   const ageS = new Map(), roomS = new Map(), pitchK = new Map();
   rows.forEach((r, i) => {
     const E = m => errs.push({ i, m });
-    if (!r.age) E("Choose an age group."); if (!r.pitch) E("Choose a pitch."); if (!r.ko) E("Choose a kick-off time.");
+    if (!r.age) E("Choose an age group."); if (!r.ko) E("Choose a kick-off time.");
+    if (!r.pitch) errs.push({ i, m: "No pitch chosen yet.", w: true });
+    if (!r.home.length && !r.away.length) errs.push({ i, m: "No changing rooms chosen yet.", w: true });
     if (!r.ko) return;
     const s = ptSession(r.ko), an = nm(lists.ages, r.age);
     if (r.age) { const k = s + "|" + r.age; if (ageS.has(k)) E(an + " is already in the " + (s === "am" ? "morning" : "afternoon") + " session."); else ageS.set(k, i); }
@@ -12147,7 +12160,7 @@ async function pitchRoutes(request, url, label, env) {
     return J(out(doc));
   }
   if (b.a === "publish") {
-    const errs = ptValidate(doc.rows, doc.lists);
+    const errs = ptValidate(doc.rows, doc.lists).filter(e => !e.w);
     if (!doc.date) return J({ ok: false, error: "Choose the date first." }, 422);
     if (!doc.rows.length) {
       if (!doc.pub || doc.pub.date !== doc.date) return J({ ok: false, error: "Add at least one age group first." }, 422);
@@ -12213,23 +12226,24 @@ function pitchTvPage() {
 #tt{flex:1;min-width:0}#h1{font:italic 900 64px/1.1 Arial,Helvetica,sans-serif;letter-spacing:2px;text-shadow:0 6px 0 rgba(0,0,0,.25)}#h2{margin-top:6px;font:800 34px Arial;letter-spacing:.14em;opacity:.9}
 .date{background:#f3f1e8;color:#0b2a17;padding:16px 34px;font:900 48px Arial;transform:skewX(-6deg);box-shadow:0 8px 0 rgba(0,0,0,.25);white-space:nowrap;flex:none}.date small{font:800 30px Arial;margin-right:14px;letter-spacing:.04em;font-style:italic}
 #qb{text-align:center;font:700 19px/1.15 Arial;display:flex;flex-direction:column;align-items:center;gap:6px;margin-left:6px;flex:none}#qq{background:#fff;border-radius:6px;padding:4px;width:130px;height:130px}#qq svg{display:block}
-#bd{position:absolute;left:70px;right:70px;top:230px;bottom:60px;display:flex;gap:28px;align-content:start}.tw{flex:1;min-width:0}
+#bd{position:absolute;left:70px;right:70px;top:230px;bottom:100px;display:flex;gap:28px;align-content:start}.tw{flex:1;min-width:0}
 table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed}
 th{background:#06220f;color:#fff;font:900 32px Arial;text-transform:uppercase;letter-spacing:.06em;padding:0 8px;border:2px solid #0e3b22}
 td{background:#f7f9f6;color:#0b1f13;font:900 42px Arial;text-align:center;border:2px solid #1a4a2c;padding:0 8px;overflow:hidden}tr:nth-child(even) td{background:#eaf1ec}
 td.pt{text-transform:uppercase}.fx{display:grid;grid-template-columns:var(--c) .8em var(--c) minmax(0,1fr);align-items:center;column-gap:.4em;text-align:left}.fx u{text-decoration:none;color:#4a6a57;text-align:center;font-weight:800}.fx .fit{text-align:left}
 .cr{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;background:#0e3b22;color:#fff;font-weight:900;overflow:hidden}.cr i{font-style:normal;font-size:.36em}.cr img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.cr.ok{background:transparent;overflow:visible}.cr.ok i{display:none}
 #hold{position:absolute;inset:0;display:none}#hold .top{position:absolute;left:70px;right:70px;top:34px;height:170px;display:flex;align-items:center;gap:40px}
-#pn{position:absolute;left:70px;right:70px;top:250px;bottom:80px;background:rgba(255,255,255,.08);border:3px solid rgba(255,255,255,.25);border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px;padding:0 60px}
+#pn{position:absolute;left:70px;right:70px;top:250px;bottom:120px;background:rgba(255,255,255,.08);border:3px solid rgba(255,255,255,.25);border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px;padding:0 60px}
 #hk{font:800 34px Arial;letter-spacing:.18em;color:#7fdca0}#hh{font:900 84px/1.12 Arial;max-width:1500px}#hs{font:700 42px/1.25 Arial;max-width:1400px}#hq{background:#fff;border-radius:6px;padding:4px;width:218px;height:218px}#hq svg{display:block}
 </style></head><body><div id="st">
 <div id="main" style="display:none"><div id="hd"><div id="bg"></div><div id="tt"><div id="h1" class="fit">PITCH &amp; CHANGING ROOMS</div><div id="h2" class="fit"></div></div><div class="date"><small>DATE</small><span id="dv"></span></div><div id="qb"><div id="qq"></div><div>Scan for times<br>and pitch map</div></div></div><div id="bd"></div></div>
-<div id="hold"><div class="top"><div id="hcr" style="width:130px;height:130px;flex:none"></div><div id="tt2" style="flex:1;min-width:0"><div id="h3" class="fit" style="font:italic 900 76px/1.1 Arial;letter-spacing:2px;text-shadow:0 6px 0 rgba(0,0,0,.25)">PITCH &amp; CHANGING ROOMS</div></div><div class="date"><small>TODAY</small><span id="hd2"></span></div></div>
+<div id="hold"><div class="top"><div id="hcr" style="width:130px;height:130px;flex:none"></div><div id="tt2" style="flex:1;min-width:0"><div id="h3" class="fit" style="font:italic 900 76px/1.1 Arial;letter-spacing:2px;text-shadow:0 6px 0 rgba(0,0,0,.25)">PITCH &amp; CHANGING ROOMS</div><div id="h4" class="fit" style="margin-top:8px;font:800 34px Arial;letter-spacing:.14em;opacity:.9">PITCH AND CHANGING ROOM ALLOCATIONS</div></div><div class="date"><small>TODAY</small><span id="hd2"></span></div></div>
 <div id="pn"><div id="hk"></div><div id="hh"></div><div id="hs"></div><div id="hq"></div></div></div>
 </div>
 <script>${QR_JS}</script>
 <script>(function(){${PT_COMMON}
 var DOT=String.fromCharCode(183),D=null,LINK=location.origin+PT+"/phone?s=qr",VER="",lastQ="",PV=location.search.indexOf("preview=1")>=0,FS=(/ps=(am|pm)/.exec(location.search)||[])[1]||"";
+if(!PV&&innerWidth<700&&innerHeight>innerWidth)location.replace(PT+"/phone");
 function scale(){var s=Math.min(innerWidth/1920,innerHeight/1080),st=$("st");st.style.transform="scale("+s+")";st.style.left=Math.max(0,(innerWidth-1920*s)/2)+"px";st.style.top=Math.max(0,(innerHeight-1080*s)/2)+"px"}
 function fitEl(el){if(!el)return;el.style.fontSize="";var b=parseFloat(getComputedStyle(el).fontSize),i=0;while(el.scrollWidth>el.clientWidth&&i<40){b=b*0.95;el.style.fontSize=b+"px";i++}}
 function fitCols(root){var tbs=root.querySelectorAll("table"),c,t,r;for(c=0;c<6;c++){var els=[],ratio=1;for(t=0;t<tbs.length;t++){var rows=tbs[t].querySelectorAll("tbody tr");for(r=0;r<rows.length;r++){var f=rows[r].children[c].querySelector(".fit");if(f)els.push(f)}}
@@ -12241,9 +12255,9 @@ function holding(now){$("main").style.display="none";$("hold").style.display="bl
 $("hk").textContent=sun?"KICK-OFF PREP IN PROGRESS":"";$("hk").style.display=sun?"block":"none";
 $("hh").textContent=sun?"Pitch and Changing Room allocations will be here soon!":"Pitch and Changing Room allocations will be available soon";
 $("hs").textContent=sun?"Pop to the club kitchen for a coffee and a bacon roll, then check your phone with this QR code":"Check back later, or use this QR code to check from your phone";
-if(lastQ!=="h"){qr($("hq"),LINK,210);lastQ="h"}fitEl($("h3"))}
+if(lastQ!=="h"){qr($("hq"),LINK,210);lastQ="h"}$("h3").textContent="WELCOME TO "+String(D.club||"").toUpperCase();fitEl($("h3"));fitEl($("h4"))}
 function list(now){$("hold").style.display="none";$("main").style.display="block";var p=pick(now),rows=p.rows,n=rows.length,two=n>6;
-$("bg").innerHTML=cr(D.crest,D.club);wire($("bg"));$("h2").textContent=p.s==="am"?"MORNING SESSION "+DOT+" UNTIL 12:00":"AFTERNOON SESSION "+DOT+" FROM 12:00";$("dv").textContent=fmtD(D.date);
+$("bg").innerHTML=cr(D.crest,D.club);wire($("bg"));$("h1").textContent="WELCOME TO "+String(D.club||"").toUpperCase();$("h2").textContent="PITCH AND CHANGING ROOM ALLOCATIONS "+DOT+" "+(p.s==="am"?"MORNING SESSION UNTIL 12:00":"AFTERNOON SESSION FROM 12:00");$("dv").textContent=fmtD(D.date);
 if(lastQ!=="l"){qr($("qq"),LINK,122);lastQ="l"}
 var per=two?Math.ceil(n/2):n,hh=two?60:74,rh=Math.min(two?112:108,Math.floor((790-hh*2)/Math.max(per,1))),f=two?0.34:0.5,cs=Math.round(rh*(two?0.5:0.55)),cols=two?[rows.slice(0,per),rows.slice(per)]:[rows],h="",wd=two?[10,31,23,10.5,10.5,15]:[11,33,21,11.5,11.5,12];
 cols.forEach(function(cl){h+='<div class="tw"><table><colgroup>';wd.forEach(function(w){h+='<col style="width:'+w+'%">'});h+='</colgroup><thead><tr style="height:'+hh+'px"><th rowspan="2" style="font-size:'+(two?22:32)+'px"><span class="fit">Age</span></th><th rowspan="2" style="font-size:'+(two?22:32)+'px"><span class="fit">Fixture</span></th><th rowspan="2" style="font-size:'+(two?22:32)+'px"><span class="fit">Pitch</span></th><th colspan="2" style="font-size:'+(two?22:32)+'px"><span class="fit">Changing room</span></th><th rowspan="2" style="font-size:'+(two?22:32)+'px"><span class="fit">KO</span></th></tr><tr style="height:'+hh+'px"><th style="font-size:'+(two?22:32)+'px"><span class="fit">Home</span></th><th style="font-size:'+(two?22:32)+'px"><span class="fit">Away</span></th></tr></thead><tbody>';
@@ -12311,7 +12325,7 @@ fetch("/api/pitch").then(function(r){return r.json()}).then(function(j){D=j;box(
 load();if(!PV)setInterval(load,180000);
 })();</script></body></html>`;
 }
-// Fixtures team page: 1 Edit, 2 Preview, 3 Publish. Works on a phone or iPad. Saves the draft as you go; Publish only unlocks after a clean Preview.
+// Fixtures team page: Edit and Preview, with Publish always on the bottom bar. Saves the draft as you go. Blocking problems (clashes, missing age group or kick-off) stop Publish; a missing pitch or changing rooms is only a warning.
 function pitchManagePage(label) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>${label ? "[" + String(label).replace(/[<>&"]/g, "") + "] " : ""}Pitch and changing room allocation</title>
 <style>:root{color-scheme:dark}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#080b0d;color:#f2f6f4;font-family:Arial,Helvetica,sans-serif;font-size:16px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}#sbv{position:static!important;transform:none!important;display:block;text-align:center;margin:18px 0 0;white-space:normal!important}
@@ -12352,7 +12366,7 @@ var CAP={age:${PT_CAP.age},pitch:${PT_CAP.pitch},room:${PT_CAP.room}};
 function rid(){return"r"+Math.random().toString(36).slice(2,7)}
 function nm(arr,id){for(var i=0;i<arr.length;i++)if(arr[i].id===id)return arr[i].n;return""}
 function vals(rows){var L=S.lists,er=[],ag={},rmS={},pk={};rows.forEach(function(r,i){function add(m){er.push({i:i,m:m})}
-if(!r.age)add("Choose an age group.");if(!r.pitch)add("Choose a pitch.");if(!r.ko)add("Choose a kick-off time.");if(!r.ko)return;var s=sess(r.ko),an=nm(L.ages,r.age);
+if(!r.age)add("Choose an age group.");if(!r.ko)add("Choose a kick-off time.");if(!r.pitch)er.push({i:i,m:"No pitch chosen yet.",w:true});if(!r.home.length&&!r.away.length)er.push({i:i,m:"No changing rooms chosen yet.",w:true});if(!r.ko)return;var s=sess(r.ko),an=nm(L.ages,r.age);
 if(r.age){var k=s+"|"+r.age;if(ag[k]!==undefined)add(an+" is already in the "+(s==="am"?"morning":"afternoon")+" session.");else ag[k]=i}
 if(r.pitch){var k2=r.ko+"|"+r.pitch;if(pk[k2]!==undefined)add(nm(L.pitches,r.pitch)+" is already used at "+r.ko+".");else pk[k2]=i}
 r.home.concat(r.away).forEach(function(id){var k3=s+"|"+id;if(rmS[k3]!==undefined)add("Changing room "+nm(L.rooms,id)+" is already used by "+(nm(L.ages,rows[rmS[k3]].age)||"another team")+".");else rmS[k3]=i})});return er}
@@ -12369,11 +12383,11 @@ for(var d=1;d<=days;d++){var ds=m+"-"+(d<10?"0":"")+d,wd=(lead+d-1)%7;h+='<butto
 function opts(arr,cur,dis){if(arr===S.lists.pitches)srt();var h='<option value="">Choose...</option>';arr.forEach(function(x){if((x.on||x.id===cur)&&!(dis&&dis[x.id]&&x.id!==cur)){h+='<option value="'+E(x.id)+'"'+(x.id===cur?" selected":"")+">"+E(x.n)+(x.on?"":" (off)")+"</option>"}});return h}
 function sumRow(r,i){var L=S.lists,H=r.home.map(function(x){return nm(L.rooms,x)}).join(" & "),A=r.away.map(function(x){return nm(L.rooms,x)}).join(" & ");
 return'<tr class="cl"><td colspan="7" class="nl"><div class="rw" style="justify-content:space-between;gap:10px"><div style="flex:1;min-width:180px;line-height:1.4"><b style="font-size:17px">'+E(nm(L.ages,r.age))+"</b>"+(r.opp&&r.opp.n?" v "+E(r.opp.n):"")+' &middot; '+E(nm(L.pitches,r.pitch))+" &middot; "+E(r.ko)+'<br><span style="color:#9fb5a8">Home '+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span></div><button type="button" class="bt sm" data-ex="'+i+'">Edit</button><button type="button" class="xb" data-del="'+i+'" aria-label="Remove">&times;</button></div></td></tr>'}
-function row(r,i){if(COL[r.id]&&r.age&&r.pitch&&r.ko&&!ERR.some(function(e){return e.i===i}))return sumRow(r,i);var L=S.lists,s=r.ko?sess(r.ko):TAB,ageT={},pitT={},roomT={};
+function row(r,i){if(COL[r.id]&&r.age&&r.pitch&&r.ko&&!ERR.some(function(e){return e.i===i&&!e.w}))return sumRow(r,i);var L=S.lists,s=r.ko?sess(r.ko):TAB,ageT={},pitT={},roomT={};
 S.rows.forEach(function(o,j){if(j===i||!o.ko)return;var an=nm(L.ages,o.age)||"another team";if(sess(o.ko)===s){if(o.age)ageT[o.age]=1;o.home.concat(o.away).forEach(function(x){roomT[x]=an})}if(r.ko&&o.ko===r.ko&&o.pitch)pitT[o.pitch]=1});
 var ks='<option value="">Choose...</option>',kl=L.kos.slice();if(r.ko&&kl.indexOf(r.ko)<0){kl.push(r.ko);kl.sort()}kl.forEach(function(k){ks+='<option value="'+k+'"'+(k===r.ko?" selected":"")+">"+k+"</option>"});
 function rooms(kind){var h="";L.rooms.forEach(function(x){var on=r[kind].indexOf(x.id)>=0,oth=(kind==="home"?r.away:r.home).indexOf(x.id)>=0,tk=roomT[x.id],dis=!on&&(tk||oth);if(!x.on&&!on)return;h+='<label class="ch"><input type="checkbox" data-r="'+i+'" data-k="'+kind+'" value="'+E(x.id)+'"'+(on?" checked":"")+(dis?" disabled":"")+'><span>'+E(x.n)+(tk&&!on?"<small>"+E(tk)+"</small>":"")+"</span></label>"});return'<div class="rm">'+h+"</div>"}
-var es=ERR.filter(function(e){return e.i===i&&e.m.indexOf("Choose")!==0}),h='<tr data-i="'+i+'">';
+var es=ERR.filter(function(e){return e.i===i&&!e.w&&e.m.indexOf("Choose")!==0}),h='<tr data-i="'+i+'">';
 h+='<td data-l="Age group"><select data-f="age" data-r="'+i+'">'+opts(L.ages,r.age,ageT)+"</select>"+(es.length?'<div class="er">'+es.map(function(e){return"<div>"+E(e.m)+"</div>"}).join("")+"</div>":"")+"</td>";
 if(r.opp&&r.opp.n)h+='<td data-l="Fixture"><div class="fxc">'+cr(r.opp.id,r.opp.n)+"<b>Ivybridge v "+E(r.opp.n)+'</b><button type="button" class="bt sm" data-oc="'+i+'">Change</button></div></td>';
 else h+='<td data-l="Fixture"><input type="text" placeholder="Search for the opposition" maxlength="40" autocomplete="off" data-q="'+i+'"><div class="sr" data-sr="'+i+'" hidden></div></td>';
@@ -12386,7 +12400,7 @@ h+='<span class="lb">SAVED DAYS (SEASON RECORD)</span>';if(DAYS.length){DAYS.for
 h+='<div class="rw" style="margin:6px 0 4px"><a class="bt sm" style="display:inline-flex;align-items:center;color:#e9f3ec;text-decoration:none" href="/api/pitch/season">Download season report (CSV)</a></div>';
 h+='<span class="lb">TOOLS</span><div class="rw"><button type="button" class="bt sm" id="cp"'+(PUB?"":" disabled")+'>Copy last week</button><button type="button" class="bt sm" id="ls">Edit the lists</button></div></details>';return h}
 function render(){var L=S.lists,h='<h1>Pitch and changing room allocation</h1><p class="sub">Set the pitches and changing rooms for the minis and juniors, check the preview, then publish to the screen and the parents&rsquo; phones.</p>';
-h+='<div class="st"><button type="button" data-sv="e" class="'+(V==="edit"?"on":"dn")+'">1 Edit</button><button type="button" data-sv="p" class="'+(V==="preview"?"on":PUBD?"dn":"")+'">2 Preview</button><button type="button" data-sv="p" class="'+(PUBD?"on":"")+'">3 Publish</button></div>';
+h+='<div class="st"><button type="button" data-sv="e" class="'+(V==="edit"?"on":"dn")+'">1 Edit</button><button type="button" data-sv="p" class="'+(V==="preview"?"on":PUBD?"dn":"")+'">2 Preview</button></div>';
 if(V==="edit"){h+=setup();h+='<div class="cd"><span class="lb" style="margin-top:0">DATE</span><button type="button" class="dtb" id="dt"><span>'+E(fmtL(S.date))+'</span><span>&#9662;</span></button>'+cal()+(S.rows.length||PUB&&PUB.date===S.date||DAYS.some(function(d){return d.date===S.date})?(DELC?'<div class="er" style="margin-top:10px"><div>Delete everything set up for '+E(fmtL(S.date))+'? This clears the draft, takes it off the screen and phones and removes it from the season record.</div><div class="rw" style="margin-top:8px"><button type="button" class="bt sm" data-dy="1" style="border-color:#c0494f;color:#ffb8bc">Yes, delete the whole day</button><button type="button" class="bt sm" data-dn="1">Cancel</button></div></div>':'<div class="rw" style="margin-top:10px"><button type="button" class="bt sm" data-dd="1" style="color:#ffb8bc">Delete this day</button></div>'):"")+"</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});
 h+='<div class="tb"><button type="button" data-t="am"'+(TAB==="am"?' class="on"':"")+">Morning ("+am+')</button><button type="button" data-t="pm"'+(TAB==="pm"?' class="on"':"")+">Afternoon ("+pm+")</button></div>";
@@ -12402,7 +12416,7 @@ function pvRows(s){var L=S.lists,rows=S.rows.filter(function(r){return r.ko&&ses
 function ai(id){for(var i=0;i<S.lists.ages.length;i++)if(S.lists.ages[i].id===id)return i;return 99}
 function preview(){var L=S.lists,h='<div class="cd"><h2>Check '+E(fmtL(S.date))+"</h2>";
 if(!S.date)h+='<div class="er">Choose the date first.</div>';if(!S.rows.length)h+=PUB&&PUB.date===S.date?'<div class="er" style="color:#ffd98a;border-color:#7a5a1a">No age groups are set up. Publishing now clears the screen and the parents&rsquo; phones, so they show &ldquo;waiting for allocations&rdquo;.</div>':'<div class="er">Add at least one age group first.</div>';
-if(ERR.length){h+='<div class="er">';ERR.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}else if(S.date&&S.rows.length)h+='<div class="ok">All checks passed. Nothing is used twice.</div>';h+="</div>";
+var EB=ERR.filter(function(e){return !e.w}),EW=ERR.filter(function(e){return e.w});if(EB.length){h+='<div class="er">';EB.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}else if(S.date&&S.rows.length)h+='<div class="ok">All checks passed. Nothing is used twice.</div>';if(EW.length){h+='<div class="er" style="color:#ffd98a;border-color:#7a5a1a"><div>You can still publish, but check these:</div>';EW.forEach(function(e){h+="<div>"+E(nm(L.ages,S.rows[e.i].age)||"Game "+(e.i+1))+": "+E(e.m)+"</div>"});h+="</div>"}h+="</div>";
 var am=0,pm=0;S.rows.forEach(function(r){if(r.ko)(sess(r.ko)==="am"?am++:pm++)});if(!PS||(PS==="am"&&!am)||(PS==="pm"&&!pm))PS=am?"am":"pm";
 h+='<div class="cd"><div class="tb" style="margin-bottom:10px"><button type="button" data-pv="tv"'+(PVW==="tv"?' class="on"':"")+'>TV screen</button><button type="button" data-pv="ph"'+(PVW==="ph"?' class="on"':"")+'>Phone view</button></div>';
 if(am&&pm)h+='<div class="tb" style="margin-bottom:10px"><button type="button" data-ps="am"'+(PS==="am"?' class="on"':"")+'>Morning</button><button type="button" data-ps="pm"'+(PS==="pm"?' class="on"':"")+'>Afternoon</button></div>';
@@ -12411,8 +12425,8 @@ h+='<p class="sub" style="margin:10px 0 0">This is the draft exactly as it will 
 ["am","pm"].forEach(function(s){var rows=pvRows(s);if(!rows.length)return;h+='<div class="cd pv"><h2>'+(s==="am"?"Morning session":"Afternoon session")+"</h2>";rows.forEach(function(r){var i=S.rows.indexOf(r),H=r.home.map(function(x){return nm(L.rooms,x)}).join(", "),A=r.away.map(function(x){return nm(L.rooms,x)}).join(", ");
 h+='<div class="g"><b>'+E(nm(L.ages,r.age))+'</b><span class="x">'+(r.opp&&r.opp.n?cr(r.opp.id,r.opp.n)+" Ivybridge v "+E(r.opp.n)+"<br>":"")+E(nm(L.pitches,r.pitch))+" &middot; Home "+(H?E(H):"-")+" &middot; Away "+(A?E(A):"-")+'</span><span class="k">'+E(r.ko)+'</span><button type="button" class="bt sm" data-eg="'+i+'">Edit</button></div>'});h+="</div>"});return h}
 function bar(){var b=$("bar"),i=$("bi");b.hidden=false;var st=SAVING?"Saving...":MSG?MSG:"Draft saved";
-if(V==="edit")i.innerHTML="<small>"+E(st)+'</small><button type="button" class="bt go" id="pr">Preview</button>';
-else{var ok=!ERR.length&&S.date&&(S.rows.length||PUB&&PUB.date===S.date);i.innerHTML='<button type="button" class="bt" id="bk">Back to edit</button><button type="button" class="bt go" id="pb"'+(ok&&!SAVING?"":" disabled")+">"+(PUBD?"Published":"Publish")+"</button>"}}
+if(V==="edit")i.innerHTML="<small>"+E(st)+'</small><button type="button" class="bt" id="pr">Preview</button><button type="button" class="bt go" id="pb"'+(SAVING?" disabled":"")+">Publish</button>";
+else{var ok=!ERR.some(function(e){return !e.w})&&S.date&&(S.rows.length||PUB&&PUB.date===S.date);i.innerHTML='<button type="button" class="bt" id="bk">Back to edit</button><button type="button" class="bt go" id="pb"'+(ok&&!SAVING?"":" disabled")+">Publish</button>"}}
 function srt(){S.lists.pitches.sort(function(a,b){return a.n.localeCompare(b.n,"en",{numeric:true,sensitivity:"base"})})}
 function lists(){srt();var L=S.lists,h='<div class="ov" id="lov"><div class="pn"><div class="rw" style="justify-content:space-between"><h2 style="margin:0">Edit the lists</h2><button type="button" class="bt sm" data-lx="1">Done</button></div><p class="sub">Rename, reorder, add or delete items. Days already published keep the names they had.</p>';
 [["ages","Age groups (youngest first)",CAP.age],["pitches","Pitches (A to Z)",CAP.pitch],["rooms","Changing rooms",CAP.room]].forEach(function(g){h+='<span class="lb">'+g[1].toUpperCase()+"</span>";L[g[0]].forEach(function(x,j){h+='<div class="li"><input type="text" maxlength="'+g[2]+'" value="'+E(x.n)+'" data-ln="'+g[0]+'|'+j+'">'+(g[0]==="pitches"?"":'<button type="button" data-lu="'+g[0]+'|'+j+'" aria-label="Move up">&uarr;</button><button type="button" data-ld="'+g[0]+'|'+j+'" aria-label="Move down">&darr;</button>')+'<button type="button" data-lr="'+g[0]+'|'+j+'"'+(LDC===g[0]+'|'+j?' style="border-color:#c0494f;color:#ffb8bc;min-width:64px"':"")+' aria-label="Delete">'+(LDC===g[0]+'|'+j?"Sure?":"&times;")+"</button></div>"});
@@ -12438,7 +12452,7 @@ if(t.getAttribute("data-dd")){DELC=true;render();return}if(t.getAttribute("data-
 if(t.getAttribute("data-dy")){var dd=S.date;DELC=false;api({a:"delday",date:dd}).then(function(j){if(j.ok){S=j.doc;PUB=j.pub;DAYS=j.days||[];MAPV=S.mapv;ERR=j.errors||[];COL={};MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">Deleted everything for '+E(fmtL(dd))+".</div>")}else{MSG=j.error||"Could not delete.";bar()}});return}
 if(t.getAttribute("data-ld")){var ld=t.getAttribute("data-ld");api({a:"load",date:ld}).then(function(j){if(j.ok){S=j.doc;PUB=j.pub;DAYS=j.days||[];ERR=j.errors||[];COL={};TAB="am";render();window.scrollTo(0,0)}else{MSG=j.error||"Could not load.";bar()}});return}
 if(t.getAttribute("data-xd")){var xd=t.getAttribute("data-xd");if(DDC!==xd){DDC=xd;render();var dt=document.querySelector("details.cd");if(dt)dt.open=true;return}DDC="";api({a:"delday",date:xd}).then(function(j){if(j.ok){S=j.doc;PUB=j.pub;DAYS=j.days||[];ERR=j.errors||[];render();var d2=document.querySelector("details.cd");if(d2)d2.open=true}else{MSG=j.error||"Could not delete.";bar()}});return}
-if(t.id==="ad"){S.rows.forEach(function(r,j){if(r.age&&r.pitch&&r.ko&&!ERR.some(function(e){return e.i===j}))COL[r.id]=true});S.rows.push({id:rid(),age:"",pitch:"",home:[],away:[],ko:TAB==="am"?"09:30":"13:00",opp:{id:"",n:""}});changed();render();return}
+if(t.id==="ad"){S.rows.forEach(function(r,j){if(r.age&&r.pitch&&r.ko&&!ERR.some(function(e){return e.i===j&&!e.w}))COL[r.id]=true});S.rows.push({id:rid(),age:"",pitch:"",home:[],away:[],ko:TAB==="am"?"09:30":"13:00",opp:{id:"",n:""}});changed();render();return}
 if(t.getAttribute("data-del")){S.rows.splice(+t.getAttribute("data-del"),1);changed();render();return}
 if(t.getAttribute("data-oc")){S.rows[+t.getAttribute("data-oc")].opp={id:"",n:""};changed();render();return}
 if(t.getAttribute("data-pk")){var p=t.getAttribute("data-pk").split("|"),g=OPR[p[0]][+p[1]];S.rows[+p[0]].opp={id:g.id,n:g.n};changed();render();return}
@@ -12457,7 +12471,7 @@ if(t.getAttribute("data-k")){var k=t.getAttribute("data-k"),o=k==="home"?"away":
 app.addEventListener("input",function(e){var t=e.target,q=t.getAttribute("data-q");if(q===null)return;OPQ[q]=t.value.trim();clearTimeout(t._t);t._t=setTimeout(function(){find(OPQ[q],q)},350)});
 $("bar").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;
 if(t.id==="pr"){ERR=vals(S.rows);clearTimeout(SV);t.disabled=true;t.textContent="Saving...";api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()}).catch(function(){t.disabled=false;t.textContent="Preview"});return}if(t.id==="bk"){V="edit";render();return}
-if(t.id==="pb"){t.disabled=true;t.textContent="Publishing...";clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){if(!j.ok)throw j;return api({a:"publish"})}).then(function(j){if(j&&j.ok){PUBD=true;PUB=j.pub;DAYS=j.days||DAYS;MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">'+(j.pub?"Published for "+E(fmtL(S.date))+". Screens and phones update within about 3 minutes.":"Cleared. The screen and phones now show waiting for allocations.")+'</div>')}else{MSG=(j&&j.error)||"Could not publish.";if(j&&j.errors)ERR=j.errors;render()}}).catch(function(j){MSG=(j&&j.error)||"Could not publish. Try again.";render()})}});
+if(t.id==="pb"){if(V==="edit"){ERR=vals(S.rows);var bk2=ERR.some(function(e){return !e.w});if(bk2||!S.date||!(S.rows.length||PUB&&PUB.date===S.date)){clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(){V="preview";PVT=Date.now();window.scrollTo(0,0);render()});return}}t.disabled=true;t.textContent="Publishing...";clearTimeout(SV);api({a:"save",lists:S.lists,date:S.date,rows:S.rows}).then(function(j){if(!j.ok)throw j;return api({a:"publish"})}).then(function(j){if(j&&j.ok){PUBD=true;PUB=j.pub;DAYS=j.days||DAYS;MSG="";render();$("app").insertAdjacentHTML("afterbegin",'<div class="ok">'+(j.pub?"Published for "+E(fmtL(S.date))+". Screens and phones update within about 3 minutes.":"Cleared. The screen and phones now show waiting for allocations.")+'</div>')}else{MSG=(j&&j.error)||"Could not publish.";if(j&&j.errors)ERR=j.errors;render()}}).catch(function(j){MSG=(j&&j.error)||"Could not publish. Try again.";render()})}});
 $("ovl").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;var L=S.lists,p;
 if(t.getAttribute("data-lx")){closeLists();return}
 function mv(a,j,dl){if(j+dl<0||j+dl>=L[a].length)return;var x=L[a][j];L[a][j]=L[a][j+dl];L[a][j+dl]=x;lists()}
