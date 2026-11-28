@@ -15,6 +15,7 @@
 //
 // CHANGELOG (newest first; dates are only recorded from v22f onwards)
 //   v30q  06-Nov-2026  Walkovers (HWO / AWO in the RFU data) now count as played games with a win or loss in form, recent results, records, the fixtures list, Match Stats form and the Opposition report. They show as "W/O" instead of a score and are left out of every score-based figure (points scored and conceded, averages, close games, margins).
+//   v3.83.4 28-Nov-2026 PIN pages: number pad back.
 //   v3.83.3 28-Nov-2026 Pitch allocation: step buttons work, empty publish clears the screen, PIN boxes allow letters.
 //   v3.83.2 28-Nov-2026 Pitch allocation: footer line sits below the content on phone and manage pages.
 //   v3.83.1 28-Nov-2026 Pitch allocation: delete list items, one entry per club, A-Z pitches, team names on phone card.
@@ -427,7 +428,7 @@
   D.toLocaleTimeString = function (loc, o) { if (!ok(this, loc, o)) return ot.call(this, loc, o); o = o || {}; return get(loc, any(o, TIME) ? o : { ...o, hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
   D.toLocaleString = function (loc, o) { if (!ok(this, loc, o)) return os.call(this, loc, o); o = o || {}; return get(loc, any(o, DATE) || any(o, TIME) ? o : { ...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).format(this); };
 })();
-const VERSION = "v3.83.3";
+const VERSION = "v3.83.4";
 const BUILD_DATE = "28-Nov-2026"; // UK format DD-MMM-YYYY, used everywhere
 const VERSION_LABEL = "The Stats Board " + VERSION + " \u00b7 " + BUILD_DATE;
 // <RELEASE_NOTES_START>
@@ -476,6 +477,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.4_pin_numpad.zip | v3.83.3
 v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
 v3.83.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.2_pitch_footer.zip | v3.83.1
 v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
@@ -875,6 +877,10 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.4 - PIN pages: number pad back
+- Owner decision (28-Nov-2026): PINs stay numeric for ease of entry while proper sign-in is planned, so the PIN boxes open the number pad again (reverts the keyboard change in v3.83.3). Use a numeric DEV_PIN on the test site.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.3 - Pitch allocation: step buttons work, empty publish clears the screen, letters allowed in PINs
 - Owner report (28-Nov-2026) after testing v3.83.2.
@@ -3796,6 +3802,7 @@ const DOC_SECTIONS = [
   ] },
   { id: "new", title: "What's new", who: "Everyone", blocks: [
     { dl: [
+      ["v3.83.4", "PIN boxes open the number pad again."],
       ["v3.83.3", "Pitch allocation: the step buttons at the top work, publishing with no age groups clears the screen and phones, and PIN boxes accept letters."],
       ["v3.83.2", "Pitch allocation: the small footer line no longer sits on top of the phone view; it follows the content."],
       ["v3.83.1", "Pitch allocation: list items can be deleted, the opposition search shows one entry per club, pitches are A to Z, and the phone card names the teams instead of Home and Away."],
@@ -5069,7 +5076,7 @@ ${sw("fs", s.features.screens, "Count clubhouse screen loads", "Adds each TV scr
 <section class="sec" id="s-status" hidden><h1>Site status</h1><p class="sub">Maintenance mode and its pun lines.</p>
 <div class="cd">
 <div class="nb"><div class="nh"><div><b>Maintenance mode</b><small>Shows a &ldquo;Back soon&rdquo; page in place of every page, TV screen, calendar and data call. Only this Admin page and the PIN pages stay open.</small></div><label class="tg"><input type="checkbox" id="mon"${m.on ? " checked" : ""}><span></span></label></div>
-<div id="mpr" hidden style="margin-top:10px"><div class="l">Enter the club PIN to switch maintenance mode on</div><input class="in" id="mpin" type="password" inputmode="text" autocapitalize="off" autocomplete="off" maxlength="40" placeholder="Club PIN" style="max-width:220px"></div>
+<div id="mpr" hidden style="margin-top:10px"><div class="l">Enter the club PIN to switch maintenance mode on</div><input class="in" id="mpin" type="password" inputmode="numeric" autocomplete="off" maxlength="40" placeholder="Club PIN" style="max-width:220px"></div>
 <div class="l">Pun line</div><select class="in" id="mpun"><option value="random"${m.pun === "random" ? " selected" : ""}>Random each visit</option>${m.lines.map(x => `<option value="${ea(x)}"${m.pun === x ? " selected" : ""}>${ea(x)}</option>`).join("")}<option value="none"${m.pun === "none" ? " selected" : ""}>None (leave the line out)</option></select>
 <div class="l">Extra line for visitors <span>(optional, e.g. a return time)</span></div><input class="in" id="mex" maxlength="120" autocomplete="off" placeholder="e.g. Back around 8pm tonight" value="${ea(m.extra)}"><div class="cnt" id="mxc"></div>
 <div class="save" style="margin-top:10px"><button type="button" class="btn" id="mlb" style="background:#26312d;color:#e6efe9">Manage lines</button><a class="btn" id="mpv" href="/maintenance-preview" target="_blank" rel="noopener" style="background:#26312d;color:#e6efe9;text-decoration:none">Preview page</a></div>
@@ -11629,7 +11636,7 @@ function cookieOf(request, name) {
 function pinPage(label, message, next, status, action, heading) {
   action = action || "/unlock";
   const esc = x => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const form = next === null ? "" : `<form method="post" action="${action}"><input type="hidden" name="next" value="${esc(next)}"><label for="p">PIN</label><input id="p" name="pin" type="password" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="current-password" autofocus required><button type="submit">Unlock</button></form>`;
+  const form = next === null ? "" : `<form method="post" action="${action}"><input type="hidden" name="next" value="${esc(next)}"><label for="p">PIN</label><input id="p" name="pin" type="password" inputmode="numeric" autocomplete="current-password" autofocus required><button type="submit">Unlock</button></form>`;
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${label ? "[" + esc(label) + "] " : ""}Enter PIN</title>
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;font-family:Arial,Helvetica,sans-serif;background:#080b0d;color:#f5f7f6}.c{width:100%;max-width:340px;background:#111719;border:1px solid #26312d;border-radius:16px;padding:22px}h1{font-size:20px;margin:0 0 6px}p{margin:0 0 14px;color:#91a49a;font-size:14px}p.e{color:#f09595}label{display:block;font-size:13px;font-weight:700;color:#9eafa5;margin-bottom:6px}input[type=password]{width:100%;font-size:18px;letter-spacing:.2em;color:#f5f7f6;background:#0b1110;border:1px solid #2c3a34;border-radius:10px;padding:11px 12px}button{width:100%;margin-top:12px;font:700 16px Arial,Helvetica,sans-serif;color:#fff;background:#18512f;border:0;border-radius:10px;padding:12px;cursor:pointer}</style></head><body><div class="c"><div style="margin-bottom:14px">${sbWordmark(false)}</div><h1>${esc(heading || label + " environment")}</h1><p${message && status !== 200 ? ' class="e"' : ""}>${esc(message)}</p>${form}</div>${VERSION_STAMP}</body></html>`;
   return new Response(html, { status, headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex", "X-Stats-Board-Version": VERSION } });

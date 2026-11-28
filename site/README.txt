@@ -43,6 +43,7 @@ Parked ideas (not built; move a line to the release table when it ships)
 
 Release table (newest first; dates are UK DD-MMM-YYYY and recorded from v22f)
 Version | Date        | Zip file                                    | Rolls back to
+v3.83.4 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.4_pin_numpad.zip | v3.83.3
 v3.83.3 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.3_pitch_steps_clear.zip | v3.83.2
 v3.83.2 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.2_pitch_footer.zip | v3.83.1
 v3.83.1 | 28-Nov-2026 | RFU_Club_Dashboard_v3.83.1_pitch_lists_clubs.zip | v3.83.0
@@ -442,6 +443,10 @@ v3.74.0 - Sponsors thank-you TV page
 - Not covered: sponsors that back the club with no player (parked idea); an all-club logos slide (left out on purpose).
 - Request limit: each slide reads the sponsors and one season record (2 settings reads, no outside calls).
 - Docs: TV rotation (one rotating link), What's new
+
+v3.83.4 - PIN pages: number pad back
+- Owner decision (28-Nov-2026): PINs stay numeric for ease of entry while proper sign-in is planned, so the PIN boxes open the number pad again (reverts the keyboard change in v3.83.3). Use a numeric DEV_PIN on the test site.
+- Docs: Pitch and changing room allocation, Releases and versions
 
 v3.83.3 - Pitch allocation: step buttons work, empty publish clears the screen, letters allowed in PINs
 - Owner report (28-Nov-2026) after testing v3.83.2.
